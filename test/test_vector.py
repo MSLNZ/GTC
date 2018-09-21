@@ -19,7 +19,7 @@ from GTC2.GTC.vector import merge_weighted_vectors
 from GTC2.GTC.vector import merge_vectors
 from GTC2.GTC.vector import is_ordered
 
-from lib.testing_tools import *
+from testing_tools import *
 
 #----------------------------------------------------------------------------
 # The index of a vector is an object that must have a `uid` attribute

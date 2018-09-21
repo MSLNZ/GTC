@@ -7,7 +7,7 @@ import itertools
 from GTC2.GTC import *
 from GTC2.GTC.context import Context
 
-from lib.testing_tools import *
+from testing_tools import *
 
 TOL = 1E-13 
 

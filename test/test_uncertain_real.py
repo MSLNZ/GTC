@@ -15,7 +15,7 @@ from GTC2.GTC.reporting import u_component
 from GTC2.GTC.lib_real import (UncertainReal,welch_satterthwaite,std_variance_real)
 from GTC2.GTC import reporting
 
-from lib.testing_tools import *
+from testing_tools import *
 
 TOL = 1E-13 
 LOG10_E = math.log10(math.e)

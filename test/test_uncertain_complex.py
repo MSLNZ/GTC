@@ -13,7 +13,7 @@ from GTC2.GTC.reporting import *
 from GTC2.GTC.lib_complex import UncertainComplex, willink_hall
 from GTC2.GTC.lib_real import UncertainReal
 
-from lib.testing_tools import *
+from testing_tools import *
 
 TOL = 1E-13 
 LOG10_E = cmath.log10(cmath.e)

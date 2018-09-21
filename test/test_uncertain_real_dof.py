@@ -15,7 +15,7 @@ from GTC2.GTC.reporting import u_component
 from GTC2.GTC.lib_real import (UncertainReal,welch_satterthwaite)
 from GTC2.GTC import reporting
 
-from lib.testing_tools import *
+from testing_tools import *
 
 TOL = 1E-13 
 

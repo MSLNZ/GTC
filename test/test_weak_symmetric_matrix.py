@@ -9,7 +9,7 @@ TOL = 1E-13
 DIGITS = 13
 
 from GTC2.GTC.weak_symmetric_matrix import WeakSymmetricMatrix 
-from lib.testing_tools import *
+from testing_tools import *
 
 class wrapper(object):
     # A class of objects that can be used to create  
