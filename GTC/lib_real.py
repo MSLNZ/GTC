@@ -9,9 +9,9 @@ import numbers
 from string import Template
 from itertools import izip
 
-from GTC2.GTC import nodes 
-from GTC2.GTC.named_tuples import VarianceAndDof, GroomedUncertainReal, ComponentOfUncertainty
-from GTC2.GTC.vector import *
+from GTC import nodes 
+from GTC.named_tuples import VarianceAndDof, GroomedUncertainReal, ComponentOfUncertainty
+from GTC.vector import *
 
 inf = float('inf')
 nan = float('nan') 
@@ -92,17 +92,31 @@ class UncertainReal(object):
             exponent = math.ceil( log10_u ) 
             
             # In fixed-point, precision is the number of decimal places. 
-            precision = 0 if exponent-digits >= 0 else int(digits-exponent)
+            decimal_places = 0 if exponent-digits >= 0 else int(digits-exponent)
         
             factor = 10**(exponent-digits)
             
             x = factor*round(self.x/factor)
             u = factor*round(self.u/factor)
             
-            # Just the digits representing uncertainty 
-            # e.g.: 3.141(20)
-            u_digits = "{:.0f}".format(self.u/factor)[:digits]
-
+            # Get the numerals representing uncertainty 
+            # When the uncertainty is to the left of the 
+            # decimal point there will be `digits` numerals 
+            # but to the right of the decimal point there will
+            # be sufficient to reach the units column.
+            
+            # TODO: generalise so that we can use the format 
+            # specifier to control this. Let the precision parameter
+            # be the number of significant digits in the uncertainty 
+            # and format the result accordingly.
+            
+            # Also need to generalise so that it works with 
+            # E and G presentations
+            if decimal_places <= 1:
+                u_digits = "{1:.{0}f}".format(decimal_places,u)
+            else:
+                u_digits = "{:.0f}".format(self.u/factor)
+                
             df_factor = 10**(-df_decimals)       
             df = df_factor*math.floor(self.df/df_factor)
             if df > 1E6: df = float('inf')
@@ -113,9 +127,9 @@ class UncertainReal(object):
                     u = u,
                     df = df,
                     label = None,
-                    precision = precision,
+                    precision = decimal_places,
                     df_decimals = df_decimals,
-                    u_digits = u_digits
+                    u_digits = "({})".format(u_digits)
                 )
             else:
                 return GroomedUncertainReal(
@@ -123,9 +137,9 @@ class UncertainReal(object):
                     u = u,
                     df = df,
                     label = self.label,
-                    precision = precision,
+                    precision = decimal_places,
                     df_decimals = df_decimals,
-                    u_digits = u_digits
+                    u_digits = "({})".format(u_digits)
                 )
         else:
             # A constant 
@@ -138,7 +152,7 @@ class UncertainReal(object):
                     label = None,
                     precision = 6,
                     df_decimals = 0,
-                    u_digits = "00"
+                    u_digits = ""
                 )  
             else:
                 return GroomedUncertainReal(
@@ -148,7 +162,7 @@ class UncertainReal(object):
                     label = self.label,
                     precision = 6,
                     df_decimals = 0,
-                    u_digits = "00"
+                    u_digits = ""
                 )  
         
     #------------------------------------------------------------------------
@@ -182,7 +196,7 @@ class UncertainReal(object):
         # str() is for presentation, so assume that the usual 
         # 2-digit fixed point format in the uncertainty will suffice.          
         gself = self._round(2,0)
-        return "{1.x:.{0}f}({1.u_digits})".format( gself.precision, gself )
+        return "{1.x:.{0}f}{1.u_digits}".format( gself.precision, gself )
      
     #------------------------------------------------------------------------
     def __nonzero__(self):

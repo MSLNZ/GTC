@@ -3,11 +3,11 @@
 import os 
 import weakref
 
-from GTC2.GTC.weak_symmetric_matrix import WeakSymmetricMatrix
-from GTC2.GTC.lib_real import UncertainReal
-from GTC2.GTC.lib_complex import UncertainComplex
-from GTC2.GTC.vector import *
-from GTC2.GTC.nodes import *
+from GTC.weak_symmetric_matrix import WeakSymmetricMatrix
+from GTC.lib_real import UncertainReal
+from GTC.lib_complex import UncertainComplex
+from GTC.vector import *
+from GTC.nodes import *
 
 inf = float('inf')
 nan = float('nan')
@@ -48,7 +48,7 @@ class Context(object):
   
         # Leaf cache - used to avoid duplicating UNs when unpacking archives 
         self._registered_leaf_nodes = weakref.WeakValueDictionary()
-  
+          
     #------------------------------------------------------------------------
     def _next_elementary_id(self):
         """

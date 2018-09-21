@@ -40,15 +40,15 @@ import math
 import numbers
 import itertools
 
-from GTC2.GTC.lib_complex import UncertainComplex
-from GTC2.GTC.lib_real import UncertainReal
-from GTC2.GTC.lib_real import get_correlation_real
+from GTC.lib_complex import UncertainComplex
+from GTC.lib_real import UncertainReal
+from GTC.lib_real import get_correlation_real
 
-from GTC2.GTC.context import context
-from GTC2.GTC.vector import merge_vectors
-from GTC2.GTC.nodes import Node
+from GTC.context import context
+from GTC.vector import merge_vectors
+from GTC.nodes import Node
 
-from GTC2.GTC.named_tuples import (
+from GTC.named_tuples import (
     VarianceCovariance,
     StandardUncertainty,
     StandardDeviation,
@@ -667,7 +667,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
 #============================================================================    
 if __name__ == "__main__":
     import doctest
-    from GTC2.GTC import *
+    from GTC import *
     
     doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
 

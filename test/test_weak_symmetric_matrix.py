@@ -8,7 +8,7 @@ import operator
 TOL = 1E-13
 DIGITS = 13
 
-from GTC2.GTC.weak_symmetric_matrix import WeakSymmetricMatrix 
+from GTC.weak_symmetric_matrix import WeakSymmetricMatrix 
 from testing_tools import *
 
 class wrapper(object):

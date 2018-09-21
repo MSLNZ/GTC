@@ -10,10 +10,10 @@ import cmath
 
 from itertools import izip
 
-from GTC2.GTC.lib_real import *
-from GTC2.GTC.vector import *
-from GTC2.GTC.nodes import *
-from GTC2.GTC.named_tuples import VarianceCovariance, StandardUncertainty, GroomedUncertainComplex
+from GTC.lib_real import *
+from GTC.vector import *
+from GTC.nodes import *
+from GTC.named_tuples import VarianceCovariance, StandardUncertainty, GroomedUncertainComplex
 
 inf = float('inf')
 nan = float('nan') 
@@ -121,7 +121,7 @@ class UncertainComplex(object):
             # find the lesser uncertainty and round to two digits,
             # then express the results in this precision.
             u = min(re.u, im.u)
-            # However,, if one component is constant use the other 
+            # However, if one component is constant use the other 
             if u == 0.0:
                 u = max(re.u, im.u)
         
@@ -132,17 +132,35 @@ class UncertainComplex(object):
             exponent = math.ceil( log10_u ) 
             
             # In fixed-point, precision is the number of decimal places. 
-            precision = 0 if exponent-digits >= 0 else int(digits-exponent)
+            decimal_places = 0 if exponent-digits >= 0 else int(digits-exponent)
         
             factor = 10**(exponent-digits)
             
             re_x = factor*round(re.x/factor)
-            re_u_digits = "{:.0f}".format(re_u/factor)[:digits]
             re_u = factor*round(re.x/factor)
             
             im_x = factor*round(im.x/factor)
-            im_u_digits = "{:.0f}".format(im_u/factor)[:digits]
             im_u = factor*round(im.x/factor)
+
+            # Get the numerals representing uncertainty 
+            # When the uncertainty is to the left of the 
+            # decimal point there will be `digits` numerals 
+            # but to the right of the decimal point there will
+            # be sufficient to reach the units column.
+            
+            # TODO: generalise so that we can use the format 
+            # specifier to control this. Let the precision parameter
+            # be the number of significant digits in the uncertainty 
+            # and format the result accordingly.
+            
+            # Also need to generalise so that it works with 
+            # E and G presentations
+            if decimal_places <= 1:
+                re_u_digits = "{1:.{0}f}".format(decimal_places,re_u)
+                im_u_digits = "{1:.{0}f}".format(decimal_places,im_u)
+            else:
+                re_u_digits = "{:.0f}".format(re_u/factor)
+                im_u_digits = "{:.0f}".format(im_u/factor)
 
             r_factor = 10**(-3)
             r = r_factor*round(r/r_factor) 
@@ -157,7 +175,7 @@ class UncertainComplex(object):
                 r = r,
                 df = df,
                 label = self.label,
-                precision = precision,
+                precision = decimal_places,
                 df_decimals = df_decimals,
                 re_u_digits = re_u_digits,
                 im_u_digits = im_u_digits

@@ -4,8 +4,8 @@ import math
 import cmath
 import itertools
 
-from GTC2.GTC import *
-from GTC2.GTC.context import Context
+from GTC import *
+from GTC.context import Context
 
 from testing_tools import *
 

@@ -27,10 +27,10 @@ Module contents
 """
 from __future__ import division     # True division
 
-from GTC2.GTC.lib_complex import *
-from GTC2.GTC.vector import *
-from GTC2.GTC.lib_real import *
-from GTC2.GTC.named_tuples import ComponentOfUncertainty, Influence
+from GTC.lib_complex import *
+from GTC.vector import *
+from GTC.lib_real import *
+from GTC.named_tuples import ComponentOfUncertainty, Influence
 
 from itertools import izip
 from operator import attrgetter as getter
@@ -508,5 +508,5 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
 #-------------------------------------------------------
 if __name__ == "__main__":
     import doctest
-    from GTC2.GTC import *
+    from GTC import *
     doctest.testmod()

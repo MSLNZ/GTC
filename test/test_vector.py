@@ -10,14 +10,14 @@ from itertools import izip
 TOL = 1E-13
 DIGITS = 13
 
-from GTC2.GTC import *
+from GTC import *
 
-from GTC2.GTC.vector import Vector
-from GTC2.GTC.vector import scale_vector
-from GTC2.GTC.vector import extend_vector
-from GTC2.GTC.vector import merge_weighted_vectors
-from GTC2.GTC.vector import merge_vectors
-from GTC2.GTC.vector import is_ordered
+from GTC.vector import Vector
+from GTC.vector import scale_vector
+from GTC.vector import extend_vector
+from GTC.vector import merge_weighted_vectors
+from GTC.vector import merge_vectors
+from GTC.vector import is_ordered
 
 from testing_tools import *
 

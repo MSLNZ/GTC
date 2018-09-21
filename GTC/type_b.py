@@ -231,5 +231,5 @@ def unknown_phase_product(u1,u2):
 #============================================================================
 if __name__ == "__main__":
     import doctest
-    from GTC2.GTC import *
+    from GTC import *
     doctest.testmod()

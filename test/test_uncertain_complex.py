@@ -7,11 +7,11 @@ import itertools
 import numpy
 import operator
 
-from GTC2.GTC import *
-from GTC2.GTC.context import context 
-from GTC2.GTC.reporting import *
-from GTC2.GTC.lib_complex import UncertainComplex, willink_hall
-from GTC2.GTC.lib_real import UncertainReal
+from GTC import *
+from GTC.context import context 
+from GTC.reporting import *
+from GTC.lib_complex import UncertainComplex, willink_hall
+from GTC.lib_real import UncertainReal
 
 from testing_tools import *
 

@@ -6,14 +6,14 @@ import itertools
 
 import numpy
 
-from GTC2.GTC import *
-from GTC2.GTC.context import context 
-from GTC2.GTC.vector import *
-from GTC2.GTC.nodes import *
-from GTC2.GTC.vector import is_ordered
-from GTC2.GTC.reporting import u_component
-from GTC2.GTC.lib_real import (UncertainReal,welch_satterthwaite)
-from GTC2.GTC import reporting
+from GTC import *
+from GTC.context import context 
+from GTC.vector import *
+from GTC.nodes import *
+from GTC.vector import is_ordered
+from GTC.reporting import u_component
+from GTC.lib_real import (UncertainReal,welch_satterthwaite)
+from GTC import reporting
 
 from testing_tools import *
 

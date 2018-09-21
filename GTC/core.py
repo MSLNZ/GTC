@@ -6,15 +6,15 @@ import numbers
 import collections
 import itertools
 
-from GTC2.GTC.lib_real import *
-from GTC2.GTC.lib_complex import *
-from GTC2.GTC.context import *
+from GTC.lib_real import *
+from GTC.lib_complex import *
+from GTC.context import *
 
-from GTC2.GTC import reporting
-from GTC2.GTC import type_b
-from GTC2.GTC import type_a
+from GTC import reporting
+from GTC import type_b
+from GTC import type_a
 
-from GTC2.GTC.named_tuples import (
+from GTC.named_tuples import (
     CorrelationMatrix, 
     CovarianceMatrix
 )
@@ -1142,6 +1142,6 @@ def mag_squared(x):
 #============================================================================    
 if __name__ == "__main__":
     import doctest
-    from GTC2.GTC import *
+    from GTC import *
     
     doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
