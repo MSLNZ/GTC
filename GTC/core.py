@@ -175,13 +175,6 @@ def dof(x):
     Returns ``inf`` when the degrees of freedom is greater than 1E6
     
     Returns ``nan`` when the calculation is invalid   
-
-    .. note::
-    
-        This function calls :func:`reporting.variance_and_dof()`, 
-        which evaluates both the variance and the degrees-of-freedom.
-        It may be more efficient to call that function directly in some 
-        situations.
     
     **Examples**::
 
@@ -1111,8 +1104,6 @@ def magnitude(x):
 #---------------------------------------------------------------------------
 def phase(z):
     """
-    Return an uncertain real number for the phase 
-
     :arg z: an uncertain complex number    
     :type z: :class:`UncertainComplex`
 

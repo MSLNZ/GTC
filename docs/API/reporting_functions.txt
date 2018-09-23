@@ -1,0 +1,13 @@
+.. _reporting_functions:
+
+*******************
+Reporting functions
+*******************
+
+This module provides functions that facilitate the reporting of information about ``GTC`` results.
+
+The prefix :mod:`reporting` (or the alias ``rp``) is needed to resolve objects defined in this module.
+
+.. automodule:: reporting
+	:members:
+	:inherited-members:
