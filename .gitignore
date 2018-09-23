@@ -1,3 +1,6 @@
 /docs/Makefile
 /docs/make.bat
 *.pyc
+
+# IDE settings
+.idea/
