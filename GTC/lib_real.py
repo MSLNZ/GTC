@@ -1440,8 +1440,10 @@ def std_variance_real(x):
     # The independent components of uncertainty
     # ( Faster this way than with reduce()! )
     var = 0.0
-    for u_i in x._u_components.itervalues():
-        var += u_i * u_i
+    var += math.fsum(
+        u_i*u_i 
+        for u_i in x._u_components.itervalues()
+    )
     
     # Only evaluate the following terms when correlations 
     # have been declared, which is rare.
@@ -1463,8 +1465,12 @@ def std_variance_real(x):
                 # No entry, next key
                 continue
                 
-            for j,k_j in enumerate( keys[i+1:] ):
-                var += 2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
+            # for j,k_j in enumerate( keys[i+1:] ):
+                # var += 2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
+            var += math.fsum(
+                2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
+                for j,k_j in enumerate( keys[i+1:] )
+            )
                             
     return var
 
@@ -1488,22 +1494,26 @@ def std_covariance_real(x1,x2):
     
     cv = 0.0
 
-    # Keys are references to Leaf objects
-    
-    for k1_i,u1_i in x1._u_components.iteritems():
-        # `k1` is not correlated with anything, so only if 
-        # `k1` happens to influence x2 do we get any contribution.
-        cv += u1_i*x2._u_components.get(k1_i,0.0)
-        
+    # `k1` is not correlated with anything, so only if 
+    # `k1` happens to influence x2 do we get any contribution.    
+    cv += math.fsum(
+        u1_i*x2._u_components.get(k1_i,0.0)
+        for k1_i,u1_i in x1._u_components.iteritems()
+    )
+                    
     for k1_i,u1_i in x1._d_components.iteritems():
-        # `k1` could be correlated with `k2`
         try:
+            # `k1_i` could be correlated with influences of `x2`
             row_i = context._correlations._mat[k1_i]
-            # Some correlations declared, so check. 
-            for k2_i,u2_i in x2._d_components.iteritems():
-                cv += u1_i*row_i.get(k2_i,0.0)*u2_i
+            
+            # Some correlations are declared, so check. 
+            cv += math.fsum(
+                u1_i*row_i.get(k2_i,0.0)*u2_i
+                for k2_i,u2_i in x2._d_components.iteritems()
+            )
         except KeyError:
-            # `k1_i` has no declared correlations
+            # `k1_i` is not correlated with anything
+            # but `x2` may be influenced by `k1_i` 
             cv += u1_i*x2._d_components.get(k1_i,0.0)
 
     return cv

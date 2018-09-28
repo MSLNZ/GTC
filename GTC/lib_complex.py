@@ -338,7 +338,6 @@ class UncertainComplex(object):
         except AttributeError: 
             cv = std_variance_covariance_complex(self)
             self._v = cv
-            self._r = math.sqrt( cv[1]/(cv[0]*cv[3]) )
         
             return self._v
 
@@ -348,15 +347,17 @@ class UncertainComplex(object):
 
         :returns: float
         
-        
         """
         try:
             return self._r 
         except AttributeError: 
-            cv = std_variance_covariance_complex(self)
-
-            self._v = cv
-            self._r = math.sqrt( cv[1]/(cv[0]*cv[3]) )
+            try:
+                cv = self._v
+            except AttributeError:
+                cv = std_variance_covariance_complex(self)
+                self._v = cv
+                
+            self._r = cv[1]/(cv[0]*cv[3]) if cv[1] != 0.0 else 0.0
         
             return self._r
             
