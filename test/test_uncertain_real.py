@@ -805,7 +805,7 @@ class TestUncertainReal(unittest.TestCase):
         # args: context,uid,tag,u,df [,independent=True]
         tag = 'test'
         df = 10
-        lf = Leaf(c,3,tag,u,df)
+        lf = Leaf(3,tag,u,df)
         un = UncertainReal(c,x,u_comp,d_comp,i_comp,lf)
         self.assert_( un._u_components is u_comp )
         self.assert_( un._i_components is i_comp )

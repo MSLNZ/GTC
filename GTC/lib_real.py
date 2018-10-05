@@ -21,6 +21,22 @@ is_undefined = math.isnan
 
 LOG10_E = math.log10(math.e)
 
+# TODO: Issue!!
+# _context is an attribute of UncertainReal to avoid circular importing. 
+# This  doesn't seem elegant, because where is one (global) context object.
+# Context and UncertainReal are tightly coupled (also UncertainComplex).
+# Context has methods that create these other objects, because the Context 
+# keeps track of various things (node registers, correlations, etc).
+# _context is not used a great deal. We return constants (but this could 
+# be handled without the Context, because constants are not logged). We
+# create some UncertainComplex results as a result of mixed type maths. 
+# We use the context with variance and degrees of freedom calculations. 
+# We set and get correlation coefficients. The functions like 
+# Welch-Satterthwaite and variance might be moved to another module, but 
+# we would need to drop the attributes .v, .df, etc to make this work
+# (because they currently call the function - wherever it is). Without 
+# the attributes, we could define function calls in core.py.
+# 
 #----------------------------------------------------------------------------
 class UncertainReal(object):
     
@@ -57,8 +73,8 @@ class UncertainReal(object):
             self.is_intermediate = False
             
         else: 
-        # Constants are Leaf nodes, but the UID is None,
-        # they should not be classed as `elementary`
+            # Constants are Leaf nodes, but the UID is None,
+            # they should not be classed as `elementary`
             self.is_elementary = (
                 isinstance(self._node,nodes.Leaf)
                     and not self._node.uid is None

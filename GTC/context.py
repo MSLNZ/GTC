@@ -46,8 +46,9 @@ class Context(object):
         # in the ensemble.
         self._ensemble = weakref.WeakKeyDictionary()
   
-        # Leaf cache - used to avoid duplicating UNs when unpacking archives 
+        # Caching to avoid duplicating UNs when unpacking archives 
         self._registered_leaf_nodes = weakref.WeakValueDictionary()
+        self._registered_intermediate_nodes = weakref.WeakValueDictionary()
           
     #------------------------------------------------------------------------
     def _next_elementary_id(self):
@@ -103,12 +104,84 @@ class Context(object):
         
         """
         try:
-            return self._registered_leaf_nodes[uid]
+            l =  self._registered_leaf_nodes[uid]
         except KeyError:
-            l = Leaf(self,uid,tag,u,df,independent=independent)
+            l = Leaf(uid,tag,u,df,independent=independent)
             self._registered_leaf_nodes[uid] = l
-            return l 
+            
+        return l 
+            
+    #------------------------------------------------------------------------
+    def new_node(self,uid,tag,u):
+        """
+        Return a new ``Node`` node unless one with the same uid exists
+        
+        """
+        try:
+            n = self._registered_intermediate_nodes[uid]
+        except KeyError:
+            n = Node(uid,tag,u)
+            self._registered_intermediate_nodes[uid] = n
 
+        return n
+        
+    #------------------------------------------------------------------------
+    def _archived_elementary_real(self,uid,x,u,df=inf,label=None,independent=True):
+        """
+        Return an elementary uncertain real number.
+
+        Create an uncertain number with value 'x', 
+        standard uncertainty 'u'.
+
+        Parameters
+        ----------
+        uid : unique identifier
+        x : float
+        u : float
+        df : float
+        label : string
+        independent : Boolean
+
+        Returns
+        -------
+        UncertainReal
+        
+        """
+        # Use the cache `self._registered_leaf_nodes` 
+        # to avoid creating multiple LeafNode objects.
+        if uid in self._registered_leaf_nodes:
+            l = self._registered_leaf_nodes[uid]
+            # Archive inconsistencies:
+            if l.u != u or l.df != df or l.tag != label:
+                raise RuntimeError(
+                    "Inconsistent archive records for '{}' and '{}'".format(
+                        label, l.tag
+                    )
+                )
+        else:
+            l = self.new_leaf(uid, tag, u, df, independent) 
+        
+        if independent:
+            un = UncertainReal(
+                    self
+                ,   x
+                ,   Vector( index=[uid],value=[u] )
+                ,   Vector( )
+                ,   Vector( )
+                ,   l
+                )
+        else:
+            un = UncertainReal(
+                    self
+                ,   x
+                ,   Vector( )
+                ,   Vector( index=[uid],value=[u] )
+                ,   Vector( )
+                ,   l
+                )
+        
+        return un  
+        
     #------------------------------------------------------------------------
     def complex_ensemble(self,seq,df):
         """
@@ -264,7 +337,7 @@ class Context(object):
             ,   Vector( )
             ,   Vector( )
             ,   Vector( )
-            ,   Leaf(self,uid=None,tag=label,u=0.0,df=inf)
+            ,   Leaf(uid=None,tag=label,u=0.0,df=inf)
         )
         
     #------------------------------------------------------------------------
@@ -348,10 +421,7 @@ class Context(object):
             # This is a new registration 
             uid = self._next_intermediate_id()
             u = un.u
-            
-            # A Node must be assigned
             un._node = Node(
-                self,
                 uid,
                 tag,
                 u
@@ -364,6 +434,8 @@ class Context(object):
             )
             un.is_intermediate = True
                 
+            assert uid not in self._registered_intermediate_nodes
+            self._registered_intermediate_nodes[uid] = un._node
             # else:
                 # Assume that everything has been registered, perhaps 
                 # the user has repeated the registration process.
