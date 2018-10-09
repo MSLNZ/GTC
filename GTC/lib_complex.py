@@ -137,10 +137,10 @@ class UncertainComplex(object):
             factor = 10**(exponent-digits)
             
             re_x = factor*round(re.x/factor)
-            re_u = factor*round(re.x/factor)
+            re_u = factor*round(re.u/factor)
             
             im_x = factor*round(im.x/factor)
-            im_u = factor*round(im.x/factor)
+            im_u = factor*round(im.u/factor)
 
             # Get the numerals representing uncertainty 
             # When the uncertainty is to the left of the 

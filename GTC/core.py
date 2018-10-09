@@ -343,6 +343,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=[None]):
         expanded_uncertainty(lower=127.53788813535775, upper=127.92645172084642)
 
     """
+    # TODO: reject string as label_seq; review use of `longest`
     if len(x_seq) != len(u_seq):
         raise RuntimeError(
             "unequal length sequences: x={!r} u={!r}".format(x_seq,u_seq)
@@ -486,7 +487,9 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
         
     if not isinstance(df,numbers.Real) or df < 1:
         raise RuntimeError("invalid dof: '{!r}'".format(df) )
-    
+        
+    # TODO: consider try-except-else to target the case of
+    # non-sequence for `u` better
     try:
         case = len(u)
         
@@ -496,6 +499,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
             r = None
             
         elif case == 4:
+            # TODO: assert cv == cv or include in next `if`?
             u_r,cv,cv,u_i = u
             if not isinstance(cv,numbers.Real):
                 raise RuntimeError("invalid covariance: '{!r}'".format(cv) )
@@ -508,8 +512,9 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 independent = False
                 
         else:
-            raise RuntimeError,\
+            raise RuntimeError(
                 "invalid uncertainty: '{!r}'".format(u)
+            )
         
         if not isinstance(u_r,numbers.Real) or u_r < 0:
             raise RuntimeError("invalid real uncertainty: '{!r}'".format(u_r) )
@@ -519,8 +524,9 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
         
         # Allow a little tolerance for numerical imprecision
         if r is not None and abs(r) > 1 + 1E-10:
-            raise RuntimeError,\
+            raise RuntimeError(
                 "invalid correlation: {!r}, cv={}".format(r,u)
+            )
 
     except TypeError:
         # 'u' is not a sequence
@@ -576,6 +582,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=[None]):
         expanded_uncertainty(lower=127.55228662093492, upper=127.91205323526924)
 
     """
+    # TODO: reject string as label_seq; review use of `longest`
     if len(x_seq) != len(u_seq):
         raise RuntimeError(
             "unequal length sequences: x={!r} u={!r}".format(x_seq,u_seq)
@@ -697,10 +704,11 @@ def set_correlation(r,arg1,arg2=None):
                     if all( r_i == 0.0 for r_i in r ): return 
                     
                 if (
+                    # TODO: 2 tests are redundant
                     is_infinity( arg1.real._node.df ) and
                     is_infinity( arg2.real._node.df ) and
                     is_infinity( arg1.imag._node.df ) and
-                    is_infinity( arg1.imag._node.df )
+                    is_infinity( arg2.imag._node.df )
                 ):
                     set_correlation_real(arg1.real,arg2.real,r[0])
                     set_correlation_real(arg1.real,arg2.imag,r[1])
@@ -776,7 +784,7 @@ def get_correlation(arg1,arg2=None):
             cv_ri = 0.0
             cv_ir = get_correlation_real(arg1.imag,arg2)
             cv_ii = 0.0
-            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
+            return CorrelationMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
         elif isinstance(arg2,UncertainComplex):
             r_rr = get_correlation_real(arg1.real,arg2.real)
             r_ri = get_correlation_real(arg1.real,arg2.imag)
@@ -1025,13 +1033,8 @@ def cosh(x):
     Uncertain number hyperbolic cosine function
 
     """
-    try:
-        return x._cosh()
-    except AttributeError:
-        # if isinstance(x,array):
-            # return vectorise_a(cosh,x)
-        # else:
-            raise
+    return x._cosh()
+    
 #---------------------------------------------------------------------------
 def tanh(x):
     """

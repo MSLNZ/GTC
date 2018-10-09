@@ -15,6 +15,8 @@ from __future__ import division
 import math
 import cmath
 
+# TODO: GTC global constants here, also `is_infinity`, etc
+
 from core import *
 
 __all__ = (
