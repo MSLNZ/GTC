@@ -584,11 +584,11 @@ class Archive(object):
                 for nid_i in _ensemble:
                     assert nid_i not in _new_ensemble
                     _new_ensemble[nid_i] = _ensemble
-                    
+        
         # The ensembles associated with these nodes             
         # can be merged with current context ensembles.
         context._ensemble.update(_new_ensemble)
-        
+
         # Create the nodes associated with intermediate 
         # uncertain numbers. This must be done before these 
         # uncertain numbers are recreated.
@@ -607,11 +607,13 @@ class Archive(object):
                 un = _builder(
                     name,
                     _leaf_nodes,
-                    self._tagged_reals
+                    self._tagged_reals,
+                    context
                 )
                 # real_buf[obj.uid] = un
                     
                 self._tagged[name] = un
+
             elif isinstance(obj,TaggedIntermediateReal):
                 # if obj.uid in real_buf:
                     # un = real_buf[obj.uid]
@@ -619,73 +621,73 @@ class Archive(object):
                 un = _builder(
                     name,
                     _nodes,
-                    self._tagged_reals
+                    self._tagged_reals,
+                    context
                 )
                 # real_buf[obj.uid] = un
                     
                 self._tagged[name] = un
                 
+            # elif isinstance(
+                    # obj,
+                    # (TaggedElementaryComplex,TaggedIntermediateComplex)
+                # ):
+                # # Caching is more complicated for complex. The components
+                # # should use the same cache as reals (because just one component
+                # # may be relabeled in the archive). The complex container does not
+                # # have a node, so it cannot be identified so easily. Need to
+                # # have a complex buffer with nid pairs as keys.
+                # name_re = obj.n_re
+                # name_im = obj.n_im
                 
-            elif isinstance(
-                    obj,
-                    (TaggedElementaryComplex,TaggedIntermediateComplex)
-                ):
-                # Caching is more complicated for complex. The components
-                # should use the same cache as reals (because just one component
-                # may be relabeled in the archive). The complex container does not
-                # have a node, so it cannot be identified so easily. Need to
-                # have a complex buffer with nid pairs as keys.
-                name_re = obj.n_re
-                name_im = obj.n_im
-                
-                obj_re_nid = self._tagged_reals[name_re].nid
-                obj_im_nid = self._tagged_reals[name_im].nid
+                # obj_re_nid = self._tagged_reals[name_re].nid
+                # obj_im_nid = self._tagged_reals[name_im].nid
 
-                # Complex caching
-                complex_key  = (obj_re_nid,obj_im_nid)
-                if complex_key in complex_buf:
-                    unc = complex_buf[complex_key]
-                else:
-                    if obj_re_uid in real_buf:
-                        un_re = real_buf[obj_re_uid]
-                    else:
-                        un_re = _builder(
-                            name_re,
-                            _nodes,
-                            self._tagged_reals
-                        )
-                        real_buf[obj_re_uid] = un_re
+                # # Complex caching
+                # complex_key  = (obj_re_nid,obj_im_nid)
+                # if complex_key in complex_buf:
+                    # unc = complex_buf[complex_key]
+                # else:
+                    # if obj_re_uid in real_buf:
+                        # un_re = real_buf[obj_re_uid]
+                    # else:
+                        # un_re = _builder(
+                            # name_re,
+                            # _nodes,
+                            # self._tagged_reals
+                        # )
+                        # real_buf[obj_re_uid] = un_re
                         
-                    if obj_im_uid in real_buf:
-                        un_im = real_buf[obj_im_uid]
-                    else:
-                        un_im = _builder(
-                            name_im,
-                            _nodes,
-                            self._tagged_reals
-                        )
-                        real_buf[obj_im_uid] = un_im
+                    # if obj_im_uid in real_buf:
+                        # un_im = real_buf[obj_im_uid]
+                    # else:
+                        # un_im = _builder(
+                            # name_im,
+                            # _nodes,
+                            # self._tagged_reals
+                        # )
+                        # real_buf[obj_im_uid] = un_im
 
-                    assert un_re.is_elementary == un_im.is_elementary
-                    unc = UncertainComplex(un_re,un_im)
-                    complex_buf[complex_key] = unc                    
+                    # assert un_re.is_elementary == un_im.is_elementary
+                    # unc = UncertainComplex(un_re,un_im)
+                    # complex_buf[complex_key] = unc                    
                     
-                    # # TODO: do I need to let the context have these uid's?
-                    # # The _builder will register the real uids, but does
-                    # # not see a complex pair!
-                    # if unc.is_elementary:
-                        # unc._uid = (unc.real._uid,unc.imag._uid)
+                    # # # TODO: do I need to let the context have these uid's?
+                    # # # The _builder will register the real uids, but does
+                    # # # not see a complex pair!
+                    # # if unc.is_elementary:
+                        # # unc._uid = (unc.real._uid,unc.imag._uid)
                         
-                    # unc.label = obj.label
+                    # # unc.label = obj.label
                 
-                self._tagged[name] = unc
+                # self._tagged[name] = unc
             else:
                 assert False
-                
+                        
         # Add correlations between all elementary
         # uncertain numbers to the existing record
         R = context._correlations
-        
+                
         # _mat = self._correlations._mat (above)
         _uids = _mat.keys()             
         for i,uid_i in enumerate( _uids ):
@@ -699,7 +701,6 @@ class Archive(object):
 
         # Change the archive status
         self._extract = True
- 
  
 #----------------------------------------------------------------------------
 def _vector_index_to_uid(v):
@@ -770,7 +771,7 @@ If an elementary real UN is needed, this is constructed and the new node
 is added to _nodes.
 
 """
-def _builder(o_name,_nodes,_tagged_reals):
+def _builder(o_name,_nodes,_tagged_reals,context):
     """
     Construct an intermediate un object for `o_name`.
     
@@ -787,7 +788,7 @@ def _builder(o_name,_nodes,_tagged_reals):
             independent = obj.independent
         )
         _tagged_reals[o_name] = un    # tag now maps to an object
-        
+                
     elif isinstance(obj,TaggedIntermediateReal):                
 
         # For older archives, there were no `i_components` or `d_components`

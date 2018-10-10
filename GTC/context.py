@@ -9,8 +9,7 @@ from GTC.lib_complex import UncertainComplex
 from GTC.vector import *
 from GTC.nodes import *
 
-inf = float('inf')
-nan = float('nan')
+from GTC import inf, nan
 
 __all__ = ('context',)
 
@@ -106,6 +105,7 @@ class Context(object):
         try:
             l =  self._registered_leaf_nodes[uid]
         except KeyError:
+            
             l = Leaf(uid,tag,u,df,independent=independent)
             self._registered_leaf_nodes[uid] = l
             
@@ -149,23 +149,19 @@ class Context(object):
         """
         # Use the cache `self._registered_leaf_nodes` 
         # to avoid creating multiple LeafNode objects.
-        if uid in self._registered_leaf_nodes:
-            l = self._registered_leaf_nodes[uid]
-            # Archive inconsistencies:
-            if l.u != u or l.df != df or l.tag != label:
-                raise RuntimeError(
-                    "Inconsistent archive records for '{}' and '{}'".format(
-                        label, l.tag
-                    )
+        l = self.new_leaf(uid, label, u, df, independent) 
+        if l.u != u or l.df != df or l.tag != label:
+            raise RuntimeError(
+                "Inconsistent archive records for '{}' and '{}'".format(
+                    label, l.tag
                 )
-        else:
-            l = self.new_leaf(uid, tag, u, df, independent) 
+            )
         
         if independent:
             un = UncertainReal(
                     self
                 ,   x
-                ,   Vector( index=[uid],value=[u] )
+                ,   Vector( index=[l],value=[u] )
                 ,   Vector( )
                 ,   Vector( )
                 ,   l
@@ -175,7 +171,7 @@ class Context(object):
                     self
                 ,   x
                 ,   Vector( )
-                ,   Vector( index=[uid],value=[u] )
+                ,   Vector( index=[l],value=[u] )
                 ,   Vector( )
                 ,   l
                 )

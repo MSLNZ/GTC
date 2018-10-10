@@ -5,7 +5,7 @@ import cmath
 import itertools
 
 from GTC import *
-from GTC.context import Context
+from GTC.context import context
 from GTC import persistence
 from GTC.vector import is_ordered
 
@@ -146,484 +146,482 @@ class TestArchive(unittest.TestCase):
 
         # self.assertRaises(RuntimeError,ar.add,y=y)  # cannot add now
         
-    def test(self):
-        """
-        Simple x,y z problem, but don't save
-        one of the elementary uns.
-        
-        """
-        x = ureal(1,1)
-        y = ureal(2,1)
-        z = result( x + y )
-
-        self.assert_( z.is_intermediate )
-
-        ar = persistence.Archive()
-
-        ar.add(x=x,z=z)
-        ar._freeze()
-                
-        # Unpack and check 
-        context = Context()
-        ar._thaw(context)
-
-        # Single argument unpacks to an object
-        # not a sequence
-        x1 = ar.extract('x')
-        z1 = ar.extract('z')
-
-        self.assert_( z1.is_intermediate )
-        self.assert_(
-            all( 
-                z_i.uid == z1_i.uid 
-                    for (z_i, z1_i) in itertools.izip(
-                        z._i_components,z1._i_components) 
-            )
-        )
-
-        a = component(z,x)
-        b = component(z1,x1)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # The restored uncertain numbers will
-        # be indistinguishable from the originals
-        # in terms of components
-        a = component(z1,x)
-        b = component(z,x1)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vectors are well-formed
-        self.assert_( is_ordered(z1._u_components) )
-        self.assert_( is_ordered(z1._d_components) )
-        self.assert_( is_ordered(z1._i_components) )
-        
-    def test_attributes(self):
-        """
-        Dict-like attributes: keys(), values() items()
-        and the 'iter' variants, also len()
-        
-        """
-        x = ureal(1,1)
-        y = ureal(2,1)
-        z = result(x + y)
-
-        ar = persistence.Archive()
-        self.assertEqual( len(ar), 0)
-        
-        ar.add(x=x,z=z)
-        self.assertEqual( len(ar) , 2)
-
-        names = ['x','z']
-        objs = [x,z]
-        self.assertEqual( names,ar.keys() )
-        self.assertEqual( objs,ar.values() )
-        self.assertEqual( zip(names,objs),ar.items() )
-
-        for i,k in enumerate( ar.iterkeys() ):
-            self.assertEqual( names[i], k )
-
-        for i,k in enumerate( ar.itervalues() ):
-            self.assertEqual( objs[i], k )
-
-        items = zip(names,objs)
-        for i,k in enumerate( ar.iteritems() ):
-            self.assertEqual( items[i], k )
-
-    def test1(self):
-        """
-        Simple tests: elementary and intermediate
-        uncertain numbers restored OK? Saving
-        all objects.
-        
-        """
-        x = ureal(1,1)
-        y = ureal(2,1)
-        z = result( x + y )
-
-        ar = persistence.Archive()
-
-        ar.add(x=x,y=y,z=z)
-        ar._freeze()
-
-        # Unpack and check 
-        context = Context()
-        ar._thaw(context)
-
-        x1, y1, z1 = ar.extract('x','y','z')
-
-        self.assertEqual(x.x,x1.x)
-        self.assertEqual(x.u,x1.u)
-        self.assertEqual(x.df,x1.df)
-        self.assertEqual(y.x,y1.x)
-        self.assertEqual(y.u,y1.u)
-        self.assertEqual(y.df,y1.df)
-        self.assertEqual(z.x,z1.x)
-        self.assertEqual(z.u,z1.u)
-        self.assertEqual(z.df,z1.df)
-
-        a = component(z,x)
-        b = component(z1,x1)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # The restored uncertain numbers will
-        # be indistinguishable from the originals
-        # in terms of components
-        a = component(z1,x)
-        b = component(z,x1)
-        self.assert_( equivalent(a,b,TOL) )
-
-    def test2(self):
-        """
-        Logical correlation works - I
-        with all objects archived
-        
-        """
-        x1 = ureal(1,1)
-        x2 = ureal(1,1)
-        x3 = ureal(1,1)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        ar = persistence.Archive()
-        ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
-        ar._freeze()
-
-        # unpack and test
-        context = Context()
-        ar._thaw(context)
-        y1, y2, y3 = ar.extract('x1','x2','x3')
-
-        self.assertEqual( str(x1),str(y1) )
-        self.assertEqual( str(x2),str(y2) )
-        self.assertEqual( str(x3),str(y3) )
-
-        y4, y5, y6 = ar.extract('x4','x5','x6')
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = component(x6,x4)
-        b = component(y6,y4)
-        self.assert_( equivalent(a,b,TOL) )
-
-        a = component(x6,x2)
-        b = component(y6,y2)
-        self.assert_( equivalent(a,b,TOL) )
-
-        a = get_correlation(x4,x5)
-        b = get_correlation(y4,y5)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    def test3(self):
-        """
-        Logical correlation works - II
-        with all objects archived but not all restored
-        
-        """
-        x1 = ureal(1,1)
-        x2 = ureal(1,1)
-        x3 = ureal(1,1)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        ar = persistence.Archive()
-        ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
-        ar._freeze()
-
-        # unpack without elementary uns and test
-        context = Context()
-        ar._thaw(context)
-
-        y4, y5, y6 = ar.extract('x4','x5','x6')
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = component(x6,x4)
-        b = component(y6,y4)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    def test3b(self):
-        """
-        Logical correlation works - III
-        with not all objects archived or restored
-        
-        """
-        x1 = ureal(1,1)
-        x2 = ureal(1,1)
-        x3 = ureal(1,1)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        ar = persistence.Archive()
-        ar.add(x4=x4,x5=x5,x6=x6)
-        ar._freeze()
-
-        # unpack without elementary uns and test
-        context = Context()
-        ar._thaw(context)
-
-        y4, y5, y6 = ar.extract('x4','x5','x6')
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = component(x6,x4)
-        b = component(y6,y4)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    def test4(self):
-        """
-        Explicit correlation works - I
-        with all objects archived
-        
-        """
-        x1 = ureal(1,1,independent=False)
-        x2 = ureal(1,1,independent=False)
-        x3 = ureal(1,1,independent=False)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        set_correlation(0.5,x1,x2)
-        set_correlation(-0.25,x3,x2)
-
-        ar = persistence.Archive()
-        ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
-        ar._freeze()
-
-        # unpack without elementary uns and test
-        context = Context()
-        ar._thaw(context)
-
-        y1, y2, y3 = ar.extract('x1','x2','x3')
-
-        a = get_correlation(x1,x2)
-        b = get_correlation(y1,y2)
-        self.assert_( equivalent(a,b,TOL) )
-
-        a = get_correlation(x3,x2)
-        b = get_correlation(y3,y2)
-        self.assert_( equivalent(a,b,TOL) )
-
-        y4, y5, y6 = ar.extract('x4','x5','x6')
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = get_correlation(x4,x5)
-        b = get_correlation(y4,y5)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    def test5(self):
-        """
-        Explicit correlation works - II
-        with only some objects restored
-        
-        """
-        x1 = ureal(1,1,independent=False)
-        x2 = ureal(1,1,independent=False)
-        x3 = ureal(1,1,independent=False)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        set_correlation(0.5,x1,x2)
-        set_correlation(-0.25,x3,x2)
-
-        ar = persistence.Archive()
-        ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
-        ar._freeze()
-
-        # unpack without elementary uns and test
-        context = Context()
-        ar._thaw(context)
-
-        y4, y5, y6 = ar.extract('x4','x5','x6')
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = get_correlation(x4,x5)
-        b = get_correlation(y4,y5)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    def test5b(self):
-        """
-        Explicit correlation works - II
-        with only some objects archived and restored
-        
-        """
-        x1 = ureal(1,1,independent=False)
-        x2 = ureal(1,1,independent=False)
-        x3 = ureal(1,1,independent=False)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        set_correlation(0.5,x1,x2)
-        set_correlation(-0.25,x3,x2)
-
-        ar = persistence.Archive()
-        ar.add(x4=x4,x5=x5,x6=x6)
-        ar._freeze()
-
-        # unpack without elementary uns and test
-        context = Context()
-        ar._thaw(context)
-
-        y4, y5, y6 = ar.extract('x4','x5','x6')
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = get_correlation(x4,x5)
-        b = get_correlation(y4,y5)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    def test6(self):
-        """
-        Same as test 5 but with [] indexing
-        
-        """
-        x1 = ureal(1,1,independent=False)
-        x2 = ureal(1,1,independent=False)
-        x3 = ureal(1,1,independent=False)
-        x4 = result( x1 + x2 )
-        x5 = result( x2 + x3 )
-        x6 = result( x4 + x5 )
-
-        set_correlation(0.5,x1,x2)
-        set_correlation(-0.25,x3,x2)
-
-        ar = persistence.Archive()
-        ar['x1'] = x1
-        ar['x2'] = x2
-        ar['x3'] = x3
-        ar['x4'] = x4
-        ar['x5'] = x5
-        ar['x6'] = x6
-        ar._freeze()
-
-        # unpack without elementary uns and test
-        context = Context()
-        ar._thaw(context)
-
-        y4 = ar['x4']
-        y5 = ar['x5']
-        y6 = ar['x6']
-        
-        self.assertEqual( str(x4),str(y4) )
-        self.assertEqual( str(x5),str(y5) )
-        self.assertEqual( str(x6),str(y6) )
-
-        a = get_correlation(x4,x5)
-        b = get_correlation(y4,y5)
-        self.assert_( equivalent(a,b,TOL) )
-
-        # Make sure the vector of components is well-formed
-        self.assert_( is_ordered(y6._u_components) )
-        self.assert_( is_ordered(y6._d_components) )
-        self.assert_( is_ordered(y6._i_components) )
-
-    # def testGUMH2(self):
+    # def test(self):
         # """
-        # GUM H2 as an ensemble
+        # Simple x,y z problem, but don't save
+        # one of the elementary uns.
         
         # """
-        # x = [4.999,0.019661,1.04446]
-        # u = [0.0032,0.0000095,0.00075]
-        
-        # v,i,phi = multiple_ureal(x,u,5)
-        
-        # set_correlation(-0.36,v,i)
-        # set_correlation(0.86,v,phi)
-        # set_correlation(-0.65,i,phi)
+        # x = ureal(1,1)
+        # y = ureal(2,1)
+        # z = result( x + y )
 
-        # r = v * cos(phi)/ i
-        # x = v * sin(phi)/ i
-        # z = v / i
+        # self.assert_( z.is_intermediate )
 
         # ar = persistence.Archive()
-        # ar.add(v=v,i=i,phi=phi)
+
+        # ar.add(x=x,z=z)
+        # ar._freeze()
+                
+        # # Unpack and check 
+        # context = Context()
+        # ar._thaw(context)
+
+        # # Single argument unpacks to an object
+        # # not a sequence
+        # x1 = ar.extract('x')
+        # z1 = ar.extract('z')
+
+        # self.assert_( z1.is_intermediate )
+        # self.assert_(
+            # all( 
+                # z_i.uid == z1_i.uid 
+                    # for (z_i, z1_i) in itertools.izip(
+                        # z._i_components,z1._i_components) 
+            # )
+        # )
+
+        # a = component(z,x)
+        # b = component(z1,x1)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # The restored uncertain numbers will
+        # # be indistinguishable from the originals
+        # # in terms of components
+        # a = component(z1,x)
+        # b = component(z,x1)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vectors are well-formed
+        # self.assert_( is_ordered(z1._u_components) )
+        # self.assert_( is_ordered(z1._d_components) )
+        # self.assert_( is_ordered(z1._i_components) )
+        
+    # def test_attributes(self):
+        # """
+        # Dict-like attributes: keys(), values() items()
+        # and the 'iter' variants, also len()
+        
+        # """
+        # x = ureal(1,1)
+        # y = ureal(2,1)
+        # z = result(x + y)
+
+        # ar = persistence.Archive()
+        # self.assertEqual( len(ar), 0)
+        
+        # ar.add(x=x,z=z)
+        # self.assertEqual( len(ar) , 2)
+
+        # names = ['x','z']
+        # objs = [x,z]
+        # self.assertEqual( names,ar.keys() )
+        # self.assertEqual( objs,ar.values() )
+        # self.assertEqual( zip(names,objs),ar.items() )
+
+        # for i,k in enumerate( ar.iterkeys() ):
+            # self.assertEqual( names[i], k )
+
+        # for i,k in enumerate( ar.itervalues() ):
+            # self.assertEqual( objs[i], k )
+
+        # items = zip(names,objs)
+        # for i,k in enumerate( ar.iteritems() ):
+            # self.assertEqual( items[i], k )
+
+    # def test1(self):
+        # """
+        # Simple tests: elementary and intermediate
+        # uncertain numbers restored OK? Saving
+        # all objects.
+        
+        # """
+        # x = ureal(1,1)
+        # y = ureal(2,1)
+        # z = result( x + y )
+
+        # ar = persistence.Archive()
+
+        # ar.add(x=x,y=y,z=z)
+        # ar._freeze()
+
+        # # Unpack and check 
+        # context = Context()
+        # ar._thaw(context)
+
+        # x1, y1, z1 = ar.extract('x','y','z')
+
+        # self.assertEqual(x.x,x1.x)
+        # self.assertEqual(x.u,x1.u)
+        # self.assertEqual(x.df,x1.df)
+        # self.assertEqual(y.x,y1.x)
+        # self.assertEqual(y.u,y1.u)
+        # self.assertEqual(y.df,y1.df)
+        # self.assertEqual(z.x,z1.x)
+        # self.assertEqual(z.u,z1.u)
+        # self.assertEqual(z.df,z1.df)
+
+        # a = component(z,x)
+        # b = component(z1,x1)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # The restored uncertain numbers will
+        # # be indistinguishable from the originals
+        # # in terms of components
+        # a = component(z1,x)
+        # b = component(z,x1)
+        # self.assert_( equivalent(a,b,TOL) )
+
+    # def test2(self):
+        # """
+        # Logical correlation works - I
+        # with all objects archived
+        
+        # """
+        # x1 = ureal(1,1)
+        # x2 = ureal(1,1)
+        # x3 = ureal(1,1)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # ar = persistence.Archive()
+        # ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
+        # ar._freeze()
+
+        # # unpack and test
+        # context = Context()
+        # ar._thaw(context)
+        # y1, y2, y3 = ar.extract('x1','x2','x3')
+
+        # self.assertEqual( str(x1),str(y1) )
+        # self.assertEqual( str(x2),str(y2) )
+        # self.assertEqual( str(x3),str(y3) )
+
+        # y4, y5, y6 = ar.extract('x4','x5','x6')
+        
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
+
+        # a = component(x6,x4)
+        # b = component(y6,y4)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # a = component(x6,x2)
+        # b = component(y6,y2)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # a = get_correlation(x4,x5)
+        # b = get_correlation(y4,y5)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vector of components is well-formed
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    # def test3(self):
+        # """
+        # Logical correlation works - II
+        # with all objects archived but not all restored
+        
+        # """
+        # x1 = ureal(1,1)
+        # x2 = ureal(1,1)
+        # x3 = ureal(1,1)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # ar = persistence.Archive()
+        # ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
         # ar._freeze()
 
         # # unpack without elementary uns and test
         # context = Context()
         # ar._thaw(context)
-        # print context._ensemble.keys()
 
-        # v1, i1, phi1 = ar.extract('v','i','phi')
+        # y4, y5, y6 = ar.extract('x4','x5','x6')
         
-        # self.assert_( v1._node in context._ensemble )
-        # self.assert_( i1._node in context._ensemble )
-        # self.assert_( phi1._node in context._ensemble )
-        
-        # self.assertEqual(v1.s,v.s)
-        # self.assertEqual(i1.s,i.s)
-        # self.assertEqual(phi1.s,phi.s)
-               
-        # r1 = v1 * cos(phi1)/ i1
-        # x1 = v1 * sin(phi1)/ i1
-        # z1 = v1 / i1
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
 
-        # # The DoF calculation would fail if the inputs
-        # # are not part of the same ensemble.    
-        # self.assert_( equivalent( dof(r1),5,TOL) )
-        # self.assert_( equivalent( dof(x1),5,TOL) )
-        # self.assert_( equivalent( dof(z1),5,TOL) )
-
-        # self.assert_( equivalent( value(r1),value(r),TOL) )
-        # self.assert_( equivalent( value(x1),value(x),TOL) )
-        # self.assert_( equivalent( value(z1),value(z),TOL) )
-
-        # self.assert_( equivalent( uncertainty(r1),uncertainty(r),TOL) )
-        # self.assert_( equivalent( uncertainty(x1),uncertainty(x),TOL) )
-        # self.assert_( equivalent( uncertainty(z1),uncertainty(z),TOL) )
+        # a = component(x6,x4)
+        # b = component(y6,y4)
+        # self.assert_( equivalent(a,b,TOL) )
 
         # # Make sure the vector of components is well-formed
-        # self.assert_( is_ordered(r1._u_components) )
-        # self.assert_( is_ordered(x1._u_components) )
-        # self.assert_( is_ordered(z1._u_components) )
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    # def test3b(self):
+        # """
+        # Logical correlation works - III
+        # with not all objects archived or restored
+        
+        # """
+        # x1 = ureal(1,1)
+        # x2 = ureal(1,1)
+        # x3 = ureal(1,1)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # ar = persistence.Archive()
+        # ar.add(x4=x4,x5=x5,x6=x6)
+        # ar._freeze()
+
+        # # unpack without elementary uns and test
+        # context = Context()
+        # ar._thaw(context)
+
+        # y4, y5, y6 = ar.extract('x4','x5','x6')
+        
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
+
+        # a = component(x6,x4)
+        # b = component(y6,y4)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vector of components is well-formed
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    # def test4(self):
+        # """
+        # Explicit correlation works - I
+        # with all objects archived
+        
+        # """
+        # x1 = ureal(1,1,independent=False)
+        # x2 = ureal(1,1,independent=False)
+        # x3 = ureal(1,1,independent=False)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # set_correlation(0.5,x1,x2)
+        # set_correlation(-0.25,x3,x2)
+
+        # ar = persistence.Archive()
+        # ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
+        # ar._freeze()
+
+        # # unpack without elementary uns and test
+        # context = Context()
+        # ar._thaw(context)
+
+        # y1, y2, y3 = ar.extract('x1','x2','x3')
+
+        # a = get_correlation(x1,x2)
+        # b = get_correlation(y1,y2)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # a = get_correlation(x3,x2)
+        # b = get_correlation(y3,y2)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # y4, y5, y6 = ar.extract('x4','x5','x6')
+        
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
+
+        # a = get_correlation(x4,x5)
+        # b = get_correlation(y4,y5)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vector of components is well-formed
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    # def test5(self):
+        # """
+        # Explicit correlation works - II
+        # with only some objects restored
+        
+        # """
+        # x1 = ureal(1,1,independent=False)
+        # x2 = ureal(1,1,independent=False)
+        # x3 = ureal(1,1,independent=False)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # set_correlation(0.5,x1,x2)
+        # set_correlation(-0.25,x3,x2)
+
+        # ar = persistence.Archive()
+        # ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
+        # ar._freeze()
+
+        # # unpack without elementary uns and test
+        # context = Context()
+        # ar._thaw(context)
+
+        # y4, y5, y6 = ar.extract('x4','x5','x6')
+        
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
+
+        # a = get_correlation(x4,x5)
+        # b = get_correlation(y4,y5)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vector of components is well-formed
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    # def test5b(self):
+        # """
+        # Explicit correlation works - II
+        # with only some objects archived and restored
+        
+        # """
+        # x1 = ureal(1,1,independent=False)
+        # x2 = ureal(1,1,independent=False)
+        # x3 = ureal(1,1,independent=False)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # set_correlation(0.5,x1,x2)
+        # set_correlation(-0.25,x3,x2)
+
+        # ar = persistence.Archive()
+        # ar.add(x4=x4,x5=x5,x6=x6)
+        # ar._freeze()
+
+        # # unpack without elementary uns and test
+        # context = Context()
+        # ar._thaw(context)
+
+        # y4, y5, y6 = ar.extract('x4','x5','x6')
+        
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
+
+        # a = get_correlation(x4,x5)
+        # b = get_correlation(y4,y5)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vector of components is well-formed
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    # def test6(self):
+        # """
+        # Same as test 5 but with [] indexing
+        
+        # """
+        # x1 = ureal(1,1,independent=False)
+        # x2 = ureal(1,1,independent=False)
+        # x3 = ureal(1,1,independent=False)
+        # x4 = result( x1 + x2 )
+        # x5 = result( x2 + x3 )
+        # x6 = result( x4 + x5 )
+
+        # set_correlation(0.5,x1,x2)
+        # set_correlation(-0.25,x3,x2)
+
+        # ar = persistence.Archive()
+        # ar['x1'] = x1
+        # ar['x2'] = x2
+        # ar['x3'] = x3
+        # ar['x4'] = x4
+        # ar['x5'] = x5
+        # ar['x6'] = x6
+        # ar._freeze()
+
+        # # unpack without elementary uns and test
+        # context = Context()
+        # ar._thaw(context)
+
+        # y4 = ar['x4']
+        # y5 = ar['x5']
+        # y6 = ar['x6']
+        
+        # self.assertEqual( str(x4),str(y4) )
+        # self.assertEqual( str(x5),str(y5) )
+        # self.assertEqual( str(x6),str(y6) )
+
+        # a = get_correlation(x4,x5)
+        # b = get_correlation(y4,y5)
+        # self.assert_( equivalent(a,b,TOL) )
+
+        # # Make sure the vector of components is well-formed
+        # self.assert_( is_ordered(y6._u_components) )
+        # self.assert_( is_ordered(y6._d_components) )
+        # self.assert_( is_ordered(y6._i_components) )
+
+    def testGUMH2(self):
+        """
+        GUM H2 as an ensemble
+        
+        """
+        x = [4.999,0.019661,1.04446]
+        u = [0.0032,0.0000095,0.00075]
+        
+        v,i,phi = multiple_ureal(x,u,5)
+        
+        set_correlation(-0.36,v,i)
+        set_correlation(0.86,v,phi)
+        set_correlation(-0.65,i,phi)
+
+        r = v * cos(phi)/i
+        x = v * sin(phi)/i
+        z = v/i
+
+        ar = persistence.Archive()
+        ar.add(v=v,i=i,phi=phi)
+        ar._freeze()
+                
+        # unpack without elementary uns and test
+        ar._thaw(context)
+            
+        v1, i1, phi1 = ar.extract('v','i','phi')
+        
+        self.assert_( v1._node in context._ensemble )
+        self.assert_( i1._node in context._ensemble )
+        self.assert_( phi1._node in context._ensemble )
+        
+        self.assertEqual( repr(v1), repr(v) )
+        self.assertEqual( repr(i1) , repr(i) )
+        self.assertEqual( repr(phi1) , repr(phi) )
+           
+        r1 = v1 * cos(phi1)/ i1
+        x1 = v1 * sin(phi1)/ i1
+        z1 = v1 / i1
+
+        # The DoF calculation would fail if the inputs
+        # are not part of the same ensemble.    
+        self.assert_( equivalent( dof(r1),5,TOL) )
+        self.assert_( equivalent( dof(x1),5,TOL) )
+        self.assert_( equivalent( dof(z1),5,TOL) )
+
+        self.assert_( equivalent( value(r1),value(r),TOL) )
+        self.assert_( equivalent( value(x1),value(x),TOL) )
+        self.assert_( equivalent( value(z1),value(z),TOL) )
+
+        self.assert_( equivalent( uncertainty(r1),uncertainty(r),TOL) )
+        self.assert_( equivalent( uncertainty(x1),uncertainty(x),TOL) )
+        self.assert_( equivalent( uncertainty(z1),uncertainty(z),TOL) )
+
+        # Make sure the vector of components is well-formed
+        self.assert_( is_ordered(r1._u_components) )
+        self.assert_( is_ordered(x1._u_components) )
+        self.assert_( is_ordered(z1._u_components) )
 
     # def testGUMH2_b(self):
         # """
