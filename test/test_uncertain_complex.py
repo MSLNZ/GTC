@@ -1,3 +1,4 @@
+import re
 import unittest
 import sys
 import math
@@ -2196,6 +2197,22 @@ class TestGetCovariance(unittest.TestCase):
 
         check_r = get_covariance(x1,1.0)
         self.assert_( equivalent(0,check_r) )
+ 
+#-----------------------------------------------------
+class TestStringRepresentations(unittest.TestCase):
+ 
+    def test(self):
+        z = 1+0j
+        u = 0.1 
+        df = 'inf' 
+
+        uc = ucomplex(z, u)
+        s = re.search(r'ucomplex\(\((.*)\), u=\[(.*)\], r=(.*), df=(.*)\)', repr(uc))
+        
+        self.assertEqual(s.group(1),"{0.real:.16g}{0.imag:+.16g}j".format(z))
+        self.assertEqual(s.group(2),"{0!r},{0!r}".format(u))
+        self.assertEqual(s.group(3),repr(0.))
+        self.assertEqual(s.group(4),"inf")
         
 #============================================================================
 if(__name__== '__main__'):

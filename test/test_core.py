@@ -179,6 +179,16 @@ class TestAPIFunctions(unittest.TestCase):
         # then return zero
         cc = get_correlation(1.5)
         self.assert_( equivalent(cc,0.0) )
+     
+        # uc = ucomplex(1 + 1j, 0.1)
+        # ur = ureal(2, 0.2)
+        # r = 0.3
+        # self.assertRaises(RuntimeError,set_correlation,r,uc,ur)
+        # uc = ucomplex(1 + 1j, 0.1,independent=False)
+        # ur = ureal(2, 0.2,independent=False)
+        # set_correlation(r,uc,ur)
+        # rr = get_correlation(uc,ur)
+        
         
     def test_result(self):
             # `result()` should create a clone of the uncertain 
@@ -211,7 +221,25 @@ class TestAPIFunctions(unittest.TestCase):
             self.assertEqual( len(z.imag._i_components)+1, len(z_.imag._i_components)) 
             self.assert_( equivalent_sequence(z.real._u_components.values(),z_.real._u_components.values()) )
             self.assert_( equivalent_sequence(z.imag._u_components.values(),z_.imag._u_components.values()) )
-            
+    
+#----------------------------------------------------------------------------
+class TestMultipleUN(unittest.TestCase):
+
+    """
+    """
+    
+    def test_multiple_ureal_creation(self):
+        values = [4.999, 0.019661]
+        uncert = [0.0032, 0.0000095]
+        # this raises a RuntimeError: invalid `label_seq`: 'abc'
+        self.assertRaises(RuntimeError,multiple_ureal,values, uncert, 5, label_seq='abc')
+    
+    def test_multiple_ucomplex_creation(self):
+        values = [4.999 + 0j, 0.019661 + 0j]
+        uncert = [(0.0032, 0.0), (0.0000095, 0.0)]
+        # this raises a RuntimeError: invalid `label_seq`: 'abc'
+        self.assertRaises(RuntimeError,multiple_ureal,values, uncert, 5, label_seq='abc')
+    
 #----------------------------------------------------------------------------
 class TestGetSetCorrelation(unittest.TestCase):
 
@@ -248,7 +276,6 @@ class TestGetSetCorrelation(unittest.TestCase):
         self.assertRaises(RuntimeError,set_correlation,r,x1,x2)
         self.assert_( set_correlation(r,z1) is None )
         
-
     def test_with_mixed_unumbers(self):
         x1 = ureal(1,2,independent=False)
         z1 = ucomplex(1,.5,independent=False)

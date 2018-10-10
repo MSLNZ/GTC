@@ -1,3 +1,4 @@
+import re
 import unittest
 import sys
 import math
@@ -775,6 +776,16 @@ class TestUncertainReal(unittest.TestCase):
         or an intermediate result.
         
         """
+        x = 1.
+        u = 0.1 
+        df = 'inf'
+        
+        un = ureal(x,u)
+        s = re.search(r'ureal\((.*),(.*),(.*)\)', repr(un))
+        self.assertEqual(s.group(1), repr(x) )
+        self.assertEqual(s.group(2), repr(u) )
+        self.assertEqual(s.group(3), df )
+        
         x = 1.2
         u = 0.2
         x_str= "1.20(20)" # takes account of uncertainty rounding

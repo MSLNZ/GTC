@@ -15,8 +15,7 @@ from GTC.vector import *
 from GTC.nodes import *
 from GTC.named_tuples import VarianceCovariance, StandardUncertainty, GroomedUncertainComplex
 
-inf = float('inf')
-nan = float('nan') 
+from GTC import inf,nan,inf_dof
 
 __all__ = (
     'UncertainComplex',
@@ -197,32 +196,55 @@ class UncertainComplex(object):
 
     #------------------------------------------------------------------------
     def __repr__(self):
-        gself = self._round(16,3)
+        
+        x = self.x
+        u = self.u
+        r = self.r  
+        df = self.df
+        df = repr( df ) if df < inf_dof else 'inf' 
+        
         if self.label is None:
-            s = ("ucomplex(({1.real:.{0}g}{1.imag:+.{0}g}j), "
-                "u=[{2[0]:.{0}g},{2[1]:.{0}g}], "
-                "r={3:.{0}g}, df={5:.{4}g}"
+            s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
+                "u=[{1[0]!r},{1[1]!r}], "
+                "r={2!r}, df={3}"
                 ")").format( 
-                gself.precision,
-                gself.x,
-                gself.u,
-                gself.r,
-                gself.df_decimals,
-                gself.df
-            )
+                x,u,r,df
+            )        
         else:
-            s = ("ucomplex(({1.real:.{0}g}{1.imag:+.{0}g}j), "
-                "u=[{2[0]:.{0}g},{2[1]:.{0}g}], "
-                "r={3:.{0}g}, df={5:.{4}g}, "
-                "label='{6!s}')").format( 
-                gself.precision,
-                gself.x,
-                gself.u,
-                gself.r,
-                gself.df_decimals,
-                gself.df,
-                gself.label
-            )
+            s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
+                "u=[{1[0]!r},{1[1]!r}], "
+                "r={2!r}, df={3}, "
+                "label={4}"
+                ")").format( 
+                x,u,r,df,self.label
+            )        
+        
+        # gself = self._round(16,3)
+        # if self.label is None:
+            # s = ("ucomplex(({1.real:.{0}g}{1.imag:+.{0}g}j), "
+                # "u=[{2[0]:.{0}g},{2[1]:.{0}g}], "
+                # "r={3:.{0}g}, df={5:.{4}g}"
+                # ")").format( 
+                # gself.precision,
+                # gself.x,
+                # gself.u,
+                # gself.r,
+                # gself.df_decimals,
+                # gself.df
+            # )
+        # else:
+            # s = ("ucomplex(({1.real:.{0}g}{1.imag:+.{0}g}j), "
+                # "u=[{2[0]:.{0}g},{2[1]:.{0}g}], "
+                # "r={3:.{0}g}, df={5:.{4}g}, "
+                # "label='{6!s}')").format( 
+                # gself.precision,
+                # gself.x,
+                # gself.u,
+                # gself.r,
+                # gself.df_decimals,
+                # gself.df,
+                # gself.label
+            # )
                       
         return s
 

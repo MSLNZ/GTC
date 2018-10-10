@@ -13,11 +13,7 @@ from GTC import nodes
 from GTC.named_tuples import VarianceAndDof, GroomedUncertainReal, ComponentOfUncertainty
 from GTC.vector import *
 
-inf = float('inf')
-nan = float('nan') 
-
-is_infinity = math.isinf
-is_undefined = math.isnan
+from GTC import inf, nan, inf_dof, is_infinity, is_undefined
 
 LOG10_E = math.log10(math.e)
 
@@ -185,25 +181,38 @@ class UncertainReal(object):
     def __repr__(self):
         # repr() is for displaying information, so 
         # use full precision (16 digits) in x and u.
-        gself = self._round(16,3)        
+        x = self.x
+        u = self.u
+        df = self.df
+        df = repr( df ) if df < inf_dof else 'inf' 
         
-        if gself.label is None:
-            s = "ureal({1:.{0}g},{2:.{0}g},{4:.{3}g})".format( 
-                gself.precision,
-                gself.x,
-                gself.u,
-                gself.df_decimals,
-                gself.df
-            )
+        if self.label is None:
+            s = "ureal({!r},{!r},{})".format( 
+                x,u,df
+            )            
         else:
-            s = "ureal({1:.{0}g},{2:.{0}g},{4:.{3}g},label='{5!s}')".format( 
-                gself.precision,
-                gself.x,
-                gself.u,
-                gself.df_decimals,
-                gself.df,
-                self._node.tag
-            )
+            s = "ureal({!r},{!r},{}, label={!r})".format( 
+                x,u,df,self.label
+            )                  
+        
+        # gself = self._round(16,3)         
+        # if gself.label is None:
+            # s = "ureal({1:.{0}g},{2:.{0}g},{4:.{3}g})".format( 
+                # gself.precision,
+                # gself.x,
+                # gself.u,
+                # gself.df_decimals,
+                # gself.df
+            # )
+        # else:
+            # s = "ureal({1:.{0}g},{2:.{0}g},{4:.{3}g},label='{5!s}')".format( 
+                # gself.precision,
+                # gself.x,
+                # gself.u,
+                # gself.df_decimals,
+                # gself.df,
+                # self._node.tag
+            # )
                       
         return s
 
