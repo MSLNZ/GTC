@@ -9,7 +9,7 @@ import numpy
 import operator
 
 from GTC import *
-from GTC.context import context 
+from GTC.context import _context 
 from GTC.reporting import *
 from GTC.lib_complex import UncertainComplex, willink_hall
 from GTC.lib_real import UncertainReal
@@ -116,7 +116,7 @@ class NamesComplex(unittest.TestCase):
       no label has been assigned, or a generic 'anon' otherwise
     """
     def setUp(self):
-        self._context = context
+        self._context = _context
 
         z1 = ucomplex(1,(1,1),label='z1')
         self.assertEqual(label(z1),'z1')

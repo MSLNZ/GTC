@@ -8,7 +8,7 @@ import itertools
 
 from GTC.lib_real import *
 from GTC.lib_complex import *
-from GTC.context import *
+from GTC.context import _context
 
 from GTC import reporting
 from GTC import type_b
@@ -19,10 +19,9 @@ from GTC.named_tuples import (
     CovarianceMatrix
 )
 
-def is_sequence(obj):
-    if isinstance(obj, basestring):
-        return False
-    return isinstance(obj, collections.Sequence)
+from GTC import inf,nan,is_infinity,is_undefined,is_sequence
+
+
     
 # aliases 
 rp = reporting
@@ -76,13 +75,6 @@ __all__ = (
     ,   'is_infinity'
     ,   'is_undefined'
 )
-
-#----------------------------------------------------------------------------
-inf = float('inf')
-nan = float('nan')
-
-is_infinity = math.isinf
-is_undefined = math.isnan
 
 #----------------------------------------------------------------------------
 def value(x):
@@ -263,7 +255,7 @@ def label(x):
     return x.label 
     
 #----------------------------------------------------------------------------
-def ureal(x,u,df=inf,label=None,independent=True):
+def ureal(x,u,df=inf,label=None,independent=True,context=_context):
     """
     Create an elementary uncertain real number
 
@@ -310,7 +302,7 @@ def ureal(x,u,df=inf,label=None,independent=True):
         )
         
 #---------------------------------------------------------------------------
-def multiple_ureal(x_seq,u_seq,df,label_seq=None):
+def multiple_ureal(x_seq,u_seq,df,label_seq=None,context=_context):
     """Return a sequence of related elementary uncertain real numbers
 
     :arg x_seq: a sequence of values (estimates)
@@ -379,7 +371,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     return rtn
 
 #----------------------------------------------------------------------------
-def constant(x,label=None):
+def constant(x,label=None,context=_context):
     """
     Create a constant uncertain number (with no uncertainty)
 
@@ -453,7 +445,7 @@ def result(un,label=None):
     return un 
 
 #----------------------------------------------------------------------------
-def ucomplex(z,u,df=inf,label=None,independent=True):
+def ucomplex(z,u,df=inf,label=None,independent=True,context=_context):
     """
     Create an elementary uncertain complex number
 
@@ -563,7 +555,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
         )
         
 #---------------------------------------------------------------------------
-def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
+def multiple_ucomplex(x_seq,u_seq,df,label_seq=None,context=_context):
     """Return a sequence of uncertain complex numbers
 
     :arg x_seq: a sequence of complex values (estimates)
@@ -707,7 +699,11 @@ def set_correlation(r,arg1,arg2=None):
             ):
                 set_correlation_real(arg1,arg2,r)
             else:
-                if arg2._node in context._ensemble.get(arg1._node,[]):
+                if arg1._context is not arg2._context:
+                    raise RuntimeError(
+                        "Different contexts"
+                    )
+                if arg2._node in arg1._context._ensemble.get(arg1._node,[]):
                     set_correlation_real(arg1,arg2,r)
                 else:
                     raise RuntimeError( 
@@ -765,7 +761,13 @@ def set_correlation(r,arg1,arg2=None):
                     # They have to be in the same ensemble. 
                     # Just need to cross-check one of the component 
                     # pairs to verify this
-                    if arg2.real._node in context._ensemble.get(arg1.real._node,[]):
+                    if arg1._context is not arg2._context:
+                        raise RuntimeError(
+                            "Different contexts"
+                        )
+                    if arg2.real._node in arg1._context._ensemble.get(
+                            arg1.real._node,[]
+                    ):
                         set_correlation_real(arg1.real,arg2.real,r[0])
                         set_correlation_real(arg1.real,arg2.imag,r[1])
                         set_correlation_real(arg1.imag,arg2.real,r[2])
@@ -878,7 +880,6 @@ def get_covariance(arg1,arg2=None):
     
     """
     # If numerical arguments are given then return zero. 
-    
     # NB if the arg is any number type, it matches `numbers.Complex`
     if isinstance(arg1,numbers.Complex): arg1 = constant(arg1)
     

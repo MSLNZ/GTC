@@ -43,10 +43,12 @@ import itertools
 from GTC.lib_complex import UncertainComplex
 from GTC.lib_real import UncertainReal
 from GTC.lib_real import get_correlation_real
+from GTC.context import _context 
 
-from GTC.context import context
 from GTC.vector import merge_vectors
 from GTC.nodes import Node
+
+from GTC import inf
 
 from GTC.named_tuples import (
     VarianceCovariance,
@@ -54,7 +56,6 @@ from GTC.named_tuples import (
     StandardDeviation,
     InterceptSlope
 )
-inf = float('inf')
 
 __all__ = (
     'estimate','multi_estimate_real','multi_estimate_complex',
@@ -66,7 +67,7 @@ __all__ = (
     )
 
 #-----------------------------------------------------------------------------------------
-def estimate_digitized(seq,delta,label=None,truncate=False):
+def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     """
     Return an uncertain number for the mean of a sample of digitized data
 
@@ -158,7 +159,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False):
     return context.elementary_real(mean,u,N-1,label,independent=True)
     
 #-----------------------------------------------------------------------------------------
-def estimate(seq,label=None):
+def estimate(seq,label=None,context=_context):
     """Obtain an uncertain number by type-A evaluation 
 
     :arg seq:   a sequence representing a sample of data
@@ -452,7 +453,7 @@ def variance_covariance_complex(seq,mu=None):
     return VarianceCovariance(cv_11,cv_12,cv_12,cv_22)
 
 #-----------------------------------------------------------------------------------------
-def multi_estimate_real(seq_of_seq,labels=None):
+def multi_estimate_real(seq_of_seq,labels=None,context=_context):
     """Return a sequence of related uncertain real numbers 
 
     :arg seq_of_seq: a sequence of real-valued sequences
@@ -557,7 +558,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
     return rtn
 
 #-----------------------------------------------------------------------------------------
-def multi_estimate_complex(seq_of_seq,labels=None):
+def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
     """
     Return a sequence of related uncertain complex numbers
 

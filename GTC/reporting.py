@@ -31,6 +31,7 @@ from GTC.lib_complex import *
 from GTC.vector import *
 from GTC.lib_real import *
 from GTC.named_tuples import ComponentOfUncertainty, Influence
+from GTC import is_sequence
 
 from itertools import izip
 from operator import attrgetter as getter
@@ -51,9 +52,6 @@ __all__ = (
 
 #--------------------------------------------------------------------------
 uid_str = lambda id: "{0[0]:d}_{0[1]:d}".format(id)
-
-#--------------------------------------------------------------------------
-_is_sequence = lambda x: isinstance(x,(list,tuple))
 
 #--------------------------------------------------------------------------
 def is_ureal(x):
@@ -161,6 +159,10 @@ def u_component(y,x):
     """
     if isinstance(y,UncertainReal):
         if isinstance(x,UncertainReal):
+            if y._context is not x._context:
+                raise RuntimeError(
+                    "Arguments have different contexts"
+                )
             if x.is_elementary:
                 if x._node.independent:
                     return y._u_components.get(x._node,0.0)
@@ -172,12 +174,16 @@ def u_component(y,x):
                 # there will be an entry in `_i_components` 
                 return y._i_components.get(x._node,0.0)
             else:
-                raise RuntimeError(
-                    "`x` is not an elementary or intermediate uncertain number"
-                )
+                return 0
+                # raise RuntimeError(
+                    # "`x` is not an elementary or intermediate uncertain number"
+                # )
             
         elif isinstance(x,UncertainComplex):
-        
+            if y._context is not x._context:
+                raise RuntimeError(
+                    "Arguments have different contexts"
+                )
             result = [0.0,0.0,0.0,0.0]
             for i,x_i in enumerate( (x.real, x.imag) ):
                 if x_i.is_elementary:
@@ -189,11 +195,12 @@ def u_component(y,x):
                 elif x_i.is_intermediate:
                     u_i = y._i_components.get(x_i._node,0.0)
                 else:
-                    raise RuntimeError(
-                        "The {!i}th component of `x` "
-                        + "is not an elementary or intermediate " 
-                        + "uncertain number: {!r}".format(i,x)
-                    )
+                    u_i = 0
+                    # raise RuntimeError(
+                        # "The {!i}th component of `x` "
+                        # + "is not an elementary or intermediate " 
+                        # + "uncertain number: {!r}".format(i,x)
+                    # )
                 result[i] = u_i
             
             return ComponentOfUncertainty(*result)
@@ -206,6 +213,11 @@ def u_component(y,x):
         
     elif isinstance(y,UncertainComplex):
         if isinstance(x,UncertainComplex):
+            if y._context is not x._context:
+                raise RuntimeError(
+                    "Arguments have different contexts"
+                )
+
             x_re, x_im  = x.real, x.imag
             y_re, y_im = y.real, y.imag
             
@@ -237,13 +249,19 @@ def u_component(y,x):
                 return ComponentOfUncertainty(dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im)
                 
             else:
-                raise RuntimeError(
-                    "The a component of `x` "
-                    + "is not an elementary or intermediate " 
-                    + "uncertain number: {!r}".format(x)
-                )
+                return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+                # raise RuntimeError(
+                    # "The a component of `x` "
+                    # + "is not an elementary or intermediate " 
+                    # + "uncertain number: {!r}".format(x)
+                # )
                 
         elif isinstance(x,UncertainReal):
+            if y._context is not x._context:
+                raise RuntimeError(
+                    "Arguments have different contexts"
+                )
+        
             y_re, y_im = y.real, y.imag
 
             if x.is_elementary:
@@ -263,11 +281,12 @@ def u_component(y,x):
                 return ComponentOfUncertainty(dy_re_dx_re, 0.0, dy_im_dx_re, 0.0)
                 
             else:
-                raise RuntimeError(
-                    "The a component of `x` "
-                    + "is not an elementary or intermediate " 
-                    + "uncertain number: {!r}".format(x)
-                )
+                return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+                # raise RuntimeError(
+                    # "The a component of `x` "
+                    # + "is not an elementary or intermediate " 
+                    # + "uncertain number: {!r}".format(x)
+                # )
             
         elif isinstance(x,(int,long,float,complex)):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
@@ -300,7 +319,7 @@ def u_bar(ucpt):
         7.102816342831905
     
     """
-    if _is_sequence(ucpt):
+    if is_sequence(ucpt):
         if len(ucpt) != 4:
             raise RuntimeError(
                 "need a 4-element sequence, got: {!r}".format(ucpt)

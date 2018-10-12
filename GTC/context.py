@@ -11,7 +11,7 @@ from GTC.nodes import *
 
 from GTC import inf, nan
 
-__all__ = ('context',)
+__all__ = ('Context',)
 
 #----------------------------------------------------------------------------
 class Context(object):
@@ -712,5 +712,6 @@ def _uuid():
     return u
     
 #----------------------------------------------------------------------------
-context = Context()
-
+# A default context
+#
+_context = Context()

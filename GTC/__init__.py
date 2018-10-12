@@ -14,15 +14,22 @@ from __future__ import division
 
 import math
 import cmath
+import collections
 
 # GTC global constants, etc  
 inf_dof = 1E5               # DoF is considered infinite
+
 inf = float('inf')
 nan = float('nan') 
 
 is_infinity = math.isinf 
 is_undefined = math.isnan
 
+def is_sequence(obj):
+    if isinstance(obj, basestring):
+        return False
+    return isinstance(obj, collections.Sequence)
+    
 from core import *
 
 __all__ = (

@@ -7,7 +7,6 @@ import itertools
 import numpy
 
 from GTC import *
-from GTC.context import context 
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
@@ -56,7 +55,7 @@ class TestBudget(unittest.TestCase):
         see the components of uncertainty in terms of the
         real and imaginary components.
 
-        A sequuence of influences may be given, which may include
+        A sequence of influences may be given, which may include
         real or complex uncertain numbers.
         
         """

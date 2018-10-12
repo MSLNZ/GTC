@@ -17,22 +17,6 @@ from GTC import inf, nan, inf_dof, is_infinity, is_undefined
 
 LOG10_E = math.log10(math.e)
 
-# TODO: Issue!!
-# _context is an attribute of UncertainReal to avoid circular importing. 
-# This  doesn't seem elegant, because where is one (global) context object.
-# Context and UncertainReal are tightly coupled (also UncertainComplex).
-# Context has methods that create these other objects, because the Context 
-# keeps track of various things (node registers, correlations, etc).
-# _context is not used a great deal. We return constants (but this could 
-# be handled without the Context, because constants are not logged). We
-# create some UncertainComplex results as a result of mixed type maths. 
-# We use the context with variance and degrees of freedom calculations. 
-# We set and get correlation coefficients. The functions like 
-# Welch-Satterthwaite and variance might be moved to another module, but 
-# we would need to drop the attributes .v, .df, etc to make this work
-# (because they currently call the function - wherever it is). Without 
-# the attributes, we could define function calls in core.py.
-# 
 #----------------------------------------------------------------------------
 class UncertainReal(object):
     
@@ -1413,6 +1397,10 @@ def set_correlation_real(x1,x2,r):
     r: float
     
     """
+    if x1._context is not x2._context:
+        raise RuntimeError(
+            "Different contexts!"
+        )
     x1._context.set_correlation(x1,x2,r)
         
 #----------------------------------------------------------------------
@@ -1433,10 +1421,12 @@ def get_correlation_real(x1,x2):
     
     """
     if x1.is_elementary and x2.is_elementary:
-        context = x1._context
-        assert context is x2._context,"Different contexts!"
+        if x1._context is not x2._context:
+            raise RuntimeError(
+                "Different contexts!"
+            )
         
-        return context.get_correlation(x1,x2)
+        return x1._context.get_correlation(x1,x2)
     else:
         v1 = std_variance_real(x1)
         v2 = std_variance_real(x2)
@@ -1515,10 +1505,12 @@ def std_covariance_real(x1,x2):
     """
     # Assume that `x1` and `x2` are not elementary UNs 
     
-    context = x1._context
-    
+    if x1._context is not x2._context:
+        raise RuntimeError(
+            "Different contexts!"
+        )
+        
     cv = 0.0
-
     # `k1` is not correlated with anything, so only if 
     # `k1` happens to influence x2 do we get any contribution.    
     cv += math.fsum(
@@ -1526,6 +1518,7 @@ def std_covariance_real(x1,x2):
         for k1_i,u1_i in x1._u_components.iteritems()
     )
                     
+    context = x1._context
     for k1_i,u1_i in x1._d_components.iteritems():
         try:
             # `k1_i` could be correlated with influences of `x2`
@@ -1557,10 +1550,11 @@ def get_covariance_real(x1,x2):
     
     """
     if x1.is_elementary and x2.is_elementary:
-        context = x1._context
-        assert context is x2._context,"Different contexts!"
-        
-        r = context.get_correlation(x1,x2)
+        if x1._context is not x2._context:
+            raise RuntimeError(
+                "Different contexts!"
+            )
+        r = x1._context.get_correlation(x1,x2)
         return x1.u * r * x2.u
     else:        
         return std_covariance_real(x1,x2) 

@@ -8,7 +8,7 @@ import itertools
 import numpy
 
 from GTC import *
-from GTC.context import context 
+from GTC.context import _context 
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
@@ -789,7 +789,7 @@ class TestUncertainReal(unittest.TestCase):
         x = 1.2
         u = 0.2
         x_str= "1.20(20)" # takes account of uncertainty rounding
-        c = context
+        c = _context
 
         un = ureal(x,u)
 
@@ -1975,7 +1975,7 @@ class GuideExampleH2(unittest.TestCase):
         phi = ureal(1.04446,0.00075,5,independent=False)
         dummy_3 = ureal(1,1)
 
-        context.real_ensemble( [v,i,phi], 5 )
+        _context.real_ensemble( [v,i,phi], 5 )
 
         set_correlation(-0.36,v,i)
         set_correlation(0.86,v,phi)
