@@ -31,7 +31,10 @@ class Leaf(Node):
     
     __slots__ = [
         'df',
-        'independent'
+        'independent',
+        'complex',
+        'correlation',
+        'ensemble'
     ]
     
     def __init__(self,uid,tag,u,df,independent=True):
@@ -39,6 +42,9 @@ class Leaf(Node):
     
         self.df = df
         self.independent = independent
+        if not independent:
+            self.correlation = {uid: 1.0}
+            self.ensemble = set()
         
     
     

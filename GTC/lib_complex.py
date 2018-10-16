@@ -11,6 +11,7 @@ import cmath
 from itertools import izip
 
 from GTC.lib_real import *
+from GTC.lib_real import _is_uncertain_real_constant
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.named_tuples import VarianceCovariance, StandardUncertainty, GroomedUncertainComplex
@@ -25,6 +26,20 @@ __all__ = (
     'willink_hall',
 )
 
+#----------------------------------------------------------------------------
+def _is_uncertain_complex_constant(z):
+    """
+    """
+    if isinstance(z,UncertainComplex):
+        return bool( 
+            _is_uncertain_real_constant(z.real) and 
+            _is_uncertain_real_constant(z.imag)
+        )
+    else:
+        raise RuntimeError(
+            "UncertainComplex required: {!r}".format(x)
+        )
+  
 #---------------------------------------------------------------------------
 def z_to_seq( z ):
     """Return a 4-element sequence (re, -im, im, re)
@@ -1727,11 +1742,13 @@ def std_variance_covariance_complex(x):
     return VarianceCovariance(v_r,cv,cv,v_i)
 
 #---------------------------------------------------------------------------
-def _covariance_submatrix(context,correlations,u_re,u_im):
+# def _covariance_submatrix(context,correlations,u_re,u_im):
+def _covariance_submatrix(u_re,u_im):
     """Return v_rr, v_ir, v_ii, the 3 covariance matrix terms
 
-    `u_re` and `u_im` are `GTC.Vector`s containing uid's
-    and component of uncertainty values.
+    `u_re` and `u_im` are `GTC.Vector`s Leaf nodes and 
+    component of uncertainty values.
+    The nodes are all independent==False`
     
     """
     # Utility function for `willink_hall(x)`
@@ -1758,28 +1775,29 @@ def _covariance_submatrix(context,correlations,u_re,u_im):
         v_ri += x_u_re * x_u_im
 
         # Additional terms required when there are correlations
-        if x_i in correlations:
-            row_x = correlations[x_i]
-            
-            v_rr += sum(
-                2.0 * x_u_re * u_re[y_i] * row_x.get(y_i,0.0)
-                    for y_i in keys[i+1:]
-            )
+        # if x_i in correlations:
+            # row_x = correlations[x_i]
+        row_x = x_i.correlation
 
-            v_ii += sum(
-                2.0 * x_u_im * u_im[y_i] * row_x.get(y_i,0.0)
-                    for y_i in keys[i+1:]
-            )
+        v_rr += math.fsum(
+            2.0 * x_u_re * u_re[y_i] * row_x.get(y_i.uid,0.0)
+                for y_i in keys[i+1:]
+        )
 
-            # Cross product of `u_re` and `u_im` so we need
-            # to iterate over all keys (there is no symmetry
-            # allowing us to step over just half). We just
-            # skip the term `u_im[x_uid]`, which is already
-            # in the sum.
-            v_ri += sum(
-                x_u_re * u_im[y_i] * row_x.get(y_i,0.0)
-                    for y_i in keys if y_i != x_i
-            )
+        v_ii += math.fsum(
+            2.0 * x_u_im * u_im[y_i] * row_x.get(y_i.uid,0.0)
+                for y_i in keys[i+1:]
+        )
+
+        # Cross product of `u_re` and `u_im` so we need
+        # to iterate over all keys (there is no symmetry
+        # allowing us to step over just half). We just
+        # skip the term `u_im[x_uid]`, which is already
+        # in the sum.
+        v_ri +=math.fsum(
+            x_u_re * u_im[y_i] * row_x.get(y_i.uid,0.0)
+                for y_i in keys if y_i != x_i
+        )
 
     return v_rr, v_ri, v_ii
 
@@ -1807,15 +1825,16 @@ class _EnsembleComponents(object):
         self.u_im = Vector()
         self.nu = nu
         
-    def accumulate(self,cxt,correlations):
+    # def accumulate(self,cxt,correlations):
+    def accumulate(self):
         """
         Update the running sums from this object.
         
         """
         # Calculate `v` = u * r * u'
         v_11,v_12,v_22 = _covariance_submatrix(
-            cxt,
-            correlations,
+            # cxt,
+            # correlations,
             self.u_re,
             self.u_im
         )
@@ -1873,19 +1892,23 @@ def willink_hall(x):
             "expected 'UncertainComplex' got: '{!r}'".format(x)
         )
     
+    if _is_uncertain_complex_constant(x):
+        return VarianceAndDof((0.,0.,0.,0.),inf)
+        
     real = x.real
     imag = x.imag
 
     context = real._context
 
     if real.is_elementary:
+        assert imag.is_elementary
         return VarianceAndDof(
             std_variance_covariance_complex(x),
             real.df
         )
     else:
-        # willink_hall separates the work to be done on truly 
-        # independent UNs from that on correlated ones.
+        # willink_hall separates the work to be done on 
+        # independent UNs from the work on possibly correlated UNs.
         
         # Need all keys for the independent components
         re_u = extend_vector(x.real._u_components,x.imag._u_components)    
@@ -1894,10 +1917,6 @@ def willink_hall(x):
         # Need all keys for the dependent components
         re_d = extend_vector(x.real._d_components,x.imag._d_components)    
         im_d = extend_vector(x.imag._d_components,x.real._d_components)
-
-        if len(re_u) + len(re_d) == 0:
-            # A constant
-            return VarianceAndDof((0.,0.,0.,0.),inf)
             
         ids_u = re_u.keys()
         ids_d = re_d.keys()
@@ -1905,13 +1924,14 @@ def willink_hall(x):
         degrees_of_freedom_u = [ k_i.df for k_i in ids_u ]
         degrees_of_freedom_d = [ k_i.df for k_i in ids_d ]
         
-        # Everything has infinite DoF?
+        # Perhaps everything has infinite DoF?
         if ( 
             degrees_of_freedom_u.count(inf) == len(degrees_of_freedom_u) and 
             degrees_of_freedom_d.count(inf) == len(degrees_of_freedom_d)
         ):
             return VarianceAndDof( std_variance_covariance_complex(x), inf )
         
+        # -------------------------------------------------------------------
         # Initially clear the accumulators
         _EnsembleComponents.clear()
         
@@ -1941,7 +1961,7 @@ def willink_hall(x):
         
         if len_ids != 0:
         
-            correlations = context._correlations._mat
+            # correlations = context._correlations._mat
             
             skip_imaginary = False      # Initial value 
             
@@ -1963,15 +1983,16 @@ def willink_hall(x):
                     skip_imaginary = False
                     continue
                 
-                # mapping between LeafNodes and correlation coefficients
-                row_re = correlations.get(id_re,{})
-                # If {}, can we just continue?
+                # mapping between Leaf nodes and correlation coefficients
+                # row_re = correlations.get(id_re,{})
+                row_re = id_re.correlation
                 
                 nu_i = degrees_of_freedom_d[i_re]
                 i_re_infinite = is_infinity( nu_i )         
 
                 ensemble_i = frozenset(
-                    context._ensemble.get( id_re, frozenset() )
+                    id_re.ensemble
+                    # context._ensemble.get( id_re, frozenset() )
                 )
                 if len(ensemble_i) and ensemble_i not in ensemble_reg:
                     # Non-trivial ensemble that has not yet been identified
@@ -1985,14 +2006,19 @@ def willink_hall(x):
                     _EnsembleComponents(nu_i)
                 )
                 
-                if id_re in context._complex_ids:
+                # if id_re in context._complex_ids:
+                if hasattr(id_re,'complex'):
                     # This is a complex influence
                     skip_imaginary = True
                     
-                    id_im = context._complex_ids[id_re][1]
+                    # Assumes consecutive nodes 
+                    id_im = ids_d[i_re + 1]
+                    # id_im = context._complex_ids[id_re][1]
+                    # id_im = context._registered_leaf_nodes[id_re.complex[1]]    # look up node using uid
 
                     # mapping between LeafNodes and correlation coefficients
-                    row_im = correlations.get( id_im, {} )
+                    # row_im = correlations.get( id_im, {} )
+                    row_im = id_im.correlation
 
                     # This steps over the imaginary component, 
                     # which is assumed to follow 
@@ -2014,9 +2040,10 @@ def willink_hall(x):
                                     continue
                                 
                             elif (
-                                j_id not in ensemble_i  
+                                j_id.uid not in ensemble_i  
                                     and ( 
-                                        j_id in row_re or j_id in row_im 
+                                        j_id.uid in row_re or 
+                                        j_id.uid in row_im 
                                     )
                             ):
                                 # Illegal case: `j` is not in an ensemble with `i`
@@ -2028,7 +2055,7 @@ def willink_hall(x):
                                 )
                         
                     # If we get here, this complex influence
-                    # can be used for the DoF calculation. 
+                    # that can be used for the DoF calculation. 
                     # Update the buffer.
                     if not i_re_infinite:
                         components_i.u_re.append( id_re,re_d[id_re] )
@@ -2050,8 +2077,8 @@ def willink_hall(x):
                                 not is_infinity( 
                                     degrees_of_freedom_d[next_i+j]  
                                 ) 
-                                and id_re not in ensemble_i
-                                and ( j_id in row_re )
+                                and id_re.uid not in ensemble_i
+                                and ( j_id.uid in row_re )
                             ):
                                 assert False, "should not now occur"
                                 # # Illegal case: `j` is correlated with `i`
@@ -2071,10 +2098,12 @@ def willink_hall(x):
                 # If the current influence does NOT belong to an ensemble
                 # update the sums immediately, otherwise wait until the end
                 if len( ensemble_i ) == 0:
-                    components_i.accumulate(context,correlations)
+                    # components_i.accumulate(context,correlations)
+                    components_i.accumulate()
                                 
             for ec_i in ensemble_reg.itervalues():
-                ec_i.accumulate(context,correlations)
+                # ec_i.accumulate(context,correlations)
+                ec_i.accumulate()
 
         #------------------------------------------------------                
         # End of for loop

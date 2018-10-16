@@ -137,8 +137,10 @@ class TestBudget(unittest.TestCase):
         """
         z1 = dict(z=1+1j,u=(1,1),label='z1')
         uz1 = ucomplex(**z1)
+        
         z2 = dict(z=2-1j,u=(.5,.5),label='z2')
         uz2 = ucomplex(**z2)
+        
         x1 = dict(x=1,u=.1,label='x1')
         ux1 = ureal(**x1)
 

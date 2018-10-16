@@ -61,26 +61,26 @@ class TestArchive(unittest.TestCase):
         self.assertEqual( repr(x5), repr(y5) )
         self.assertEqual( repr(x6), repr(y6) )
 
-        self.assert_ ( y1._node in c2._correlations._mat )
-        self.assert_ ( y2._node in c2._correlations._mat )
-        self.assert_ ( y3._node in c2._correlations._mat )
+        # self.assert_ ( y1._node in c2._correlations._mat )
+        # self.assert_ ( y2._node in c2._correlations._mat )
+        # self.assert_ ( y3._node in c2._correlations._mat )
 
-        del y6
+        # del y6
         
-        self.assert_ ( y1._node in c2._correlations._mat )
-        self.assert_ ( y2._node in c2._correlations._mat )
-        self.assert_ ( y3._node in c2._correlations._mat )
+        # self.assert_ ( y1._node in c2._correlations._mat )
+        # self.assert_ ( y2._node in c2._correlations._mat )
+        # self.assert_ ( y3._node in c2._correlations._mat )
 
-        del y3,y5
+        # del y3,y5
 
-        self.assert_ ( y1._node in c2._correlations._mat )
-        self.assert_ ( y2._node in c2._correlations._mat )
+        # self.assert_ ( y1._node in c2._correlations._mat )
+        # self.assert_ ( y2._node in c2._correlations._mat )
 
-        del y2, y4      
+        # del y2, y4      
 
-        self.assert_ ( y1._node in c2._correlations._mat )
+        # self.assert_ ( y1._node in c2._correlations._mat )
 
-        del y1
+        # del y1
 
     def test_errors(self):
         """
@@ -572,7 +572,7 @@ class TestArchive(unittest.TestCase):
         ar.add(v=v,i=i,phi=phi)
         ar._freeze()
                 
-        # unpack without elementary uns and test
+        # unpack without elementary UNs and test
         c2 = Context()
         assert c1 is not c2 
         # This is a fudge. Normally, a different 
@@ -583,9 +583,17 @@ class TestArchive(unittest.TestCase):
         
         v1, i1, phi1 = ar.extract('v','i','phi')
         
-        self.assert_( v1._node in c2._ensemble )
-        self.assert_( i1._node in c2._ensemble )
-        self.assert_( phi1._node in c2._ensemble )
+        # self.assert_( v1._node in c2._ensemble )
+        # self.assert_( i1._node in c2._ensemble )
+        # self.assert_( phi1._node in c2._ensemble )
+
+        self.assert_( hasattr(v1._node, 'ensemble') )
+        self.assert_( v1._node.uid in v1._node.ensemble )
+        self.assert_( hasattr(i1._node, 'ensemble') )
+        self.assert_( i1._node.uid in i1._node.ensemble )
+        self.assert_( hasattr(phi1._node, 'ensemble') )
+        self.assert_( phi1._node.uid in phi1._node.ensemble )
+
         
         self.assertEqual( repr(v1), repr(v) )
         self.assertEqual( repr(i1) , repr(i) )
@@ -1212,8 +1220,8 @@ class TestArchive(unittest.TestCase):
         # z1 and z2 should be indistinguishable
         self.assertEqual( repr(z1), repr(z2) )
         
-        # but they are defined in different contexts 
-        self.assertRaises(RuntimeError,get_correlation,z1,z2)
+        # # but they are defined in different contexts 
+        # self.assertRaises(RuntimeError,get_correlation,z1,z2)
         
         budgets = zip( rp.budget(z1,trim=0), rp.budget(z2,trim=0) )
         for c1,c2 in budgets:

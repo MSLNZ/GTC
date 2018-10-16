@@ -42,7 +42,7 @@ import itertools
 
 from GTC.lib_complex import UncertainComplex
 from GTC.lib_real import UncertainReal
-from GTC.lib_real import get_correlation_real
+from GTC.lib_real import get_correlation_real, set_correlation_real
 from GTC.context import _context 
 
 from GTC.vector import merge_vectors
@@ -526,7 +526,7 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
             )
 
     ureal = context.elementary_real
-    set_correlation = context.set_correlation
+    # set_correlation = context.set_correlation
 
     # Create a list of elementary uncertain numbers
     # to return a list of standard uncertainties
@@ -553,7 +553,7 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
             if cv_ij != 0.0:
                 r =  cv_ij / (u_i*u[i+j+1])
                 un_j = rtn[i+j+1]
-                set_correlation(un_i,un_j,r)
+                set_correlation_real(un_i,un_j,r)
 
     return rtn
 
@@ -629,7 +629,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
         )
     # 3. Define uncertain M complex numbers
     ucomplex = context.elementary_complex
-    set_correlation = context.set_correlation
+    # set_correlation = context.set_correlation
 
     x_influences = []
     rtn = []
@@ -657,9 +657,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
             )/N_N_1
             if cv != 0.0:
                 r = cv/(x_u[i]*x_u[j]) 
-                # raises exception if |r| > 1
-                # makes a symmetric entry
-                set_correlation(un_i,x_influences[j],r)
+                set_correlation_real(un_i,x_influences[j],r)
 
     context.complex_ensemble( rtn, N_1 )
     

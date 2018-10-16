@@ -163,7 +163,7 @@ def uniform_disk(a):
     return a / 2.0
 
 #---------------------------------------------------------------------------
-# Deprecated
+# 
 def uncertain_ring(a_u_r):
     """Return the standard uncertainty for an uncertain ring 
         

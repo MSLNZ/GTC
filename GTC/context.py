@@ -33,19 +33,19 @@ class Context(object):
 
         # The value will be the (real._node,imag._node) pair, when
         # either the real or imag node is used as key.
-        self._complex_ids = weakref.WeakKeyDictionary()
+        # self._complex_ids = weakref.WeakKeyDictionary()
 
         # Correlation coefficients between elementary UNs 
         # Keys are Leaf objects 
-        self._correlations = WeakSymmetricMatrix()
+        # self._correlations = WeakSymmetricMatrix()
 
         # A register of elementary uncertain numbers that are 
         # considered simultaneous samples from a multivariate parent. 
         # The key is any Leaf, the value is the set of objects 
         # in the ensemble.
-        self._ensemble = weakref.WeakKeyDictionary()
+        # self._ensemble = weakref.WeakKeyDictionary()
   
-        # Caching to avoid duplicating UNs when unpacking archives 
+        # Caching to avoid duplication when unpacking archives 
         self._registered_leaf_nodes = weakref.WeakValueDictionary()
         self._registered_intermediate_nodes = weakref.WeakValueDictionary()
           
@@ -97,7 +97,7 @@ class Context(object):
         )
  
     #------------------------------------------------------------------------
-    def new_leaf(self, uid, tag, u, df, independent):
+    def new_leaf(self,uid,tag,u,df,independent):
         """
         Return a new ``Leaf`` node unless one with the same uid exists
         
@@ -106,7 +106,7 @@ class Context(object):
             l =  self._registered_leaf_nodes[uid]
         except KeyError:
             
-            l = Leaf(uid,tag,u,df,independent=independent)
+            l = Leaf(uid,tag,u,df,independent)
             self._registered_leaf_nodes[uid] = l
             
         return l 
@@ -126,7 +126,8 @@ class Context(object):
         return n
         
     #------------------------------------------------------------------------
-    def _archived_elementary_real(self,uid,x,u,df=inf,label=None,independent=True):
+    # def _archived_elementary_real(self,uid,x,u,df=inf,label=None,independent=True):
+    def _archived_elementary_real(self,uid,x):
         """
         Return an elementary uncertain real number.
 
@@ -137,10 +138,10 @@ class Context(object):
         ----------
         uid : unique identifier
         x : float
-        u : float
-        df : float
-        label : string
-        independent : Boolean
+        # u : float
+        # df : float
+        # label : string
+        # independent : Boolean
 
         Returns
         -------
@@ -149,19 +150,20 @@ class Context(object):
         """
         # Use the cache `self._registered_leaf_nodes` 
         # to avoid creating multiple LeafNode objects.
-        l = self.new_leaf(uid, label, u, df, independent) 
-        if l.u != u or l.df != df or l.tag != label:
-            raise RuntimeError(
-                "Inconsistent archive records for '{}' and '{}'".format(
-                    label, l.tag
-                )
-            )
+        # l = self.new_leaf(uid, label, u, df, independent) 
+        l = self._registered_leaf_nodes[uid]
+        # if l.u != u or l.df != df or l.tag != label:
+            # raise RuntimeError(
+                # "Inconsistent archive records for '{}' and '{}'".format(
+                    # label, l.tag
+                # )
+            # )
         
-        if independent:
+        if l.independent:
             un = UncertainReal(
                     self
                 ,   x
-                ,   Vector( index=[l],value=[u] )
+                ,   Vector( index=[l],value=[l.u] )
                 ,   Vector( )
                 ,   Vector( )
                 ,   l
@@ -171,7 +173,7 @@ class Context(object):
                     self
                 ,   x
                 ,   Vector( )
-                ,   Vector( index=[l],value=[u] )
+                ,   Vector( index=[l],value=[l.u] )
                 ,   Vector( )
                 ,   l
                 )
@@ -223,18 +225,29 @@ class Context(object):
             # ensemble members must be elementary
             assert all( s_i.is_elementary for s_i in seq )
             
-            ensemble = weakref.WeakSet( 
-                x._node 
+            # ensemble = weakref.WeakSet( 
+                # x._node 
+                    # for pair in seq 
+                        # for x in (pair.real,pair.imag) 
+            # )
+
+            # for pair in seq:
+                # for x in (pair.real,pair.imag):
+                    # nid =x._node
+                    # assert nid not in self._ensemble
+                    # self._ensemble[nid] = ensemble     
+                
+                
+            ensemble = set( 
+                x._node.uid 
                     for pair in seq 
                         for x in (pair.real,pair.imag) 
             )
-
+            
             for pair in seq:
                 for x in (pair.real,pair.imag):
-                    nid =x._node
-                    assert nid not in self._ensemble
-                    self._ensemble[nid] = ensemble     
-                
+                    x._node.ensemble = ensemble
+            
     #------------------------------------------------------------------------
     def real_ensemble(self,seq,df):
         """Declare the ``seq`` of uncertain numbers as an ensemble.
@@ -264,14 +277,19 @@ class Context(object):
             # ensemble members must be elementary
             assert all( s_i.is_elementary for s_i in seq )
                     
-            ensemble = weakref.WeakSet( x._node for x in seq )
+            # ensemble = weakref.WeakSet( x._node for x in seq )
+
+            # for s_i in seq:
+                # nid = s_i._node
+                # # Index keys are any member node
+                # assert nid not in self._ensemble,\
+                    # "found '{!r}' already".format(nid)
+                # self._ensemble[nid] = ensemble     
+
+            ensemble = set( x._node.uid for x in seq )
 
             for s_i in seq:
-                nid = s_i._node
-                # Index keys are any member node
-                assert nid not in self._ensemble,\
-                    "found '{!r}' already".format(nid)
-                self._ensemble[nid] = ensemble     
+                s_i._node.ensemble = ensemble     
                 
     #------------------------------------------------------------------------
     def append_real_ensemble(self,member,x):
@@ -283,12 +301,12 @@ class Context(object):
         
         """
         nid = member._node
-        try:
-            ensemble = self._ensemble[nid]
-        except KeyError:
-            raise RuntimeError(
-                "cannot find an ensemble for '{!r}'".format(member)
-            )
+        # try:
+            # ensemble = self._ensemble[nid]
+        # except KeyError:
+            # raise RuntimeError(
+                # "cannot find an ensemble for '{!r}'".format(member)
+            # )
             
         if x.df != member.df:
             raise RuntimeError(
@@ -301,12 +319,14 @@ class Context(object):
             )
 
         x._node.independent = False
-
-        ensemble.add(x._node)
+        
+        # We assume that all Leaf nodes refer to the same set object
+        # So by adding here, all Leaf nodes see the change.
+        x._node.ensemble.add(x._node)
             
-        # Expect different keys to reference the same object 
-        # TODO: could be removed in release versions
-        assert all( self._ensemble[nid] is ensemble for nid in ensemble )
+        # # Expect different keys to reference the same object 
+        # # TODO: could be removed in release versions
+        # assert all( self._ensemble[nid] is ensemble for nid in ensemble )
             
     #------------------------------------------------------------------------
     def constant_real(self,x,label):
@@ -513,6 +533,7 @@ class Context(object):
             label_r = "{}_re".format(label)
             label_i = "{}_im".format(label)
             
+        # `independent` will be False if `r != 0`
         # We assume that the IDs assigned are consecutive.
         real = self.elementary_real(z.real,u_r,df,label_r,independent)
         imag = self.elementary_real(z.imag,u_i,df,label_i,independent)
@@ -520,12 +541,19 @@ class Context(object):
         # We need to be able to look up complex pairs
         # TODO: is this only needed in dof calculations?
         # If so, we might be able to relax this later.
-        complex_id = (real._node,imag._node)
-        self._complex_ids[real._node] = complex_id        
-        self._complex_ids[imag._node] = complex_id
+        # complex_id = (real._node,imag._node)
+        complex_id = (real._node.uid,imag._node.uid)
+        real._node.complex = complex_id 
+        imag._node.complex = complex_id
+        
+        # # TODO: retire this register later
+        # self._complex_ids[real._node] = complex_id        
+        # self._complex_ids[imag._node] = complex_id
 
-        if r is not None and r != 0.0:
-            self._correlations[ real._node,imag._node ] = r
+        if r is not None:
+            # self._correlations[ real._node,imag._node ] = r
+            real._node.correlation[imag._node.uid] = r 
+            imag._node.correlation[real._node.uid] = r 
             
         ucomplex = UncertainComplex(real,imag)
         ucomplex.is_elementary = True
@@ -595,84 +623,89 @@ class Context(object):
             
             return uc         
  
-    #------------------------------------------------------------------------
-    def set_correlation(self,x1,x2,r):
-        """
-        Assign a correlation coefficient to a pair of uncertain numbers
+    # #------------------------------------------------------------------------
+    # def set_correlation(self,x1,x2,r):
+        # """
+        # Assign a correlation coefficient to a pair of uncertain numbers
 
-        Requires |r| <= 1, otherwise a RuntimeError is raised.
+        # Requires |r| <= 1, otherwise a RuntimeError is raised.
         
-        If a definition exists, it will be quietly overwritten.
+        # If a definition exists, it will be quietly overwritten.
         
-        Raises `RuntimeError` if either `x1` or `x2` was not 
-        declared with `independent=False`.
+        # Raises `RuntimeError` if either `x1` or `x2` was not 
+        # declared with `independent=False`.
         
-        Parameters
-        ----------
-        x1, x2 : `UncertainReal`
-        r : float
+        # Parameters
+        # ----------
+        # x1, x2 : `UncertainReal`
+        # r : float
 
-        Returns
-        -------
-        None
+        # Returns
+        # -------
+        # None
         
-        """
-        if abs(r) > 1.0:
-            raise RuntimeError,"invalid value: '%s'" % r
+        # """
+        # if abs(r) > 1.0:
+            # raise RuntimeError,"invalid value: '%s'" % r
         
 
-        if (
-            x1.is_elementary and 
-            x2.is_elementary
-        ):        
+        # if (
+            # x1.is_elementary and 
+            # x2.is_elementary
+        # ):        
         
-            # The leaf nodes 'ln1' and 'ln2' are keys to
-            # the correlation coefficient stored by the context.
-            ln1 = x1._node
-            ln2 = x2._node
+            # # # The leaf nodes 'ln1' and 'ln2' are keys to
+            # # # the correlation coefficient stored by the context.
+            # ln1 = x1._node
+            # ln2 = x2._node
             
-            if (
-                not ln1.independent and
-                not ln2.independent
-            ):
-                if ln1 is ln2 and r != 1.0:
-                    raise RuntimeError(
-                        "value should be 1.0, got: '{}'".format(r)
-                    )
-                else:
-                    self._correlations[ln1,ln2] = r
-            else:
-                raise RuntimeError( 
-                    "`set_correlation` called on independent node"
-                )
+            # if (
+                # not ln1.independent and
+                # not ln2.independent
+            # ):
+                # if ln1 is ln2 and r != 1.0:
+                    # raise RuntimeError(
+                        # "value should be 1.0, got: '{}'".format(r)
+                    # )
+                # else:
+                    # ln1.correlation[ln2.uid] = r 
+                    # ln2.correlation[ln1.uid] = r 
+                    # # self._correlations[ln1,ln2] = r
+            # else:
+                # raise RuntimeError( 
+                    # "`set_correlation` called on independent node"
+                # )
             
-        else:
-            raise RuntimeError(
-                "Arguments must be elementary uncertain numbers, \
-                got: {!r} and {!r}".format(x1,x2)
-            )
+        # else:
+            # raise RuntimeError(
+                # "Arguments must be elementary uncertain numbers, \
+                # got: {!r} and {!r}".format(x1,x2)
+            # )
 
-    #------------------------------------------------------------------------
-    def get_correlation(self,x1,x2):
-        """
-        Return the correlation coefficient for a pair of uncertain numbers
+    # #------------------------------------------------------------------------
+    # # TODO, not needed in Context now
+    # #
+    # def get_correlation(self,x1,x2):
+        # """
+        # Return the correlation coefficient for a pair of uncertain numbers
 
-        Parameters
-        ----------
-        id1, id2 : integer
+        # Parameters
+        # ----------
+        # id1, id2 : integer
 
-        Returns
-        -------
-        float
+        # Returns
+        # -------
+        # float
         
-        """
-        ln1 = x1._node
-        ln2 = x2._node
+        # """
+        # ln1 = x1._node
+        # ln2 = x2._node
         
-        if ln1 is ln2:
-            return 1.0
-        else:
-            return self._correlations.get( (ln1,ln2) )
+        # if ln1 is ln2:
+            # return 1.0
+        # else:
+            # # return self._correlations.get( (ln1,ln2) )
+            # return ln1.correlation.get( ln2.uid, 0.0 )
         
 #----------------------------------------------------------------------------
 # TODO: use Python library for this in Python 3 version

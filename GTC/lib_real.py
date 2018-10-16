@@ -6,7 +6,6 @@ import math
 import cmath
 import numbers
 
-from string import Template
 from itertools import izip
 
 from GTC import nodes 
@@ -17,6 +16,22 @@ from GTC import inf, nan, inf_dof, is_infinity, is_undefined
 
 LOG10_E = math.log10(math.e)
 
+#----------------------------------------------------------------------------
+def _is_uncertain_real_constant(x):
+    """
+    
+    """
+    if isinstance(x,UncertainReal):
+        return bool( 
+            len(x._u_components) == 0 and 
+            len(x._d_components) == 0
+        )
+    else:
+        raise RuntimeError(
+            "UncertainReal required: {!r}".format(x)
+        )
+        
+        
 #----------------------------------------------------------------------------
 class UncertainReal(object):
     
@@ -1397,12 +1412,43 @@ def set_correlation_real(x1,x2,r):
     r: float
     
     """
-    if x1._context is not x2._context:
-        raise RuntimeError(
-            "Different contexts!"
-        )
-    x1._context.set_correlation(x1,x2,r)
+    # if x1._context is not x2._context:
+        # raise RuntimeError(
+            # "Different contexts!"
+        # )
+    # x1._context.set_correlation(x1,x2,r)
+        # if abs(r) > 1.0:
+            # raise RuntimeError,"invalid value: '%s'" % r
         
+
+    if (
+        x1.is_elementary and 
+        x2.is_elementary
+    ):        
+    
+        ln1 = x1._node
+        ln2 = x2._node
+        
+        if (
+            not ln1.independent and
+            not ln2.independent
+        ):
+            if ln1 is ln2 and r != 1.0:
+                raise RuntimeError(
+                    "value should be 1.0, got: '{}'".format(r)
+                )
+            else:
+                ln1.correlation[ln2.uid] = r 
+                ln2.correlation[ln1.uid] = r 
+        else:
+            raise RuntimeError( 
+                "`set_correlation` called on independent node"
+            )
+    else:
+        raise RuntimeError(
+            "Arguments must be elementary uncertain numbers, \
+            got: {!r} and {!r}".format(x1,x2)
+        )
 #----------------------------------------------------------------------
 def get_correlation_real(x1,x2):
     """Return the correlation between ``x1`` and `x2``
@@ -1421,12 +1467,20 @@ def get_correlation_real(x1,x2):
     
     """
     if x1.is_elementary and x2.is_elementary:
-        if x1._context is not x2._context:
-            raise RuntimeError(
-                "Different contexts!"
-            )
+        # if x1._context is not x2._context:
+            # raise RuntimeError(
+                # "Different contexts!"
+            # )
         
-        return x1._context.get_correlation(x1,x2)
+        # return x1._context.get_correlation(x1,x2)
+        ln1 = x1._node
+        ln2 = x2._node
+        
+        if ln1 is ln2:
+            return 1.0
+        else:
+            return ln1.correlation.get( ln2.uid, 0.0 )
+        
     else:
         v1 = std_variance_real(x1)
         v2 = std_variance_real(x2)
@@ -1450,21 +1504,23 @@ def std_variance_real(x):
     float
     
     """
-    c = x._context    
-    
+    # c = x._context    
+  
     # The independent components of uncertainty
     # ( Faster this way than with reduce()! )
     var = 0.0
-    var += math.fsum(
-        u_i*u_i 
-        for u_i in x._u_components.itervalues()
-    )
+    
+    if len(x._u_components) != 0:    
+        var += math.fsum(
+            u_i * u_i 
+                for u_i in x._u_components.itervalues()
+        )
     
     # Only evaluate the following terms when correlations 
-    # have been declared, which is rare.
+    # have been allowed.
     if len(x._d_components) != 0:
         # All correlations 
-        c_mat = c._correlations._mat  
+        # c_mat = c._correlations._mat  
         
         # Components declared as perhaps being correlated 
         cpts = x._d_components
@@ -1474,18 +1530,28 @@ def std_variance_real(x):
         for i,k_i in enumerate(keys):
             u_i = values[i]
             var += u_i * u_i 
-            try:
-                row_i = c_mat[k_i]   
-            except KeyError:
-                # No entry, next key
-                continue
-                
-            # for j,k_j in enumerate( keys[i+1:] ):
-                # var += 2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
+            # try:
+                # row_i = c_mat[k_i]   
+            # except KeyError:
+                # # No entry, next key
+                # continue
+            # if len(k_i.correlation):
+                # for j,k_j in enumerate( keys[i+1:] ):
+                    # r_ij = k_i.correlation.get(k_j.uid,0.0)
+                    # u_j = values[j+i+1]
+                    # var += 2.0 * u_i * r_ij * u_j 
+                    # print "{} * {} * {}".format(u_i,r_ij, u_j)
+                # for j,k_j in enumerate( keys[i+1:] ):
+                    # var += 2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
             var += math.fsum(
-                2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
-                for j,k_j in enumerate( keys[i+1:] )
+                2.0 *
+                u_i *
+                k_i.correlation.get(k_j.uid,0.0) *
+                values[j+i+1]
+                    for j,k_j in enumerate( keys[i+1:] )
             )
+            # else:
+                # continue
                             
     return var
 
@@ -1505,34 +1571,41 @@ def std_covariance_real(x1,x2):
     """
     # Assume that `x1` and `x2` are not elementary UNs 
     
-    if x1._context is not x2._context:
-        raise RuntimeError(
-            "Different contexts!"
-        )
+    # if x1._context is not x2._context:
+        # raise RuntimeError(
+            # "Different contexts!"
+        # )
         
     cv = 0.0
+    
     # `k1` is not correlated with anything, so only if 
     # `k1` happens to influence x2 do we get any contribution.    
     cv += math.fsum(
-        u1_i*x2._u_components.get(k1_i,0.0)
-        for k1_i,u1_i in x1._u_components.iteritems()
+        u1_i * x2._u_components.get(k1_i,0.0)
+            for k1_i,u1_i in x1._u_components.iteritems()
     )
                     
-    context = x1._context
+    
+    # context = x1._context
     for k1_i,u1_i in x1._d_components.iteritems():
-        try:
+        # try:
             # `k1_i` could be correlated with influences of `x2`
-            row_i = context._correlations._mat[k1_i]
-            
-            # Some correlations are declared, so check. 
-            cv += math.fsum(
-                u1_i*row_i.get(k2_i,0.0)*u2_i
+            # row_i = context._correlations._mat[k1_i]
+        # for k2_i,u2_i in x2._d_components.iteritems():
+            # r_ij = k1_i.correlation.get(k2_i.uid,0.0)
+            # cv += u1_i * r_ij * u2_i
+            # # Some correlations are declared, so check. 
+        cv += math.fsum(
+            u1_i *
+            k1_i.correlation.get(k2_i.uid,0.0) *
+            u2_i
                 for k2_i,u2_i in x2._d_components.iteritems()
-            )
-        except KeyError:
-            # `k1_i` is not correlated with anything
-            # but `x2` may be influenced by `k1_i` 
-            cv += u1_i*x2._d_components.get(k1_i,0.0)
+        )
+        # else:
+        # # except KeyError:
+            # # Even if `k1_i` is not correlated with anything, 
+            # # `x2` may still be influenced by `k1_i` 
+            # cv += u1_i*x2._d_components.get(k1_i,0.0)
 
     return cv
 
@@ -1550,12 +1623,18 @@ def get_covariance_real(x1,x2):
     
     """
     if x1.is_elementary and x2.is_elementary:
-        if x1._context is not x2._context:
-            raise RuntimeError(
-                "Different contexts!"
-            )
-        r = x1._context.get_correlation(x1,x2)
-        return x1.u * r * x2.u
+        # if x1._context is not x2._context:
+            # raise RuntimeError(
+                # "Different contexts!"
+            # )
+        # r = x1._context.get_correlation(x1,x2)
+        # return x1.u * r * x2.u
+        n1 = x1._node
+        n2 = x2._node
+        if n1.independent:
+            return n1.u*n2.u
+        else:
+            return n1.u*n1.correlation.get(n2.uid,0.0)*n2.u
     else:        
         return std_covariance_real(x1,x2) 
         
@@ -1580,13 +1659,10 @@ def welch_satterthwaite(x):
             "UncertainReal required, got: '{!r}'".format(x)
         )
     
-    c = x._context
-
     if x.is_elementary:
         return VarianceAndDof(x.v,x.df)
      
-    elif len(x._u_components) == 0 and len(x._d_components) == 0:
-        # This is a constant_real
+    elif _is_uncertain_real_constant(x):
         return VarianceAndDof(0.0,inf)
     else:      
         u_cpts = x._u_components
@@ -1660,20 +1736,23 @@ def welch_satterthwaite(x):
                 var += v_i
                 df_i = d_dof[i]
                                     
-                # Control of complex. The `_complex_ids` register has a pair of
+                # Control of complex. 
+                # The `_complex_ids` register has a pair of
                 # ids for the complex quantity and is indexed by either of them. 
-                if k_i in c._complex_ids:
-                    complex_id = c._complex_ids[k_i]
-                else:
-                    complex_id = (None,None)
+                # if k_i in c._complex_ids:
+                    # complex_id = c._complex_ids[k_i]
+                # else:
+                    # complex_id = (None,None)
+                complex_id = getattr( k_i, 'complex', (None,None) )
 
                 # Context._ensemble is a WeakKeyDictionary of WeakSets
                 # Need to freeze this set here, to use it as a dict key
                 # that identifies the ensemble.
-                ensemble_i = frozenset( c._ensemble.get(k_i,frozenset()) )
+                # ensemble_i = frozenset( c._ensemble.get(k_i,frozenset()) 
+                ensemble_i = frozenset( k_i.ensemble )
                 
                 if len(ensemble_i) !=0 and ensemble_i not in cpts_map:
-                    # Create a new component entry for this new ensemble
+                    # Create a new component entry for this ensemble
                     cpts_map[ensemble_i] = [0,df_i]
 
                 if ensemble_i in cpts_map:
@@ -1703,72 +1782,77 @@ def welch_satterthwaite(x):
                 # Set flag only when both complex components are identified,
                 # because it is possible that just one or other component may
                 # be given as the argument `x`.
-                if (k_i,d_keys[i+1]) != complex_id:
+                # if (k_i,d_keys[i+1]) != complex_id:
+                # NB, consecutive keys are assumed here
+                if (k_i.uid,d_keys[i+1].uid) != complex_id:
                     finish_complex = False
                 else:
                     # i.e., we need to process the next component
                     finish_complex =  True
                     
                 # ---------------------------------------------------------
-                nid_i = k_i
-                if k_i in c._correlations._mat:
-                    # Correlations associated with the influence `k_i`
-                    row_i = c._correlations._mat[k_i]
-                    
-                    nu_i_infinite = is_infinity( df_i ) 
-                    
-                    # Look at the remaining influences 
-                    for j,k_j in enumerate(d_keys[i+1:]):
-                    
-                        if k_j in row_i:  
-                            # Special cases are handled here.
-                            
-                            u_j = d_values[i+1+j]
-                            r = row_i[k_j]
-                            covar_ij = 2.0*u_i*r*u_j
-                            var += covar_ij    
+                # if k_i in c._correlations._mat:
+                # if len(k_i.correlation):
+                
+                # Correlations associated with the influence `k_i`
+                # row_i = c._correlations._mat[k_i]
+                
+                nu_i_infinite = is_infinity( df_i ) 
+                
+                # Look at the remaining influences 
+                for j,k_j in enumerate(d_keys[i+1:]):
+                
+                    # if k_j in row_i:  
+                    if k_j.uid in k_i.correlation:
+                        # Special cases are handled here.
+                        
+                        u_j = d_values[i+1+j]
+                        r = k_i.correlation[k_j.uid]
+                        covar_ij = 2.0*u_i*r*u_j
+                        var += covar_ij    
 
-                            if nu_i_infinite and is_infinity( k_j.df ):
-                                # The correlated influences both have  
-                                # infinite dof so it is still valid to use WS.
-                                # For a single entry, we add 
-                                # the covariance term here.
-                                # The loop over `i` takes care of
-                                # the variance.
-                                # Since infinite DoF are not summed
-                                # in WS, we do not need to modify `cpts_lst`
-                                #
-                                continue
-                                            
-                            # An ensemble of real quantities may be correlated.
-                            # This is also true for the real and imaginary  
-                            # components of a complex quantity.
-                            elif k_j in ensemble_i:
-                                cpts_map[ensemble_i][0] += covar_ij
-                                continue
-                                    
-                            # The real and imaginary components of a
-                            # complex quantity may be correlated.
-                            # This section of code is executed when the
-                            # imaginary component associated with id_i
-                            # (a real component) is encountered. It puts
-                            # the covariance term into cpts_lst. The
-                            # variance associated with `id_j` will be
-                            # put in when the outer loop next increments.
-                            # I.e., here we are only worried about off-diagonal
-                            # components of the covariance matrix.
+                        if nu_i_infinite and is_infinity( k_j.df ):
+                            # The correlated influences both have  
+                            # infinite dof so it is still valid to use WS.
+                            # For a single entry, we add 
+                            # the covariance term here.
+                            # The loop over `i` takes care of
+                            # the variance.
+                            # Since infinite DoF are not summed
+                            # in WS, we do not need to modify `cpts_lst`
                             #
-                            elif (k_i,k_j) == complex_id:
-                                cpts_lst[-1] += covar_ij
-                                continue
+                            continue
+                                        
+                        # An ensemble of real quantities may be correlated.
+                        # This is also true for the real and imaginary  
+                        # components of a complex quantity.
+                        # elif k_j in ensemble_i:
+                        elif k_j.uid in ensemble_i:
+                            cpts_map[ensemble_i][0] += covar_ij
+                            continue
+                                
+                        # The real and imaginary components of a
+                        # complex quantity may be correlated.
+                        # This section of code is executed when the
+                        # imaginary component associated with id_i
+                        # (a real component) is encountered. It puts
+                        # the covariance term into cpts_lst. The
+                        # variance associated with `id_j` will be
+                        # put in when the outer loop next increments.
+                        # I.e., here we are only worried about off-diagonal
+                        # components of the covariance matrix.
+                        #
+                        # elif (k_i,k_j) == complex_id:
+                        elif (k_i.uid,k_j.uid) == complex_id:
+                            cpts_lst[-1] += covar_ij
+                            continue
 
-                            else:
-                                # Correlation with no excuse, illegal!
-                                df = nan
-                                # Don't expect to ever get here now, because of 
-                                # controls on using set_correlation
-                                assert False 
-                                continue
+                        else:
+                            # Correlation with no excuse, illegal!
+                            df = nan
+                            # Don't expect to ever get here now, because of 
+                            # controls on using set_correlation
+                            assert False 
 
             # Last value cannot be correlated with anything not already processed,
             # but it might be the final component of an ensemble 
@@ -1778,7 +1862,7 @@ def welch_satterthwaite(x):
             df_i = d_dof[-1]
             var += v_i
                 
-            ensemble_i = frozenset( c._ensemble.get(k_i,frozenset()) )
+            ensemble_i = frozenset( k_i.ensemble )
 
             # It may be part of an ensemble 
             if ensemble_i in cpts_map:

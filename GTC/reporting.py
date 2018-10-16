@@ -424,7 +424,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         
     """    
     if isinstance(x,UncertainReal):
-        context = x._context
+        # context = x._context
         if influences is None:
             nodes = x._u_components.keys()
             labels = [ n_i.tag 
@@ -455,7 +455,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
             this_budget = [ ]
         
     elif isinstance(x,UncertainComplex):
-        context = x._context
+        # context = x._context
         
         if influences is None:
             
@@ -472,15 +472,18 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                 while True:
                     ir_0,ur_0 = it_re.next()
                     ii_0,ui_0 = it_im.next()
-                    try:      
-                        ic = context._complex_ids[ir_0]
+                    # try:      
+                    if hasattr(ir_0,'complex'):
+                        # ic = context._complex_ids[ir_0]
                         
                         ir_1,ur_1 = it_re.next()
                         ii_1,ui_1 = it_im.next()
                         
                         if ir_0.tag is None:
                             # No label assigned, report uids
-                            label = "uid({},{})".format(uid_str(ir_0.uid),uid_str(ii_0.uid))
+                            label = "uid({},{})".format(
+                                uid_str(ir_0.uid),uid_str(ii_0.uid)
+                            )
                         else:
                             # take the trailing _re off the real label
                             # to label the complex influence
@@ -490,10 +493,10 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                         labels.append(label)
                         values.append(u)
                         
-                    except KeyError:
+                    else:
                         # Not wrt a complex influence
                         if ir_0.tag is None:
-                            label = "uid({})".format( uid_str(ir_0) )
+                            label = "uid({})".format( uid_str(ir_0.uid) )
                         else:
                             label = ir_0.tag 
                             

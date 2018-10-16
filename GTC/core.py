@@ -364,7 +364,8 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None,context=_context):
             )
     ]
 
-    # Only non-constant UNs can be collected ina n ensemble
+    # Only non-constant UNs can be collected in an ensemble
+    # TODO: define an is_constant() function to standardise the criteria
     context.real_ensemble( [un_i for un_i in rtn if un_i.u != 0], df )
 
     # All uncertain numbers are returned, including the constants
@@ -620,6 +621,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None,context=_context):
     ]
 
     # Only non-constant UNs can be collected in an ensemble
+    # TODO: use a function to test for constant-ness
     context.complex_ensemble(
         [ 
             un_i for un_i in rtn
@@ -699,15 +701,17 @@ def set_correlation(r,arg1,arg2=None):
             ):
                 set_correlation_real(arg1,arg2,r)
             else:
-                if arg1._context is not arg2._context:
-                    raise RuntimeError(
-                        "Different contexts"
-                    )
-                if arg2._node in arg1._context._ensemble.get(arg1._node,[]):
+                # if arg1._context is not arg2._context:
+                    # raise RuntimeError(
+                        # "Different contexts"
+                    # )
+                # if arg2._node in arg1._context._ensemble.get(arg1._node,[]):
+                if hasattr(arg1._node,'ensemble') and arg2._node.uid in arg1._node.ensemble:
+                # if arg2._node in arg1._node.ensemble.get(arg1._node.uid,[]):
                     set_correlation_real(arg1,arg2,r)
                 else:
                     raise RuntimeError( 
-                        "arguments must be in the same ensemble:" +\
+                        "arguments are not in the same ensemble:" +\
                         "{!r}, {!r}".format(arg2._node,arg1._node)
                     )
         elif isinstance(arg2,UncertainComplex):
@@ -748,7 +752,7 @@ def set_correlation(r,arg1,arg2=None):
                 
                 if (
                     is_infinity( arg1.real._node.df ) and
-                    # ucomplex prevents these two cases
+                    # `ucomplex()` prevents these two cases
                     # is_infinity( arg2.real._node.df ) and
                     # is_infinity( arg1.imag._node.df ) and
                     is_infinity( arg2.imag._node.df )
@@ -761,13 +765,16 @@ def set_correlation(r,arg1,arg2=None):
                     # They have to be in the same ensemble. 
                     # Just need to cross-check one of the component 
                     # pairs to verify this
-                    if arg1._context is not arg2._context:
-                        raise RuntimeError(
-                            "Different contexts"
-                        )
-                    if arg2.real._node in arg1._context._ensemble.get(
-                            arg1.real._node,[]
-                    ):
+                    # if arg1._context is not arg2._context:
+                        # raise RuntimeError(
+                            # "Different contexts"
+                        # )
+                    n_re1 = arg1.real._node
+                    n_re2 = arg2.real._node
+                    if n_re2.uid in n_re1.ensemble:                    
+                    # if arg2.real._node in arg1._context._ensemble.get(
+                            # arg1.real._node,[]
+                    # ):
                         set_correlation_real(arg1.real,arg2.real,r[0])
                         set_correlation_real(arg1.real,arg2.imag,r[1])
                         set_correlation_real(arg1.imag,arg2.real,r[2])

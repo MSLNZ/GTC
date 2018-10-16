@@ -57,14 +57,24 @@ __all__ = (
 # When an archive is prepared for storage, uncertain number objects 
 # are translated into the following simple representations.
 #
+class FrozenLeaf(object):
+    def __init__(self,node):
+        self.uid = node.uid
+        self.tag = node.tag 
+        self.u = node.u 
+        self.df = node.df 
+        self.independent = node.independent 
+        if hasattr(node,'complex'):
+            self.complex = node.complex
+        if hasattr(node,'correlation'):
+            self.correlation = node.correlation.items()
+        if hasattr(node,'ensemble'):
+            self.ensemble = frozenset( node.ensemble )
+        
 class TaggedElementaryReal(object):
-    def __init__(self,x,u,df,label,uid,independent):
+    def __init__(self,x,uid):
         self.x = x
-        self.u = u
-        self.df = df
-        self.label = label
         self.uid = uid
-        self.independent = independent
 
 class TaggedIntermediateReal(object):
     def __init__(self,value,u_components,d_components,i_components,label,uid):
@@ -343,51 +353,64 @@ class Archive(object):
         
         # _registered_leaf_nodes = self.context._registered_leaf_nodes
             
-        _leaf_nodes = frozenset(
-            n_i 
-            for un in self._tagged_reals.itervalues()
-                for n_i in itertools.chain(
-                    un._u_components.iterkeys(),
-                    un._d_components.iterkeys()
-                )
-        )
+        # _leaf_nodes = frozenset(
+            # n_i 
+            # for un in self._tagged_reals.itervalues()
+                # for n_i in itertools.chain(
+                    # un._u_components.iterkeys(),
+                    # un._d_components.iterkeys()
+                # )
+        # )
         
-        self._uid_to_u_leaves = {
-            n_i.uid: n_i.u
-            for n_i in _leaf_nodes
+        # A mapping of Leaf node uids to FrozenLeaf objects
+        self._leaf_nodes = {
+            n_i.uid  : FrozenLeaf(n_i)
+                for un in self._tagged_reals.itervalues()
+                    for n_i in itertools.chain(
+                        un._u_components.iterkeys(),
+                        un._d_components.iterkeys()
+                    )
         }
+        
+        # self._uid_to_u_leaves = {
+            # n_i.uid: n_i.u
+            # for n_i in _leaf_nodes
+        # }
          
-        self._dof_record = {
-            n_i.uid : n_i.df
-            for n_i in _leaf_nodes
-        }                
+        # self._dof_record = {
+            # n_i.uid : n_i.df
+            # for n_i in _leaf_nodes
+        # }                
 
-        self._labels = {
-            n_i.uid: n_i.tag 
-            for n_i in _leaf_nodes
-        }
+        # self._labels = {
+            # n_i.uid: n_i.tag 
+            # for n_i in _leaf_nodes
+        # }
 
         # Record ensemble groupings.
         # We need to restrict the ensemble in the archive to tagged objects 
         # or their influences.
         
         # `uids` contains all elementary uids that influence tagged objects.        
-        uids = frozenset(
-            self._uid_to_u_leaves.iterkeys()
-        )
+        uids = frozenset( self._leaf_nodes.keys() )
+        # uids = frozenset(
+            # self._uid_to_u_leaves.iterkeys()
+        # )
         
-        # Check all elementary uids, when one is found to belong to an
-        # ensemble, trim the ensemble of any other uids that are not
-        # included in the archive. 
-        _ensemble = dict()
-        for n_i in _leaf_nodes:
-            if n_i in self.context._ensemble:
-                _ensemble[ n_i.uid ] = [
-                    (i.uid[0],i.uid[1]) 
-                        for i in self.context._ensemble[n_i]
-                            if i.uid in uids
-                ]
-        self._ensemble = _ensemble
+        # # # Check all elementary uids, when one is found to belong to an
+        # # # ensemble, trim the ensemble of any other uids that are not
+        # # # included in the archive. 
+        # _ensemble = dict()
+        # for n_i in _leaf_nodes:
+            # if hasattr(n_i,'ensemble'):
+                # _ensemble[ n_i.uid ] = n_i.ensemble
+            # # if n_i in self.context._ensemble:
+                # # _ensemble[ n_i.uid ] = [
+                    # # (i.uid[0],i.uid[1]) 
+                        # # for i in self.context._ensemble[n_i]
+                            # # if i.uid in uids
+                # # ]
+        # self._ensemble = _ensemble
 
         # The context maintains a register of `_complex_ids`. 
         # The keys are are pairs of uids, one for the
@@ -399,25 +422,26 @@ class Archive(object):
         # number, the other component may not be tagged,
         # in which case we don't record a complex number.
         
-        _complex_ids = dict()
-        for uid in uids: 
-            if uid in self.context._complex_ids:
-                uid_re, uid_im = self.context._complex_ids[uid]
-                if uid_re in uids and uid_im in uids:
-                    _complex_ids[uid] = ( uid_re, uid_im )
+        # _complex_ids = dict()
+        # for uid in uids: 
+            # if uid in self.context._complex_ids:
+                # uid_re, uid_im = self.context._complex_ids[uid]
+                # if uid_re in uids and uid_im in uids:
+                    # _complex_ids[uid] = ( uid_re, uid_im )
+        
                 
-        self._complex_ids = _complex_ids
+        # self._complex_ids = _complex_ids
                  
-        # A correlation matrix indexed by uid's 
-        leaf_list = list(_leaf_nodes) 
-        self._correlations = R = SymmetricMatrix()
-        _mat = self.context._correlations._mat
-        for i,id_i in enumerate( leaf_list ):
-            if id_i in _mat:
-                row_i = _mat[id_i]
-                for id_j in leaf_list[i+1:]:
-                    if id_j in row_i:
-                        R[id_i.uid,id_j.uid] = row_i[id_j]                        
+        # # A correlation matrix indexed by uid's 
+        # leaf_list = list(_leaf_nodes) 
+        # self._correlations = R = SymmetricMatrix()
+        # _mat = self.context._correlations._mat
+        # for i,id_i in enumerate( leaf_list ):
+            # if id_i in _mat:
+                # row_i = _mat[id_i]
+                # for id_j in leaf_list[i+1:]:
+                    # if id_j in row_i:
+                        # R[id_i.uid,id_j.uid] = row_i[id_j]                        
                         
         # -------------------------------------
         # Intermediate real uncertain numbers
@@ -447,11 +471,7 @@ class Archive(object):
                 if isinstance(obj,UncertainReal):
                     tagged = TaggedElementaryReal(
                         x=obj.x,
-                        u=obj.u,
-                        df=obj.df,
-                        label=obj.label,
-                        uid=obj._node.uid,
-                        independent=obj._node.independent
+                        uid=obj._node.uid
                     )
                     self._tagged[n] = tagged
                     self._tagged_reals[n] = tagged
@@ -459,19 +479,11 @@ class Archive(object):
                 elif isinstance(obj,UncertainComplex):
                     re = TaggedElementaryReal(
                         x=obj.real.x,
-                        u=obj.real.u,
-                        df=obj.df,
-                        label=obj.real.label,
-                        uid=obj.real._node.uid,
-                        independent=obj.real._node.independent
+                        uid=obj.real._node.uid
                     )
                     im = TaggedElementaryReal(
                         x=obj.imag.x,
-                        u=obj.imag.u,
-                        df=obj.df,
-                        label=obj.imag.label,
-                        uid=obj.imag._node.uid,
-                        independent=obj.imag._node.independent
+                        uid=obj.imag._node.uid
                     )
                     n_re = "{}_re".format(n)
                     self._tagged_reals[n_re] = re
@@ -556,59 +568,76 @@ class Archive(object):
         """
 
         """
-        self.context._complex_ids.update(self._complex_ids)
+        # self.context._complex_ids.update(self._complex_ids)
         
         # Correlation matrix indexed by uid
-        _mat_by_uid = self._correlations._mat  
+        # _mat_by_uid = self._correlations._mat  
                 
-        _leaf_nodes = dict()
-        for uid,u in self._uid_to_u_leaves.iteritems():
-            # NB a new node is not created if the uid is already
-            # associated with a node
-            _leaf_nodes[uid] = self.context.new_leaf(
-                uid, 
-                self._labels[uid], 
-                u, 
-                self._dof_record.get(uid,inf), 
-                # Assume that the existence of a row 
-                # in the correlation matrix implies 
-                # correlation with something.
-                independent=(uid not in _mat_by_uid)  
-            )
-
-        # Update context ensemble register
-        _new_ensemble = weakref.WeakKeyDictionary()
-        for uid, ensemble in self._ensemble.iteritems():
-            # context ensembles are indexed by node
-            nid = self.context._registered_leaf_nodes[uid]
+        # _leaf_nodes = dict()
+        # for uid,u in self._uid_to_u_leaves.iteritems():
+            # # NB a new node is not created if the uid is already
+            # # associated with a node
+            # _leaf_nodes[uid] = self.context.new_leaf(
+                # uid, 
+                # self._labels[uid], 
+                # u, 
+                # self._dof_record.get(uid,inf), 
+                # # Assume that the existence of a row 
+                # # in the correlation matrix implies 
+                # # correlation with something.
+                # independent=(uid not in _mat_by_uid)  
+            # )
             
-            # The members of an ensemble are all indices 
-            # of  the ensemble, so we don't want to repeat 
-            # this step unnecessarily.
-            if nid not in _new_ensemble:            
-                # Make a set of nodes for this uid 
-                _ensemble = weakref.WeakSet()
-                for uid_i in ensemble:
-                    _ensemble.add(
-                        self.context._registered_leaf_nodes[uid_i]
-                    )
+        _leaf_nodes = dict()
+        for uid_i,fl_i in self._leaf_nodes.iteritems():
+            l = self.context.new_leaf(
+                uid_i, 
+                fl_i.tag, 
+                fl_i.u, 
+                fl_i.df, 
+                fl_i.independent,
+            )            
+            if hasattr(fl_i,'complex'):
+                l.complex = fl_i.complex 
+            if hasattr(fl_i,'correlation'):
+                l.correlation = dict( fl_i.correlation )
+            if hasattr(fl_i,'ensemble'):
+                l.ensemble = set( fl_i.ensemble )
+            _leaf_nodes[uid_i] = l
+            
+        # # Update context ensemble register
+        # _new_ensemble = weakref.WeakKeyDictionary()
+        # for uid, ensemble in self._ensemble.iteritems():
+            # # context ensembles are indexed by node
+            # nid = self.context._registered_leaf_nodes[uid]
+            
+            # # The members of an ensemble are all indices 
+            # # of  the ensemble, so we don't want to repeat 
+            # # this step unnecessarily.
+            # if nid not in _new_ensemble:            
+                # # Make a set of nodes for this uid 
+                # _ensemble = weakref.WeakSet()
+                # for uid_i in ensemble:
+                    # _ensemble.add(
+                        # self.context._registered_leaf_nodes[uid_i]
+                    # )
                 
-                # Update the _ensemble mapping for each  
-                # element of the set
-                for nid_i in _ensemble:
-                    assert nid_i not in _new_ensemble
-                    _new_ensemble[nid_i] = _ensemble
+                # # Update the _ensemble mapping for each  
+                # # element of the set
+                # for nid_i in _ensemble:
+                    # assert nid_i not in _new_ensemble
+                    # _new_ensemble[nid_i] = _ensemble
         
-        # The ensembles associated with these nodes             
-        # can be merged with current context ensembles.
-        self.context._ensemble.update(_new_ensemble)
+        # # The ensembles associated with these nodes             
+        # # can be merged with current context ensembles.
+        # self.context._ensemble.update(_new_ensemble)
 
         # Create the nodes associated with intermediate 
         # uncertain numbers. This must be done before these 
         # uncertain numbers are recreated.
         _nodes = {
             uid: self.context.new_node(uid, *args)
-            for uid, args in self._intermediate_uids.iteritems()
+                for uid, args in self._intermediate_uids.iteritems()
         }
             
         # When reconstructing, `_tagged` needs to be updated with 
@@ -700,20 +729,20 @@ class Archive(object):
             else:
                 assert False
                         
-        # Add correlations between all elementary
-        # uncertain numbers to the existing record
-        #
-        # _mat_by_uid = self._correlations._mat (above)
-        _uids = _mat_by_uid.keys()             
-        R = self.context._correlations
-        for i,uid_i in enumerate( _uids ):
-            row_i = _mat_by_uid[uid_i]
-            for uid_j in _uids[i+1:]:
-                if uid_j in row_i:
-                    R[  
-                        self.context._registered_leaf_nodes[uid_i],
-                        self.context._registered_leaf_nodes[uid_j]
-                    ] = row_i[uid_j]
+        # # Add correlations between all elementary
+        # # uncertain numbers to the existing record
+        # #
+        # # _mat_by_uid = self._correlations._mat (above)
+        # _uids = _mat_by_uid.keys()             
+        # R = self.context._correlations
+        # for i,uid_i in enumerate( _uids ):
+            # row_i = _mat_by_uid[uid_i]
+            # for uid_j in _uids[i+1:]:
+                # if uid_j in row_i:
+                    # R[  
+                        # self.context._registered_leaf_nodes[uid_i],
+                        # self.context._registered_leaf_nodes[uid_j]
+                    # ] = row_i[uid_j]
 
         # Change the archive status
         self._extract = True
@@ -792,13 +821,17 @@ def _builder(o_name,_nodes,_tagged_reals,context):
     obj = _tagged_reals[o_name]
     
     if isinstance(obj,TaggedElementaryReal):
+        # un = context._archived_elementary_real(
+            # uid = obj.uid,
+            # x = obj.x,
+            # u = obj.u,
+            # df = obj.df,
+            # label = obj.label,
+            # independent = obj.independent
+        # )
         un = context._archived_elementary_real(
             uid = obj.uid,
-            x = obj.x,
-            u = obj.u,
-            df = obj.df,
-            label = obj.label,
-            independent = obj.independent
+            x = obj.x
         )
         _tagged_reals[o_name] = un    # tag now maps to an object
                 

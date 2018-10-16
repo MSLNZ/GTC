@@ -43,42 +43,6 @@ class TestContext(unittest.TestCase):
         # RuntimeError: covariance elements not equal: 999999j and 1
         self.assertRaises(RuntimeError,ucomplex,1 + 0j, (1, 999999j, 1, 1))
 
-    def test_simple_correlation(self):
-        c = Context()
-        
-        x1 = c.elementary_real(0,1,5,None,independent=True)
-        x2 = c.elementary_real(0,1,5,None,independent=True)
-
-        self.assertRaises(
-            RuntimeError,
-            c.set_correlation,x1,x2,.1
-        )
-
-        x1 = c.elementary_real(0,1,5,None,independent=False)
-        x2 = c.elementary_real(0,1,5,None,independent=False)
-        
-        # Self correlation
-        self.assertEqual( 1, c.get_correlation(x1,x1) )
-        
-        r = 0.65
-        c.set_correlation(x1,x2,r)
-        
-        self.assert_( equivalent( r, c.get_correlation(x1,x2) ) )
-
-        # When we delete one node the other remains
-        del x1
-        self.assertEqual(1, len(c._registered_leaf_nodes) )
-        self.assert_( x2._node.uid in c._registered_leaf_nodes )
-        
-        # The diagonal element remains in place
-        self.assertEqual(1, len(c._correlations) )
-        self.assert_( x2._node in c._correlations._mat )
-        self.assertEqual(1, len(c._correlations._mat[x2._node]) )
-        self.assertEqual(1.0, c._correlations._mat[x2._node][x2._node] )
-        
-        del x2 
-        self.assertEqual(0, len(c._registered_leaf_nodes) )
-        self.assertEqual(0, len(c._correlations) )
         
 #============================================================================
 if(__name__== '__main__'):

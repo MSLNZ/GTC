@@ -13,8 +13,14 @@ from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
 from GTC.reporting import u_component
-from GTC.lib_real import (UncertainReal,welch_satterthwaite,std_variance_real)
 from GTC import reporting
+from GTC.lib_real import (
+    UncertainReal,
+    welch_satterthwaite,
+    std_variance_real,
+    set_correlation_real,
+    get_correlation_real
+)
 
 from testing_tools import *
 
@@ -1351,6 +1357,48 @@ class TestGetCovariance(unittest.TestCase):
         check_r = get_covariance(z1,x1)
         self.assert_( equivalent(r2,check_r) )
 
+    def test_simple_correlation(self):
+        c = _context
+        
+        x1 = c.elementary_real(0,1,5,None,independent=True)
+        x2 = c.elementary_real(0,1,5,None,independent=True)
+
+        self.assertRaises(
+            RuntimeError,
+            set_correlation_real,x1,x2,.1
+        )
+
+        x1 = c.elementary_real(0,1,5,None,independent=False)
+        x2 = c.elementary_real(0,1,5,None,independent=False)
+        
+        # Self correlation
+        self.assertEqual( 1, get_correlation_real(x1,x1) )
+        
+        r = 0.65
+        set_correlation_real(x1,x2,r)
+        
+        self.assert_( equivalent( r, get_correlation_real(x1,x2) ) )
+
+        # When we delete one node the other remains
+        x1_uid = x1._node.uid
+        x2_uid = x2._node.uid
+        self.assert_( x1_uid in c._registered_leaf_nodes )
+        self.assert_( x2_uid in c._registered_leaf_nodes )
+        del x1
+        self.assert_( x1_uid not in c._registered_leaf_nodes )
+        self.assert_( x2_uid in c._registered_leaf_nodes )
+
+        # self.assertEqual(1, len(c._registered_leaf_nodes) )
+        # self.assert_( x2._node.uid in c._registered_leaf_nodes )
+        
+        # Correlation matrix is not trimmed when `x1` is destroyed
+        self.assertEqual(2, len(x2._node.correlation) )
+        self.assert_( x2_uid in x2._node.correlation )
+        self.assert_( x1_uid in x2._node.correlation )
+        
+        self.assertEqual(2, len(x2._node.correlation) )
+        self.assertEqual(1.0, x2._node.correlation[x2_uid] )
+        
 #-----------------------------------------------------
 class ArcTrigTests(unittest.TestCase):
     def setUp(self):
@@ -1891,7 +1939,7 @@ class GuideExampleH2(unittest.TestCase):
         set_correlation(-0.36,v,i)
         set_correlation(0.86,v,phi)
         set_correlation(-0.65,i,phi)
-
+        
         r = v * cos(phi)/ i
         x = v * sin(phi)/ i
         z = v / i
