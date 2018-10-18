@@ -1,13 +1,11 @@
 """
-GTC is a Python package for evaluating measurement uncertainty 
+This is a Python package for evaluating measurement uncertainty 
 in real and complex quantities.
 
-Calculations involving uncertain numbers propagate uncertainty
-according to methods described in the
-'Guide to the Expression of Uncertainty in Measurement' - the GUM.
+The method of uncertainty propagation used is compatible with methods described 
+in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
-    
-Copyright (c) 2018, Callaghan Innovation, All rights reserved.
+Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
 
 """
 from __future__ import division
@@ -16,8 +14,11 @@ import math
 import cmath
 import collections
 
-# GTC global constants, etc  
-inf_dof = 1E5               # DoF is considered infinite
+#----------------------------------------------------------------------------
+# Global constants, etc
+
+# The degrees of freedom is considered infinite above `inf_dof`
+inf_dof = 1E5               
 
 inf = float('inf')
 nan = float('nan') 
@@ -25,11 +26,13 @@ nan = float('nan')
 is_infinity = math.isinf 
 is_undefined = math.isnan
 
+# Do not consider strings as sequences
 def is_sequence(obj):
     if isinstance(obj, basestring):
         return False
     return isinstance(obj, collections.Sequence)
     
+#----------------------------------------------------------------------------
 from core import *
 
 __all__ = (
@@ -85,7 +88,8 @@ __all__ = (
     
 #----------------------------------------------------------------------------
 version = "2.0.1"
-copyright = "Copyright (c) 2018, Callaghan Innovation. All rights reserved."
+copyright = """Copyright (c) 2018, \
+Measurement Standards Laboratory of New Zealand"""
 
 
 

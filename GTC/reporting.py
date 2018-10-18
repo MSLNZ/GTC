@@ -427,8 +427,8 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         # context = x._context
         if influences is None:
             nodes = x._u_components.keys()
-            labels = [ n_i.tag 
-                        if n_i.tag is not None else "{}".format(n_i.uid) 
+            labels = [ n_i.label 
+                        if n_i.label is not None else "{}".format(n_i.uid) 
                            for n_i in nodes ]
             values = [ math.fabs( u ) for u in x._u_components.itervalues() ]
         else:
@@ -479,7 +479,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                         ir_1,ur_1 = it_re.next()
                         ii_1,ui_1 = it_im.next()
                         
-                        if ir_0.tag is None:
+                        if ir_0.label is None:
                             # No label assigned, report uids
                             label = "uid({},{})".format(
                                 uid_str(ir_0.uid),uid_str(ii_0.uid)
@@ -487,7 +487,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                         else:
                             # take the trailing _re off the real label
                             # to label the complex influence
-                            label = ir_0.tag[:-3]
+                            label = ir_0.label[:-3]
 
                         u=u_bar([ur_0,ur_1,ui_0,ui_1])
                         labels.append(label)
@@ -495,10 +495,10 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                         
                     else:
                         # Not wrt a complex influence
-                        if ir_0.tag is None:
+                        if ir_0.label is None:
                             label = "uid({})".format( uid_str(ir_0.uid) )
                         else:
-                            label = ir_0.tag 
+                            label = ir_0.label 
                             
                         u=u_bar([ur_0,0,ui_0,0])
                         labels.append(label)

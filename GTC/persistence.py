@@ -60,7 +60,7 @@ __all__ = (
 class FrozenLeaf(object):
     def __init__(self,node):
         self.uid = node.uid
-        self.tag = node.tag 
+        self.label = node.label 
         self.u = node.u 
         self.df = node.df 
         self.independent = node.independent 
@@ -383,7 +383,7 @@ class Archive(object):
         # }                
 
         # self._labels = {
-            # n_i.uid: n_i.tag 
+            # n_i.uid: n_i.label 
             # for n_i in _leaf_nodes
         # }
 
@@ -459,7 +459,7 @@ class Archive(object):
                 
         # Use this to recreate intermediate nodes in _thaw
         self._intermediate_uids = {
-            n_i.uid : (n_i.tag,n_i.u)
+            n_i.uid : (n_i.label,n_i.u)
             for n_i in _intermediate_node_to_uid
         }
         
@@ -592,7 +592,7 @@ class Archive(object):
         for uid_i,fl_i in self._leaf_nodes.iteritems():
             l = self.context.new_leaf(
                 uid_i, 
-                fl_i.tag, 
+                fl_i.label, 
                 fl_i.u, 
                 fl_i.df, 
                 fl_i.independent,
@@ -821,15 +821,7 @@ def _builder(o_name,_nodes,_tagged_reals,context):
     obj = _tagged_reals[o_name]
     
     if isinstance(obj,TaggedElementaryReal):
-        # un = context._archived_elementary_real(
-            # uid = obj.uid,
-            # x = obj.x,
-            # u = obj.u,
-            # df = obj.df,
-            # label = obj.label,
-            # independent = obj.independent
-        # )
-        un = context._archived_elementary_real(
+        un = context.archived_elementary_real(
             uid = obj.uid,
             x = obj.x
         )

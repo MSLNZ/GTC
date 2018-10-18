@@ -819,15 +819,15 @@ class TestUncertainReal(unittest.TestCase):
         self.assert_( un._d_components is d_comp )
 
         # Here is an uncertain number with a node
-        # args: context,uid,tag,u,df [,independent=True]
-        tag = 'test'
+        # args: context,uid,label,u,df [,independent=True]
+        label = 'test'
         df = 10
-        lf = Leaf(3,tag,u,df)
+        lf = Leaf(3,label,u,df)
         un = UncertainReal(c,x,u_comp,d_comp,i_comp,lf)
         self.assert_( un._u_components is u_comp )
         self.assert_( un._i_components is i_comp )
         self.assert_( un._d_components is d_comp )
-        self.assert_( un._node.tag is tag )
+        self.assert_( un._node.label is label )
         self.assert_( un._node.independent is True )
         self.assert_( un._node.df == df )
         

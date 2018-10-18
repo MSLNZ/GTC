@@ -1,4 +1,6 @@
 """
+Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
+
 """
 
 __all__ = [ 'Leaf', 'Node' ]
@@ -7,19 +9,19 @@ __all__ = [ 'Leaf', 'Node' ]
 class Node(object):
     
     """
-    A `Node` holds information about an uncertain real number
+    A `Node` holds information about an intermediate uncertain real number
     """
 
     __slots__ = [
         'uid',
-        'tag',
+        'label',
         'u',
         '__weakref__'
     ]
  
-    def __init__(self,uid,tag,u):    
+    def __init__(self,uid,label,u):    
         self.uid = uid
-        self.tag = tag
+        self.label = label
         self.u = u
  
 #----------------------------------------------------------------------------
@@ -37,8 +39,8 @@ class Leaf(Node):
         'ensemble'
     ]
     
-    def __init__(self,uid,tag,u,df,independent=True):
-        Node.__init__(self,uid,tag,u)
+    def __init__(self,uid,label,u,df,independent=True):
+        Node.__init__(self,uid,label,u)
     
         self.df = df
         self.independent = independent

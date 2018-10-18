@@ -210,7 +210,7 @@ class UncertainReal(object):
                 # gself.u,
                 # gself.df_decimals,
                 # gself.df,
-                # self._node.tag
+                # self._node.label
             # )
                       
         return s
@@ -378,7 +378,7 @@ class UncertainReal(object):
         """
         try:
             # Elementary, constant and intermediate UNs
-            return self._node.tag
+            return self._node.label
         except AttributeError:
             return None          
 

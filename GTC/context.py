@@ -1,15 +1,16 @@
 """
+Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
+
 """
 import os 
 import weakref
 
+from GTC import inf, nan
 from GTC.weak_symmetric_matrix import WeakSymmetricMatrix
 from GTC.lib_real import UncertainReal
 from GTC.lib_complex import UncertainComplex
 from GTC.vector import *
 from GTC.nodes import *
-
-from GTC import inf, nan
 
 __all__ = ('Context',)
 
@@ -17,7 +18,7 @@ __all__ = ('Context',)
 class Context(object):
 
     """
-    A ``Context`` object keeps track of uncertain-number details 
+    A ``Context`` object the creation of uncertain numbers 
     """
     
     def __init__(self,id=None):
@@ -30,20 +31,6 @@ class Context(object):
     
         self._elementary_id_counter = long(0)
         self._intermediate_id_counter = long(0)
-
-        # The value will be the (real._node,imag._node) pair, when
-        # either the real or imag node is used as key.
-        # self._complex_ids = weakref.WeakKeyDictionary()
-
-        # Correlation coefficients between elementary UNs 
-        # Keys are Leaf objects 
-        # self._correlations = WeakSymmetricMatrix()
-
-        # A register of elementary uncertain numbers that are 
-        # considered simultaneous samples from a multivariate parent. 
-        # The key is any Leaf, the value is the set of objects 
-        # in the ensemble.
-        # self._ensemble = weakref.WeakKeyDictionary()
   
         # Caching to avoid duplication when unpacking archives 
         self._registered_leaf_nodes = weakref.WeakValueDictionary()
@@ -56,7 +43,7 @@ class Context(object):
 
         Each elementary uncertain number has a 
         unique ID. This is composed of the 
-        context's ID and an object instance ID.
+        context's ID and an integer.
 
         Returns
         -------
@@ -76,7 +63,7 @@ class Context(object):
 
         Each intermediate uncertain number has
         a unique ID composed of the context's ID
-        and an object instance index.
+        and an integer.
 
         Returns
         -------
@@ -97,51 +84,47 @@ class Context(object):
         )
  
     #------------------------------------------------------------------------
-    def new_leaf(self,uid,tag,u,df,independent):
+    def new_leaf(self,uid,label,u,df,independent):
         """
         Return a new ``Leaf`` node unless one with the same uid exists
         
         """
         try:
             l =  self._registered_leaf_nodes[uid]
-        except KeyError:
-            
-            l = Leaf(uid,tag,u,df,independent)
+        except KeyError:          
+            l = Leaf(uid,label,u,df,independent)
             self._registered_leaf_nodes[uid] = l
             
         return l 
             
     #------------------------------------------------------------------------
-    def new_node(self,uid,tag,u):
+    def new_node(self,uid,label,u):
         """
-        Return a new ``Node`` node unless one with the same uid exists
+        Return a new ``Node`` unless one with the same uid exists
         
         """
         try:
             n = self._registered_intermediate_nodes[uid]
         except KeyError:
-            n = Node(uid,tag,u)
+            n = Node(uid,label,u)
             self._registered_intermediate_nodes[uid] = n
 
         return n
         
     #------------------------------------------------------------------------
-    # def _archived_elementary_real(self,uid,x,u,df=inf,label=None,independent=True):
-    def _archived_elementary_real(self,uid,x):
+    def archived_elementary_real(self,uid,x):
         """
         Return an elementary uncertain real number.
 
-        Create an uncertain number with value 'x', 
-        standard uncertainty 'u'.
+        Restore an uncertain number that has been archived. 
+        Most properties will be associated with a Leaf node 
+        that can be obtained using `uid` as key. The value 
+        'x', is not stored in the Leaf. 
 
         Parameters
         ----------
         uid : unique identifier
         x : float
-        # u : float
-        # df : float
-        # label : string
-        # independent : Boolean
 
         Returns
         -------
@@ -149,16 +132,12 @@ class Context(object):
         
         """
         # Use the cache `self._registered_leaf_nodes` 
-        # to avoid creating multiple LeafNode objects.
-        # l = self.new_leaf(uid, label, u, df, independent) 
+        # to avoid creating multiple Leaf objects.
         l = self._registered_leaf_nodes[uid]
-        # if l.u != u or l.df != df or l.tag != label:
-            # raise RuntimeError(
-                # "Inconsistent archive records for '{}' and '{}'".format(
-                    # label, l.tag
-                # )
-            # )
-        
+
+        # The Leaf object is used to seed one 
+        # Vector component, so that uncertainty 
+        # will be propagated
         if l.independent:
             un = UncertainReal(
                     self
@@ -183,91 +162,75 @@ class Context(object):
     #------------------------------------------------------------------------
     def complex_ensemble(self,seq,df):
         """
-        Register this group of elementary uncertain numbers as
-        belonging to an ensemble.
-
-        The members of an ensemble may be correlated and have finite 
-        degrees of freedom without causing problems with the Welch-
-        Satterthwaite or the Willink-Hall calculations. See: 
-        
-        R Willink, Metrologia 44 (2007) 340-349, section 4.1.1
+        Declare the uncertain numbers in ``seq`` to be an ensemble.
 
         The uncertain numbers in ``seq`` must be elementary
         and have the same numbers of degrees of freedom. 
         
+        It is permissible for members of an ensemble to be correlated 
+        and have finite degrees of freedom without causing problems 
+        when evaluating the effective degrees of freedom. See: 
+        
+        R Willink, Metrologia 44 (2007) 340-349, section 4.1.1
+
         Effectively, members of an ensemble are treated 
         as simultaneous independent measurements of 
         a multivariate distribution. 
         
         """
-        # NB, complex_ensemble() simply assigns ``dof`` 
-        # without checking for previous values. This 
-        # avoids overhead and it won't matter because 
-        # ordinary users call this via the core methods.
+        # NB, we simply assign ``dof`` without checking for previous values. 
+        # This avoids overhead and should not be a risk, because 
+        # users call this method via functions in the ``core`` module.
         
         if len(seq):
-            # All UNs passed to this function will
-            # have been declared independent=False 
-            try:
-                assert all( 
-                    x._node.independent == False 
-                        for pair in seq 
-                            for x in (pair.real,pair.imag) 
-                )
-            except AttributeError:
-                raise RuntimeError(
-                    "members of an ensemble must be elementary and dependent"
-                )
-
+            # TODO: assertions not required in release version
             # ensemble members must have the same degrees of freedom
             assert all( s_i.df == df for s_i in seq )
 
             # ensemble members must be elementary
             assert all( s_i.is_elementary for s_i in seq )
             
-            # ensemble = weakref.WeakSet( 
-                # x._node 
-                    # for pair in seq 
-                        # for x in (pair.real,pair.imag) 
-            # )
-
-            # for pair in seq:
-                # for x in (pair.real,pair.imag):
-                    # nid =x._node
-                    # assert nid not in self._ensemble
-                    # self._ensemble[nid] = ensemble     
-                
+            # All UNs will have been declared with ``independent=False`` 
+            if not all( 
+                x._node.independent == False 
+                    for pair in seq 
+                        for x in (pair.real,pair.imag) 
+            ):
+                raise RuntimeError(
+                    "members of an ensemble must be elementary and dependent"
+                )
                 
             ensemble = set( 
                 x._node.uid 
                     for pair in seq 
                         for x in (pair.real,pair.imag) 
             )
-            
+            # This object is referenced from the Leaf node of each member
             for pair in seq:
                 for x in (pair.real,pair.imag):
                     x._node.ensemble = ensemble
             
     #------------------------------------------------------------------------
     def real_ensemble(self,seq,df):
-        """Declare the ``seq`` of uncertain numbers as an ensemble.
+        """
+        Declare the uncertain numbers in ``seq`` to be an ensemble.
 
-        Uncertain numbers in ``seq`` must be elementary. 
+        The uncertain numbers in ``seq`` must be elementary
+        and have the same numbers of degrees of freedom. 
         
-        Members of an ensemble may be correlated without causing  
-        problems with the Welch-Satterthwaite calculation. 
-        
-        See: 
+        It is permissible for members of an ensemble to be correlated 
+        and have finite degrees of freedom without causing problems 
+        when evaluating the effective degrees of freedom. See: 
         
         R Willink, Metrologia 44 (2007) 340-349, section 4.1.1
-        
+
         Effectively, members of an ensemble are treated 
         as simultaneous independent measurements of 
         a multivariate distribution. 
         
         """
         if len(seq):
-            # All UNs passed to this function 
+            # TODO: assertions not required in release version
             # have been declared independent=False 
             assert all( s_i._node.independent == False for s_i in seq )
 
@@ -277,17 +240,8 @@ class Context(object):
             # ensemble members must be elementary
             assert all( s_i.is_elementary for s_i in seq )
                     
-            # ensemble = weakref.WeakSet( x._node for x in seq )
-
-            # for s_i in seq:
-                # nid = s_i._node
-                # # Index keys are any member node
-                # assert nid not in self._ensemble,\
-                    # "found '{!r}' already".format(nid)
-                # self._ensemble[nid] = ensemble     
-
             ensemble = set( x._node.uid for x in seq )
-
+            # This object is referenced from the Leaf node of each member
             for s_i in seq:
                 s_i._node.ensemble = ensemble     
                 
@@ -297,41 +251,25 @@ class Context(object):
         Append an element to the an existing ensemble
 
         The uncertain number must be elementary and have the 
-        numbers of degrees of freedom as the ensemble. 
+        numbers of degrees of freedom as other members 
+        of the ensemble (not checked). 
         
         """
-        nid = member._node
-        # try:
-            # ensemble = self._ensemble[nid]
-        # except KeyError:
-            # raise RuntimeError(
-                # "cannot find an ensemble for '{!r}'".format(member)
-            # )
-            
-        if x.df != member.df:
-            raise RuntimeError(
-                "members of an ensemble must have the same dof!"
-            )
-
-        if not x.is_elementary:
-            raise RuntimeError(
-                "members of an ensemble must be elementary!"
-            )
-
-        x._node.independent = False
+        # TODO: remove assertions in release version, because 
+        # this function is only called from within GTC modules. 
+        assert x.df == member._node.df:
+        assert x.is_elementary
+        assert x._node.independent == False
         
-        # We assume that all Leaf nodes refer to the same set object
-        # So by adding here, all Leaf nodes see the change.
+        # All Leaf nodes refer to the same ensemble object 
+        # So by adding a member here, all the other Leaf nodes 
+        # see the change.
         x._node.ensemble.add(x._node)
-            
-        # # Expect different keys to reference the same object 
-        # # TODO: could be removed in release versions
-        # assert all( self._ensemble[nid] is ensemble for nid in ensemble )
-            
+                        
     #------------------------------------------------------------------------
     def constant_real(self,x,label):
         """
-        Return a constant uncertain real number with value 'x' 
+        Return a constant uncertain real number with value ``x`` 
         
         A constant uncertain real number has no uncertainty
         and infinite degrees of freedom.        
@@ -353,7 +291,7 @@ class Context(object):
             ,   Vector( )
             ,   Vector( )
             ,   Vector( )
-            ,   Leaf(uid=None,tag=label,u=0.0,df=inf)
+            ,   Leaf(uid=None,label=label,u=0.0,df=inf)
         )
         
     #------------------------------------------------------------------------
@@ -361,19 +299,22 @@ class Context(object):
         """
         Return an elementary uncertain real number.
 
-        Creates an uncertain number with value 'x', standard
-        uncertainty 'u' and degrees of freedom 'df'.
+        Creates an uncertain number with value ``x``, standard
+        uncertainty ``u`` and degrees of freedom ``df``.
 
         A ``RuntimeError`` is raised if the value of 
         `u` is less than zero or the value of `df` is less than 1.
 
+        The ``independent`` argument controls whether this
+        uncertain number may be correlated with others.
+        
         Parameters
         ----------
         x : float
         u : float
         df : float
         label : string, or None
-        independent : this UN cannot be correlated with another
+        independent : Boolean
 
         Returns
         -------
@@ -389,12 +330,14 @@ class Context(object):
             raise RuntimeError(
                 "invalid uncertainty: {!r}".format(u)
             )
+        # NB, we may create an uncertain number with no uncertainty 
+        # that is not recognised as a 'constant' by setting u=0. 
+        # It may be desirable to allow this. In the case of a complex UN,
+        # for example, we would still see a zero-valued component in the 
+        # uncertainty budget. That might be less confusing than to make 
+        # the constant component disappear quietly.      
         
         uid = self._next_elementary_id()
-
-        # Needed for archiving?
-        # self._uid_to_u[id] = u
-        
         ln = self.new_leaf(uid,label,u,df,independent=independent)
         
         if independent:
@@ -407,7 +350,6 @@ class Context(object):
                 ,   ln
                 )
         else:
-            # The node must go in the dependent vector
             return UncertainReal(
                     self
                 ,   x
@@ -418,9 +360,13 @@ class Context(object):
                 )
    
     #------------------------------------------------------------------------
-    def real_intermediate(self,un,tag):
+    def real_intermediate(self,un,label):
         """
         Create an intermediate uncertain number
+        
+        An intermediate UN must be declared in order to 
+        investigate the sensitivity of subsequent results 
+        to that intermediate result.
         
         .. note::
         
@@ -432,18 +378,19 @@ class Context(object):
         un : uncertain real number
         
         """
-        if not un.is_elementary and not un.is_intermediate:
-            
+        if not un.is_elementary and not un.is_intermediate:     
             # This is a new registration 
             uid = self._next_intermediate_id()
             u = un.u
             un._node = Node(
                 uid,
-                tag,
+                label,
                 u
             )
 
-            # The i_component wrt itself!
+            # Seed the Vector of intermediate components 
+            # with this new Node object, so that uncertainty 
+            # will be propagated.
             un._i_components = merge_vectors(
                 un._i_components,
                 Vector( index=[un._node], value=[u] )
@@ -452,6 +399,7 @@ class Context(object):
                 
             assert uid not in self._registered_intermediate_nodes
             self._registered_intermediate_nodes[uid] = un._node
+            
             # else:
                 # Assume that everything has been registered, perhaps 
                 # the user has repeated the registration process.
@@ -469,15 +417,11 @@ class Context(object):
         """
         Return a constant uncertain complex number.
         
-        Creates a constant with value 'z' with an
-        optional label.
-
-        When a label is supplied, the encapsulated real
-        and imaginary components are given the label with added
-        suffixes '_re' and '_im'.
-        
         A constant uncertain complex number has no uncertainty
         and infinite degrees of freedom.        
+
+        The real and imaginary components are given labels 
+        with the suffixes '_re' and '_im' to added ``label``.
         
         Parameters
         ----------
@@ -521,10 +465,12 @@ class Context(object):
         -------
         UncertainComplex
         
-        When a label is supplied, the encapsulated real
-        and imaginary components are given the label with added
-        suffixes '_re' and '_im'.
+        The real and imaginary components are given labels 
+        with the suffixes '_re' and '_im' to added ``label``.
 
+        The ``independent`` argument controls whether this
+        uncertain number may be correlated with others.
+        
         """
         if label is None:
             label_r,label_i = None,None
@@ -534,24 +480,16 @@ class Context(object):
             label_i = "{}_im".format(label)
             
         # `independent` will be False if `r != 0`
-        # We assume that the IDs assigned are consecutive.
         real = self.elementary_real(z.real,u_r,df,label_r,independent)
         imag = self.elementary_real(z.imag,u_i,df,label_i,independent)
 
         # We need to be able to look up complex pairs
-        # TODO: is this only needed in dof calculations?
-        # If so, we might be able to relax this later.
-        # complex_id = (real._node,imag._node)
+        # The integer part of the IDs are consecutive.
         complex_id = (real._node.uid,imag._node.uid)
         real._node.complex = complex_id 
         imag._node.complex = complex_id
         
-        # # TODO: retire this register later
-        # self._complex_ids[real._node] = complex_id        
-        # self._complex_ids[imag._node] = complex_id
-
         if r is not None:
-            # self._correlations[ real._node,imag._node ] = r
             real._node.correlation[imag._node.uid] = r 
             imag._node.correlation[real._node.uid] = r 
             
