@@ -257,7 +257,7 @@ class Context(object):
         """
         # TODO: remove assertions in release version, because 
         # this function is only called from within GTC modules. 
-        assert x.df == member._node.df:
+        assert x.df == member._node.df
         assert x.is_elementary
         assert x._node.independent == False
         
@@ -330,6 +330,7 @@ class Context(object):
             raise RuntimeError(
                 "invalid uncertainty: {!r}".format(u)
             )
+            
         # NB, we may create an uncertain number with no uncertainty 
         # that is not recognised as a 'constant' by setting u=0. 
         # It may be desirable to allow this. In the case of a complex UN,
@@ -364,41 +365,36 @@ class Context(object):
         """
         Create an intermediate uncertain number
         
-        An intermediate UN must be declared in order to 
-        investigate the sensitivity of subsequent results 
-        to that intermediate result.
+        To investigate the sensitivity of subsequent results,
+        an intermediate UN must be declared.
         
-        .. note::
-        
-            If called more than once on the same object, 
-            later calls have no effect!
-
         Parameters
         ----------
         un : uncertain real number
         
         """
-        if not un.is_elementary and not un.is_intermediate:     
-            # This is a new registration 
-            uid = self._next_intermediate_id()
-            u = un.u
-            un._node = Node(
-                uid,
-                label,
-                u
-            )
-
-            # Seed the Vector of intermediate components 
-            # with this new Node object, so that uncertainty 
-            # will be propagated.
-            un._i_components = merge_vectors(
-                un._i_components,
-                Vector( index=[un._node], value=[u] )
-            )
-            un.is_intermediate = True
+        if not un.is_elementary:
+            if not un.is_intermediate:                     
+                # This is a new registration 
+                uid = self._next_intermediate_id()
                 
-            assert uid not in self._registered_intermediate_nodes
-            self._registered_intermediate_nodes[uid] = un._node
+                u = un.u
+                un._node = Node(
+                    uid,
+                    label,
+                    u
+                )
+
+                # Seed the Vector of intermediate components 
+                # with this new Node object, so that uncertainty 
+                # will be propagated.
+                un._i_components = merge_vectors(
+                    un._i_components,
+                    Vector( index=[un._node], value=[u] )
+                )
+                un.is_intermediate = True
+                
+                self._registered_intermediate_nodes[uid] = un._node
             
             # else:
                 # Assume that everything has been registered, perhaps 
@@ -512,13 +508,10 @@ class Context(object):
 
         If ``label is not None`` the label will be applied
         to the uncertain complex number and labels with
-        a suitable suffix will also be applied to the
-        real and imaginary component uncertain real numbers.
+        a suitable suffix will be applied to the
+        real and imaginary components.
         
         """
-        # TODO: does the fact that this is a complex 
-        # number need to be taken into account for archiving?
-        
         if label is None:
             self.real_intermediate(z.real,None)
             self.real_intermediate(z.imag,None) 
@@ -560,95 +553,11 @@ class Context(object):
             uc.label = label
             
             return uc         
- 
-    # #------------------------------------------------------------------------
-    # def set_correlation(self,x1,x2,r):
-        # """
-        # Assign a correlation coefficient to a pair of uncertain numbers
-
-        # Requires |r| <= 1, otherwise a RuntimeError is raised.
-        
-        # If a definition exists, it will be quietly overwritten.
-        
-        # Raises `RuntimeError` if either `x1` or `x2` was not 
-        # declared with `independent=False`.
-        
-        # Parameters
-        # ----------
-        # x1, x2 : `UncertainReal`
-        # r : float
-
-        # Returns
-        # -------
-        # None
-        
-        # """
-        # if abs(r) > 1.0:
-            # raise RuntimeError,"invalid value: '%s'" % r
-        
-
-        # if (
-            # x1.is_elementary and 
-            # x2.is_elementary
-        # ):        
-        
-            # # # The leaf nodes 'ln1' and 'ln2' are keys to
-            # # # the correlation coefficient stored by the context.
-            # ln1 = x1._node
-            # ln2 = x2._node
-            
-            # if (
-                # not ln1.independent and
-                # not ln2.independent
-            # ):
-                # if ln1 is ln2 and r != 1.0:
-                    # raise RuntimeError(
-                        # "value should be 1.0, got: '{}'".format(r)
-                    # )
-                # else:
-                    # ln1.correlation[ln2.uid] = r 
-                    # ln2.correlation[ln1.uid] = r 
-                    # # self._correlations[ln1,ln2] = r
-            # else:
-                # raise RuntimeError( 
-                    # "`set_correlation` called on independent node"
-                # )
-            
-        # else:
-            # raise RuntimeError(
-                # "Arguments must be elementary uncertain numbers, \
-                # got: {!r} and {!r}".format(x1,x2)
-            # )
-
-    # #------------------------------------------------------------------------
-    # # TODO, not needed in Context now
-    # #
-    # def get_correlation(self,x1,x2):
-        # """
-        # Return the correlation coefficient for a pair of uncertain numbers
-
-        # Parameters
-        # ----------
-        # id1, id2 : integer
-
-        # Returns
-        # -------
-        # float
-        
-        # """
-        # ln1 = x1._node
-        # ln2 = x2._node
-        
-        # if ln1 is ln2:
-            # return 1.0
-        # else:
-            # # return self._correlations.get( (ln1,ln2) )
-            # return ln1.correlation.get( ln2.uid, 0.0 )
         
 #----------------------------------------------------------------------------
 # TODO: use Python library for this in Python 3 version
 # did not do so in Python 2 version because there were 
-# issues with DLLs and the VC++ complier used for Python 
+# issues with DLLs and the VC++ complier Python 2 used.  
 #
 def _uuid():
     """

@@ -1,12 +1,22 @@
 """
-Provides a Vector class with the following characteristics:
-
-    1)  elements are reference-value pairs
-    2)  elements are stored in ascending order of reference index
-    3)  when `__debug__ is `True` the order of elements is checked
-        when appending (but not during construction)
-
+The Vector class is used in the propagation of uncertainty in uncertain numbers 
+by forward automatic differentiation. A Vector holds a sequence of components 
+of uncertainty
  
+The class is like a mapping of key-value pairs. The key is associated with 
+the identity of the uncertainty component and the value is the component of
+uncertainty.
+
+Propagation of uncertainty is a time-critical process, so elements are 
+ordered to help with optimisation. Ordering uses the built-in ``cmp`` 
+function applied to the `uid` attribute of a key. 
+
+The function ``is_ordered()`` checks that all reference-value pairs 
+in a vector are in order. When ``__debug__`` is ``True``, the order 
+of elements is checked when appending (but not during construction).
+
+Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
+
 """
 from itertools import izip
 
@@ -20,11 +30,7 @@ __all__ = [
     ,   'extend_vector'
 ]
 
-# NB The function 'is_ordered()' is useful for testing
-# it checks that all reference-value pairs in a vector are in order.
- 
-# Ordering uses the built-in `cmp` function applied to the `uid` attribute 
-# of the reference. The `cmp` function works as follows.
+# The `cmp` function works as follows.
 # Tuples and lists are compared lexicographically by comparing 
 # corresponding elements. This means that for sequences to compare equal, 
 # each element must compare equal, the sequences must be of the same  
@@ -36,15 +42,13 @@ __all__ = [
 # first (for example, [1,2] < [1,2,3]).  
 #
 
-# Vector keys are objects with a `uid` attribute.
-# The value of `uid` is used for ordering, it is a pair of numbers.
-# The end point can be effectively marked by a pair of infinities,
+# The value of `uid` is a pair of integers used for ordering.
+# The end point can be marked by a pair of infinities,
 # so any other pair compares less than this marker.
 # The `END` object is used in the iteration control structures to
 # mark an end point. 
 INF = ( float('inf'), float('inf') )
 class INF_UID(object): uid = INF
-END = ( INF_UID, 0.0 )
 
 #--------------------------------------------------------------
 # TODO:
@@ -132,14 +136,6 @@ class Vector(object):
             return self._value[ self._index.index(i) ]
         except ValueError:
             return default
-        
-    # def update(self,it):
-        # # update is a poor choice of name
-        # # because it suggests that existing keys 
-        # # may be affected.
-        # warnings.warn( "deprecated, use extend" )
-        # for i,v in it:
-            # self.append(i,v)
         
     def items(self):
         return zip(self._index,self._value)
@@ -356,8 +352,6 @@ def merge_weighted_vectors(v1,w1,v2,w2):
     value = []
     index = []
 
-    # It is assumed that the input vectors are ordered.
-
     if v1._index == v2._index:
         # No need to check indices => much faster
         value = [ w1*x1 + w2*x2 for (x1,x2) in izip(v1._value,v2._value) ]
@@ -465,8 +459,6 @@ def merge_weighted_vectors_twice(v1,w1,v2,w2):
     value1 = []
     value2 = []
     index = []
-
-    # It is assumed that the input vectors are ordered.
 
     w11,w21 = w1
     w12,w22 = w2

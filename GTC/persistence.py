@@ -2,12 +2,11 @@
 Class
 -----
 
-    An :class:`Archive` object will handle the marshaling 
-    of a set of uncertain numbers for storage, as well as 
-    the recovery of uncertain numbers from storage. 
+    An :class:`Archive` object can marshal a set of uncertain numbers 
+    for storage,or restore a set of uncertain numbers from storage. 
     
-    The default method of storage is to use Python pickle.
-    However, the :class:`Archive` class can also be used 
+    Python pickle is used for storage.
+    However, :class:`Archive` can also be used 
     as a base class to implement other storage formats.
 
 Functions
@@ -32,18 +31,15 @@ Module contents
 import collections
 import itertools
 import numbers
-import weakref
-import pickle as pickle
+import cPickle as pickle
 
-from GTC.weak_symmetric_matrix import WeakSymmetricMatrix
-from GTC.symmetric_matrix import SymmetricMatrix
 from GTC.lib_complex import UncertainComplex
 from GTC.lib_real import UncertainReal
-from GTC.vector import Vector, is_ordered, merge_vectors
-from GTC.nodes import Leaf, Node
+from GTC.vector import Vector 
+from GTC.nodes import *
 from GTC.context import _context
 
-inf = float('inf')
+from GTC import inf
 
 __all__ = (
     'Archive',
@@ -55,7 +51,7 @@ __all__ = (
     
 #============================================================================
 # When an archive is prepared for storage, uncertain number objects 
-# are translated into the following simple representations.
+# are translated into the following simple representations for storage.
 #
 class FrozenLeaf(object):
     def __init__(self,node):
@@ -97,11 +93,8 @@ class TaggedIntermediateComplex(object):
         self.n_im = n_im
         self.label = label
 
-#------------------------------------------------------------------     
+#----------------------------------------------------------------------------
 class Archive(object):
-
-    """
-    """
 
     def __init__(self,context=_context):
 
@@ -109,25 +102,26 @@ class Archive(object):
         self.context = context
 
         # `self._tagged_reals` contains information about every
-        # real uncertain number: a pair of entries is included
-        # when a complex un is tagged.
+        # real uncertain number destined for storage: a pair 
+        # of entries is included when a complex UN is tagged.
         #
         self._tagged = {}           # name->object-ref pairs
         self._tagged_reals = {}     # name->object-ref pairs
         
-        # Filled by add() and used when freezing to
-        # associate the uids in i_components with UNs.
+        # Filled by add() and then used when freezing to
+        # associate the uids of intermediate components with UNs.
         self._uid_to_intermediate = {}
         
         self._extract = False   # initially in write-only mode
 
+    # TODO: this makes a dict-like interface available, but do we need it?
     def keys(self):
-        """Return a list of name-tags 
+        """Return a list of names 
         """
         return self._tagged.keys()
 
     def iterkeys(self):
-        """Return an iterator for name-tags 
+        """Return an iterator for names 
         """
         return self._tagged.iterkeys()
 
@@ -142,12 +136,12 @@ class Archive(object):
         return self._tagged.itervalues()
 
     def items(self):
-        """Return a list of name-tag -to- uncertain-number pairs 
+        """Return a list of name -to- uncertain-number pairs 
         """
         return self._tagged.items()
         
     def iteritems(self):
-        """Return an iterator of name-tag -to- uncertain-number pairs 
+        """Return an iterator of name -to- uncertain-number pairs 
         """
         return self._tagged.iteritems()
 
@@ -157,7 +151,7 @@ class Archive(object):
         return len(self._tagged)
 
     def _setitem(self,key,value):
-        """Add a name-tag -to- uncertain-number pair
+        """Add a name -to- uncertain-number pair
         
         """
         if key in self._tagged:
@@ -171,9 +165,8 @@ class Archive(object):
                     raise RuntimeError(
                         "'{!s}' is being used as a name-tag".format(key)
                     )
-
+                    
                 if not value.is_elementary:
-                    # NB,`result()` assigns the uid attribute
                     self._uid_to_intermediate[value.real._node.uid] = value.real
                 
                 self._tagged_reals[key] = value
@@ -196,7 +189,6 @@ class Archive(object):
                 self._tagged_reals[n_im] = value.imag
                 
                 if not value.is_elementary:
-                    # NB,`result()` assigns the uid attribute
                     self._uid_to_intermediate[value.real._node.uid] = value.real
                     self._uid_to_intermediate[value.imag._node.uid] = value.imag
                         
@@ -213,7 +205,7 @@ class Archive(object):
         
         **Example**::
         
-            >>> a = ar.Archive()
+            >>> a = pr.Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
             >>> a['x'] = x
@@ -231,7 +223,7 @@ class Archive(object):
 
         **Example**::
         
-            >>> a = ar.Archive()
+            >>> a = pr.Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
             >>> a.add(x=x,fred=y)
@@ -280,9 +272,9 @@ class Archive(object):
         """
         Extract one or more uncertain numbers
 
-        :arg args: archived names of the uncertain numbers
+        :arg args: names of archived uncertain numbers
         
-        If just one name is given a single uncertain 
+        If just one name is given, a single uncertain 
         number is returned, otherwise a sequence of
         uncertain numbers is returned.
         
@@ -299,70 +291,15 @@ class Archive(object):
             
         return lst if len(lst) > 1 else lst[0]
 
-    def _correlations_submatrix(self,uids):
-        """
-        Return a SymmetricMatrix correlation matrix 
-        that uses uids, instead of nodes, as indices
-        
-        """        
-        _registered_leaf_nodes = self.context._registered_leaf_nodes
-        
-        R = SymmetricMatrix()
-
-        mat = self.context._correlations._mat
-        uid_lst = list(uids)
-        
-        for i,uid_i in enumerate(uid_lst):
-            key_i = _registered_leaf_nodes[ uid_i ]
-            if key_i in mat:
-                row_i = mat[key_i]
-                for j,uid_j in enumerate(uid_lst[i+1:]):
-                    key_j = _registered_leaf_nodes[ uid_j ]
-                    if key_j in row_i:
-                        R[key_i._uid,key_j._uid] = row_i[key_j]
-                        
-        return R
-
-##"""
-##Notes about _freeze
-##===================
-##
-##The initial stages do the following:
-##    - find all elementary UNs that influence tagged objects, 
-##      use these to make records (indexed by uid) of:
-##        - leaf nodes 
-##        - dof 
-##        - complex_uid 
-##        - labels
-##        - ensembles
-##        - correlation matrix
-##
-##    - find all tagged intermediate real nodes
-##
-##    - convert all tagged object data into a generic form that can 
-##      stored in different formats.  
-##"""
-
     # -----------------------------------------------------------------------
     def _freeze(self):
-        """Prepare for storage
+        """Prepare archive for for storage
         
         NB after freezing, the archive object is immutable.
         
         """        
         
-        # _registered_leaf_nodes = self.context._registered_leaf_nodes
-            
-        # _leaf_nodes = frozenset(
-            # n_i 
-            # for un in self._tagged_reals.itervalues()
-                # for n_i in itertools.chain(
-                    # un._u_components.iterkeys(),
-                    # un._d_components.iterkeys()
-                # )
-        # )
-        
-        # A mapping of Leaf node uids to FrozenLeaf objects
+        # A mapping of Leaf-node uids to ``FrozenLeaf`` objects
         self._leaf_nodes = {
             n_i.uid  : FrozenLeaf(n_i)
                 for un in self._tagged_reals.itervalues()
@@ -370,84 +307,13 @@ class Archive(object):
                         un._u_components.iterkeys(),
                         un._d_components.iterkeys()
                     )
-        }
-        
-        # self._uid_to_u_leaves = {
-            # n_i.uid: n_i.u
-            # for n_i in _leaf_nodes
-        # }
-         
-        # self._dof_record = {
-            # n_i.uid : n_i.df
-            # for n_i in _leaf_nodes
-        # }                
-
-        # self._labels = {
-            # n_i.uid: n_i.label 
-            # for n_i in _leaf_nodes
-        # }
-
-        # Record ensemble groupings.
-        # We need to restrict the ensemble in the archive to tagged objects 
-        # or their influences.
-        
-        # `uids` contains all elementary uids that influence tagged objects.        
-        uids = frozenset( self._leaf_nodes.keys() )
-        # uids = frozenset(
-            # self._uid_to_u_leaves.iterkeys()
-        # )
-        
-        # # # Check all elementary uids, when one is found to belong to an
-        # # # ensemble, trim the ensemble of any other uids that are not
-        # # # included in the archive. 
-        # _ensemble = dict()
-        # for n_i in _leaf_nodes:
-            # if hasattr(n_i,'ensemble'):
-                # _ensemble[ n_i.uid ] = n_i.ensemble
-            # # if n_i in self.context._ensemble:
-                # # _ensemble[ n_i.uid ] = [
-                    # # (i.uid[0],i.uid[1]) 
-                        # # for i in self.context._ensemble[n_i]
-                            # # if i.uid in uids
-                # # ]
-        # self._ensemble = _ensemble
-
-        # The context maintains a register of `_complex_ids`. 
-        # The keys are are pairs of uids, one for the
-        # real component and one for the imaginary component.
-        # If a complex uid is identified in the context,
-        # the key is loaded into the archive `_complex_ids`.
-        
-        # Note, although a uid may be one component of a complex
-        # number, the other component may not be tagged,
-        # in which case we don't record a complex number.
-        
-        # _complex_ids = dict()
-        # for uid in uids: 
-            # if uid in self.context._complex_ids:
-                # uid_re, uid_im = self.context._complex_ids[uid]
-                # if uid_re in uids and uid_im in uids:
-                    # _complex_ids[uid] = ( uid_re, uid_im )
-        
-                
-        # self._complex_ids = _complex_ids
-                 
-        # # A correlation matrix indexed by uid's 
-        # leaf_list = list(_leaf_nodes) 
-        # self._correlations = R = SymmetricMatrix()
-        # _mat = self.context._correlations._mat
-        # for i,id_i in enumerate( leaf_list ):
-            # if id_i in _mat:
-                # row_i = _mat[id_i]
-                # for id_j in leaf_list[i+1:]:
-                    # if id_j in row_i:
-                        # R[id_i.uid,id_j.uid] = row_i[id_j]                        
+        }                      
                         
         # -------------------------------------
         # Intermediate real uncertain numbers
         #
         # All elementary influences of intermediate nodes 
-        # have been recorded above and will be archived. 
+        # have been found above and will be archived. 
         # However, intermediate influences may not have 
         # been tagged, in which case they are not archived.
         
@@ -559,7 +425,7 @@ class Archive(object):
                 else:
                     assert False,"should never occur"
                     
-        # Stuff we do not want Python to pickle
+        # Stuff in the Archive object that we do not want Python to pickle
         del self.context
         del self._uid_to_intermediate 
         
@@ -567,27 +433,7 @@ class Archive(object):
     def _thaw(self):
         """
 
-        """
-        # self.context._complex_ids.update(self._complex_ids)
-        
-        # Correlation matrix indexed by uid
-        # _mat_by_uid = self._correlations._mat  
-                
-        # _leaf_nodes = dict()
-        # for uid,u in self._uid_to_u_leaves.iteritems():
-            # # NB a new node is not created if the uid is already
-            # # associated with a node
-            # _leaf_nodes[uid] = self.context.new_leaf(
-                # uid, 
-                # self._labels[uid], 
-                # u, 
-                # self._dof_record.get(uid,inf), 
-                # # Assume that the existence of a row 
-                # # in the correlation matrix implies 
-                # # correlation with something.
-                # independent=(uid not in _mat_by_uid)  
-            # )
-            
+        """            
         _leaf_nodes = dict()
         for uid_i,fl_i in self._leaf_nodes.iteritems():
             l = self.context.new_leaf(
@@ -604,37 +450,10 @@ class Archive(object):
             if hasattr(fl_i,'ensemble'):
                 l.ensemble = set( fl_i.ensemble )
             _leaf_nodes[uid_i] = l
-            
-        # # Update context ensemble register
-        # _new_ensemble = weakref.WeakKeyDictionary()
-        # for uid, ensemble in self._ensemble.iteritems():
-            # # context ensembles are indexed by node
-            # nid = self.context._registered_leaf_nodes[uid]
-            
-            # # The members of an ensemble are all indices 
-            # # of  the ensemble, so we don't want to repeat 
-            # # this step unnecessarily.
-            # if nid not in _new_ensemble:            
-                # # Make a set of nodes for this uid 
-                # _ensemble = weakref.WeakSet()
-                # for uid_i in ensemble:
-                    # _ensemble.add(
-                        # self.context._registered_leaf_nodes[uid_i]
-                    # )
-                
-                # # Update the _ensemble mapping for each  
-                # # element of the set
-                # for nid_i in _ensemble:
-                    # assert nid_i not in _new_ensemble
-                    # _new_ensemble[nid_i] = _ensemble
-        
-        # # The ensembles associated with these nodes             
-        # # can be merged with current context ensembles.
-        # self.context._ensemble.update(_new_ensemble)
 
-        # Create the nodes associated with intermediate 
-        # uncertain numbers. This must be done before these 
-        # uncertain numbers are recreated.
+        # Create the nodes associated for intermediate 
+        # uncertain numbers. This must be done before the 
+        # intermediate uncertain numbers are recreated.
         _nodes = {
             uid: self.context.new_node(uid, *args)
                 for uid, args in self._intermediate_uids.iteritems()
@@ -643,8 +462,6 @@ class Archive(object):
         # When reconstructing, `_tagged` needs to be updated with 
         # the new uncertain numbers.
         #
-        # real_buf = {}
-        # complex_buf = {}
         for name,obj in self._tagged.iteritems():
             if isinstance(obj,TaggedElementaryReal):
                 un = _builder(
@@ -652,98 +469,44 @@ class Archive(object):
                     _leaf_nodes,
                     self._tagged_reals,
                     self.context
-                )
-                # real_buf[obj.uid] = un
-                    
+                )                    
                 self._tagged[name] = un
 
             elif isinstance(obj,TaggedIntermediateReal):
-                # if obj.uid in real_buf:
-                    # un = real_buf[obj.uid]
-                # else:
                 un = _builder(
                     name,
                     _nodes,
                     self._tagged_reals,
                     self.context
-                )
-                # real_buf[obj.uid] = un
-                    
+                )                    
                 self._tagged[name] = un
                 
             elif isinstance(
                     obj,
                     (TaggedElementaryComplex,TaggedIntermediateComplex)
                 ):
-                # Caching is more complicated for complex. The components
-                # should use the same cache as reals (because just one component
-                # may be re-labeled in the archive). The complex container does not
-                # have a node, so it cannot be identified so easily. Need to
-                # have a complex buffer with name pairs as keys.
                 name_re = obj.n_re
                 name_im = obj.n_im
                 
-                # obj_re_uid = self._tagged_reals[name_re].uid
-                # obj_im_uid = self._tagged_reals[name_im].uid
-
-                # Complex caching
-                # complex_key  = (obj_re_uid,obj_im_uid)
-                # if complex_key in complex_buf:
-                    # unc = complex_buf[complex_key]
-                # else:
-                    # if obj_re_uid in real_buf:
-                        # un_re = real_buf[obj_re_uid]
-                    # else:
                 un_re = _builder(
                     name_re,
                     _nodes,
                     self._tagged_reals,
                     self.context
                 )
-                        # real_buf[obj_re_uid] = un_re
-                        
-                    # if obj_im_uid in real_buf:
-                        # un_im = real_buf[obj_im_uid]
-                    # else:
                 un_im = _builder(
                     name_im,
                     _nodes,
                     self._tagged_reals,
                     self.context
                 )
-                        # real_buf[obj_im_uid] = un_im
 
                 assert un_re.is_elementary == un_im.is_elementary
                 unc = UncertainComplex(un_re,un_im)
-                    # complex_buf[complex_key] = unc                    
-                    
-                    # # TODO: do I need to let the context have these uid's?
-                    # # The _builder will register the real uids, but does
-                    # # not see a complex pair!
-                    # if unc.is_elementary:
-                        # unc._uid = (unc.real._uid,unc.imag._uid)
-                        
-                    # unc.label = obj.label
-
                 self._tagged[name] = unc
             else:
                 assert False
                         
-        # # Add correlations between all elementary
-        # # uncertain numbers to the existing record
-        # #
-        # # _mat_by_uid = self._correlations._mat (above)
-        # _uids = _mat_by_uid.keys()             
-        # R = self.context._correlations
-        # for i,uid_i in enumerate( _uids ):
-            # row_i = _mat_by_uid[uid_i]
-            # for uid_j in _uids[i+1:]:
-                # if uid_j in row_i:
-                    # R[  
-                        # self.context._registered_leaf_nodes[uid_i],
-                        # self.context._registered_leaf_nodes[uid_j]
-                    # ] = row_i[uid_j]
-
         # Change the archive status
         self._extract = True
  
@@ -825,11 +588,11 @@ def _builder(o_name,_nodes,_tagged_reals,context):
             uid = obj.uid,
             x = obj.x
         )
-        _tagged_reals[o_name] = un    # tag now maps to an object
+        _tagged_reals[o_name] = un    
                 
     elif isinstance(obj,TaggedIntermediateReal):                
 
-        # For older archives, there were no `i_components` or `d_components`
+        # In older archives, there were no `i_components` or `d_components`
         if not hasattr(obj,'i_components'):
             obj.i_components = Vector()
         if not hasattr(obj,'d_components'):

@@ -18,8 +18,9 @@ GTC Modules
     Core functions <API/core_functions>
     Evaluating type-A uncertainty <API/type_a>
     Evaluating type-B uncertainty <API/type_b>
+    Additional functions <API/functions>
     Reporting <API/reporting_functions>
-
+    Storage <API/persistence>
 
 Indices and tables
 ==================

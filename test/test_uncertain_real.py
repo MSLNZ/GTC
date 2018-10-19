@@ -883,6 +883,7 @@ class TestComparisons(unittest.TestCase):
         
         # Boolean tests depend on value 
         self.assert_( bool(x) )
+        self.assert_( not bool(x_false) )
         self.assert_( x )
         self.assert_( not x_false )
 

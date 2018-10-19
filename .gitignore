@@ -7,3 +7,5 @@
 /docs/_build
 /docs/_static
 /docs/_templates
+/GTC/symmetric_matrix.py
+/GTC/weak_symmetric_matrix.py

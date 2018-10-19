@@ -284,9 +284,10 @@ class TestWillinkHall(unittest.TestCase):
         c = x1._context
          
         # Check for non-elementary UNs 
+        # NB, this assertion may be removed in production
         y2 = x1 + x2 
         self.assertRaises(
-            RuntimeError,c.complex_ensemble,[x1,y2],5
+            AssertionError,c.complex_ensemble,[x1,y2],5
         )        
                 
 #-----------------------------------------------------

@@ -13,6 +13,8 @@ from GTC.context import _context
 from GTC import reporting
 from GTC import type_b
 from GTC import type_a
+from GTC import persistence
+from GTC import function
 
 from GTC.named_tuples import (
     CorrelationMatrix, 
@@ -21,12 +23,13 @@ from GTC.named_tuples import (
 
 from GTC import inf,nan,is_infinity,is_undefined,is_sequence
 
-
     
 # aliases 
 rp = reporting
 tb = type_b
 ta = type_a
+pr = persistence
+fn = function
 
 __all__ = (
         'ureal'

@@ -26,6 +26,8 @@ nan = float('nan')
 is_infinity = math.isinf 
 is_undefined = math.isnan
 
+LOG10_E = math.log10(math.e)
+
 # Do not consider strings as sequences
 def is_sequence(obj):
     if isinstance(obj, basestring):

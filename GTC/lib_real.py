@@ -1,4 +1,7 @@
 """
+Defines :class:`UncertainReal` and implements the mathematical 
+operations on this class of objects.
+
 """
 from __future__ import division
 
@@ -9,12 +12,22 @@ import numbers
 from itertools import izip
 
 from GTC import nodes 
-from GTC.named_tuples import VarianceAndDof, GroomedUncertainReal, ComponentOfUncertainty
 from GTC.vector import *
 
-from GTC import inf, nan, inf_dof, is_infinity, is_undefined
+from GTC.named_tuples import (
+    VarianceAndDof, 
+    GroomedUncertainReal, 
+    ComponentOfUncertainty
+)
 
-LOG10_E = math.log10(math.e)
+from GTC import (
+    inf, 
+    nan, 
+    inf_dof, 
+    is_infinity, 
+    is_undefined,
+    LOG10_E
+)
 
 #----------------------------------------------------------------------------
 def _is_uncertain_real_constant(x):
@@ -152,8 +165,7 @@ class UncertainReal(object):
                     df_decimals = df_decimals,
                     u_digits = "({})".format(u_digits)
                 )
-        else:
-            # A constant 
+        elif _is_uncertain_real_constant(self):
             # Use default fixed-point precision
             if self.label is None:
                 return GroomedUncertainReal(
@@ -175,15 +187,18 @@ class UncertainReal(object):
                     df_decimals = 0,
                     u_digits = ""
                 )  
+        else:
+            assert False, "unexpected"
         
     #------------------------------------------------------------------------
     def __repr__(self):
-        # repr() is for displaying information, so 
-        # use full precision (16 digits) in x and u.
+        # repr() should try to present a string that could be 
+        # evaluated by Python to generate the object.
+        
         x = self.x
         u = self.u
         df = self.df
-        df = repr( df ) if df < inf_dof else 'inf' 
+        df = "{!r}".format(df) if df < inf_dof else 'inf' 
         
         if self.label is None:
             s = "ureal({!r},{!r},{})".format( 
@@ -194,39 +209,14 @@ class UncertainReal(object):
                 x,u,df,self.label
             )                  
         
-        # gself = self._round(16,3)         
-        # if gself.label is None:
-            # s = "ureal({1:.{0}g},{2:.{0}g},{4:.{3}g})".format( 
-                # gself.precision,
-                # gself.x,
-                # gself.u,
-                # gself.df_decimals,
-                # gself.df
-            # )
-        # else:
-            # s = "ureal({1:.{0}g},{2:.{0}g},{4:.{3}g},label='{5!s}')".format( 
-                # gself.precision,
-                # gself.x,
-                # gself.u,
-                # gself.df_decimals,
-                # gself.df,
-                # self._node.label
-            # )
-                      
         return s
 
     #------------------------------------------------------------------------
     def __str__(self):
-        # str() is for presentation, so assume that the usual 
-        # 2-digit fixed point format in the uncertainty will suffice.          
+        # Use 2-digit fixed-point format for the uncertainty          
         gself = self._round(2,0)
         return "{1.x:.{0}f}{1.u_digits}".format( gself.precision, gself )
-     
-    #------------------------------------------------------------------------
-    def __nonzero__(self):
-        # Used to convert to a Boolean 
-        return self._x != 0
-        
+             
     #------------------------------------------------------------------------
     # 
     def __abs__(self):
@@ -264,7 +254,7 @@ class UncertainReal(object):
         return self.real
  
     #------------------------------------------------------------------------
-    # Comparisons 
+    # Comparisons are made with the value
     def __eq__(self,other):
         return self._x == other
     def __ne__(self,other):
@@ -277,6 +267,11 @@ class UncertainReal(object):
         return self._x < other
     def __le__(self,other):
         return self._x <= other
+        
+    def __nonzero__(self):
+        # Used to convert to a Boolean 
+        # TODO: do we want this?
+        return self._x != 0
 
     #------------------------------------------------------------------------
     @property
@@ -310,10 +305,9 @@ class UncertainReal(object):
         .. note:: ``un.u`` is equivalent to ``uncertainty(un)``
         
         """
-        try:
+        if hasattr(self,'_u'):
             return self._u
-            
-        except AttributeError:
+        else:
             # cache the return value
             if self.is_elementary or self.is_intermediate:
                 self._u = self._node.u
@@ -337,8 +331,17 @@ class UncertainReal(object):
         .. note:: ``un.v`` is equivalent to ``variance(un)``
         
         """
-        u = self.u 
-        return u*u
+        if hasattr(self,'_u'):
+            u = self.u 
+            return u*u
+        else:
+            if self.is_elementary or self.is_intermediate:
+                u = self._u = self._node.u
+                return u*u
+            else:
+                v = std_variance_real(self)
+                self._u = math.sqrt( v )
+                return v
 
     #------------------------------------------------------------------------
     @property
@@ -405,7 +408,9 @@ class UncertainReal(object):
         Copies the uncertain real number
 
         """     
-        # NB the copy is neither elementary nor intermediate
+        # This is a copy but not a full clone,
+        # because if ``self`` had a node this 
+        # object does not have it too.
         return UncertainReal(
                 self._context
             ,   self.x
@@ -1412,15 +1417,6 @@ def set_correlation_real(x1,x2,r):
     r: float
     
     """
-    # if x1._context is not x2._context:
-        # raise RuntimeError(
-            # "Different contexts!"
-        # )
-    # x1._context.set_correlation(x1,x2,r)
-        # if abs(r) > 1.0:
-            # raise RuntimeError,"invalid value: '%s'" % r
-        
-
     if (
         x1.is_elementary and 
         x2.is_elementary
@@ -1467,12 +1463,6 @@ def get_correlation_real(x1,x2):
     
     """
     if x1.is_elementary and x2.is_elementary:
-        # if x1._context is not x2._context:
-            # raise RuntimeError(
-                # "Different contexts!"
-            # )
-        
-        # return x1._context.get_correlation(x1,x2)
         ln1 = x1._node
         ln2 = x2._node
         
@@ -1504,25 +1494,17 @@ def std_variance_real(x):
     float
     
     """
-    # c = x._context    
-  
     # The independent components of uncertainty
     # ( Faster this way than with reduce()! )
     var = 0.0
-    
     if len(x._u_components) != 0:    
         var += math.fsum(
             u_i * u_i 
                 for u_i in x._u_components.itervalues()
         )
     
-    # Only evaluate the following terms when correlations 
-    # have been allowed.
+    # For these terms correlations are possible
     if len(x._d_components) != 0:
-        # All correlations 
-        # c_mat = c._correlations._mat  
-        
-        # Components declared as perhaps being correlated 
         cpts = x._d_components
         keys = cpts.keys()
         values = cpts.values()
@@ -1530,19 +1512,6 @@ def std_variance_real(x):
         for i,k_i in enumerate(keys):
             u_i = values[i]
             var += u_i * u_i 
-            # try:
-                # row_i = c_mat[k_i]   
-            # except KeyError:
-                # # No entry, next key
-                # continue
-            # if len(k_i.correlation):
-                # for j,k_j in enumerate( keys[i+1:] ):
-                    # r_ij = k_i.correlation.get(k_j.uid,0.0)
-                    # u_j = values[j+i+1]
-                    # var += 2.0 * u_i * r_ij * u_j 
-                    # print "{} * {} * {}".format(u_i,r_ij, u_j)
-                # for j,k_j in enumerate( keys[i+1:] ):
-                    # var += 2.0*u_i*row_i.get(k_j,0.0)*values[j+i+1]
             var += math.fsum(
                 2.0 *
                 u_i *
@@ -1550,8 +1519,6 @@ def std_variance_real(x):
                 values[j+i+1]
                     for j,k_j in enumerate( keys[i+1:] )
             )
-            # else:
-                # continue
                             
     return var
 
@@ -1571,41 +1538,22 @@ def std_covariance_real(x1,x2):
     """
     # Assume that `x1` and `x2` are not elementary UNs 
     
-    # if x1._context is not x2._context:
-        # raise RuntimeError(
-            # "Different contexts!"
-        # )
-        
     cv = 0.0
     
-    # `k1` is not correlated with anything, so only if 
-    # `k1` happens to influence x2 do we get any contribution.    
+    # `k1` is not correlated with anything, but if 
+    # `k1` happens to influence x2 we get a contribution.    
     cv += math.fsum(
         u1_i * x2._u_components.get(k1_i,0.0)
             for k1_i,u1_i in x1._u_components.iteritems()
     )
                     
-    
-    # context = x1._context
     for k1_i,u1_i in x1._d_components.iteritems():
-        # try:
-            # `k1_i` could be correlated with influences of `x2`
-            # row_i = context._correlations._mat[k1_i]
-        # for k2_i,u2_i in x2._d_components.iteritems():
-            # r_ij = k1_i.correlation.get(k2_i.uid,0.0)
-            # cv += u1_i * r_ij * u2_i
-            # # Some correlations are declared, so check. 
         cv += math.fsum(
             u1_i *
             k1_i.correlation.get(k2_i.uid,0.0) *
             u2_i
                 for k2_i,u2_i in x2._d_components.iteritems()
         )
-        # else:
-        # # except KeyError:
-            # # Even if `k1_i` is not correlated with anything, 
-            # # `x2` may still be influenced by `k1_i` 
-            # cv += u1_i*x2._d_components.get(k1_i,0.0)
 
     return cv
 
@@ -1623,12 +1571,6 @@ def get_covariance_real(x1,x2):
     
     """
     if x1.is_elementary and x2.is_elementary:
-        # if x1._context is not x2._context:
-            # raise RuntimeError(
-                # "Different contexts!"
-            # )
-        # r = x1._context.get_correlation(x1,x2)
-        # return x1.u * r * x2.u
         n1 = x1._node
         n2 = x2._node
         if n1.independent:
@@ -1664,6 +1606,7 @@ def welch_satterthwaite(x):
      
     elif _is_uncertain_real_constant(x):
         return VarianceAndDof(0.0,inf)
+        
     else:      
         u_cpts = x._u_components
         u_keys = u_cpts.keys()      # Leaf objects
@@ -1682,11 +1625,10 @@ def welch_satterthwaite(x):
          
         #----------------------------------------------------------
         var = 0.0                       # the standard variance
-        cpts_lst = []                   # the variance of components  
+        cpts_lst = []                   # component variances  
         dof_lst = []
  
-        # Independent components are un-correlated.
-        # So, no worries about ensembles   
+        # Independent components. So, no worries about ensembles   
         for i,u_i in enumerate(u_values):
                                     
             v_i = u_i * u_i
@@ -1708,27 +1650,23 @@ def welch_satterthwaite(x):
         # Willink, Metrologia 45 (2008) 63-67.
         #
         # The restriction on correlations between influences
-        # is relaxed for ensembles of real quantities that are 
-        # considered to sampled from a multivariate distribution. 
+        # is relaxed for ensembles of real quantities. 
         # They are treated as a single component when evaluating WS, 
         # in keeping with the Willink reference above.
         #
-        # NB, we may not need to identify complex numbers per se, 
-        # because  they could be handled in the same way as uncertain  
-        # numbers in an ensemble. However, this might be slightly slower.
         
         # Control value that may get changed to NaN below        
         df = 0.0
                 
-        # This is used to accumulate the sums of variances
-        # of all components in the ensembles.
+        # Used to accumulate the sums of variances
+        # of all components in ensembles.
         cpts_map = {}   
 
-        # flag for handling the ensemble of a complex number
+        # flag for handling the case of a complex number
         finish_complex = False  
         
         if len(d_keys):
-            # The last value of the sequence is treated at the bottom
+            # The final item in the sequence is treated separately below
             for i,k_i in enumerate(d_keys[:-1]):
                                         
                 u_i = d_values[i]
@@ -1737,18 +1675,10 @@ def welch_satterthwaite(x):
                 df_i = d_dof[i]
                                     
                 # Control of complex. 
-                # The `_complex_ids` register has a pair of
-                # ids for the complex quantity and is indexed by either of them. 
-                # if k_i in c._complex_ids:
-                    # complex_id = c._complex_ids[k_i]
-                # else:
-                    # complex_id = (None,None)
                 complex_id = getattr( k_i, 'complex', (None,None) )
 
-                # Context._ensemble is a WeakKeyDictionary of WeakSets
-                # Need to freeze this set here, to use it as a dict key
+                # Need to freeze this set to use it as a dict key
                 # that identifies the ensemble.
-                # ensemble_i = frozenset( c._ensemble.get(k_i,frozenset()) 
                 ensemble_i = frozenset( k_i.ensemble )
                 
                 if len(ensemble_i) !=0 and ensemble_i not in cpts_map:
@@ -1757,15 +1687,8 @@ def welch_satterthwaite(x):
 
                 if ensemble_i in cpts_map:
                     # Update the total variance of this ensemble
-                    
-                    # assert cpts_map[ensemble_i][1] == df_i
                     cpts_map[ensemble_i][0] += v_i
                     
-                # It may be possible to treat 
-                # complex as an ensemble. In this routine the
-                # processing would be the same. However, check
-                # the WH routine, because it may have different
-                # requirements
                 elif finish_complex:
                     # In this case, we are continuing to evaluate 
                     # a single component for the WS calculation,
@@ -1780,9 +1703,8 @@ def welch_satterthwaite(x):
                     dof_lst.append(df_i)
 
                 # Set flag only when both complex components are identified,
-                # because it is possible that just one or other component may
+                # because it is possible that just one component may
                 # be given as the argument `x`.
-                # if (k_i,d_keys[i+1]) != complex_id:
                 # NB, consecutive keys are assumed here
                 if (k_i.uid,d_keys[i+1].uid) != complex_id:
                     finish_complex = False
@@ -1791,21 +1713,12 @@ def welch_satterthwaite(x):
                     finish_complex =  True
                     
                 # ---------------------------------------------------------
-                # if k_i in c._correlations._mat:
-                # if len(k_i.correlation):
-                
-                # Correlations associated with the influence `k_i`
-                # row_i = c._correlations._mat[k_i]
-                
                 nu_i_infinite = is_infinity( df_i ) 
                 
                 # Look at the remaining influences 
                 for j,k_j in enumerate(d_keys[i+1:]):
                 
-                    # if k_j in row_i:  
-                    if k_j.uid in k_i.correlation:
-                        # Special cases are handled here.
-                        
+                    if k_j.uid in k_i.correlation:                        
                         u_j = d_values[i+1+j]
                         r = k_i.correlation[k_j.uid]
                         covar_ij = 2.0*u_i*r*u_j
@@ -1813,7 +1726,7 @@ def welch_satterthwaite(x):
 
                         if nu_i_infinite and is_infinity( k_j.df ):
                             # The correlated influences both have  
-                            # infinite dof so it is still valid to use WS.
+                            # infinite dof, so it is OK to use WS.
                             # For a single entry, we add 
                             # the covariance term here.
                             # The loop over `i` takes care of
@@ -1823,26 +1736,22 @@ def welch_satterthwaite(x):
                             #
                             continue
                                         
-                        # An ensemble of real quantities may be correlated.
-                        # This is also true for the real and imaginary  
-                        # components of a complex quantity.
-                        # elif k_j in ensemble_i:
+                        # Members of an ensemble may be correlated.
                         elif k_j.uid in ensemble_i:
                             cpts_map[ensemble_i][0] += covar_ij
                             continue
                                 
                         # The real and imaginary components of a
                         # complex quantity may be correlated.
-                        # This section of code is executed when the
-                        # imaginary component associated with id_i
+                        # This code is executed when the
+                        # imaginary component associated with k_i
                         # (a real component) is encountered. It puts
                         # the covariance term into cpts_lst. The
-                        # variance associated with `id_j` will be
-                        # put in when the outer loop next increments.
+                        # variance associated with `k_j` will be
+                        # included in when the outer loop next increments.
                         # I.e., here we are only worried about off-diagonal
                         # components of the covariance matrix.
                         #
-                        # elif (k_i,k_j) == complex_id:
                         elif (k_i.uid,k_j.uid) == complex_id:
                             cpts_lst[-1] += covar_ij
                             continue
@@ -1850,11 +1759,12 @@ def welch_satterthwaite(x):
                         else:
                             # Correlation with no excuse, illegal!
                             df = nan
-                            # Don't expect to ever get here now, because of 
+                            # Don't expect to ever get here, because of 
                             # controls on using set_correlation
                             assert False 
 
-            # Last value cannot be correlated with anything not already processed,
+            # Last value cannot be correlated with anything 
+            # that has not already been processed,
             # but it might be the final component of an ensemble 
             k_i = d_keys[-1]
             u_i = d_values[-1]
@@ -1863,24 +1773,24 @@ def welch_satterthwaite(x):
             var += v_i
                 
             ensemble_i = frozenset( k_i.ensemble )
-
-            # It may be part of an ensemble 
             if ensemble_i in cpts_map:
                 cpts_map[ensemble_i][0] += v_i
+                
             elif finish_complex:
                 v_old =  cpts_lst[-1]
                 cpts_lst[-1] = v_old + v_i
+                
             else:
                 cpts_lst.append(v_i)
                 dof_lst.append(df_i)
         
         # Finish building cpts_lst and dof_lst
-        # by using the values accumulated in `cpts_map`
+        # using the values accumulated in `cpts_map`
         for v_i,df_i in cpts_map.itervalues():
             cpts_lst.append(v_i)
             dof_lst.append(df_i)   
             
-        # There is a pathological case in which var == 0.
+        # There is a pathological case where var == 0.
         # It can occur in a product of zero-valued uncertain factors.
         if var == 0: df = nan
                 

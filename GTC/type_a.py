@@ -41,12 +41,13 @@ import numbers
 import itertools
 
 from GTC.lib_complex import UncertainComplex
-from GTC.lib_real import UncertainReal
-from GTC.lib_real import get_correlation_real, set_correlation_real
 from GTC.context import _context 
 
-from GTC.vector import merge_vectors
-from GTC.nodes import Node
+from GTC.lib_real import (
+    UncertainReal, 
+    get_correlation_real, 
+    set_correlation_real
+)
 
 from GTC import inf
 
@@ -92,24 +93,24 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
         >>> seq = (-0.0056,-0.0055,-0.0056,-0.0056,-0.0056, 
         ...      -0.0057,-0.0057,-0.0056,-0.0056,-0.0057,-0.0057)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.0056272727272727272874,1.9497827808661157478e-05,10)
+        ureal(-0.005627272727272727,1.9497827808661157e-05,10)
 
         # LSD = 0.0001, data varies between -0.0056 and -0.0057
         >>> seq = (-0.0056,-0.0056,-0.0056,-0.0056,-0.0056,
         ... -0.0057,-0.0057,-0.0056,-0.0056,-0.0057,-0.0057)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.0056363636363636364021,1.5212000482437778871e-05,10)
+        ureal(-0.005636363636363636,1.5212000482437775e-05,10)
 
         # LSD = 0.0001, no spread in data values
         >>> seq = (-0.0056,-0.0056,-0.0056,-0.0056,-0.0056,
         ... -0.0056,-0.0056,-0.0056,-0.0056,-0.0056,-0.0056)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.0055999999999999999431,2.8867513459481289171e-05,10)
+        ureal(-0.0056,2.886751345948129e-05,10)
         
         # LSD = 0.0001, no spread in data values, fewer points
         >>> seq = (-0.0056,-0.0056,-0.0056)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.0055999999999999999431,3.2914029430219170322e-05,2)
+        ureal(-0.0056,3.291402943021917e-05,2)
         
     """
     N = len(seq)
@@ -121,6 +122,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     try:
         seq = [ float(x_i) for x_i in seq ]
     except TypeError:
+        # If not a float then an uncertain number?
         seq = [ x_i.x for x_i in seq ]
     
     x_max = max(seq)
@@ -183,7 +185,7 @@ def estimate(seq,label=None,context=_context):
 
         >>> data = range(15)
         >>> type_a.estimate(data)
-        ureal(7,1.15470053837925,14)
+        ureal(7.0,1.1547005383792515,14)
         
         >>> data = [(0.91518731126816899+1.5213442955575518j),
         ... (0.96572684493613492-0.18547192979059401j),
@@ -198,11 +200,10 @@ def estimate(seq,label=None,context=_context):
 
         >>> type_a.estimate(data)
         ucomplex(
-            (1.059187840567141+0.9574410497332931j), 
-            u=[0.2888166531024181,0.2655555630050262], 
-            r=-0.314, 
-            df=9
-        )
+            (1.059187840567141+0.9574410497332932j), 
+            u=[0.28881665310241805,0.2655555630050262], 
+            r=-4.090655272692547, 
+            df=9)
 
     """
     df = len(seq)-1
@@ -294,7 +295,7 @@ def standard_deviation(seq,mu=None):
     if mu is None:
         mu = mean(seq)
 
-    # `mean` will only return a pure number type
+    # `mean` returns either a real or complex
     if isinstance(mu,numbers.Real):
         accum = lambda psum,x: psum + (float(x)-mu)**2
         variance = reduce(accum, seq, 0.0) / (N - 1)
@@ -311,10 +312,10 @@ def standard_deviation(seq,mu=None):
         
         if den == 0.0: 
             if cv_12 != 0.0 :
-                raise RuntimeError,\
+                raise RuntimeError(
                     "numerical instability in covariance calculation"
+                )
             else:
-                # no correlation
                 r = 0.0
         else:
             r = cv_12 / den
@@ -322,7 +323,7 @@ def standard_deviation(seq,mu=None):
         return StandardDeviation(sd_re,sd_im), r
         
     else:
-        assert False,"should never occur"
+        assert False,"unexpected"
 
 #-----------------------------------------------------------------------------------------
 def standard_uncertainty(seq,mu=None):
@@ -383,7 +384,7 @@ def standard_uncertainty(seq,mu=None):
         return StandardUncertainty(sd.real/ROOT_N,sd.imag/ROOT_N),r
         
     else:
-        assert False,"should not occur : '%s'" % repr(mu)
+        assert False,"unexpected, mu={!r}".format(mu)
 
 #-----------------------------------------------------------------------------------------
 def variance_covariance_complex(seq,mu=None):
@@ -479,22 +480,24 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
         >>> phi = [1.0456,1.0438,1.0468,1.0428,1.0433]
         >>> v,i,p = type_a.multi_estimate_real((V,I,phi),labels=('V','I','phi'))
         >>> v
-        ureal(4.99899999999999967,0.00320936130717617944,4,label='V')
+        ureal(4.999,0.0032093613071761794,4, label='V')
         >>> i
-        ureal(0.019661000000000001392,9.47100839404133456689e-06,4,label='I')
+        ureal(0.019661,9.471008394041335e-06,4, label='I')
         >>> p
-        ureal(1.044459999999999944,0.0007520638270785368149,4,label='phi')
+        ureal(1.04446,0.0007520638270785368,4, label='phi')
         
         >>> r = v/i*cos(p)
         >>> r
-        ureal(127.73216992810208,0.071071407396995398,4)
+        ureal(127.73216992810208,0.0710714073969954,4.0)
         
     """
     M = len(seq_of_seq)
     N = len(seq_of_seq[0])
     
     if labels is not None and len(labels) != M:
-        raise RuntimeError("Incorrect number of labels: '{!r}'".format(labels) ) 
+        raise RuntimeError(
+            "Incorrect number of labels: '{!r}'".format(labels) 
+        ) 
         
     # Calculate the deviations from the mean for each sequence
     means = [ ]
@@ -526,7 +529,6 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
             )
 
     ureal = context.elementary_real
-    # set_correlation = context.set_correlation
 
     # Create a list of elementary uncertain numbers
     # to return a list of standard uncertainties
@@ -591,7 +593,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
 
         >>> z = v/i*exp(p)
         >>> z.real
-        ureal(127.73216992810208,0.071071407396995398,4)
+        ureal(127.73216992810208,0.0710714073969954,4.0)
         >>> get_correlation(z.real,z.imag)
         -0.5884297844235157
         
@@ -600,7 +602,9 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
     N = len(seq_of_seq[0])
     
     if labels is not None and len(labels) != M:
-        raise RuntimeError( "Incorrect number of labels: '{!r}'".format(labels) ) 
+        raise RuntimeError( 
+            "Incorrect number of labels: '{!r}'".format(labels) 
+        ) 
 
     # 1. Create a 2M sequence of sequences of real values
     x = []
@@ -629,7 +633,6 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
         )
     # 3. Define uncertain M complex numbers
     ucomplex = context.elementary_complex
-    # set_correlation = context.set_correlation
 
     x_influences = []
     rtn = []
