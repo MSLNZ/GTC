@@ -52,7 +52,7 @@ def _is_uncertain_complex_constant(z):
         )
     else:
         raise RuntimeError(
-            "UncertainComplex required: {!r}".format(x)
+            "UncertainComplex required: {!r}".format(z)
         )
   
 #---------------------------------------------------------------------------
@@ -296,7 +296,7 @@ class UncertainComplex(object):
     #-----------------------------------------------------------------
     # Boolean depends on value
     def __nonzero__(self):
-        return self._value == 0
+        return self._value != 0
         
     #------------------------------------------------------------------------
     def __abs__(self):
@@ -2036,8 +2036,8 @@ def willink_hall(x):
                     # used for the DoF calculation. 
                     # Update the buffer. 
                     if not i_re_infinite:
-                        components_i.u_re.append( id_re,re[id_re] )
-                        components_i.u_im.append( id_re,im[id_re] )
+                        components_i.u_re.append( id_re,re_d[id_re] )
+                        components_i.u_im.append( id_re,im_d[id_re] )
 
                 # If the current influence does NOT belong to an ensemble
                 # update the sums immediately, otherwise wait until the end
