@@ -294,6 +294,7 @@ def ureal(x,u,df=inf,label=None,independent=True,context=_context):
         raise RuntimeError("invalid dof: '{!r}'".format(df) )
     
     if u == 0:
+        # Is this what we want? Perhaps not.
         return context.constant_real(float(x),label)
     else:
         return context.elementary_real(
@@ -546,7 +547,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True,context=_context):
     else:
         raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
         
-
+    # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
         return context.constant_complex(complex(z),label)
     else:

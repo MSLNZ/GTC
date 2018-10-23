@@ -19,7 +19,8 @@ from GTC.lib_real import (
     welch_satterthwaite,
     std_variance_real,
     set_correlation_real,
-    get_correlation_real
+    get_correlation_real,
+    _is_uncertain_real_constant
 )
 
 from testing_tools import *
@@ -109,6 +110,17 @@ class SimpleAttributesAndFunctions(unittest.TestCase):
         self.assert_( isinstance( abs(un_minus), float ) )
         self.assert_( equivalent(self.un.x,abs(un_minus) ) )
 
+    def test_non_zero(self):
+        x = ureal(1,1)
+        self.assert_( bool(x) is True )
+        x = ureal(0,1)
+        self.assert_( bool(x) is not True )
+        
+    def test_is_constant(self): 
+        x = constant(1.1)
+        self.assert_( _is_uncertain_real_constant(x) )
+        x = ureal(1,1)
+        self.assert_( _is_uncertain_real_constant(x) is not True )
         
 #----------------------------------------------------------------------------
 class ArithmeticTestsReal(unittest.TestCase):

@@ -11,7 +11,11 @@ import operator
 from GTC import *
 from GTC.context import _context 
 from GTC.reporting import *
-from GTC.lib_complex import UncertainComplex, willink_hall
+from GTC.lib_complex import (
+    UncertainComplex, 
+    willink_hall,
+    _is_uncertain_complex_constant
+)
 from GTC.lib_real import UncertainReal
 
 from testing_tools import *
@@ -2213,6 +2217,27 @@ class TestStringRepresentations(unittest.TestCase):
         self.assertEqual(s.group(2),"{0!r},{0!r}".format(u))
         self.assertEqual(s.group(3),repr(0.))
         self.assertEqual(s.group(4),"inf")
+  
+#-----------------------------------------------------
+class TestMisc(unittest.TestCase):
+ 
+    def test_constant(self):
+        z = 1+0j
+        uc = constant(z)
+        self.assert_( _is_uncertain_complex_constant(uc) )
+        self.assertRaises(RuntimeError,_is_uncertain_complex_constant,z)
+        
+        # Setting u=0 makes a constant (at the moment, should this be changed?)
+        un = ucomplex(1j,0)
+        self.assert_( _is_uncertain_complex_constant(un) )
+        
+    def test_nonzero(self):
+        un = ucomplex(1+0j,1)
+        self.assert_( bool(un) is True )
+        un = ucomplex(1j,1)
+        self.assert_( bool(un) is True )
+        un = ucomplex(0+0j,1)
+        self.assert_( bool(un) is not True )
         
 #============================================================================
 if(__name__== '__main__'):

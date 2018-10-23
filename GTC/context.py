@@ -6,7 +6,6 @@ import os
 import weakref
 
 from GTC import inf, nan
-from GTC.weak_symmetric_matrix import WeakSymmetricMatrix
 from GTC.lib_real import UncertainReal
 from GTC.lib_complex import UncertainComplex
 from GTC.vector import *
