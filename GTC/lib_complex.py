@@ -14,14 +14,12 @@ import cmath
 
 from itertools import izip
 
-from GTC.lib_real import *
-from GTC.vector import *
-from GTC.nodes import *
-
-from GTC.lib_real import _is_uncertain_real_constant
+from GTC import lib_real as rlib
+from GTC import vector
 
 from GTC.named_tuples import (
     VarianceCovariance, 
+    VarianceAndDof,
     StandardUncertainty, 
     GroomedUncertainComplex
 )
@@ -33,12 +31,16 @@ from GTC import (
     LOG10_E
 )
 
+#alias
+UncertainReal = rlib.UncertainReal
+
 __all__ = (
     'UncertainComplex',
     'std_variance_covariance_complex',
     'VarianceCovariance',
     'StandardUncertainty',
     'willink_hall',
+    'complex_ensemble'
 )
 
 #----------------------------------------------------------------------------
@@ -47,8 +49,8 @@ def _is_uncertain_complex_constant(z):
     """
     if isinstance(z,UncertainComplex):
         return bool( 
-            _is_uncertain_real_constant(z.real) and 
-            _is_uncertain_real_constant(z.imag)
+            rlib._is_uncertain_real_constant(z.real) and 
+            rlib._is_uncertain_real_constant(z.imag)
         )
     else:
         raise RuntimeError(
@@ -132,6 +134,124 @@ class UncertainComplex(object):
         self.is_elementary = r.is_elementary or i.is_elementary
         self.is_intermediate = r.is_intermediate
 
+    #----------------------------------------------------------------------------
+    @classmethod
+    def constant(cls,z,label=None):
+        """
+        Return a constant uncertain complex number.
+        
+        A constant uncertain complex number has no uncertainty
+        and infinite degrees of freedom.        
+
+        The real and imaginary components are given labels 
+        with the suffixes '_re' and '_im' to added ``label``.
+        
+        Parameters
+        ----------
+        z : complex
+        label : string, or None
+
+        Returns
+        -------
+        UncertainComplex
+        
+        """
+        if label is None:
+            label_r,label_i = None,None
+        else:
+            label_r = "{}_re".format(label)
+            label_i = "{}_im".format(label)
+            
+        real = UncertainReal.constant(z.real,label_r)
+        imag = UncertainReal.constant(z.imag,label_i)
+
+        ucomplex = UncertainComplex(real,imag)    
+        ucomplex._label = label
+            
+        return ucomplex        
+
+    #----------------------------------------------------------------------------
+    @classmethod
+    def elementary(cls,z,u_r,u_i,r,df,label,independent):
+        """
+        Return an elementary uncertain complex number.
+
+        Parameters
+        ----------
+        x : complex
+        u_r, u_i : standard uncertainties 
+        r : correlation coefficient
+        df : float
+        label : string, or None
+
+        Returns
+        -------
+        UncertainComplex
+        
+        The real and imaginary components are given labels 
+        with the suffixes '_re' and '_im' to added ``label``.
+
+        The ``independent`` argument controls whether this
+        uncertain number may be correlated with others.
+        
+        """
+        if label is None:
+            label_r,label_i = None,None
+            
+        else:
+            label_r = "{}_re".format(label)
+            label_i = "{}_im".format(label)
+            
+        # `independent` will be False if `r != 0`
+        real = UncertainReal.elementary(z.real,u_r,df,label_r,independent)
+        imag = UncertainReal.elementary(z.imag,u_i,df,label_i,independent)
+
+        # We need to be able to look up complex pairs
+        # The integer part of the IDs are consecutive.
+        complex_id = (real._node.uid,imag._node.uid)
+        real._node.complex = complex_id 
+        imag._node.complex = complex_id
+        
+        if r is not None:
+            real._node.correlation[imag._node.uid] = r 
+            imag._node.correlation[real._node.uid] = r 
+            
+        ucomplex = UncertainComplex(real,imag)
+        ucomplex.is_elementary = True
+        
+        ucomplex._label = label
+            
+        return ucomplex   
+        
+    #----------------------------------------------------------------------------
+    @classmethod
+    def complex_intermediate(cls,z,label):
+        """
+        Return an intermediate uncertain complex number
+
+        :arg z: the uncertain complex number
+        :type z: :class:`UncertainComplex`
+
+        :arg label: a label
+
+        If ``label is not None`` the label will be applied
+        to the uncertain complex number and labels with
+        a suitable suffix will be applied to the
+        real and imaginary components.
+        
+        """
+        if label is None:
+            UncertainReal.intermediate(z.real,None)
+            UncertainReal.intermediate(z.imag,None) 
+        else:
+            label_r = "{}_re".format(label)
+            label_i = "{}_im".format(label)
+            
+            UncertainReal.intermediate(z.real,label_r)
+            UncertainReal.intermediate(z.imag,label_i) 
+            
+        z._label = label
+        
     #------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
         """
@@ -475,15 +595,15 @@ class UncertainComplex(object):
             UncertainReal(
                 arg._context,
                 z.real,
-                merge_weighted_vectors(
+                vector.merge_weighted_vectors(
                     arg.real._u_components,dz_dx[0],
                     arg.imag._u_components,dz_dx[1],
                 ),
-                merge_weighted_vectors(
+                vector.merge_weighted_vectors(
                     arg.real._d_components,dz_dx[0],
                     arg.imag._d_components,dz_dx[1],
                 ),
-                merge_weighted_vectors(
+                vector.merge_weighted_vectors(
                     arg.real._i_components,dz_dx[0],
                     arg.imag._i_components,dz_dx[1],
                 ),
@@ -491,15 +611,15 @@ class UncertainComplex(object):
             UncertainReal(
                 arg._context,
                 z.imag,
-                merge_weighted_vectors(
+                vector.merge_weighted_vectors(
                     arg.real._u_components,dz_dx[2],
                     arg.imag._u_components,dz_dx[3],
                 ),
-                merge_weighted_vectors(
+                vector.merge_weighted_vectors(
                     arg.real._d_components,dz_dx[2],
                     arg.imag._d_components,dz_dx[3],
                 ),
-                merge_weighted_vectors(
+                vector.merge_weighted_vectors(
                     arg.real._i_components,dz_dx[2],
                     arg.imag._i_components,dz_dx[3],
                 )
@@ -544,27 +664,27 @@ class UncertainComplex(object):
         rhs_r = rhs.real
         rhs_i = rhs.imag
 
-        u_lhs_real, u_lhs_imag = merge_weighted_vectors_twice(
+        u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._u_components,(dz_dl[0],dz_dl[2]),
             lhs_i._u_components,(dz_dl[1],dz_dl[3])
         )
-        u_rhs_real, u_rhs_imag = merge_weighted_vectors_twice(
+        u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._u_components,(dz_dr[0],dz_dr[2]),
             rhs_i._u_components,(dz_dr[1],dz_dr[3])
         )
-        d_lhs_real, d_lhs_imag = merge_weighted_vectors_twice(
+        d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._d_components,(dz_dl[0],dz_dl[2]),
             lhs_i._d_components,(dz_dl[1],dz_dl[3])
         )
-        d_rhs_real, d_rhs_imag = merge_weighted_vectors_twice(
+        d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._d_components,(dz_dr[0],dz_dr[2]),
             rhs_i._d_components,(dz_dr[1],dz_dr[3])
         )
-        i_lhs_real, i_lhs_imag = merge_weighted_vectors_twice(
+        i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._i_components,(dz_dl[0],dz_dl[2]),
             lhs_i._i_components,(dz_dl[1],dz_dl[3])
         )
-        i_rhs_real, i_rhs_imag = merge_weighted_vectors_twice(
+        i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._i_components,(dz_dr[0],dz_dr[2]),
             rhs_i._i_components,(dz_dr[1],dz_dr[3])
         )
@@ -572,26 +692,26 @@ class UncertainComplex(object):
             UncertainReal(
                 context,
                 z.real,
-                merge_vectors(
+                vector.merge_vectors(
                     u_lhs_real, u_rhs_real
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     d_lhs_real, d_rhs_real
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     i_lhs_real, i_rhs_real
                 )
             ),
             UncertainReal(
                 context,
                 z.imag,
-                merge_vectors(
+                vector.merge_vectors(
                     u_lhs_imag,u_rhs_imag
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     d_lhs_imag,d_rhs_imag
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     i_lhs_imag, i_rhs_imag
                 )
             )
@@ -635,51 +755,57 @@ class UncertainComplex(object):
         lhs_r = lhs.real
         lhs_i = lhs.imag
 
-        u_lhs_real, u_lhs_imag = merge_weighted_vectors_twice(
+        u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._u_components,(dz_dl[0],dz_dl[2]),
             lhs_i._u_components,(dz_dl[1],dz_dl[3])
         )
 
-        u_rhs_real, u_rhs_imag = scale_vector_twice(rhs._u_components,(dz_dr[0],dz_dr[2]))
+        u_rhs_real, u_rhs_imag = vector.scale_vector_twice(
+            rhs._u_components,(dz_dr[0],dz_dr[2])
+        )
         
-        d_lhs_real, d_lhs_imag = merge_weighted_vectors_twice(
+        d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._d_components,(dz_dl[0],dz_dl[2]),
             lhs_i._d_components,(dz_dl[1],dz_dl[3])
         )
 
-        d_rhs_real, d_rhs_imag = scale_vector_twice(rhs._d_components,(dz_dr[0],dz_dr[2]))
+        d_rhs_real, d_rhs_imag = vector.scale_vector_twice(
+            rhs._d_components,(dz_dr[0],dz_dr[2])
+        )
 
-        i_lhs_real, i_lhs_imag = merge_weighted_vectors_twice(
+        i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._i_components,(dz_dl[0],dz_dl[2]),
             lhs_i._i_components,(dz_dl[1],dz_dl[3])
         )
 
-        i_rhs_real, i_rhs_imag = scale_vector_twice(rhs._i_components,(dz_dr[0],dz_dr[2]))
+        i_rhs_real, i_rhs_imag = vector.scale_vector_twice(
+            rhs._i_components,(dz_dr[0],dz_dr[2])
+        )
         
         return cls(
             UncertainReal(
                 context,
                 z.real,
-                merge_vectors(
+                vector.merge_vectors(
                     u_lhs_real,u_rhs_real
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     d_lhs_real,d_rhs_real
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     i_lhs_real, i_rhs_real
                 )
             ),
             UncertainReal(
                 context,
                 z.imag,
-                merge_vectors(
+                vector.merge_vectors(
                     u_lhs_imag,u_rhs_imag
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     d_lhs_imag,d_rhs_imag
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     i_lhs_imag, i_rhs_imag
                 )
             )
@@ -723,17 +849,17 @@ class UncertainComplex(object):
         lhs_r = lhs.real
         lhs_i = lhs.imag
 
-        u_lhs_real, u_lhs_imag = merge_weighted_vectors_twice(
+        u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._u_components,(dz_dl[0],dz_dl[2]),
             lhs_i._u_components,(dz_dl[1],dz_dl[3])
         )
 
-        d_lhs_real, d_lhs_imag = merge_weighted_vectors_twice(
+        d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._d_components,(dz_dl[0],dz_dl[2]),
             lhs_i._d_components,(dz_dl[1],dz_dl[3])
         )
 
-        i_lhs_real, i_lhs_imag = merge_weighted_vectors_twice(
+        i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
             lhs_r._i_components,(dz_dl[0],dz_dl[2]),
             lhs_i._i_components,(dz_dl[1],dz_dl[3])
         )
@@ -793,23 +919,29 @@ class UncertainComplex(object):
         rhs_r = rhs.real
         rhs_i = rhs.imag
 
-        u_lhs_real, u_lhs_imag = scale_vector_twice(lhs._u_components,(dz_dl[0],dz_dl[2]))
+        u_lhs_real, u_lhs_imag = vector.scale_vector_twice(
+            lhs._u_components,(dz_dl[0],dz_dl[2])
+        )
         
-        u_rhs_real, u_rhs_imag = merge_weighted_vectors_twice(
+        u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._u_components,(dz_dr[0],dz_dr[2]),
             rhs_i._u_components,(dz_dr[1],dz_dr[3])
         )
 
-        d_lhs_real, d_lhs_imag = scale_vector_twice(lhs._d_components,(dz_dl[0],dz_dl[2]))
+        d_lhs_real, d_lhs_imag = vector.scale_vector_twice(
+            lhs._d_components,(dz_dl[0],dz_dl[2])
+        )
         
-        d_rhs_real, d_rhs_imag = merge_weighted_vectors_twice(
+        d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._d_components,(dz_dr[0],dz_dr[2]),
             rhs_i._d_components,(dz_dr[1],dz_dr[3])
         )
 
-        i_lhs_real, i_lhs_imag = scale_vector_twice(lhs._i_components,(dz_dl[0],dz_dl[2]))
+        i_lhs_real, i_lhs_imag = vector.scale_vector_twice(
+            lhs._i_components,(dz_dl[0],dz_dl[2])
+        )
         
-        i_rhs_real, i_rhs_imag = merge_weighted_vectors_twice(
+        i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._i_components,(dz_dr[0],dz_dr[2]),
             rhs_i._i_components,(dz_dr[1],dz_dr[3])
         )
@@ -818,26 +950,26 @@ class UncertainComplex(object):
             UncertainReal(
                 context,
                 z.real,
-                merge_vectors(
+                vector.merge_vectors(
                     u_lhs_real,u_rhs_real
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     d_lhs_real,d_rhs_real
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     i_lhs_real, i_rhs_real
                 )
             ),
             UncertainReal(
                 context,
                 z.imag,
-                merge_vectors(
+                vector.merge_vectors(
                     u_lhs_imag,u_rhs_imag
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     d_lhs_imag,d_rhs_imag
                 ),
-                merge_vectors(
+                vector.merge_vectors(
                     i_lhs_imag, i_rhs_imag
                 )
             )
@@ -881,17 +1013,17 @@ class UncertainComplex(object):
         rhs_r = rhs.real
         rhs_i = rhs.imag
 
-        u_rhs_real, u_rhs_imag = merge_weighted_vectors_twice(
+        u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._u_components,(dz_dr[0],dz_dr[2]),
             rhs_i._u_components,(dz_dr[1],dz_dr[3])
         )
 
-        d_rhs_real, d_rhs_imag = merge_weighted_vectors_twice(
+        d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._d_components,(dz_dr[0],dz_dr[2]),
             rhs_i._d_components,(dz_dr[1],dz_dr[3])
         )
 
-        i_rhs_real, i_rhs_imag = merge_weighted_vectors_twice(
+        i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
             rhs_r._i_components,(dz_dr[0],dz_dr[2]),
             rhs_i._i_components,(dz_dr[1],dz_dr[3])
         )
@@ -963,8 +1095,10 @@ class UncertainComplex(object):
                 return self
             else:
                 # # Force addition between uncertain numbers
-                r = self.real + self.real._context.constant_real( rhs.real, label=None )
-                i = self.imag + self.real._context.constant_real( rhs.imag, label=None )
+                r = self.real + UncertainReal.constant( rhs.real )
+                i = self.imag + UncertainReal.constant( rhs.imag )
+                # r = self.real + self.real._context.constant_real( rhs.real, label=None )
+                # i = self.imag + self.real._context.constant_real( rhs.imag, label=None )
                 return UncertainComplex(r,i)
                 
         else:
@@ -983,9 +1117,11 @@ class UncertainComplex(object):
                 return self
             else:
                 # Force addition between uncertain numbers
-                r = self.real._context.constant_real( lhs.real, label=None ) + self.real
-                i = self.real._context.constant_real( lhs.imag, label=None ) + self.imag
-                return UncertainComplex(r,i)
+                r = UncertainReal.constant( lhs.real ) + self.real
+                i = UncertainReal.constant( lhs.imag ) + self.imag
+                # r = self.real._context.constant_real( lhs.real, label=None ) + self.real
+                # i = self.real._context.constant_real( lhs.imag, label=None ) + self.imag
+                # return UncertainComplex(r,i)
                 
         elif isinstance(lhs,numbers.Real):
             if lhs == 0.0:
@@ -1024,8 +1160,10 @@ class UncertainComplex(object):
             if rhs == 0.0:
                 return self
             else:
-                r = self.real - self.real._context.constant_real( rhs.real, label=None )
-                i = self.imag - self.real._context.constant_real( rhs.imag, label=None )
+                r = self.real - UncertainReal.constant( rhs.real )
+                i = self.imag - UncertainReal.constant( rhs.imag )
+                # r = self.real - self.real._context.constant_real( rhs.real, label=None )
+                # i = self.imag - self.real._context.constant_real( rhs.imag, label=None )
                 return UncertainComplex(r,i)
                 
         else:
@@ -1638,9 +1776,15 @@ class UncertainComplex(object):
         return UncertainReal(
                 re._context
             ,   mag_x
-            ,   merge_weighted_vectors(re._u_components,dz_dre,im._u_components,dz_dim)
-            ,   merge_weighted_vectors(re._d_components,dz_dre,im._d_components,dz_dim)
-            ,   merge_weighted_vectors(re._i_components,dz_dre,im._i_components,dz_dim)
+            ,   vector.merge_weighted_vectors(
+                    re._u_components,dz_dre,im._u_components,dz_dim
+                )
+            ,   vector.merge_weighted_vectors(
+                    re._d_components,dz_dre,im._d_components,dz_dim
+                )
+            ,   vector.merge_weighted_vectors(
+                    re._i_components,dz_dre,im._i_components,dz_dim
+                )
             )
 
     #-----------------------------------------------------------------
@@ -1666,9 +1810,15 @@ class UncertainComplex(object):
         return UncertainReal(
                 re._context
             ,   abs(x)**2
-            ,   merge_weighted_vectors(re._u_components,dz_dre,im._u_components,dz_dim)
-            ,   merge_weighted_vectors(re._d_components,dz_dre,im._d_components,dz_dim)
-            ,   merge_weighted_vectors(re._i_components,dz_dre,im._i_components,dz_dim)
+            ,   vector.merge_weighted_vectors(
+                    re._u_components,dz_dre,im._u_components,dz_dim
+                )
+            ,   vector.merge_weighted_vectors(
+                    re._d_components,dz_dre,im._d_components,dz_dim
+                )
+            ,   vector.merge_weighted_vectors(
+                    re._i_components,dz_dre,im._i_components,dz_dim
+                )
             )
     
     #-----------------------------------------------------------------
@@ -1707,7 +1857,7 @@ def std_variance_covariance_complex(x):
     
     v_r = re.v
     v_i = im.v
-    cv = std_covariance_real(re,im)
+    cv = real.std_covariance_real(re,im)
     
     return VarianceCovariance(v_r,cv,cv,v_i)
 
@@ -1874,12 +2024,20 @@ def willink_hall(x):
         # independent UNs from the work on possibly correlated UNs.
         
         # Need all keys for the independent components
-        re_u = extend_vector(x.real._u_components,x.imag._u_components)    
-        im_u = extend_vector(x.imag._u_components,x.real._u_components)
+        re_u = vector.extend_vector(
+            x.real._u_components,x.imag._u_components
+        )    
+        im_u = vector.extend_vector(
+            x.imag._u_components,x.real._u_components
+        )
         
         # Need all keys for the dependent components
-        re_d = extend_vector(x.real._d_components,x.imag._d_components)    
-        im_d = extend_vector(x.imag._d_components,x.real._d_components)
+        re_d = vector.extend_vector(
+            x.real._d_components,x.imag._d_components
+        )    
+        im_d = vector.extend_vector(
+            x.imag._d_components,x.real._d_components
+        )
             
         ids_u = re_u.keys()
         ids_d = re_d.keys()
@@ -2084,3 +2242,54 @@ def willink_hall(x):
             
         return VarianceAndDof(var,dof)
            
+#------------------------------------------------------------------------
+def complex_ensemble(seq,df):
+    """
+    Declare the uncertain numbers in ``seq`` to be an ensemble.
+
+    The uncertain numbers in ``seq`` must be elementary
+    and have the same numbers of degrees of freedom. 
+    
+    It is permissible for members of an ensemble to be correlated 
+    and have finite degrees of freedom without causing problems 
+    when evaluating the effective degrees of freedom. See: 
+    
+    R Willink, Metrologia 44 (2007) 340-349, section 4.1.1
+
+    Effectively, members of an ensemble are treated 
+    as simultaneous independent measurements of 
+    a multivariate distribution. 
+    
+    """
+    # NB, we simply assign ``dof`` without checking for previous values. 
+    # This avoids overhead and should not be a risk, because 
+    # users call this method via functions in the ``core`` module.
+    
+    if len(seq):
+        # TODO: assertions not required in release version
+        # ensemble members must have the same degrees of freedom
+        assert all( s_i.df == df for s_i in seq )
+
+        # ensemble members must be elementary
+        assert all( s_i.is_elementary for s_i in seq )
+        
+        # All UNs will have been declared with ``independent=False`` 
+        if not all( 
+            x._node.independent == False 
+                for pair in seq 
+                    for x in (pair.real,pair.imag) 
+        ):
+            raise RuntimeError(
+                "members of an ensemble must be elementary and dependent"
+            )
+            
+        ensemble = set( 
+            x._node.uid 
+                for pair in seq 
+                    for x in (pair.real,pair.imag) 
+        )
+        # This object is referenced from the Leaf node of each member
+        for pair in seq:
+            for x in (pair.real,pair.imag):
+                x._node.ensemble = ensemble
+        

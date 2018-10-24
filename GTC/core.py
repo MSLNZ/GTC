@@ -6,30 +6,39 @@ import numbers
 import collections
 import itertools
 
-from GTC.lib_real import *
-from GTC.lib_complex import *
-from GTC.context import _context
+from GTC import lib_real as rlib
+from GTC import lib_complex as clib
+
+_context = None
 
 from GTC import reporting
-from GTC import type_b
-from GTC import type_a
-from GTC import persistence
-from GTC import function
+# from GTC import type_b
+# from GTC import type_a
+# from GTC import persistence
+# from GTC import function
 
 from GTC.named_tuples import (
     CorrelationMatrix, 
     CovarianceMatrix
 )
 
-from GTC import inf,nan,is_infinity,is_undefined,is_sequence
-
+from GTC import (   
+    inf,
+    nan,
+    is_infinity,
+    is_undefined,
+    is_sequence,
+)
     
-# aliases 
-rp = reporting
-tb = type_b
-ta = type_a
-pr = persistence
-fn = function
+# # aliases 
+# rp = reporting
+# tb = type_b
+# ta = type_a
+# pr = persistence
+# fn = function
+
+UncertainReal = rlib.UncertainReal 
+UncertainComplex = clib.UncertainComplex 
 
 __all__ = (
         'ureal'
@@ -70,9 +79,9 @@ __all__ = (
     ,   'mag_squared'
     ,   'magnitude'
     ,   'phase'
-    ,   'reporting', 'rp'
-    ,   'type_b', 'tb'
-    ,   'type_a', 'ta'
+    # ,   'reporting', 'rp'
+    # ,   'type_b', 'tb'
+    # ,   'type_a', 'ta'
     ,   'math'
     ,   'cmath'
     ,   'is_infinity'
@@ -295,9 +304,10 @@ def ureal(x,u,df=inf,label=None,independent=True,context=_context):
     
     if u == 0:
         # Is this what we want? Perhaps not.
-        return context.constant_real(float(x),label)
+        return UncertainReal.constant(float(x),label)
+        # return context.constant_real(float(x),label)
     else:
-        return context.elementary_real(
+        return UncertainReal.elementary(
             float(x),
             float(u),
             float(df),
@@ -362,7 +372,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None,context=_context):
         )
         
     rtn = [
-        context.elementary_real(x_i,u_i,df,label=l_i,independent=False)
+        UncertainReal.elementary(x_i,u_i,df,label=l_i,independent=False)
             for x_i,u_i,l_i in itertools.izip(
                 x_seq,u_seq,label_seq
             )
@@ -370,7 +380,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None,context=_context):
 
     # Only non-constant UNs can be collected in an ensemble
     # TODO: define an is_constant() function to standardise the criteria
-    context.real_ensemble( [un_i for un_i in rtn if un_i.u != 0], df )
+    rlib.real_ensemble( [un_i for un_i in rtn if un_i.u != 0], df )
 
     # All uncertain numbers are returned, including the constants
     return rtn
@@ -397,13 +407,11 @@ def constant(x,label=None,context=_context):
     
     """
     if isinstance(x,numbers.Real):
-        return context.constant_real(
-            x,label
-        )
+        return UncertainReal.constant(x,label)
+        # return context.constant_real(x,label)
     elif isinstance(x,numbers.Complex):
-        return context.constant_complex(
-            x,label
-        )
+        return UncertainComplex.constant(x,label)
+        # return context.constant_complex(x,label)
     else:
         raise RuntimeError(
             "Cannot make a constant: {!r}".format( x )
@@ -437,10 +445,10 @@ def result(un,label=None):
     
     context = un._context
     if isinstance(un,UncertainReal):
-        context.real_intermediate(un,label)
+        UncertainReal.intermediate(un,label)
         
     elif isinstance(un,UncertainComplex):
-        context.complex_intermediate(un,label)
+        UncertainComplex.intermediate(un,label)
         
     else:
         raise RuntimeError(
@@ -549,9 +557,10 @@ def ucomplex(z,u,df=inf,label=None,independent=True,context=_context):
         
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
-        return context.constant_complex(complex(z),label)
+        return UncertainComplex.constant(complex(z),label)
+        # return context.constant_complex(complex(z),label)
     else:
-        return context.elementary_complex(
+        return UncertainComplex.elementary(
             complex(z),
             u_r,u_i,r,
             float(df),
@@ -626,7 +635,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None,context=_context):
 
     # Only non-constant UNs can be collected in an ensemble
     # TODO: use a function to test for constant-ness
-    context.complex_ensemble(
+    complex_ensemble(
         [ 
             un_i for un_i in rtn
                 if un_i.u[0] != 0.0 or un_i.u[1] != 0.0 
@@ -703,7 +712,7 @@ def set_correlation(r,arg1,arg2=None):
                 is_infinity( arg1._node.df ) and
                 is_infinity( arg2._node.df )
             ):
-                set_correlation_real(arg1,arg2,r)
+                rlib.set_correlation_real(arg1,arg2,r)
             else:
                 # if arg1._context is not arg2._context:
                     # raise RuntimeError(
@@ -712,7 +721,7 @@ def set_correlation(r,arg1,arg2=None):
                 # if arg2._node in arg1._context._ensemble.get(arg1._node,[]):
                 if hasattr(arg1._node,'ensemble') and arg2._node.uid in arg1._node.ensemble:
                 # if arg2._node in arg1._node.ensemble.get(arg1._node.uid,[]):
-                    set_correlation_real(arg1,arg2,r)
+                    rlib.set_correlation_real(arg1,arg2,r)
                 else:
                     raise RuntimeError( 
                         "arguments are not in the same ensemble:" +\
@@ -735,7 +744,7 @@ def set_correlation(r,arg1,arg2=None):
         # provided it was declared ``dependent``. The additional
         # requirement of infinite dof does not apply.
         if arg2 is None:
-            set_correlation_real(arg1.real,arg1.imag,r)
+            rlib.set_correlation_real(arg1.real,arg1.imag,r)
             
         elif isinstance(arg2,UncertainReal):
             raise RuntimeError(
@@ -761,10 +770,10 @@ def set_correlation(r,arg1,arg2=None):
                     # is_infinity( arg1.imag._node.df ) and
                     is_infinity( arg2.imag._node.df )
                 ):
-                    set_correlation_real(arg1.real,arg2.real,r[0])
-                    set_correlation_real(arg1.real,arg2.imag,r[1])
-                    set_correlation_real(arg1.imag,arg2.real,r[2])
-                    set_correlation_real(arg1.imag,arg2.imag,r[3])
+                    rlib.set_correlation_real(arg1.real,arg2.real,r[0])
+                    rlib.set_correlation_real(arg1.real,arg2.imag,r[1])
+                    rlib.set_correlation_real(arg1.imag,arg2.real,r[2])
+                    rlib.set_correlation_real(arg1.imag,arg2.imag,r[3])
                 else:
                     # They have to be in the same ensemble. 
                     # Just need to cross-check one of the component 
@@ -779,10 +788,10 @@ def set_correlation(r,arg1,arg2=None):
                     # if arg2.real._node in arg1._context._ensemble.get(
                             # arg1.real._node,[]
                     # ):
-                        set_correlation_real(arg1.real,arg2.real,r[0])
-                        set_correlation_real(arg1.real,arg2.imag,r[1])
-                        set_correlation_real(arg1.imag,arg2.real,r[2])
-                        set_correlation_real(arg1.imag,arg2.imag,r[3])
+                        rlib.set_correlation_real(arg1.real,arg2.real,r[0])
+                        rlib.set_correlation_real(arg1.real,arg2.imag,r[1])
+                        rlib.set_correlation_real(arg1.imag,arg2.real,r[2])
+                        rlib.set_correlation_real(arg1.imag,arg2.imag,r[3])
                     else:
                         raise RuntimeError( 
                             "arguments must be in the same ensemble"
@@ -821,10 +830,10 @@ def get_correlation(arg1,arg2=None):
     
     if isinstance(arg1,UncertainReal):
         if isinstance(arg2,UncertainReal):
-            return get_correlation_real(arg1,arg2)
+            return rlib.get_correlation_real(arg1,arg2)
         elif isinstance(arg2,UncertainComplex):
-            r_rr = get_correlation_real(arg1,arg2.real)
-            r_ri = get_correlation_real(arg1,arg2.imag)
+            r_rr = rlib.get_correlation_real(arg1,arg2.real)
+            r_ri = rlib.get_correlation_real(arg1,arg2.imag)
             r_ir = 0.0
             r_ii = 0.0
             return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
@@ -847,22 +856,22 @@ def get_correlation(arg1,arg2=None):
             
     elif isinstance(arg1,UncertainComplex):
         if arg2 is None:
-            return get_correlation_real(arg1.real,arg1.imag)
+            return rlib.get_correlation_real(arg1.real,arg1.imag)
         elif isinstance(arg2,numbers.Complex): 
             # If second argument is a number, 
             # there is no correlation
             return CorrelationMatrix(0.0,0.0,0.0,0.0)
         elif isinstance(arg2,UncertainReal):
-            r_rr = get_correlation_real(arg1.real,arg2)
+            r_rr = rlib.get_correlation_real(arg1.real,arg2)
             r_ri = 0.0
-            r_ir = get_correlation_real(arg1.imag,arg2)
+            r_ir = rlib.get_correlation_real(arg1.imag,arg2)
             r_ii = 0.0
             return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
         elif isinstance(arg2,UncertainComplex):
-            r_rr = get_correlation_real(arg1.real,arg2.real)
-            r_ri = get_correlation_real(arg1.real,arg2.imag)
-            r_ir = get_correlation_real(arg1.imag,arg2.real)
-            r_ii = get_correlation_real(arg1.imag,arg2.imag)
+            r_rr = rlib.get_correlation_real(arg1.real,arg2.real)
+            r_ri = rlib.get_correlation_real(arg1.real,arg2.imag)
+            r_ir = rlib.get_correlation_real(arg1.imag,arg2.real)
+            r_ii = rlib.get_correlation_real(arg1.imag,arg2.imag)
             return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
         else:
             raise RuntimeError(
@@ -899,10 +908,10 @@ def get_covariance(arg1,arg2=None):
     # 
     if isinstance(arg1,UncertainReal):
         if isinstance(arg2,UncertainReal):
-            return get_covariance_real(arg1,arg2)
+            return rlib.get_covariance_real(arg1,arg2)
         elif isinstance(arg2,UncertainComplex):
-            cv_rr = get_covariance_real(arg1,arg2.real)
-            cv_ri = get_covariance_real(arg1,arg2.imag)
+            cv_rr = rlib.get_covariance_real(arg1,arg2.real)
+            cv_ri = rlib.get_covariance_real(arg1,arg2.imag)
             cv_ir = 0.0
             cv_ii = 0.0
             return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
@@ -926,22 +935,22 @@ def get_covariance(arg1,arg2=None):
             
     elif isinstance(arg1,UncertainComplex):
         if arg2 is None:
-            return get_covariance_real(arg1.real,arg1.imag)
+            return rlib.get_covariance_real(arg1.real,arg1.imag)
         elif isinstance(arg2,numbers.Complex): 
             # Second argument can be a number, but
             # there is no correlation
             return CovarianceMatrix(0.0,0.0,0.0,0.0)
         elif isinstance(arg2,UncertainReal):
-            cv_rr = get_covariance_real(arg1.real,arg2)
+            cv_rr = rlib.get_covariance_real(arg1.real,arg2)
             cv_ri = 0.0
-            cv_ir = get_covariance_real(arg1.imag,arg2)
+            cv_ir = rlib.get_covariance_real(arg1.imag,arg2)
             cv_ii = 0.0
             return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
         elif isinstance(arg2,UncertainComplex):
-            cv_rr = get_covariance_real(arg1.real,arg2.real)
-            cv_ri = get_covariance_real(arg1.real,arg2.imag)
-            cv_ir = get_covariance_real(arg1.imag,arg2.real)
-            cv_ii = get_covariance_real(arg1.imag,arg2.imag)
+            cv_rr = rlib.get_covariance_real(arg1.real,arg2.real)
+            cv_ri = rlib.get_covariance_real(arg1.real,arg2.imag)
+            cv_ir = rlib.get_covariance_real(arg1.imag,arg2.real)
+            cv_ii = rlib.get_covariance_real(arg1.imag,arg2.imag)
             return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
         else:
             raise RuntimeError(

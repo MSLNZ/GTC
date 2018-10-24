@@ -35,7 +35,6 @@ def is_sequence(obj):
     return isinstance(obj, collections.Sequence)
     
 #----------------------------------------------------------------------------
-from core import *
 
 __all__ = (
         'ureal'
@@ -77,9 +76,9 @@ __all__ = (
     ,   'magnitude'
     ,   'phase'
     ,   'copyright', 'version'
-    ,   'reporting',   'rp'
-    ,   'type_b', 'tb'
-    ,   'type_a', 'ta'
+    # ,   'reporting',   'rp'
+    # ,   'type_b', 'tb'
+    # ,   'type_a', 'ta'
     ,   'math'
     ,   'cmath'
     ,   'is_infinity'
@@ -87,9 +86,11 @@ __all__ = (
     ,   'inf'
     ,   'nan'
 )
-    
+ 
+from core import *
+ 
 #----------------------------------------------------------------------------
-version = "2.0.1"
+version = "1.0.0"
 copyright = """Copyright (c) 2018, \
 Measurement Standards Laboratory of New Zealand"""
 

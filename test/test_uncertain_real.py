@@ -8,7 +8,7 @@ import itertools
 import numpy
 
 from GTC import *
-from GTC.context import _context 
+# from GTC.context import _context 
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
