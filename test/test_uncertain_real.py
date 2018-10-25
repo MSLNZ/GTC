@@ -8,7 +8,7 @@ import itertools
 import numpy
 
 from GTC import *
-from GTC.context import _context 
+from GTC import context 
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
@@ -808,7 +808,7 @@ class TestUncertainReal(unittest.TestCase):
         x = 1.2
         u = 0.2
         x_str= "1.20(20)" # takes account of uncertainty rounding
-        c = _context
+        c = context._context
 
         un = ureal(x,u)
 
@@ -1394,11 +1394,11 @@ class TestGetCovariance(unittest.TestCase):
         # When we delete one node the other remains
         x1_uid = x1._node.uid
         x2_uid = x2._node.uid
-        self.assert_( x1_uid in _context._registered_leaf_nodes )
-        self.assert_( x2_uid in _context._registered_leaf_nodes )
+        self.assert_( x1_uid in context._context._registered_leaf_nodes )
+        self.assert_( x2_uid in context._context._registered_leaf_nodes )
         del x1
-        self.assert_( x1_uid not in _context._registered_leaf_nodes )
-        self.assert_( x2_uid in _context._registered_leaf_nodes )
+        self.assert_( x1_uid not in context._context._registered_leaf_nodes )
+        self.assert_( x2_uid in context._context._registered_leaf_nodes )
 
         # self.assertEqual(1, len(c._registered_leaf_nodes) )
         # self.assert_( x2._node.uid in c._registered_leaf_nodes )

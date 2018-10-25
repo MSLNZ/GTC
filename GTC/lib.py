@@ -2625,7 +2625,7 @@ class UncertainComplex(object):
         """
         return cls(
             UncertainReal(
-                _context,
+                context._context,
                 z.real,
                 vector.merge_weighted_vectors(
                     arg.real._u_components,dz_dx[0],
@@ -2641,7 +2641,7 @@ class UncertainComplex(object):
                 ),
             ),
             UncertainReal(
-                _context,
+                context._context,
                 z.imag,
                 vector.merge_weighted_vectors(
                     arg.real._u_components,dz_dx[2],
@@ -3240,7 +3240,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         elif isinstance(rhs,UncertainReal):
@@ -3256,7 +3256,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         elif isinstance(rhs,numbers.Complex):
@@ -3275,7 +3275,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         else:
@@ -3296,7 +3296,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         elif isinstance(lhs,numbers.Complex):
@@ -3315,7 +3315,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         else:
@@ -3340,7 +3340,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         elif isinstance(rhs,UncertainReal):
@@ -3357,7 +3357,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         elif isinstance(rhs,numbers.Complex):
@@ -3377,7 +3377,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         else:
@@ -3401,7 +3401,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         elif isinstance(lhs,numbers.Complex):
@@ -3418,7 +3418,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
             
         else:
@@ -3439,7 +3439,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
         elif isinstance(rhs,UncertainReal):
             zl = lhs._value
@@ -3453,7 +3453,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
         elif isinstance(rhs,(complex,float,int,long)):
             if rhs == 1.0:
@@ -3470,7 +3470,7 @@ class UncertainComplex(object):
                     z,
                     dz_dl,
                     dz_dr,
-                    _context
+                    context._context
                 )
         else:
             return NotImplemented
@@ -3489,7 +3489,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
         elif isinstance(lhs,(complex,float,int,long)):
             zl = lhs
@@ -3503,7 +3503,7 @@ class UncertainComplex(object):
                 z,
                 dz_dl,
                 dz_dr,
-                _context
+                context._context
             )
         else:
             return NotImplemented
@@ -3806,7 +3806,7 @@ class UncertainComplex(object):
             )
         
         return UncertainReal(
-                _context
+                context._context
             ,   mag_x
             ,   vector.merge_weighted_vectors(
                     re._u_components,dz_dre,im._u_components,dz_dim
@@ -3840,7 +3840,7 @@ class UncertainComplex(object):
         dz_dim = 2.0*x.imag
         
         return UncertainReal(
-                _context
+                context._context
             ,   abs(x)**2
             ,   vector.merge_weighted_vectors(
                     re._u_components,dz_dre,im._u_components,dz_dim
