@@ -27,9 +27,9 @@ Module contents
 """
 from __future__ import division     # True division
 
-from GTC.lib_complex import *
+from GTC.lib import *
 from GTC.vector import *
-from GTC.lib_real import *
+# from GTC.lib_real import *
 from GTC.named_tuples import ComponentOfUncertainty, Influence
 from GTC import is_sequence
 

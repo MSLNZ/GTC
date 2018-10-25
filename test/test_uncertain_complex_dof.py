@@ -12,7 +12,7 @@ from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
 from GTC.reporting import u_component
-from GTC.lib_real import (UncertainReal,welch_satterthwaite)
+from GTC.lib import (UncertainReal,welch_satterthwaite,complex_ensemble)
 from GTC import reporting
 
 from testing_tools import *
@@ -114,7 +114,7 @@ class TestWillinkHall(unittest.TestCase):
         self.assertRaises(RuntimeError,set_correlation,0.5,x1.real,x2.real)
 
         # If we declare that they are in an ensemble then its OK
-        _context.complex_ensemble( (x1,x2,x3), 5 )
+        complex_ensemble( (x1,x2,x3), 5 )
         self.assert_( not is_undefined(dof(x)) )
 
     def testDoF5(self):
@@ -128,7 +128,7 @@ class TestWillinkHall(unittest.TestCase):
         self.assertRaises(RuntimeError,set_correlation,0.5,x1.real,x3.imag)
 
         # If we declare that they are in an ensemble then its OK
-        _context.complex_ensemble( (x1,x2,x3), 5 )
+        complex_ensemble( (x1,x2,x3), 5 )
         self.assert_( not is_undefined(dof(x)) )
 
     def testDoF6(self):
@@ -142,7 +142,7 @@ class TestWillinkHall(unittest.TestCase):
         self.assertRaises(RuntimeError,set_correlation,0.5,x2.imag,x3.real)
 
         # If we declare that they are in an ensemble then its OK
-        _context.complex_ensemble( (x1,x2,x3), 5 )
+        complex_ensemble( (x1,x2,x3), 5 )
         self.assert_( not is_undefined(dof(x)) )
 
     def testDoF7(self):
@@ -156,7 +156,7 @@ class TestWillinkHall(unittest.TestCase):
         self.assertRaises(RuntimeError,set_correlation,0.5,x2.imag,x3.imag)
 
         # If we declare that they are in an ensemble then its OK
-        _context.complex_ensemble( (x1,x2,x3), 5 )
+        complex_ensemble( (x1,x2,x3), 5 )
         self.assert_( not is_undefined(dof(x)) )
 
     def testDoF8(self):
@@ -256,7 +256,7 @@ class TestWillinkHall(unittest.TestCase):
         dum2 = ucomplex( 1,1 )
         phi = ucomplex(1.04446j,(0.0,0.00075),5,independent=False)
 
-        _context.complex_ensemble( (v,i,phi), 5 )
+        complex_ensemble( (v,i,phi), 5 )
 
         set_correlation(-0.36,v.real,i.real)
         set_correlation(0.86,v.real,phi.imag)
@@ -287,7 +287,7 @@ class TestWillinkHall(unittest.TestCase):
         # NB, this assertion may be removed in production
         y2 = x1 + x2 
         self.assertRaises(
-            AssertionError,c.complex_ensemble,[x1,y2],5
+            AssertionError,complex_ensemble,[x1,y2],5
         )        
                 
 #-----------------------------------------------------

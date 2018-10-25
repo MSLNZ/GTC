@@ -11,13 +11,12 @@ import operator
 from GTC import *
 from GTC.context import _context 
 from GTC.reporting import *
-from GTC.lib_complex import (
+from GTC.lib import (
+    UncertainReal,
     UncertainComplex, 
     willink_hall,
     _is_uncertain_complex_constant
 )
-from GTC.lib_real import UncertainReal
-
 from testing_tools import *
 
 TOL = 1E-13 

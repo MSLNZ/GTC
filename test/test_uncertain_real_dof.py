@@ -12,7 +12,11 @@ from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
 from GTC.reporting import u_component
-from GTC.lib_real import (UncertainReal,welch_satterthwaite)
+from GTC.lib import (
+    UncertainReal,
+    real_ensemble,
+    welch_satterthwaite
+)
 from GTC import reporting
 
 from testing_tools import *
@@ -229,7 +233,7 @@ class GuideExampleH2(unittest.TestCase):
         phi = ureal(1.04446,0.00075,5,independent=False)
         dummy_3 = ureal(1,1)
 
-        _context.real_ensemble( [v,i,phi],5 )
+        real_ensemble( [v,i,phi],5 )
 
         set_correlation(-0.36,v,i)
         set_correlation(0.86,v,phi)

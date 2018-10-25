@@ -11,7 +11,7 @@ from GTC import inf, nan
 from GTC.vector import *
 from GTC.nodes import *
 
-__all__ = ('Context',)
+__all__ = ('Context','_context')
 
 #----------------------------------------------------------------------------
 class Context(object):
@@ -83,30 +83,32 @@ class Context(object):
         )
  
     #------------------------------------------------------------------------
-    # TODO: logic needs fixing
     def new_leaf(self,uid,label,u,df,independent):
         """
         Return a new ``Leaf`` node unless one with the same uid exists
         
         """
-        try:
-            l =  self._registered_leaf_nodes[uid]
-        except KeyError:          
+        if uid in self._registered_leaf_nodes:
+            raise RuntimeError(
+                "the Leaf node uid({}) is in use already".format(uid)
+            )
+        else:          
             l = Leaf(uid,label,u,df,independent)
             self._registered_leaf_nodes[uid] = l
             
         return l 
             
     #------------------------------------------------------------------------
-    # TODO: logic needs fixing
     def new_node(self,uid,label,u):
         """
         Return a new ``Node`` unless one with the same uid exists
         
         """
-        try:
-            n = self._registered_intermediate_nodes[uid]
-        except KeyError:
+        if uid in self._registered_intermediate_nodes:
+            raise RuntimeError(
+                "the intermediate node uid({}) is in use already".format(uid)
+            )
+        else:          
             n = Node(uid,label,u)
             self._registered_intermediate_nodes[uid] = n
 
@@ -597,4 +599,4 @@ def _uuid():
 #----------------------------------------------------------------------------
 # A default context
 #
-default_context = Context()
+_context = Context()

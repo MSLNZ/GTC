@@ -8,18 +8,19 @@ import itertools
 import numpy
 
 from GTC import *
-# from GTC.context import _context 
+from GTC.context import _context 
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
 from GTC.reporting import u_component
 from GTC import reporting
-from GTC.lib_real import (
+from GTC.lib import (
     UncertainReal,
     welch_satterthwaite,
     std_variance_real,
     set_correlation_real,
     get_correlation_real,
+    real_ensemble,
     _is_uncertain_real_constant
 )
 
@@ -1371,18 +1372,16 @@ class TestGetCovariance(unittest.TestCase):
         self.assert_( equivalent(r2,check_r) )
 
     def test_simple_correlation(self):
-        c = _context
-        
-        x1 = c.elementary_real(0,1,5,None,independent=True)
-        x2 = c.elementary_real(0,1,5,None,independent=True)
+        x1 = ureal(0,1,5,None,independent=True)
+        x2 = ureal(0,1,5,None,independent=True)
 
         self.assertRaises(
             RuntimeError,
             set_correlation_real,x1,x2,.1
         )
 
-        x1 = c.elementary_real(0,1,5,None,independent=False)
-        x2 = c.elementary_real(0,1,5,None,independent=False)
+        x1 = ureal(0,1,5,None,independent=False)
+        x2 = ureal(0,1,5,None,independent=False)
         
         # Self correlation
         self.assertEqual( 1, get_correlation_real(x1,x1) )
@@ -1395,11 +1394,11 @@ class TestGetCovariance(unittest.TestCase):
         # When we delete one node the other remains
         x1_uid = x1._node.uid
         x2_uid = x2._node.uid
-        self.assert_( x1_uid in c._registered_leaf_nodes )
-        self.assert_( x2_uid in c._registered_leaf_nodes )
+        self.assert_( x1_uid in _context._registered_leaf_nodes )
+        self.assert_( x2_uid in _context._registered_leaf_nodes )
         del x1
-        self.assert_( x1_uid not in c._registered_leaf_nodes )
-        self.assert_( x2_uid in c._registered_leaf_nodes )
+        self.assert_( x1_uid not in _context._registered_leaf_nodes )
+        self.assert_( x2_uid in _context._registered_leaf_nodes )
 
         # self.assertEqual(1, len(c._registered_leaf_nodes) )
         # self.assert_( x2._node.uid in c._registered_leaf_nodes )
@@ -2036,7 +2035,7 @@ class GuideExampleH2(unittest.TestCase):
         phi = ureal(1.04446,0.00075,5,independent=False)
         dummy_3 = ureal(1,1)
 
-        _context.real_ensemble( [v,i,phi], 5 )
+        real_ensemble( [v,i,phi], 5 )
 
         set_correlation(-0.36,v,i)
         set_correlation(0.86,v,phi)

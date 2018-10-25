@@ -40,13 +40,15 @@ import math
 import numbers
 import itertools
 
-from GTC.lib_complex import UncertainComplex
 from GTC.context import _context 
 
-from GTC.lib_real import (
+from GTC.lib import (
     UncertainReal, 
+    UncertainComplex,
     get_correlation_real, 
-    set_correlation_real
+    set_correlation_real,
+    real_ensemble,
+    complex_ensemble
 )
 
 from GTC import inf
@@ -158,7 +160,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     if truncate:
         mean += delta/2.0
         
-    return context.elementary_real(mean,u,N-1,label,independent=True)
+    return UncertainReal.elementary(mean,u,N-1,label,independent=True)
     
 #-----------------------------------------------------------------------------------------
 def estimate(seq,label=None,context=_context):
@@ -211,7 +213,7 @@ def estimate(seq,label=None,context=_context):
     
     if isinstance(mu,complex):
         u,r = standard_uncertainty(seq,mu)
-        return context.elementary_complex(
+        return UncertainComplex.elementary(
             mu,u[0],u[1],r,df,
             label,
             independent = (r == 0.0)
@@ -219,7 +221,7 @@ def estimate(seq,label=None,context=_context):
         
     else:
         u = standard_uncertainty(seq,mu)
-        return context.elementary_real(
+        return UncertainReal.elementary(
             mu,u,df,label,independent=True
         )
 
@@ -528,7 +530,7 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
                 )/N_N_1
             )
 
-    ureal = context.elementary_real
+    ureal = UncertainReal.elementary
 
     # Create a list of elementary uncertain numbers
     # to return a list of standard uncertainties
@@ -544,7 +546,7 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
     # Create the list of ensemble id's,
     # assign it to the register in the context,
     # set the correlation between nodes
-    context.real_ensemble( rtn, df )
+    real_ensemble( rtn, df )
     
     for i in xrange(M):
         u_i = u[i]
@@ -632,7 +634,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
             )
         )
     # 3. Define uncertain M complex numbers
-    ucomplex = context.elementary_complex
+    ucomplex = UncertainComplex.elementary
 
     x_influences = []
     rtn = []
@@ -662,7 +664,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
                 r = cv/(x_u[i]*x_u[j]) 
                 set_correlation_real(un_i,x_influences[j],r)
 
-    context.complex_ensemble( rtn, N_1 )
+    complex_ensemble( rtn, N_1 )
     
     return rtn
 

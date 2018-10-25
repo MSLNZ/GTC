@@ -16,9 +16,9 @@ import math
 import collections
 import itertools
 
-from GTC.lib_real import UncertainReal
-from GTC.lib_complex import UncertainComplex
-from GTC.lib_complex import z_to_seq
+from GTC.lib import UncertainReal
+from GTC.lib import UncertainComplex
+from GTC.lib import z_to_seq
 
 from GTC import is_sequence
 

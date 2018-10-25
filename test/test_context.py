@@ -5,7 +5,8 @@ import cmath
 import itertools
 
 from GTC import *
-from GTC.context import Context
+from GTC.context import Context, _context
+from GTC.lib import UncertainReal
 
 from testing_tools import *
 
@@ -14,27 +15,25 @@ TOL = 1E-13
 #----------------------------------------------------------------------------
 class TestContext(unittest.TestCase):
 
-    def test_construction(self):
-        c = Context()
-        
+    def test_construction(self):        
         x_value = 1.2
         x_u = 0.5
         x_dof = 6
-        x1 = c.elementary_real(x_value,x_u,x_dof,None,independent=True)
-        x2 = c.elementary_real(x_value,x_u,x_dof,None,independent=True)
+        x1 = UncertainReal.elementary(x_value,x_u,x_dof,None,independent=True)
+        x2 = UncertainReal.elementary(x_value,x_u,x_dof,None,independent=True)
 
         # uid's must be in order
         self.assert_( x1._node.uid < x2._node.uid )  
         self.assertEqual(x_dof, x1._node.df )
         self.assertEqual(x_dof, x2._node.df )
 
-        c._registered_leaf_nodes[x1._node.uid].df = x_dof
-        c._registered_leaf_nodes[x2._node.uid].df = x_dof
+        self.assert_( _context._registered_leaf_nodes[x1._node.uid].df == x_dof )
+        self.assert_( _context._registered_leaf_nodes[x2._node.uid].df == x_dof )
 
         # illegal dof is checked when the object is created
         self.assertRaises(
             RuntimeError,
-            c.elementary_real,x_value,x_u,0,None,False
+            UncertainReal.elementary,x_value,x_u,0,None,False
         )
 
     def test_invalid_ucomplex_creation(self):

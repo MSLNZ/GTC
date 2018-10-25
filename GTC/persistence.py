@@ -33,11 +33,11 @@ import itertools
 import numbers
 import cPickle as pickle
 
-from GTC.lib_complex import UncertainComplex
-from GTC.lib_real import UncertainReal
+from GTC.lib import UncertainComplex
+from GTC.lib import UncertainReal
 from GTC.vector import Vector 
 from GTC.nodes import *
-from GTC.context import _context
+from GTC import context
 
 from GTC import inf
 
@@ -96,10 +96,7 @@ class TaggedIntermediateComplex(object):
 #----------------------------------------------------------------------------
 class Archive(object):
 
-    def __init__(self,context=_context):
-
-        self._context_id = context._id
-        self.context = context
+    def __init__(self):
 
         # `self._tagged_reals` contains information about every
         # real uncertain number destined for storage: a pair 
@@ -425,8 +422,7 @@ class Archive(object):
                 else:
                     assert False,"should never occur"
                     
-        # Stuff in the Archive object that we do not want Python to pickle
-        del self.context
+        # Stuff in the Archive object that Python cannot pickle
         del self._uid_to_intermediate 
         
     # -----------------------------------------------------------------------
@@ -436,7 +432,7 @@ class Archive(object):
         """            
         _leaf_nodes = dict()
         for uid_i,fl_i in self._leaf_nodes.iteritems():
-            l = self.context.new_leaf(
+            l = context._context.new_leaf(
                 uid_i, 
                 fl_i.label, 
                 fl_i.u, 
@@ -455,7 +451,7 @@ class Archive(object):
         # uncertain numbers. This must be done before the 
         # intermediate uncertain numbers are recreated.
         _nodes = {
-            uid: self.context.new_node(uid, *args)
+            uid: context._context.new_node(uid, *args)
                 for uid, args in self._intermediate_uids.iteritems()
         }
             
@@ -467,8 +463,7 @@ class Archive(object):
                 un = _builder(
                     name,
                     _leaf_nodes,
-                    self._tagged_reals,
-                    self.context
+                    self._tagged_reals
                 )                    
                 self._tagged[name] = un
 
@@ -476,8 +471,7 @@ class Archive(object):
                 un = _builder(
                     name,
                     _nodes,
-                    self._tagged_reals,
-                    self.context
+                    self._tagged_reals
                 )                    
                 self._tagged[name] = un
                 
@@ -491,14 +485,12 @@ class Archive(object):
                 un_re = _builder(
                     name_re,
                     _nodes,
-                    self._tagged_reals,
-                    self.context
+                    self._tagged_reals
                 )
                 un_im = _builder(
                     name_im,
                     _nodes,
-                    self._tagged_reals,
-                    self.context
+                    self._tagged_reals
                 )
 
                 assert un_re.is_elementary == un_im.is_elementary
@@ -524,12 +516,12 @@ def _vector_index_to_uid(v):
     )
 
 #----------------------------------------------------------------------------
-def _vector_index_to_node(v,context):
+def _vector_index_to_node(v):
     """
     Change the vector index from a uid to a node
     
     """
-    _nodes = context._registered_leaf_nodes
+    _nodes = context._context._registered_leaf_nodes
     return Vector(
         index = [
             _nodes[uid_i] for uid_i in v._index
@@ -576,7 +568,7 @@ Notes
 `tagged_real` is indexed by name and maps to an object to be constructed.
 
 """
-def _builder(o_name,_nodes,_tagged_reals,context):
+def _builder(o_name,_nodes,_tagged_reals):
     """
     Construct an intermediate un object for `o_name`.
     
@@ -584,7 +576,7 @@ def _builder(o_name,_nodes,_tagged_reals,context):
     obj = _tagged_reals[o_name]
     
     if isinstance(obj,TaggedElementaryReal):
-        un = context.archived_elementary_real(
+        un = UncertainReal.archived_elementary(
             uid = obj.uid,
             x = obj.x
         )
@@ -599,10 +591,10 @@ def _builder(o_name,_nodes,_tagged_reals,context):
             obj.d_components = Vector()
             
         un = UncertainReal(
-            context,
+            context._context,
             obj.value,
-            _vector_index_to_node( obj.u_components,context ),
-            _vector_index_to_node( obj.d_components,context ),
+            _vector_index_to_node( obj.u_components ),
+            _vector_index_to_node( obj.d_components ),
             _ivector_index_to_node( obj.i_components, _nodes ),
             _nodes[obj.uid],
             )
@@ -632,7 +624,7 @@ def dump(file,ar):
     pickle.dump(ar,file,protocol=pickle.HIGHEST_PROTOCOL)
 
 #------------------------------------------------------------------     
-def load(file,context=_context):
+def load(file):
     """Load an archive from a file
 
     :arg file:  a file object opened in binary
@@ -643,7 +635,7 @@ def load(file,context=_context):
     
     """
     ar = pickle.load(file)
-    ar.context = context
+    ar.context = context._context
     ar._thaw()
     
     return ar
@@ -677,7 +669,7 @@ def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     return s
     
 #------------------------------------------------------------------     
-def loads(s,context=_context):
+def loads(s):
     """
     Return an archive object restored from a string representation
 
@@ -685,7 +677,7 @@ def loads(s,context=_context):
     
     """
     ar = pickle.loads(s)
-    ar.context = context
+    ar.context = context._context
     ar._thaw()
     
     return ar

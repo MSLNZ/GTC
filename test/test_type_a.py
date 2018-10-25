@@ -11,7 +11,7 @@ from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
 from GTC.reporting import u_component
-from GTC.lib_real import (UncertainReal,welch_satterthwaite)
+from GTC.lib import (UncertainReal,welch_satterthwaite)
 from GTC import reporting
 
 from testing_tools import *
