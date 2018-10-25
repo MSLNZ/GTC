@@ -7,7 +7,7 @@ import itertools
 import numpy
 
 from GTC import *
-from GTC.context import _context 
+from GTC import context 
 from GTC.vector import *
 from GTC.nodes import *
 from GTC.vector import is_ordered
@@ -280,9 +280,7 @@ class TestWillinkHall(unittest.TestCase):
         x1 = ucomplex( 1, (0.96,-0.34,-0.34,0.27), 5 )
         x2 = ucomplex( 1, (0.51,0.33,0.33,0.31) )
         x3 = ucomplex( 1, (0.45,0.28,0.28,1.65), 3 )
-        
-        c = x1._context
-         
+                 
         # Check for non-elementary UNs 
         # NB, this assertion may be removed in production
         y2 = x1 + x2 

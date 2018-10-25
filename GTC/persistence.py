@@ -591,7 +591,6 @@ def _builder(o_name,_nodes,_tagged_reals):
             obj.d_components = Vector()
             
         un = UncertainReal(
-            context._context,
             obj.value,
             _vector_index_to_node( obj.u_components ),
             _vector_index_to_node( obj.d_components ),

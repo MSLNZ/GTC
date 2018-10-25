@@ -71,8 +71,7 @@ class UncertainReal(object):
     """
     
     __slots__ = [
-        '_context'              # The Context object associated with this UN
-    ,   '_x'                    # The value estimate
+        '_x'                    # The value estimate
     ,   '_u'                    # The standard uncertainty in the estimate
     ,   '_u_components'         # weighted Jacobian matrix for independent 
     ,   '_d_components'         # weighted Jacobian matrix for dependent cpts
@@ -83,9 +82,8 @@ class UncertainReal(object):
     ]            
 
     #-------------------------------------------------------------------------
-    def __init__(self,context,x,u_comp,d_comp,i_comp,node=None):
+    def __init__(self,x,u_comp,d_comp,i_comp,node=None):
 
-        self._context = context
         self._x = float(x)
         self._u_components = u_comp
         self._d_components = d_comp
@@ -130,8 +128,7 @@ class UncertainReal(object):
         # A constant does not need a UID, 
         # because it will not be archived.
         return UncertainReal(
-                context._context
-            ,   x
+                x
             ,   vector.Vector( )
             ,   vector.Vector( )
             ,   vector.Vector( )
@@ -188,8 +185,7 @@ class UncertainReal(object):
         
         if independent:
             return UncertainReal(
-                    context._context
-                ,   x
+                    x
                 ,   vector.Vector( index=[ln],value=[u] )
                 ,   vector.Vector( )
                 ,   vector.Vector( )
@@ -197,8 +193,7 @@ class UncertainReal(object):
                 )
         else:
             return UncertainReal(
-                    context._context
-                ,   x
+                    x
                 ,   vector.Vector( )
                 ,   vector.Vector( index=[ln],value=[u] )
                 ,   vector.Vector( )
@@ -279,8 +274,7 @@ class UncertainReal(object):
         # will be propagated
         if l.independent:
             un = UncertainReal(
-                    context._context
-                ,   x
+                    x
                 ,   vector.Vector( index=[l],value=[l.u] )
                 ,   vector.Vector( )
                 ,   vector.Vector( )
@@ -288,8 +282,7 @@ class UncertainReal(object):
                 )
         else:
             un = UncertainReal(
-                    context._context
-                ,   x
+                    x
                 ,   vector.Vector( )
                 ,   vector.Vector( index=[l],value=[l.u] )
                 ,   vector.Vector( )
@@ -447,7 +440,6 @@ class UncertainReal(object):
         # Returning an UN constant ensures that an algorithm
         # expecting an uncertain number will not break
         return UncertainReal.constant(0.0)
-        # return self._context.constant_real(0.0,label=None)
  
     #------------------------------------------------------------------------
     def conjugate(self):
@@ -477,8 +469,7 @@ class UncertainReal(object):
         
     def __nonzero__(self):
         # Used to convert to a Boolean 
-        # TODO: do we want this?
-        return self._x != 0
+        return self != 0.0
 
     #------------------------------------------------------------------------
     @property
@@ -600,8 +591,7 @@ class UncertainReal(object):
         
         """
         return UncertainReal(
-                context._context
-            ,   -self.x
+                -self.x
             ,   vector.scale_vector(self._u_components,-1.0)
             ,   vector.scale_vector(self._d_components,-1.0)
             ,   vector.scale_vector(self._i_components,-1.0)
@@ -619,8 +609,7 @@ class UncertainReal(object):
         # because if ``self`` had a node this 
         # object does not have it too.
         return UncertainReal(
-                context._context
-            ,   self.x
+                self.x
             ,   vector.Vector(copy=self._u_components)
             ,   vector.Vector(copy=self._d_components)
             ,   vector.Vector(copy=self._i_components)
@@ -737,8 +726,7 @@ class UncertainReal(object):
         y = math.exp( x )
         dy_dx = y
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -754,8 +742,7 @@ class UncertainReal(object):
         y = math.log( x )
         dy_dx = 1.0/x
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -771,8 +758,7 @@ class UncertainReal(object):
         y = math.log10( x )
         dy_dx = LOG10_E/x
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -787,8 +773,7 @@ class UncertainReal(object):
         y = math.sqrt( self.x )
         dy_dx = 0.5/y
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -804,8 +789,7 @@ class UncertainReal(object):
         dy_dx = math.cos( self.x )
         
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -819,8 +803,7 @@ class UncertainReal(object):
         y = math.cos( self.x )
         dy_dx = -math.sin( self.x )
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -836,8 +819,7 @@ class UncertainReal(object):
         d = math.cos( self.x )
         dy_dx = 1.0/(d*d)
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -853,8 +835,7 @@ class UncertainReal(object):
         y = math.asin( x )
         dy_dx = 1.0/math.sqrt((1 - x)*(1+x))
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -870,8 +851,7 @@ class UncertainReal(object):
         y = math.acos( x )
         dy_dx = -1.0/math.sqrt((1 - x)*(1+x))
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -887,8 +867,7 @@ class UncertainReal(object):
         y = math.atan( x )
         dy_dx = 1.0/(1 + x*x)
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -926,8 +905,7 @@ class UncertainReal(object):
         y = math.sinh( self.x )
         dy_dx = math.cosh( self.x )
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -942,8 +920,7 @@ class UncertainReal(object):
         y = math.cosh( self.x )
         dy_dx = math.sinh( self.x )
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -959,8 +936,7 @@ class UncertainReal(object):
         d = math.cosh( self.x )
         dy_dx = 1.0/(d*d)
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -976,8 +952,7 @@ class UncertainReal(object):
         y = math.asinh( x )
         dy_dx = 1.0/math.sqrt(x**2 + 1)
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -993,8 +968,7 @@ class UncertainReal(object):
         y = math.acosh( x )
         dy_dx = 1.0/math.sqrt((x - 1)*(x + 1))
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -1010,8 +984,7 @@ class UncertainReal(object):
         y = math.atanh( x )
         dy_dx = 1.0/((1 - x) * (1 + x))
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -1041,8 +1014,7 @@ class UncertainReal(object):
         dy_dx = math.copysign(1.0,x)
 
         return UncertainReal(
-                context._context
-            ,   abs(x)
+                abs(x)
             ,   vector.scale_vector(self._u_components,dy_dx)
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
@@ -1079,8 +1051,6 @@ def _atan2_re_re(lhs,rhs):
     of uncertain real numbers. 
     
     """
-    assert lhs._context == rhs._context
-    
     x = rhs.x
     y = lhs.x
     
@@ -1092,8 +1062,7 @@ def _atan2_re_re(lhs,rhs):
         dz_dy = x/den
         
     return UncertainReal(
-            context._context 
-        ,   math.atan2(y,x)
+            math.atan2(y,x)
         ,   vector.merge_weighted_vectors(lhs._u_components,dz_dy,rhs._u_components,dz_dx)
         ,   vector.merge_weighted_vectors(lhs._d_components,dz_dy,rhs._d_components,dz_dx)
         ,   vector.merge_weighted_vectors(lhs._i_components,dz_dy,rhs._i_components,dz_dx)
@@ -1108,8 +1077,7 @@ def _atan2_x_re(y,rhs):
     else:
         dz_dx = -y/den
     return UncertainReal(
-            context._context
-        ,   math.atan2(y,x)
+            math.atan2(y,x)
         ,   vector.scale_vector(rhs._u_components,dz_dx)
         ,   vector.scale_vector(rhs._d_components,dz_dx)
         ,   vector.scale_vector(rhs._i_components,dz_dx)
@@ -1124,8 +1092,7 @@ def _atan2_re_x(lhs,x):
         else:
             dz_dy = x/den
         return UncertainReal(
-                context._context
-            ,   math.atan2(y,x)
+                math.atan2(y,x)
             ,   vector.scale_vector(lhs._u_components,dz_dy)
             ,   vector.scale_vector(lhs._d_components,dz_dy)
             ,   vector.scale_vector(lhs._i_components,dz_dy)
@@ -1146,8 +1113,7 @@ def _pow(lhs,rhs):
         dy_dr = math.log(abs(l))*y if l != 0 else 0
         
         return UncertainReal(
-                context._context 
-            ,   y
+                y
             ,   vector.merge_weighted_vectors(lhs._u_components,dy_dl,rhs._u_components,dy_dr)
             ,   vector.merge_weighted_vectors(lhs._d_components,dy_dl,rhs._d_components,dy_dr)
             ,   vector.merge_weighted_vectors(lhs._i_components,dy_dl,rhs._i_components,dy_dr)
@@ -1168,8 +1134,7 @@ def _pow(lhs,rhs):
             y = l**r
             dy_dl = r * l**(r-1)
             return UncertainReal(
-                    context._context
-                ,   y
+                    y
                 ,   vector.scale_vector(lhs._u_components,dy_dl)
                 ,   vector.scale_vector(lhs._d_components,dy_dl)
                 ,   vector.scale_vector(lhs._i_components,dy_dl)
@@ -1189,8 +1154,7 @@ def _rpow(lhs,rhs):
         dy_dr = math.log(abs(l))*y if l != 0 else 0
         
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(rhs._u_components,dy_dr)
             ,   vector.scale_vector(rhs._d_components,dy_dr)
             ,   vector.scale_vector(rhs._i_components,dy_dr)
@@ -1214,14 +1178,12 @@ def _pow_z_re(lhs,rhs):
     dy_dr = y * cmath.log(l) if l != 0 else 0
             
     r = UncertainReal(
-            context._context,
             y.real,
             vector.scale_vector(rhs._u_components,dy_dr.real),
             vector.scale_vector(rhs._d_components,dy_dr.real),
             vector.scale_vector(rhs._i_components,dy_dr.real)
         )        
     i = UncertainReal(
-            context._context,
             y.imag,
             vector.scale_vector(rhs._u_components,dy_dr.imag),
             vector.scale_vector(rhs._d_components,dy_dr.imag),
@@ -1244,14 +1206,12 @@ def _pow_re_z(lhs,rhs):
     dy_dl = r * l**(r-1)
 
     r = UncertainReal(
-            context._context,
             y.real,
             vector.scale_vector(lhs._u_components,dy_dl.real),
             vector.scale_vector(lhs._d_components,dy_dl.real),
             vector.scale_vector(lhs._i_components,dy_dl.real)
         )        
     i = UncertainReal(
-            context._context,
             y.imag,
             vector.scale_vector(lhs._u_components,dy_dl.imag),
             vector.scale_vector(lhs._d_components,dy_dl.imag),
@@ -1276,8 +1236,7 @@ def _div(lhs,rhs):
         dy_dr = -y/r
         
         return UncertainReal(
-                context._context 
-            ,   y
+                y
             ,   vector.merge_weighted_vectors(
                     lhs._u_components,dy_dl,rhs._u_components,dy_dr
                 )
@@ -1299,8 +1258,7 @@ def _div(lhs,rhs):
             dy_dl = 1.0/rhs
             
             return UncertainReal(
-                    context._context
-                ,   y
+                    y
                 ,   vector.scale_vector(lhs._u_components,dy_dl)
                 ,   vector.scale_vector(lhs._d_components,dy_dl)
                 ,   vector.scale_vector(lhs._i_components,dy_dl)
@@ -1326,8 +1284,7 @@ def _rdiv(lhs,rhs):
         y = lhs/r
         dy_dr = -y/r
         return UncertainReal(
-                context._context
-            ,   y
+                y
             ,   vector.scale_vector(rhs._u_components,dy_dr)
             ,   vector.scale_vector(rhs._d_components,dy_dr)
             ,   vector.scale_vector(rhs._i_components,dy_dr)
@@ -1370,8 +1327,7 @@ def _mul(lhs,rhs):
         l = lhs.x
         r = rhs.x
         return UncertainReal(
-                context._context 
-            ,   l*r
+                l*r
             ,   vector.merge_weighted_vectors(
                     lhs._u_components,r,rhs._u_components,l
                 )
@@ -1388,8 +1344,7 @@ def _mul(lhs,rhs):
             return lhs
         else:
             return UncertainReal(
-                    context._context
-                ,   float.__mul__(lhs.x,float(rhs))
+                    float.__mul__(lhs.x,float(rhs))
                 ,   vector.scale_vector(lhs._u_components,rhs)
                 ,   vector.scale_vector(lhs._d_components,rhs)
                 ,   vector.scale_vector(lhs._i_components,rhs)
@@ -1415,8 +1370,7 @@ def _rmul(lhs,rhs):
             return rhs
         else:
             return UncertainReal(
-                    context._context
-                ,   float.__mul__(float(lhs),rhs.x)
+                    float.__mul__(float(lhs),rhs.x)
                 ,   vector.scale_vector(rhs._u_components,lhs)
                 ,   vector.scale_vector(rhs._d_components,lhs)
                 ,   vector.scale_vector(rhs._i_components,lhs)
@@ -1459,8 +1413,7 @@ def _sub(lhs,rhs):
     """
     if isinstance(rhs,UncertainReal):
         return UncertainReal(
-                context._context
-            ,   lhs.x - rhs.x
+                lhs.x - rhs.x
             ,   vector.merge_weighted_vectors(
                     lhs._u_components,1.0,rhs._u_components,-1.0
                 )
@@ -1476,8 +1429,7 @@ def _sub(lhs,rhs):
             return lhs
         else:
             return UncertainReal(
-                    context._context
-                ,   float.__sub__(lhs.x,float(rhs))
+                    float.__sub__(lhs.x,float(rhs))
                 ,   vector.scale_vector(lhs._u_components,1.0)
                 ,   vector.scale_vector(lhs._d_components,1.0)
                 ,   vector.scale_vector(lhs._i_components,1.0)
@@ -1502,8 +1454,7 @@ def _rsub(lhs,rhs):
             return -rhs
         else:
             return UncertainReal(
-                context._context
-            ,   float.__sub__(float(lhs),rhs.x)
+                float.__sub__(float(lhs),rhs.x)
             ,   vector.scale_vector(rhs._u_components,-1.0)
             ,   vector.scale_vector(rhs._d_components,-1.0)
             ,   vector.scale_vector(rhs._i_components,-1.0)
@@ -1548,8 +1499,7 @@ def _add(lhs,rhs):
     if isinstance(rhs,UncertainReal):
             
         return UncertainReal(
-                context._context
-            ,   lhs.x + rhs.x
+                lhs.x + rhs.x
             ,   vector.merge_vectors(lhs._u_components,rhs._u_components)
             ,   vector.merge_vectors(lhs._d_components,rhs._d_components)
             ,   vector.merge_vectors(lhs._i_components,rhs._i_components)
@@ -1560,8 +1510,7 @@ def _add(lhs,rhs):
             return lhs
         else:
             return UncertainReal(
-                    context._context
-                ,   lhs.x + rhs
+                    lhs.x + rhs
                 ,   vector.scale_vector(lhs._u_components,1.0)
                 ,   vector.scale_vector(lhs._d_components,1.0)
                 ,   vector.scale_vector(lhs._i_components,1.0)
@@ -1585,8 +1534,7 @@ def _radd(lhs,rhs):
             return rhs
         else:
             return UncertainReal(
-                    context._context
-                ,   float.__add__(float(lhs),rhs.x)
+                    float.__add__(float(lhs),rhs.x)
                 ,   vector.scale_vector(rhs._u_components,1.0)
                 ,   vector.scale_vector(rhs._d_components,1.0)
                 ,   vector.scale_vector(rhs._i_components,1.0)
@@ -2114,7 +2062,6 @@ class UncertainComplex(object):
     ,   '_r'                    
     ,   '_v'                    
     ,   '_label'
-    ,   '_context'
     ,   'is_elementary'         
     ,   'is_intermediate'       
     )
@@ -2151,9 +2098,6 @@ class UncertainComplex(object):
             (r.is_elementary and _is_uncertain_real_constant(i))
             
         assert i.is_intermediate == r.is_intermediate
-        
-        assert i._context is r._context 
-        self._context = r._context
         
         self.real = r
         self.imag = i
@@ -2444,7 +2388,7 @@ class UncertainComplex(object):
     #-----------------------------------------------------------------
     # Boolean depends on value
     def __nonzero__(self):
-        return self._value != 0
+        return self != 0.0
         
     #------------------------------------------------------------------------
     def __abs__(self):
@@ -2575,7 +2519,11 @@ class UncertainComplex(object):
             ``uc.df`` is equivalent to ``dof(uc)``
         
         """
-        return willink_hall(self)[1]
+        cv_df = willink_hall(self)
+        if not hasattr(self,"_v"):
+            self._v = cv_df.cv 
+            
+        return cv_df.df 
 
     #--------------------------------------------
     @property
@@ -2625,7 +2573,6 @@ class UncertainComplex(object):
         """
         return cls(
             UncertainReal(
-                context._context,
                 z.real,
                 vector.merge_weighted_vectors(
                     arg.real._u_components,dz_dx[0],
@@ -2641,7 +2588,6 @@ class UncertainComplex(object):
                 ),
             ),
             UncertainReal(
-                context._context,
                 z.imag,
                 vector.merge_weighted_vectors(
                     arg.real._u_components,dz_dx[2],
@@ -2664,8 +2610,7 @@ class UncertainComplex(object):
         lhs,rhs,
         z,
         dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr, # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-        context
+        dz_dr # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
     ):
         """
         Create an uncertain complex number as a bivariate function
@@ -2722,7 +2667,6 @@ class UncertainComplex(object):
         )
         return cls(
             UncertainReal(
-                context,
                 z.real,
                 vector.merge_vectors(
                     u_lhs_real, u_rhs_real
@@ -2735,7 +2679,6 @@ class UncertainComplex(object):
                 )
             ),
             UncertainReal(
-                context,
                 z.imag,
                 vector.merge_vectors(
                     u_lhs_imag,u_rhs_imag
@@ -2755,8 +2698,7 @@ class UncertainComplex(object):
         lhs,rhs,
         z,
         dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr, # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-        context
+        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
     ):
         """
         Create an uncertain complex number as a bivariate function
@@ -2816,7 +2758,6 @@ class UncertainComplex(object):
         
         return cls(
             UncertainReal(
-                context,
                 z.real,
                 vector.merge_vectors(
                     u_lhs_real,u_rhs_real
@@ -2829,7 +2770,6 @@ class UncertainComplex(object):
                 )
             ),
             UncertainReal(
-                context,
                 z.imag,
                 vector.merge_vectors(
                     u_lhs_imag,u_rhs_imag
@@ -2849,8 +2789,7 @@ class UncertainComplex(object):
         lhs,rhs,
         z,
         dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr, # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-        context
+        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
     ):
         """
         Create an uncertain complex number as a bivariate function
@@ -2898,14 +2837,12 @@ class UncertainComplex(object):
 
         return cls(
             UncertainReal(
-                context,
                 z.real,
                 u_lhs_real,
                 d_lhs_real,
                 i_lhs_real
             ),
             UncertainReal(
-                context,
                 z.imag,
                 u_lhs_imag,
                 d_lhs_imag,
@@ -2919,8 +2856,7 @@ class UncertainComplex(object):
         lhs,rhs,
         z,
         dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr, # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-        context
+        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
     ):
         """
         Create an uncertain complex number as a bivariate function
@@ -2980,7 +2916,6 @@ class UncertainComplex(object):
 
         return cls(
             UncertainReal(
-                context,
                 z.real,
                 vector.merge_vectors(
                     u_lhs_real,u_rhs_real
@@ -2993,7 +2928,6 @@ class UncertainComplex(object):
                 )
             ),
             UncertainReal(
-                context,
                 z.imag,
                 vector.merge_vectors(
                     u_lhs_imag,u_rhs_imag
@@ -3013,8 +2947,7 @@ class UncertainComplex(object):
         lhs,rhs,
         z,
         dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr, # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-        context
+        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
     ):
         """
         Create an uncertain complex number as a bivariate function 
@@ -3062,14 +2995,12 @@ class UncertainComplex(object):
         
         return cls(
             UncertainReal(
-                context,
                 z.real,
                 u_rhs_real,
                 d_rhs_real,
                 i_rhs_real
             ),
             UncertainReal(
-                context,
                 z.imag,
                 u_rhs_imag,
                 d_rhs_imag,
@@ -3129,8 +3060,6 @@ class UncertainComplex(object):
                 # # Force addition between uncertain numbers
                 r = self.real + UncertainReal.constant( rhs.real )
                 i = self.imag + UncertainReal.constant( rhs.imag )
-                # r = self.real + self.real._context.constant_real( rhs.real, label=None )
-                # i = self.imag + self.real._context.constant_real( rhs.imag, label=None )
                 return UncertainComplex(r,i)
                 
         else:
@@ -3151,8 +3080,6 @@ class UncertainComplex(object):
                 # Force addition between uncertain numbers
                 r = UncertainReal.constant( lhs.real ) + self.real
                 i = UncertainReal.constant( lhs.imag ) + self.imag
-                # r = self.real._context.constant_real( lhs.real, label=None ) + self.real
-                # i = self.real._context.constant_real( lhs.imag, label=None ) + self.imag
                 return UncertainComplex(r,i)
                 
         elif isinstance(lhs,numbers.Real):
@@ -3194,8 +3121,6 @@ class UncertainComplex(object):
             else:
                 r = self.real - UncertainReal.constant( rhs.real )
                 i = self.imag - UncertainReal.constant( rhs.imag )
-                # r = self.real - self.real._context.constant_real( rhs.real, label=None )
-                # i = self.imag - self.real._context.constant_real( rhs.imag, label=None )
                 return UncertainComplex(r,i)
                 
         else:
@@ -3239,8 +3164,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         elif isinstance(rhs,UncertainReal):
@@ -3255,8 +3179,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         elif isinstance(rhs,numbers.Complex):
@@ -3274,8 +3197,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         else:
@@ -3295,8 +3217,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         elif isinstance(lhs,numbers.Complex):
@@ -3314,8 +3235,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         else:
@@ -3339,8 +3259,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         elif isinstance(rhs,UncertainReal):
@@ -3356,8 +3275,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         elif isinstance(rhs,numbers.Complex):
@@ -3376,8 +3294,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         else:
@@ -3400,8 +3317,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         elif isinstance(lhs,numbers.Complex):
@@ -3417,8 +3333,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
             
         else:
@@ -3438,8 +3353,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
         elif isinstance(rhs,UncertainReal):
             zl = lhs._value
@@ -3452,8 +3366,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
         elif isinstance(rhs,(complex,float,int,long)):
             if rhs == 1.0:
@@ -3469,8 +3382,7 @@ class UncertainComplex(object):
                     lhs,rhs,
                     z,
                     dz_dl,
-                    dz_dr,
-                    context._context
+                    dz_dr
                 )
         else:
             return NotImplemented
@@ -3488,8 +3400,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
         elif isinstance(lhs,(complex,float,int,long)):
             zl = lhs
@@ -3502,8 +3413,7 @@ class UncertainComplex(object):
                 lhs,rhs,
                 z,
                 dz_dl,
-                dz_dr,
-                context._context
+                dz_dr
             )
         else:
             return NotImplemented
@@ -3806,8 +3716,7 @@ class UncertainComplex(object):
             )
         
         return UncertainReal(
-                context._context
-            ,   mag_x
+                mag_x
             ,   vector.merge_weighted_vectors(
                     re._u_components,dz_dre,im._u_components,dz_dim
                 )
@@ -3840,8 +3749,7 @@ class UncertainComplex(object):
         dz_dim = 2.0*x.imag
         
         return UncertainReal(
-                context._context
-            ,   abs(x)**2
+                abs(x)**2
             ,   vector.merge_weighted_vectors(
                     re._u_components,dz_dre,im._u_components,dz_dim
                 )

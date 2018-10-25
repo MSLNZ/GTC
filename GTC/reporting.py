@@ -29,7 +29,7 @@ from __future__ import division     # True division
 
 from GTC.lib import *
 from GTC.vector import *
-# from GTC.lib_real import *
+from GTC.lib import *
 from GTC.named_tuples import ComponentOfUncertainty, Influence
 from GTC import is_sequence
 
@@ -159,10 +159,6 @@ def u_component(y,x):
     """
     if isinstance(y,UncertainReal):
         if isinstance(x,UncertainReal):
-            if y._context is not x._context:
-                raise RuntimeError(
-                    "Arguments have different contexts"
-                )
             if x.is_elementary:
                 if x._node.independent:
                     return y._u_components.get(x._node,0.0)
@@ -180,10 +176,6 @@ def u_component(y,x):
                 # )
             
         elif isinstance(x,UncertainComplex):
-            if y._context is not x._context:
-                raise RuntimeError(
-                    "Arguments have different contexts"
-                )
             result = [0.0,0.0,0.0,0.0]
             for i,x_i in enumerate( (x.real, x.imag) ):
                 if x_i.is_elementary:
@@ -213,11 +205,6 @@ def u_component(y,x):
         
     elif isinstance(y,UncertainComplex):
         if isinstance(x,UncertainComplex):
-            if y._context is not x._context:
-                raise RuntimeError(
-                    "Arguments have different contexts"
-                )
-
             x_re, x_im  = x.real, x.imag
             y_re, y_im = y.real, y.imag
             
@@ -257,11 +244,6 @@ def u_component(y,x):
                 # )
                 
         elif isinstance(x,UncertainReal):
-            if y._context is not x._context:
-                raise RuntimeError(
-                    "Arguments have different contexts"
-                )
-        
             y_re, y_im = y.real, y.imag
 
             if x.is_elementary:
@@ -424,7 +406,6 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         
     """    
     if isinstance(x,UncertainReal):
-        # context = x._context
         if influences is None:
             nodes = x._u_components.keys()
             labels = [ n_i.label 
@@ -454,9 +435,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         else:
             this_budget = [ ]
         
-    elif isinstance(x,UncertainComplex):
-        # context = x._context
-        
+    elif isinstance(x,UncertainComplex):        
         if influences is None:
             
             # Ensure that each influence vector has the same keys

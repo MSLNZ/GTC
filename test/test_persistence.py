@@ -163,12 +163,6 @@ class TestArchive(unittest.TestCase):
         b = component(z1,x1)
         self.assert_( equivalent(a,b,TOL) )
 
-        # The restored uncertain numbers will
-        # belong to different contexts
-        self.assertRaises(RuntimeError,component,z1,x)
-        self.assertRaises(RuntimeError,component,z,x1)
-        # self.assert_( equivalent(a,b,TOL) )
-
         # Make sure the vectors are well-formed
         self.assert_( is_ordered(z1._u_components) )
         self.assert_( is_ordered(z1._d_components) )
@@ -245,10 +239,6 @@ class TestArchive(unittest.TestCase):
         a = component(z,x)
         b = component(z1,x1)
         self.assert_( equivalent(a,b,TOL) )
-
-        # The restored uncertain numbers have different contexts
-        self.assertRaises(RuntimeError,component,z1,x)
-        self.assertRaises(RuntimeError,component,z,x1)
 
     def test2(self):
         """
@@ -1469,8 +1459,6 @@ class TestArchive(unittest.TestCase):
         self.assert_(
             equivalent(component(x3,x1),component(z3,z1))
         )
-        # Illegal, different contexts
-        self.assertRaises(RuntimeError,component,z3,y1)
         
         self.assert_(
             equivalent_sequence(rp.u_component(x3,x2),rp.u_component(z3,z2))

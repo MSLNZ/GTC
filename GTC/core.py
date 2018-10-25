@@ -302,7 +302,7 @@ def ureal(x,u,df=inf,label=None,independent=True):
     if u == 0:
         # Is this what we want? Perhaps not.
         return UncertainReal.constant(float(x),label)
-        # return context.constant_real(float(x),label)
+
     else:
         return UncertainReal.elementary(
             float(x),
@@ -377,7 +377,9 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
 
     # Only non-constant UNs can be collected in an ensemble
     # TODO: define an is_constant() function to standardise the criteria
-    lib.real_ensemble( [un_i for un_i in rtn if un_i.u != 0], df )
+    lib.real_ensemble( 
+        [ un_i for un_i in rtn if un_i.u != 0], df 
+    )
 
     # All uncertain numbers are returned, including the constants
     return rtn
@@ -405,10 +407,8 @@ def constant(x,label=None):
     """
     if isinstance(x,numbers.Real):
         return UncertainReal.constant(x,label)
-        # return context.constant_real(x,label)
     elif isinstance(x,numbers.Complex):
         return UncertainComplex.constant(x,label)
-        # return context.constant_complex(x,label)
     else:
         raise RuntimeError(
             "Cannot make a constant: {!r}".format( x )
@@ -440,7 +440,6 @@ def result(un,label=None):
     """
     un = +un 
     
-    # context = un._context
     if isinstance(un,UncertainReal):
         UncertainReal.intermediate(un,label)
         
@@ -555,7 +554,6 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
         return UncertainComplex.constant(complex(z),label)
-        # return context.constant_complex(complex(z),label)
     else:
         return UncertainComplex.elementary(
             complex(z),
@@ -775,16 +773,9 @@ def set_correlation(r,arg1,arg2=None):
                     # They have to be in the same ensemble. 
                     # Just need to cross-check one of the component 
                     # pairs to verify this
-                    # if arg1._context is not arg2._context:
-                        # raise RuntimeError(
-                            # "Different contexts"
-                        # )
                     n_re1 = arg1.real._node
                     n_re2 = arg2.real._node
                     if n_re2.uid in n_re1.ensemble:                    
-                    # if arg2.real._node in arg1._context._ensemble.get(
-                            # arg1.real._node,[]
-                    # ):
                         lib.set_correlation_real(arg1.real,arg2.real,r[0])
                         lib.set_correlation_real(arg1.real,arg2.imag,r[1])
                         lib.set_correlation_real(arg1.imag,arg2.real,r[2])

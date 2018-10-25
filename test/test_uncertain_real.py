@@ -808,7 +808,6 @@ class TestUncertainReal(unittest.TestCase):
         x = 1.2
         u = 0.2
         x_str= "1.20(20)" # takes account of uncertainty rounding
-        c = context._context
 
         un = ureal(x,u)
 
@@ -817,7 +816,6 @@ class TestUncertainReal(unittest.TestCase):
         self.assertEqual( x_str,str(un) )
 
         self.assertEqual( value(un), x)
-        self.assert_( un._context is c )
 
         # These tests just look at the constructor and by-pass the context. 
         # Here is an uncertain number with no node
@@ -826,17 +824,17 @@ class TestUncertainReal(unittest.TestCase):
         d_comp = Vector()
         d_comp.extend( [(2,2*u)] )
         i_comp = Vector()
-        un = UncertainReal(c,x,u_comp,d_comp,i_comp)
+        un = UncertainReal(x,u_comp,d_comp,i_comp)
         self.assert_( un._u_components is u_comp )
         self.assert_( un._i_components is i_comp )
         self.assert_( un._d_components is d_comp )
 
         # Here is an uncertain number with a node
-        # args: context,uid,label,u,df [,independent=True]
+        # args: uid,label,u,df [,independent=True]
         label = 'test'
         df = 10
         lf = Leaf(3,label,u,df)
-        un = UncertainReal(c,x,u_comp,d_comp,i_comp,lf)
+        un = UncertainReal(x,u_comp,d_comp,i_comp,lf)
         self.assert_( un._u_components is u_comp )
         self.assert_( un._i_components is i_comp )
         self.assert_( un._d_components is d_comp )
