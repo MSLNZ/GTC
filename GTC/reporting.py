@@ -27,19 +27,22 @@ Module contents
 """
 from __future__ import division     # True division
 
-from GTC.lib import *
-from GTC.vector import *
-from GTC.lib import *
-from GTC.named_tuples import ComponentOfUncertainty, Influence
-from GTC import is_sequence
+import numbers
+import math
+import cmath
 
 from itertools import izip
 from operator import attrgetter as getter
 from functools import reduce
 
-import numbers
-import math
-import cmath
+from GTC.lib import *
+from GTC.vector import *
+from GTC.named_tuples import (
+    ComponentOfUncertainty, 
+    Influence
+)
+
+from GTC import is_sequence
 
 __all__ = (
     'budget',
@@ -113,14 +116,12 @@ def variance_and_dof(x):
         if x.is_elementary:
             return (std_variance_real(x),x._context.get_dof(x._uid))
         else:
-            # NB, this calculates the variance too!
             return welch_satterthwaite(x)
     elif isinstance(x,UncertainComplex):
         if x.real.is_elementary:
             assert x.imag.is_elementary
             return (std_variance_covariance_complex(x),x.real._node.df)
         else:
-            # NB, this calculates the variance-covariance too
             return willink_hall(x)
     else:
         return (0.0,inf)
@@ -438,7 +439,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
     elif isinstance(x,UncertainComplex):        
         if influences is None:
             
-            # Ensure that each influence vector has the same keys
+            # Ensure that the influence vectors have the same keys
             re = extend_vector(x.real._u_components,x.imag._u_components)    
             im = extend_vector(x.imag._u_components,x.real._u_components)
 
@@ -451,10 +452,8 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                 while True:
                     ir_0,ur_0 = it_re.next()
                     ii_0,ui_0 = it_im.next()
-                    # try:      
+
                     if hasattr(ir_0,'complex'):
-                        # ic = context._complex_ids[ir_0]
-                        
                         ir_1,ur_1 = it_re.next()
                         ii_1,ui_1 = it_im.next()
                         
@@ -491,7 +490,11 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
             
         if len(values):
             cut_off = max(values) * float(trim)
-            this_budget = [ Influence( label=n, u=u ) for (u,n) in izip(values,labels) if u >= cut_off  ]
+            this_budget = [ 
+                Influence( label=n, u=u ) 
+                    for (u,n) in izip(values,labels) 
+                        if u >= cut_off  
+            ]
             
         else:   
             this_budget = []
@@ -510,4 +513,4 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
 if __name__ == "__main__":
     import doctest
     from GTC import *
-    doctest.testmod()
+    doctest.testmod(  optionflags=doctest.NORMALIZE_WHITESPACE )

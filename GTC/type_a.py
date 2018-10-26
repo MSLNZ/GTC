@@ -56,8 +56,7 @@ from GTC import inf
 from GTC.named_tuples import (
     VarianceCovariance,
     StandardUncertainty,
-    StandardDeviation,
-    InterceptSlope
+    StandardDeviation
 )
 
 __all__ = (

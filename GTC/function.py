@@ -16,9 +16,11 @@ import math
 import collections
 import itertools
 
-from GTC.lib import UncertainReal
-from GTC.lib import UncertainComplex
-from GTC.lib import z_to_seq
+from GTC.lib import (
+    UncertainReal,
+    UncertainComplex,
+    z_to_seq
+)
 
 from GTC import is_sequence
 
@@ -27,18 +29,6 @@ __all__ = (
     'seq_to_complex',
     'mean'
     )
-
-#---------------------------------------------------------------------------
-def _simple_variance(v):
-    v11, v12, v21, v22 = v
-    if (
-        abs(v11-v22) > 1E-15
-    or  abs(v12) > 1E-15
-    or  abs(v21) > 1E-15
-    ):
-        raise RuntimeError(
-            "equal diagonal variance required, got: {!r}".format(v)
-        )
         
 #---------------------------------------------------------------------------
 def mean(seq):
@@ -53,7 +43,7 @@ def mean(seq):
     
         >>> seq = [ ureal(1,1), ureal(2,1), ureal(3,1) ]
         >>> function.mean(seq)
-        ureal(2,0.5773502691896257,inf)
+        ureal(2.0,0.5773502691896257,inf)
         
     """
     if is_sequence(seq):
@@ -83,8 +73,8 @@ def complex_to_seq(z):
         >>> m = numpy.matrix( function.complex_to_seq(z) )
         >>> m.shape = (2,2)
         >>> print( m )
-        [[1.0 -2.0]
-        [2.0 1.0]]
+        [[ 1. -2.]
+         [ 2.  1.]]
         
     """
     z = complex(z)
@@ -111,8 +101,8 @@ def seq_to_complex(seq):
         >>> a = numpy.array((1,-2,2,1))
         >>> a.shape = 2,2
         >>> a
-        [[1 -2]
-        [2 1]]
+        array([[ 1, -2],
+               [ 2,  1]])
         >>> z = function.seq_to_complex(a)
         >>> z 
         (1+2j)

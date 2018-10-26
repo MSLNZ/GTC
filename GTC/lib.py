@@ -34,9 +34,6 @@ from GTC import (
 
 #----------------------------------------------------------------------------
 def _is_uncertain_real_constant(x):
-    """
-    
-    """
     if isinstance(x,UncertainReal):
         return bool( 
             len(x._u_components) == 0 and 
@@ -49,8 +46,6 @@ def _is_uncertain_real_constant(x):
 
 #----------------------------------------------------------------------------
 def _is_uncertain_complex_constant(z):
-    """
-    """
     if isinstance(z,UncertainComplex):
         return bool( 
             _is_uncertain_real_constant(z.real) and 
@@ -71,14 +66,14 @@ class UncertainReal(object):
     """
     
     __slots__ = [
-        '_x'                    # The value estimate
+        '_x'                    # The estimate
     ,   '_u'                    # The standard uncertainty in the estimate
-    ,   '_u_components'         # weighted Jacobian matrix for independent 
-    ,   '_d_components'         # weighted Jacobian matrix for dependent cpts
+    ,   '_u_components'         # weighted Jacobian matrix  
+    ,   '_d_components'         # weighted Jacobian matrix 
     ,   '_i_components'         # Intermediate components of uncertainty
-    ,   'is_elementary'         # True for elementary UNs 
-    ,   'is_intermediate'       # True for intermediate UNs 
-    ,   '_node'                 # May refer to a Node
+    ,   'is_elementary'         
+    ,   'is_intermediate'       
+    ,   '_node'                 # May refer to a node
     ]            
 
     #-------------------------------------------------------------------------
@@ -95,13 +90,13 @@ class UncertainReal(object):
             self.is_intermediate = False
             
         else: 
-            # Constants are Leaf nodes, but the UID is None,
+            # Constants have Leaf nodes, but the UID is None;
             # they will not be classed as `elementary`
             self.is_elementary = (
                 isinstance(self._node,nodes.Leaf)
                     and not self._node.uid is None
             )
-            # An intermediate uncertain number has a `Node` object  
+            # An intermediate uncertain number has a ``Node`` object  
             self.is_intermediate = type(self._node) is nodes.Node
             
             assert not(self.is_elementary and self.is_intermediate)
@@ -125,8 +120,8 @@ class UncertainReal(object):
         UncertainReal
             
         """
-        # A constant does not need a UID, 
-        # because it will not be archived.
+        # A constant will not be archived,
+        # so it has no need for a UID. 
         return UncertainReal(
                 x
             ,   vector.Vector( )
@@ -141,7 +136,7 @@ class UncertainReal(object):
         """
         Return an elementary uncertain real number.
 
-        Creates an uncertain number with value ``x``, standard
+        The uncertain number will have a value ``x``, standard
         uncertainty ``u`` and degrees of freedom ``df``.
 
         A ``RuntimeError`` is raised if the value of 
@@ -172,14 +167,7 @@ class UncertainReal(object):
             raise RuntimeError(
                 "invalid uncertainty: {!r}".format(u)
             )
-            
-        # NB, we may create an uncertain number with no uncertainty 
-        # that is not recognised as a 'constant' by setting u=0. 
-        # It may be desirable to allow this. In the case of a complex UN,
-        # for example, we would still see a zero-valued component in the 
-        # uncertainty budget. That might be less confusing than to make 
-        # the constant component disappear quietly.      
-        
+                    
         uid = context._context._next_elementary_id()
         ln = context._context.new_leaf(uid,label,u,df,independent=independent)
         
@@ -215,7 +203,7 @@ class UncertainReal(object):
         """
         if not un.is_elementary:
             if not un.is_intermediate:                     
-                # This is a new registration 
+                # A new registration 
                 uid = context._context._next_intermediate_id()
                 
                 u = un.u
@@ -229,31 +217,22 @@ class UncertainReal(object):
                     vector.Vector( index=[un._node], value=[u] )
                 )
                 un.is_intermediate = True
-                
-                # _context._registered_intermediate_nodes[uid] = un._node
-            
+                            
             # else:
-                # Assume that everything has been registered, perhaps 
-                # the user has repeated the registration process.
-                # pass
+                # Assume that it has been registered, perhaps the 
+                # user has repeated the registration process.
 
         # else:
-            # # There should be no harm in ignoring elementary UNs.
-            # # They will be archived properly and they are not dependent
-            # # on anything. It is convenient for the user not to worry
-            # # whether or not something is elementary our intermediate 
-            # pass  
+            # There should be no harm in ignoring elementary UNs.
+            # They will be archived properly and they are not dependent
+            # on anything. It is convenient for the user not to worry
+            # whether or not something is elementary or not. 
             
     #------------------------------------------------------------------------
     @classmethod
     def archived_elementary(cls,uid,x):
         """
-        Return an elementary uncertain real number.
-
         Restore an uncertain number that has been archived. 
-        Most properties will be associated with a Leaf node 
-        that can be obtained using `uid` as key. The value 
-        'x', is not stored in the Leaf. 
 
         Parameters
         ----------
@@ -294,10 +273,10 @@ class UncertainReal(object):
     #-------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
         """
-        Return a `RoundedUncertainReal` 
+        Return a ``GroomedUncertainReal`` 
         
-        `digits` specifies the number of significant digits of 
-        in uncertainty that will be retained. The value will use 
+        `digits` specifies the number of significant digits 
+        in the uncertainty that will be retained. The value will use 
         the same precision. The degrees-of-freedom will be  
         represented using `df_decimals` decimal places.
 
@@ -391,9 +370,6 @@ class UncertainReal(object):
         
     #------------------------------------------------------------------------
     def __repr__(self):
-        # repr() should try to present a string that could be 
-        # evaluated by Python to generate the object.
-        
         x = self.x
         u = self.u
         df = self.df
@@ -433,9 +409,6 @@ class UncertainReal(object):
     def imag(self):
         """Returns the imaginary component 
         
-        Always returns an uncertain real number with
-        a value of zero and no uncertainty
-        
         """
         # Returning an UN constant ensures that an algorithm
         # expecting an uncertain number will not break
@@ -468,8 +441,8 @@ class UncertainReal(object):
         return self._x <= other
         
     def __nonzero__(self):
-        # Used to convert to a Boolean 
-        return self != 0.0
+        # Used to coerce to Boolean 
+        return UncertainReal.__ne__(self, 0.0)
 
     #------------------------------------------------------------------------
     @property
@@ -559,7 +532,11 @@ class UncertainReal(object):
         if self.is_elementary:
             return self._node.df
         else:
-            return welch_satterthwaite(self)[1]
+            v_df = welch_satterthwaite(self)
+            if not hasattr(self,"_u"):
+                self._u = math.sqrt( v_df.cv )
+                
+        return v_df.df 
 
     #-----------------------------------------------------------------
     @property
@@ -602,10 +579,8 @@ class UncertainReal(object):
         """
         Unary positive
 
-        Copies the uncertain real number
-
         """     
-        # This is a copy but not a full clone,
+        # This is a copy but not a clone,
         # because if ``self`` had a node this 
         # object does not have it too.
         return UncertainReal(
@@ -993,7 +968,7 @@ class UncertainReal(object):
     #-----------------------------------------------------------------
     def _magnitude(self):
         """
-        Return the magnitude
+        Magnitude function
 
         The magnitude of an uncertain real number is defined
         everywhere except at the origin. A ``ZeroDivisionError`` is
@@ -1023,7 +998,7 @@ class UncertainReal(object):
     #-----------------------------------------------------------------
     def _mag_squared(self):
         """
-        Returns x**2 
+        Return x**2 
         
         Returns
         -------
@@ -1047,7 +1022,7 @@ class UncertainReal(object):
 #----------------------------------------------------------------------------
 def _atan2_re_re(lhs,rhs): 
     """
-    Return the bivariate inverse tan of a pair
+    Return the bivariate arctan of a pair
     of uncertain real numbers. 
     
     """
@@ -1101,7 +1076,7 @@ def _atan2_re_x(lhs,x):
 #----------------------------------------------------------------------------
 def _pow(lhs,rhs):
     """
-    Raise the uncertain real number `lhs` to the power of `rhs`
+    Raise `lhs` to the power of `rhs`
     """
     if isinstance(rhs,UncertainReal):
         
@@ -1143,7 +1118,7 @@ def _pow(lhs,rhs):
 #----------------------------------------------------------------------------
 def _rpow(lhs,rhs):
     """
-    Raise `lhs` to the power of uncertain real number `rhs`
+    Raise `lhs` to the power of `rhs`
     
     """
     if isinstance(lhs,numbers.Real):    
@@ -1475,7 +1450,6 @@ def _sub_z_re(lhs,rhs):
     """
     r = lhs.real - rhs 
     i = UncertainReal.constant(lhs.imag)
-    # i = c.constant_real( lhs.imag, None )
     
     return UncertainComplex(r,i)
  
@@ -1523,6 +1497,7 @@ def _add(lhs,rhs):
    
     else:
         raise NotImplemented
+        
 #----------------------------------------------------------------------------
 def _radd(lhs,rhs):
     """
@@ -1556,7 +1531,6 @@ def _add_re_z(lhs,rhs):
     """
     r = lhs + rhs.real 
     i = UncertainReal.constant(rhs.imag)
-    # i = c.constant_real( rhs.imag, None )
     
     return UncertainComplex(r,i)
 
@@ -1568,7 +1542,6 @@ def _add_z_re(lhs,rhs):
     """
     r = lhs.real + rhs
     i = UncertainReal.constant(lhs.imag)
-    # i = c.constant_real( lhs.imag, None )
     
     return UncertainComplex(r,i)
 
@@ -1706,13 +1679,14 @@ def std_covariance_real(x1,x2):
     
     cv = 0.0
     
-    # `k1` is not correlated with anything, but if 
-    # `k1` happens to influence x2 we get a contribution.    
+    # `k1_i` is not correlated with anything, but if 
+    # `k1_i` happens to influence x2 we get a contribution.    
     cv += math.fsum(
         u1_i * x2._u_components.get(k1_i,0.0)
             for k1_i,u1_i in x1._u_components.iteritems()
     )
                     
+    # `k1_i` may be correlated with `k2_i`
     for k1_i,u1_i in x1._d_components.iteritems():
         cv += math.fsum(
             u1_i *
@@ -1751,7 +1725,10 @@ def welch_satterthwaite(x):
     """Return the variance and degrees-of-freedom.
 
     Uses the Welch Satterthwaite calculation of dof
-    for an uncertain real number ``x``
+    for an uncertain real number ``x``.
+    
+    Uses the extensions described by Willink
+    in Metrologia 44 (2007).
     
     Parameters
     ----------
@@ -1790,7 +1767,7 @@ def welch_satterthwaite(x):
             return VarianceAndDof(x.v,inf)
          
         #----------------------------------------------------------
-        var = 0.0                       # the standard variance
+        var = 0.0                       # combined standard variance
         cpts_lst = []                   # component variances  
         dof_lst = []
  
@@ -1893,10 +1870,6 @@ def welch_satterthwaite(x):
                         if nu_i_infinite and is_infinity( k_j.df ):
                             # The correlated influences both have  
                             # infinite dof, so it is OK to use WS.
-                            # For a single entry, we add 
-                            # the covariance term here.
-                            # The loop over `i` takes care of
-                            # the variance.
                             # Since infinite DoF are not summed
                             # in WS, we do not need to modify `cpts_lst`
                             #
@@ -1925,8 +1898,8 @@ def welch_satterthwaite(x):
                         else:
                             # Correlation with no excuse, illegal!
                             df = nan
-                            # Don't expect to ever get here, because of 
-                            # controls on using set_correlation
+                            # Don't expect to get here, because of 
+                            # controls on using ``set_correlation``
                             assert False 
 
             # Last value cannot be correlated with anything 
@@ -1981,8 +1954,8 @@ def real_ensemble(seq,df):
     """
     Declare the uncertain numbers in ``seq`` to be an ensemble.
 
-    The uncertain numbers in ``seq`` must be elementary
-    and have the same numbers of degrees of freedom. 
+    The elements of ``seq`` must be elementary
+    and have the same number of degrees of freedom. 
     
     It is permissible for members of an ensemble to be correlated 
     and have finite degrees of freedom without causing problems 
@@ -2007,7 +1980,6 @@ def real_ensemble(seq,df):
         assert all( s_i.is_elementary for s_i in seq )
                 
         ensemble = set( x._node.uid for x in seq )
-        # This object is referenced from the Leaf node of each member
         for s_i in seq:
             s_i._node.ensemble = ensemble     
                 
@@ -2090,9 +2062,6 @@ class UncertainComplex(object):
         # trivial addition and subtraction of zero to 
         # produce a new uncertain number.
         # 
-        # if i.is_elementary != r.is_elementary:
-            # print r.is_elementary,i.is_elementary,\
-            # _is_uncertain_real_constant(r),_is_uncertain_real_constant(i)
         assert (i.is_elementary == r.is_elementary) or\
             (i.is_elementary and _is_uncertain_real_constant(r)) or\
             (r.is_elementary and _is_uncertain_real_constant(i))
@@ -2258,7 +2227,7 @@ class UncertainComplex(object):
             # find the lesser uncertainty and round to two digits,
             # then express the results in this precision.
             u = min(re.u, im.u)
-            # However, if one component is constant use the other 
+            # However, if one component has no uncertainty use the other 
             if u == 0.0:
                 u = max(re.u, im.u)
         
@@ -2279,10 +2248,10 @@ class UncertainComplex(object):
             im_x = factor*round(im.x/factor)
             im_u = factor*round(im.u/factor)
 
-            # Get the numerals representing uncertainty 
+            # Get the decimal places representing uncertainty 
             # When the uncertainty is to the left of the 
-            # decimal point there will be `digits` numerals 
-            # but to the right of the decimal point there will
+            # decimal point there will be `digits` 
+            # but to the right of the decimal point there must
             # be sufficient to reach the units column.
             
             # TODO: generalise so that we can use the format 
@@ -2386,9 +2355,9 @@ class UncertainComplex(object):
         return complex(self.x) != other
     
     #-----------------------------------------------------------------
-    # Boolean depends on value
+    # For coercion to Boolean 
     def __nonzero__(self):
-        return self != 0.0
+        return UncertainComplex.__ne__(self,0.0)
         
     #------------------------------------------------------------------------
     def __abs__(self):
@@ -2406,8 +2375,7 @@ class UncertainComplex(object):
         UncertainComplex
         
         """
-        # NB unary '+' makes an object that has the same uncertainty 
-        # and value, but is not a clone
+        # NB unary '+' makes a new object with the same uncertainty and value
         return UncertainComplex(+self.real,-self.imag)  
         
     #------------------------------------------------------------------------
@@ -2442,14 +2410,12 @@ class UncertainComplex(object):
         .. note:: ``uc.u`` is equivalent to ``uncertainty(uc)``
         
         """        
-        try:
-            return self._u 
-        except AttributeError: 
+        if not hasattr(self,"_u"):
             self.real.u
             self.imag.u
             self._u = StandardUncertainty(self.real.u,self.imag.u)
             
-            return self._u 
+        return self._u 
 
     #------------------------------------------------------------------------
     @property
@@ -2469,13 +2435,10 @@ class UncertainComplex(object):
         .. note:: ``uc.v`` is equivalent to ``variance(uc)``
         
         """
-        try:
-            return self._v 
-        except AttributeError: 
-            cv = std_variance_covariance_complex(self)
-            self._v = cv
-        
-            return self._v
+        if not hasattr(self,"_v"):
+            self._v = std_variance_covariance_complex(self)
+            
+        return self._v
 
     #------------------------------------------------------------------------
     @property
@@ -2485,18 +2448,11 @@ class UncertainComplex(object):
         :returns: float
         
         """
-        try:
-            return self._r 
-        except AttributeError: 
-            try:
-                cv = self._v
-            except AttributeError:
-                cv = std_variance_covariance_complex(self)
-                self._v = cv
-                
+        if not hasattr(self,"_r"):
+            cv = self.v
             self._r = cv[1]/(cv[0]*cv[3]) if cv[1] != 0.0 else 0.0
         
-            return self._r
+        return self._r
             
     #------------------------------------------------------------------------
     @property
@@ -2610,7 +2566,7 @@ class UncertainComplex(object):
         lhs,rhs,
         z,
         dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
+        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
     ):
         """
         Create an uncertain complex number as a bivariate function
@@ -3252,7 +3208,7 @@ class UncertainComplex(object):
             r = rhs._value
             z = l / r
 
-            dz_dl = z_to_seq( 1.0 / r ) #z / l if l !=0 else 0 )                
+            dz_dl = z_to_seq( 1.0 / r ) 
             dz_dr = z_to_seq( -z / r )            
         
             return UncertainComplex.bivariate_uc_uc(
@@ -3268,7 +3224,7 @@ class UncertainComplex(object):
             
             z = l / r
             
-            dz_dl = z_to_seq( 1.0 / r ) #z / l if l !=0 else 0 )                
+            dz_dl = z_to_seq( 1.0 / r ) 
             dz_dr = z_to_seq( -z / r )            
 
             return UncertainComplex.bivariate_uc_ur(
@@ -3283,11 +3239,11 @@ class UncertainComplex(object):
                 return self
             else:            
                 l = lhs._value
-                r = 1.0 * rhs  # ensures we do not get integer division problems
+                r = 1.0 * rhs  # avoid integer division problems
             
             z = l / r
 
-            dz_dl = z_to_seq( 1.0 / r ) #z / l if l !=0 else 0 )                
+            dz_dl = z_to_seq( 1.0 / r ) 
             dz_dr = z_to_seq( 0.0 )            
             
             return UncertainComplex.bivariate_uc_n(
@@ -3311,7 +3267,7 @@ class UncertainComplex(object):
             z = l / r
             
             dz_dr = z_to_seq( -z / r )                
-            dz_dl = z_to_seq( 1.0 / r ) #z / l if l !=0 else 0 )            
+            dz_dl = z_to_seq( 1.0 / r )     
 
             return UncertainComplex.bivariate_ur_uc(
                 lhs,rhs,
@@ -3322,7 +3278,7 @@ class UncertainComplex(object):
             
         elif isinstance(lhs,numbers.Complex):
             r = rhs._value
-            l = 1.0 * lhs # ensures we do not get integer division problems
+            l = 1.0 * lhs # avoid integer division problems
             
             z = l / r
 
@@ -3817,7 +3773,7 @@ def _covariance_submatrix(u_re,u_im):
     
     v_rr = v_ri = v_ii = 0.0
 
-    # In this algorithm, we need uncertainty components with
+    # We need uncertainty components with
     # the same set of influences.
     assert u_re.keys() == u_im.keys()
     
@@ -3877,7 +3833,7 @@ class _EnsembleComponents(object):
     
     def __init__(self,nu):
     
-        # Instance attributes to hold data
+        # Instance attributes hold data
         self.u_re = vector.Vector()
         self.u_im = vector.Vector()
         self.nu = nu
@@ -3933,7 +3889,7 @@ def willink_hall(x):
     is returned as the second element.
     
     """
-    # The main purpose of the code below is to detect illegal cases
+    # The main purpose of the code is to detect illegal cases
     # and accumulate uncertainty components associated with influences
     # that have finite DoF. The variance calculation
     # is delegated to `std_variance_covariance_complex()`,
@@ -3958,10 +3914,11 @@ def willink_hall(x):
             real.df
         )
     else:
-        # willink_hall separates the work to be done on 
-        # independent UNs from the work on possibly correlated UNs.
+        # Separate the work to be done on 
+        # independent UNs from the work 
+        # on possibly correlated UNs.
         
-        # Need all keys for the independent components
+        # All keys for the independent components
         re_u = vector.extend_vector(
             x.real._u_components,x.imag._u_components
         )    
@@ -3969,7 +3926,7 @@ def willink_hall(x):
             x.imag._u_components,x.real._u_components
         )
         
-        # Need all keys for the dependent components
+        # All keys for the dependent components
         re_d = vector.extend_vector(
             x.real._d_components,x.imag._d_components
         )    
@@ -4023,34 +3980,31 @@ def willink_hall(x):
             
             ensemble_reg = dict()       # keys: frozenset , values: _EnsembleComponent 
             
-            # There is one element in `ids` for each real-valued 
+            # There is one element in `ids_d` for each real-valued 
             # component (ie for 3 complex influences len(ids) == 6)
             for i_re,id_re in enumerate( ids_d ):
             
                 # If an influence is complex, the real and imaginary
                 # components are handled in the first pass, so 
-                # we need to skip to the next id in the list. 
-                
+                # we need to skip to the next id in the list.   
                 if skip_imaginary:
                     skip_imaginary = False
                     continue
                 
-                # mapping between Leaf nodes and correlation coefficients
+                # mapping between uid's and correlation coefficients
                 row_re = id_re.correlation
                 
                 nu_i = degrees_of_freedom_d[i_re]
                 i_re_infinite = is_infinity( nu_i )         
 
-                ensemble_i = frozenset(
-                    id_re.ensemble
-                )
+                ensemble_i = frozenset(id_re.ensemble)
                 if len(ensemble_i) and ensemble_i not in ensemble_reg:
-                    # Non-trivial ensemble that has not yet been identified
+                    # A non-trivial ensemble not yet identified
                     ensemble_reg[ensemble_i] = _EnsembleComponents(nu_i)
                    
                 # `components_i` holds the components 
                 # associated with this influence. When it is 
-                # part of an ensemble, we reuse the same object.
+                # part of an ensemble, reuse the same object.
                 components_i = ensemble_reg.get(
                     ensemble_i,
                     _EnsembleComponents(nu_i)
@@ -4060,26 +4014,24 @@ def willink_hall(x):
                     # This is a complex influence
                     skip_imaginary = True
                     
-                    # Assumes consecutive nodes 
+                    # Assumes consecutive nodes!!
                     id_im = ids_d[i_re + 1]
 
                     # mapping between uid's and correlation coefficients
                     row_im = id_im.correlation
 
-                    # This steps over the imaginary component, 
+                    # Step over the imaginary component, 
                     # which is assumed to follow 
                     next_i = i_re + 2
 
                     # Check for correlations with any other (real) influence 
-                    # and perhaps abort DoF calculation
                     if next_i < len_ids:
                         # `j` is any of the other (real) influences of `i`  
                         for j, j_id in enumerate( ids_d[next_i:] ):
                         
                             # Look for the illegal case of correlation between 
                             # influences when at least one has finite dof and 
-                            # they are not in an ensemble together.
-                            
+                            # they are not in an ensemble together.                            
                             if i_re_infinite and is_infinity( 
                                     degrees_of_freedom_d[next_i+j]
                                 ):  
@@ -4114,7 +4066,7 @@ def willink_hall(x):
                     next_i = i_re+1
 
                     assert i_re_infinite or next_i >= len_ids, "unexpected"
-                    # TODO: this can probably be removed now
+                    # TODO: this can probably be removed 
                     # Check for correlations, perhaps abort DoF calculation
                     # if not i_re_infinite and next_i < len_ids:
                         

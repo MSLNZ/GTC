@@ -7,7 +7,6 @@ import collections
 import itertools
 
 from GTC import lib
-
 from GTC import reporting
 from GTC import type_b
 from GTC import type_a
@@ -25,6 +24,8 @@ from GTC import (
     is_infinity,
     is_undefined,
     is_sequence,
+    copyright,
+    version
 )
     
 # aliases 
@@ -76,9 +77,11 @@ __all__ = (
     ,   'mag_squared'
     ,   'magnitude'
     ,   'phase'
-    ,   'reporting', 'rp'
-    ,   'type_b', 'tb'
-    ,   'type_a', 'ta'
+    ,   'copyright',    'version'
+    ,   'reporting',    'rp'
+    ,   'function',     'fn'
+    ,   'type_b',       'tb'
+    ,   'type_a',       'ta'
     ,   'math'
     ,   'cmath'
     ,   'is_infinity'
@@ -203,7 +206,8 @@ def dof(x):
 #---------------------------------------------------------------------------
 def component(y,x):
     """
-    Return the magnitude of the component of uncertainty in ``y`` due to ``x``.
+    Return the magnitude of the component of uncertainty 
+    in ``y`` due to ``x``.
 
     :arg y: an uncertain number
     :type y: :class:`UncertainReal` or :class:`UncertainComplex`
@@ -369,16 +373,19 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
         )
         
     rtn = [
-        UncertainReal.elementary(x_i,u_i,df,label=l_i,independent=False)
+        # NB `ureal` will create constant objects when u == 0
+        ureal(x_i,u_i,df,label=l_i,independent=False)
             for x_i,u_i,l_i in itertools.izip(
                 x_seq,u_seq,label_seq
             )
     ]
 
     # Only non-constant UNs can be collected in an ensemble
-    # TODO: define an is_constant() function to standardise the criteria
     lib.real_ensemble( 
-        [ un_i for un_i in rtn if un_i.u != 0], df 
+        [ un_i 
+            for un_i in rtn 
+                if not lib._is_uncertain_real_constant(un_i) 
+        ], df 
     )
 
     # All uncertain numbers are returned, including the constants
@@ -622,6 +629,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         )
  
     rtn = [
+        # When u_i == 0 constant objects are created
         ucomplex(x_i,u_i,df,label=l_i,independent=False)
             for x_i,u_i,l_i in itertools.izip(
                 x_seq,u_seq,label_seq
@@ -629,11 +637,10 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     ]
 
     # Only non-constant UNs can be collected in an ensemble
-    # TODO: use a function to test for constant-ness
     lib.complex_ensemble(
         [ 
             un_i for un_i in rtn
-                if un_i.u[0] != 0.0 or un_i.u[1] != 0.0 
+                if not lib._is_uncertain_complex_constant(un_i) 
         ], 
         df
     )
@@ -811,9 +818,9 @@ def get_correlation(arg1,arg2=None):
     a 2-by-2 matrix of correlation coefficients.
     
     """
-    # If numerical arguments are given, then return zero. 
+    # Return zero if numerical arguments are given
     
-    # NB if the arg is any number type, it matches `numbers.Complex`
+    # If the arg is any number type, it matches `numbers.Complex`
     if isinstance(arg1,numbers.Complex): arg1 = constant(arg1)
     
     if isinstance(arg1,UncertainReal):

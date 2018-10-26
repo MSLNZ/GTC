@@ -5,9 +5,9 @@ Class
     An :class:`Archive` object can marshal a set of uncertain numbers 
     for storage,or restore a set of uncertain numbers from storage. 
     
-    Python pickle is used for storage.
-    However, :class:`Archive` can also be used 
-    as a base class to implement other storage formats.
+    Python pickle is used for the storage mechanism.
+    However, :class:`Archive` could also be used 
+    as a base class for other storage formats.
 
 Functions
 ---------
@@ -33,8 +33,10 @@ import itertools
 import numbers
 import cPickle as pickle
 
-from GTC.lib import UncertainComplex
-from GTC.lib import UncertainReal
+from GTC.lib import (
+    UncertainComplex,
+    UncertainReal
+)
 from GTC.vector import Vector 
 from GTC.nodes import *
 from GTC import context
@@ -51,7 +53,8 @@ __all__ = (
     
 #============================================================================
 # When an archive is prepared for storage, uncertain number objects 
-# are translated into the following simple representations for storage.
+# are translated into the following simple representations that
+# Python will pickle.
 #
 class FrozenLeaf(object):
     def __init__(self,node):
@@ -106,12 +109,11 @@ class Archive(object):
         self._tagged_reals = {}     # name->object-ref pairs
         
         # Filled by add() and then used when freezing to
-        # associate the uids of intermediate components with UNs.
+        # associate the uid's of intermediate components with UNs.
         self._uid_to_intermediate = {}
         
         self._extract = False   # initially in write-only mode
 
-    # TODO: this makes a dict-like interface available, but do we need it?
     def keys(self):
         """Return a list of names 
         """
@@ -156,7 +158,6 @@ class Archive(object):
                 "'{!s}' is already in use".format(key)
             )
         else:
-            # Fill `self._tagged_reals`            
             if isinstance(value,UncertainReal):
                 if key in self._tagged_reals:
                     raise RuntimeError(
@@ -249,11 +250,6 @@ class Archive(object):
 
         `key` - the name of the archived number
         
-        .. note::
-
-            When an uncertain number is restored,
-            it is removed from the archive. 
-
         **Example**::
 
             >>> x = a['x']
@@ -296,7 +292,6 @@ class Archive(object):
         
         """        
         
-        # A mapping of Leaf-node uids to ``FrozenLeaf`` objects
         self._leaf_nodes = {
             n_i.uid  : FrozenLeaf(n_i)
                 for un in self._tagged_reals.itervalues()
@@ -360,7 +355,7 @@ class Archive(object):
                         label = obj.label
                     )
                 else:
-                    assert False
+                    assert False, 'unexpected'
             else:
                 if isinstance(obj,UncertainReal):
                     un = TaggedIntermediateReal(
@@ -420,16 +415,13 @@ class Archive(object):
                         label=obj.label
                     )
                 else:
-                    assert False,"should never occur"
+                    assert False,"unexpected"
                     
-        # Stuff in the Archive object that Python cannot pickle
+        # Python cannot pickle this
         del self._uid_to_intermediate 
         
     # -----------------------------------------------------------------------
     def _thaw(self):
-        """
-
-        """            
         _leaf_nodes = dict()
         for uid_i,fl_i in self._leaf_nodes.iteritems():
             l = context._context.new_leaf(
@@ -583,12 +575,6 @@ def _builder(o_name,_nodes,_tagged_reals):
         _tagged_reals[o_name] = un    
                 
     elif isinstance(obj,TaggedIntermediateReal):                
-
-        # In older archives, there were no `i_components` or `d_components`
-        if not hasattr(obj,'i_components'):
-            obj.i_components = Vector()
-        if not hasattr(obj,'d_components'):
-            obj.d_components = Vector()
             
         un = UncertainReal(
             obj.value,

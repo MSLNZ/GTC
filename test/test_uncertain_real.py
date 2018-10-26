@@ -1893,50 +1893,6 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         equivalent( uu, u_component(y,self.un5), TOL )
         
 #-----------------------------------------------------
-class TestMultipleUNsWithConstants(unittest.TestCase):
-    """
-    When defining ensembles of real or complex uncertain numbers,
-    some elements might in fact have no uncertainty! In which
-    case they are defined as constants.
-    
-    This seems a bit artificial: in effect the user is
-    passing an uncertain number as part of an ensemble
-    when it is not! However, we may have this situation
-    in fitting scenarios (perhaps a parameter comes
-    back with no uncertainty due to some odd data).
-    So it is provided for. The creation of a constant
-    should not harm subsequent calculations.
-    
-    """
-    def test_ureal(self):
-    
-        x = [4.999,19.661E-3,1.04446]
-        u = [3.2E-3,0,7.5E-4]
-        labels = ['V','I','phi']
-        
-        v,i,phi = multiple_ureal(x,u,4,labels)
-        
-        self.assert_(v.x == x[0])
-        self.assert_(v.u == u[0])
-        self.assert_(v.df == 4)
-        self.assert_(v.label == labels[0])
-
-        self.assert_(i.x == x[1])
-        self.assert_(i.u == u[1])
-        self.assert_(i.df == 4)
-        self.assert_(i.label == labels[1])
-        
-        self.assert_(phi.x == x[2])
-        self.assert_(phi.u == u[2])
-        self.assert_(phi.df == 4)
-        self.assert_(phi.label == labels[2])
-
-        # We can only set a zero correlation if
-        # one of the arguments is a constant
-        set_correlation(0.0,v,i)
-        set_correlation(0.0,i,v) 
-
-#-----------------------------------------------------
 class GuideExampleH2(unittest.TestCase):
 
     def test_no_dof(self):
@@ -2103,6 +2059,7 @@ class GuideExampleH2(unittest.TestCase):
         equivalent( dof(x),5,TOL)
         equivalent( dof(z),5,TOL)
         
+
 #-----------------------------------------------------
 class TestMultipleUNsWithRealConstants(unittest.TestCase):
     """
@@ -2133,7 +2090,7 @@ class TestMultipleUNsWithRealConstants(unittest.TestCase):
 
         self.assert_(i.x == x[1])
         self.assert_(i.u == u[1])
-        self.assert_(i.df == 4)
+        self.assert_(i.df == inf)
         
         self.assert_(phi.x == x[2])
         self.assert_(phi.u == u[2])

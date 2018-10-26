@@ -1,8 +1,8 @@
 """
-This is a Python package for evaluating measurement uncertainty 
+A Python package for evaluating measurement uncertainty 
 in real and complex quantities.
 
-The method of uncertainty propagation used is compatible with methods described 
+The method of uncertainty propagation is compatible with the approach described 
 in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
 Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
@@ -75,10 +75,11 @@ __all__ = (
     ,   'mag_squared'
     ,   'magnitude'
     ,   'phase'
-    ,   'copyright', 'version'
-    ,   'reporting',   'rp'
-    ,   'type_b', 'tb'
-    ,   'type_a', 'ta'
+    ,   'copyright',    'version'
+    ,   'reporting',    'rp'
+    ,   'function',     'fn'
+    ,   'type_b',       'tb'
+    ,   'type_a',       'ta'
     ,   'math'
     ,   'cmath'
     ,   'is_infinity'
@@ -87,13 +88,13 @@ __all__ = (
     ,   'nan'
 )
  
-from core import *
- 
 #----------------------------------------------------------------------------
 version = "1.0.0"
 copyright = """Copyright (c) 2018, \
 Measurement Standards Laboratory of New Zealand"""
 
+from core import *
+ 
 
 
 
