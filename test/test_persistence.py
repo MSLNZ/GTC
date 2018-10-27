@@ -191,9 +191,9 @@ class TestArchive(unittest.TestCase):
 
         names = ['x','z']
         objs = [x,z]
-        self.assertEqual( names,ar.keys() )
-        self.assertEqual( objs,ar.values() )
-        self.assertEqual( zip(names,objs),ar.items() )
+        self.assertEqual( names,list(ar.keys()) )
+        self.assertEqual( objs,list(ar.values()) )
+        self.assertEqual( list(zip(names,objs)),list(ar.items()) )
 
         for i,k in enumerate( ar.iterkeys() ):
             self.assertEqual( names[i], k )
@@ -201,7 +201,7 @@ class TestArchive(unittest.TestCase):
         for i,k in enumerate( ar.itervalues() ):
             self.assertEqual( objs[i], k )
 
-        items = zip(names,objs)
+        items = list(zip(names,objs))
         for i,k in enumerate( ar.iteritems() ):
             self.assertEqual( items[i], k )
 
