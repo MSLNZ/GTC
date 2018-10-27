@@ -24,7 +24,8 @@ from GTC.named_tuples import (
     VarianceCovariance, 
     VarianceAndDof, 
     StandardUncertainty,
-    GroomedUncertainReal, 
+    GroomedUncertainReal,
+    GroomedUncertainComplex,
     ComponentOfUncertainty
 )
 
