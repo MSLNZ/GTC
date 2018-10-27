@@ -58,26 +58,26 @@ def to_std_uncertainty(x):
     """
     d = numpy.size(x)
     if( d == 1 ):
-        return ( numpy.mat( ((x,0.),(0.,x)) ), 0.0 )    
+        return ( numpy.asarray( [[x,0.],[0.,x]] ), 0.0 )
     elif( d == 2 ):
         # Assume that these are the diagonal standard uncertainies
         x0,x1 = x
-        return ( numpy.mat( ((x0,0.),(0.,x1)) ), 0.0 )    
+        return ( numpy.asarray( [[x0,0.],[0.,x1]] ), 0.0 )
     elif ( d == 4 ):       
-        tmp = numpy.mat( x, numpy.float )
+        tmp = numpy.asarray( x, numpy.float )
         tmp.shape = ( 2, 2 )
         assert is_positive_definite( tmp ),"not +ve definite: '%s'"
         
         u1 = math.sqrt(tmp[0,0])
         u2 = math.sqrt(tmp[1,1])
-        return ( numpy.mat( ((u1,0.),(0.,u2)) ), tmp[0,1] /(u1*u2) )    
+        return ( numpy.asarray( [[u1,0.],[0.,u2]] ), tmp[0,1] /(u1*u2) )
     else:
         raise TypeError('cast failed')
 
 #----------------------------------------------------------------------------
 def number_to_matrix(*args):
     """
-    Create a (2,2N) numpy.mat from a series of complex numbers.
+    Create a (2,2N) numpy.ndarray from a series of complex numbers.
     
     """
     mat = numpy.empty( (2,2*len(args)),float )
@@ -85,7 +85,7 @@ def number_to_matrix(*args):
         c = complex( a )
         mat[:,2*i:2*i+2] = ( (c.real, -c.imag) , (c.imag, c.real) ) 
 
-    return numpy.mat(mat)
+    return mat
 
 #----------------------------------------------------------------------------
 def array_to_sequence(m):
@@ -495,12 +495,12 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix(self.x2) * u1),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x2), u1)),
             TOL)
         u2,r = to_std_uncertainty(self.u2)
         equivalent_sequence(
             u_component(y,self.un2),
-            array_to_sequence( number_to_matrix(self.x1) * u2),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u2)),
             TOL)
         
         y *= self.un3
@@ -508,15 +508,15 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u3,r = to_std_uncertainty(self.u3)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix(self.x2*self.x3) * u1),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x2*self.x3), u1)),
             TOL)
         equivalent_sequence(
             u_component(y,self.un2),
-            array_to_sequence( number_to_matrix(self.x1*self.x3) * u2),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1*self.x3), u2)),
             TOL)
         equivalent_sequence(
             u_component(y,self.un3),
-            array_to_sequence( number_to_matrix(self.x2*self.x1) * u3),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x2*self.x1), u3)),
             TOL)
 
         # Intermediate u_component test
@@ -524,7 +524,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix(self.x2) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix(self.x2), u5))
         ,   TOL
         )
 
@@ -535,7 +535,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u2,r = to_std_uncertainty(self.u2)
         equivalent_sequence(
             u_component(y,self.un2),
-            array_to_sequence( number_to_matrix(num) * u2),
+            array_to_sequence( numpy.matmul(number_to_matrix(num), u2)),
             TOL)
 
         # Intermediate u_component test
@@ -543,7 +543,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix(num) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix(num), u5))
         ,   TOL
         )
 
@@ -554,7 +554,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u2,r = to_std_uncertainty(self.u2)
         equivalent_sequence(
             u_component(y,self.un2),
-            array_to_sequence( number_to_matrix(num) * u2),
+            array_to_sequence( numpy.matmul(number_to_matrix(num), u2)),
             TOL)
 
         # Mul to number on right, mul and 1 on right
@@ -564,7 +564,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix(num) * u1),
+            array_to_sequence( numpy.matmul(number_to_matrix(num), u1)),
             TOL)
         
         # Intermediate u_component test
@@ -572,7 +572,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix(num) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix(num), u5))
         ,   TOL
         )
 
@@ -583,7 +583,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix(num) * u1),
+            array_to_sequence( numpy.matmul(number_to_matrix(num), u1)),
             TOL)
 
         # uc-ur and ur-uc
@@ -592,13 +592,13 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix(self.x4) * u1)
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x4), u1))
         ,   TOL
         )
-        u4 = numpy.mat( ( (self.u4,0), (0,0) ))
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
         equivalent_sequence(
             u_component(y,self.un4),
-            array_to_sequence( number_to_matrix(self.x1) * u4),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u4)),
             TOL)
 
         y = self.un4 * self.un1 
@@ -606,13 +606,13 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix(self.x4) * u1),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x4), u1)),
             TOL
         )
-        u4 = numpy.mat( ( (self.u4,0), (0,0) ))
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
         equivalent_sequence(
             u_component(y,self.un4),
-            array_to_sequence( number_to_matrix(self.x1) * u4),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u4)),
             TOL
         )
 
@@ -622,23 +622,23 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)    
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix( value(self.un6) ) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(self.un6) ), u5))
         ,   TOL
         )
         equivalent_sequence(
             u_component(y,self.un6)
-        ,   array_to_sequence( number_to_matrix( value(self.un5) ) * numpy.mat( ((u6,0),(0,0)) ))
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(self.un5) ), numpy.asarray( [[u6,0],[0,0]] )))
         ,   TOL
         )
         y = self.un5 * self.un6         
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix( value(self.un6) ) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(self.un6) ), u5))
         ,   TOL
         )
         equivalent_sequence(
             u_component(y,self.un6)
-        ,   array_to_sequence( number_to_matrix( value(self.un5) ) * numpy.mat( ((u6,0),(0,0)) ))
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(self.un5) ), numpy.asarray( [[u6,0],[0,0]] )))
         ,   TOL
         )
 
@@ -652,12 +652,12 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u2,r = to_std_uncertainty(self.u2)
         equivalent_sequence(
             u_component(y,self.un1) 
-        ,   array_to_sequence( number_to_matrix( value(y) / self.x1 ) * u1 )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x1 ), u1 ))
         ,   TOL
         )
         equivalent_sequence(
             u_component(y,self.un2) 
-        ,   array_to_sequence( number_to_matrix( -value(y) / self.x2 ) * u2 )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x2 ), u2 ))
         ,   TOL
         )
 
@@ -666,7 +666,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         equivalent_complex(value(y),self.x1/self.x2/self.x3,TOL)
         equivalent_sequence(
             u_component(y,self.un3) 
-        ,   array_to_sequence( number_to_matrix( -value(y) / self.x3 ) * u3 )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x3 ), u3 ))
         ,   TOL
         )
 
@@ -677,7 +677,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix( -value(y)/value(self.un5) ) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y)/value(self.un5) ), u5))
         ,   TOL
         )
 
@@ -685,7 +685,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix( value(y)/value(self.un5) ) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(y)/value(self.un5) ), u5))
         ,   TOL
         )
 
@@ -696,7 +696,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u2,r = to_std_uncertainty(self.u2)
         equivalent_sequence(
             u_component(y,self.un2) 
-        ,   array_to_sequence( number_to_matrix( -value(y) / self.x2 ) * u2 )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x2 ), u2 ))
         ,   TOL
         )
 
@@ -704,7 +704,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix(-value(y)/value(self.un5)) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix(-value(y)/value(self.un5)), u5))
         ,   TOL
         )
 
@@ -715,7 +715,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1) 
-        ,   array_to_sequence( number_to_matrix( value(y) / self.x1 ) * u1 )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x1 ), u1 ))
         ,   TOL
         )
 
@@ -724,7 +724,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         equivalent_complex(value(y),self.x1,TOL)
         equivalent_sequence(
             u_component(y,self.un1) 
-        ,   array_to_sequence( number_to_matrix( 1.0 ) * u1 )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( 1.0 ), u1 ))
         ,   TOL
         )
 
@@ -732,7 +732,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix(value(y)/value(self.un5)) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix(value(y)/value(self.un5)), u5))
         ,   TOL
         )
 
@@ -742,13 +742,13 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix( value(y) / self.x1 ) * u1)
+            array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x1 ), u1))
         ,   TOL
         )
-        u4 = numpy.mat( ( (self.u4,0), (0,0) ))
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
         equivalent_sequence(
             u_component(y,self.un4),
-            array_to_sequence( number_to_matrix(-value(y) / self.x4) * u4),
+            array_to_sequence( numpy.matmul(number_to_matrix(-value(y) / self.x4), u4)),
             TOL)
 
         y = self.un4 / self.un1 
@@ -756,13 +756,13 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
             u_component(y,self.un1),
-            array_to_sequence( number_to_matrix( -value(y) / self.x1 ) * u1),
+            array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x1 ), u1)),
             TOL
         )
-        u4 = numpy.mat( ( (self.u4,0), (0,0) ))
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
         equivalent_sequence(
             u_component(y,self.un4),
-            array_to_sequence( number_to_matrix( value(y) / self.x4) * u4),
+            array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x4), u4)),
             TOL
         )
 
@@ -772,23 +772,23 @@ class ArithmeticTestsComplex(unittest.TestCase):
         u5,r = to_std_uncertainty(self.u5)    
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix( -value(y)/value(self.un5) ) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y)/value(self.un5) ), u5))
         ,   TOL
         )
         equivalent_sequence(
             u_component(y,self.un6)
-        ,   array_to_sequence( number_to_matrix( value(y)/value(self.un6) )  * numpy.mat( ((u6,0),(0,0)) ))
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(y)/value(self.un6) ), numpy.asarray( [[u6,0],[0,0]])))
         ,   TOL
         )
         y = self.un5 / self.un6         
         equivalent_sequence(
             u_component(y,self.un5)
-        ,   array_to_sequence( number_to_matrix( value(y)/value(self.un5) ) * u5) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(y)/value(self.un5) ), u5))
         ,   TOL
         )
         equivalent_sequence(
             u_component(y,self.un6)
-        ,   array_to_sequence( number_to_matrix( -value(y)/value(self.un6) ) * numpy.mat( ((u6,0),(0,0)) ))
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y)/value(self.un6) ), numpy.asarray( [[u6,0],[0,0]])))
         ,   TOL
         )
 
@@ -919,7 +919,7 @@ class ComplexFunctionTest(unittest.TestCase):
        
     def trig(self):
         v =  -1 + 2j
-        mat = numpy.mat([(0.87,0),(0,0.95) ])
+        mat = numpy.asarray([[0.87,0],[0,0.95] ])
         x = ucomplex(v,( (mat[0,0], mat[1,1]) ) )
         
         s = sin(x)
@@ -934,7 +934,7 @@ class ComplexFunctionTest(unittest.TestCase):
             TOL)
         equivalent_sequence(
             u_component(s,x),
-            array_to_sequence( number_to_matrix( cmath.cos(v) ) * mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix( cmath.cos(v) ), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(s) ) )
 
@@ -944,14 +944,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(cmath.cos(v3)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.cos(v3)), mat3)),
             TOL)
 
          # cos -----------------------------------------        
         equivalent_complex(value(c),cmath.cos(v),TOL)
         equivalent_sequence(
             u_component(c,x),
-            array_to_sequence( number_to_matrix(-cmath.sin(v)) * mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(-cmath.sin(v)), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(c) ) )
         
@@ -961,14 +961,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(-cmath.sin(v3)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(-cmath.sin(v3)), mat3)),
             TOL)
 
          # tan -----------------------------------------        
         equivalent_complex(value(t),cmath.tan(v),TOL)
         equivalent_sequence(
             u_component(t,x),
-            array_to_sequence( number_to_matrix(1.0/( cmath.cos(v))**2) * mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/( cmath.cos(v))**2), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(c) ) )
         
@@ -978,7 +978,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1.0/(cmath.cos(v3))**2) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/(cmath.cos(v3))**2), mat3)),
             TOL)
  
     def trig_h(self):
@@ -994,7 +994,7 @@ class ComplexFunctionTest(unittest.TestCase):
         equivalent_complex(value(s),cmath.sinh(v),TOL)
         equivalent_sequence(
             u_component(s,x),
-            array_to_sequence( number_to_matrix(cmath.cosh(v)) * mat),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.cosh(v)), mat)),
             TOL)
         self.assertTrue( is_infinity( dof(s) ) )
         
@@ -1004,7 +1004,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(cmath.cosh(v3)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.cosh(v3)), mat3)),
             TOL)
         
         
@@ -1012,7 +1012,7 @@ class ComplexFunctionTest(unittest.TestCase):
         equivalent_complex(value(c),cmath.cosh(v),TOL)
         equivalent_sequence(
             u_component(c,x),
-            array_to_sequence( number_to_matrix(cmath.sinh(v)) * mat),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.sinh(v)), mat)),
             TOL)
         self.assertTrue(is_infinity( dof(c) ))
 
@@ -1022,14 +1022,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(cmath.sinh(v3)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.sinh(v3)), mat3)),
             TOL)
         
         # tanh -----------------------------------------------      
         equivalent_complex(value(t),cmath.tanh(v),TOL)
         equivalent_sequence(
             u_component(t,x),
-            array_to_sequence( number_to_matrix(1.0/(cmath.cosh(v))**2) * mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/(cmath.cosh(v))**2), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(t) ) )
 
@@ -1039,7 +1039,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1.0/(cmath.cosh(v3))**2) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/(cmath.cosh(v3))**2), mat3)),
             TOL)
 
     def arcos(self,z):
@@ -1053,7 +1053,7 @@ class ComplexFunctionTest(unittest.TestCase):
 
     def a_trig(self):
         v = 0.32 + 1.1j
-        mat = numpy.mat([ (1.17,0),(0,0.35)])
+        mat = numpy.asarray([ [1.17,0],[0,0.35]])
         x = ucomplex(v,(mat[0,0], mat[1,1]) )
         
         s = asin(x)
@@ -1065,7 +1065,7 @@ class ComplexFunctionTest(unittest.TestCase):
         den = 1 - v**2
         equivalent_sequence(
             u_component(s,x),
-            array_to_sequence( number_to_matrix(1/cmath.sqrt(den)) * mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1/cmath.sqrt(den)), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(s) ) )
 
@@ -1076,7 +1076,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1/cmath.sqrt(den)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1/cmath.sqrt(den)), mat3)),
             TOL)
 
         # acos -----------------------------------------------      
@@ -1084,7 +1084,7 @@ class ComplexFunctionTest(unittest.TestCase):
         den = 1 - v**2
         equivalent_sequence(
             u_component(c,x),
-            array_to_sequence( number_to_matrix(-1/cmath.sqrt(den))*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(-1/cmath.sqrt(den)), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(c) ) )
 
@@ -1095,7 +1095,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(-1/cmath.sqrt(den)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(-1/cmath.sqrt(den)), mat3)),
             TOL)
 
         # atan -----------------------------------------------      
@@ -1103,7 +1103,7 @@ class ComplexFunctionTest(unittest.TestCase):
         den = 1 + v**2
         equivalent_sequence(
             u_component(t,x),
-            array_to_sequence( number_to_matrix(1.0/den)*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/den), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(t) ) )
 
@@ -1114,7 +1114,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1/den) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1/den), mat3)),
             TOL)
 
     def arcosh(self,z):
@@ -1137,7 +1137,7 @@ class ComplexFunctionTest(unittest.TestCase):
                 
     def a_trig_h(self):
         v = -2 + 3j
-        mat = numpy.mat( [(1.17,0),(0,0.35)] )
+        mat = numpy.asarray( [[1.17,0],[0,0.35]] )
         x = ucomplex(v, ((mat[0,0], mat[1,1]) ) )
         
         s = asinh(x)
@@ -1149,7 +1149,7 @@ class ComplexFunctionTest(unittest.TestCase):
         den = 1 + v**2
         equivalent_sequence(
             u_component(s,x),
-            array_to_sequence( number_to_matrix(1.0/cmath.sqrt(den))*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/cmath.sqrt(den)), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(s) ) )
 
@@ -1160,7 +1160,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1/cmath.sqrt(den)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1/cmath.sqrt(den)), mat3)),
             TOL)
 
         # acosh -----------------------------------------------      
@@ -1168,7 +1168,7 @@ class ComplexFunctionTest(unittest.TestCase):
         den = cmath.sqrt((v - 1) * (v + 1))
         equivalent_sequence(
             u_component(c,x),
-            array_to_sequence( number_to_matrix(1.0/den)*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/den), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(c) ) )
 
@@ -1179,7 +1179,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1/(den)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1/(den)), mat3)),
             TOL)
 
         # atanh -----------------------------------------------      
@@ -1187,7 +1187,7 @@ class ComplexFunctionTest(unittest.TestCase):
         den = 1 - v**2
         equivalent_sequence(
             u_component(t,x),
-            array_to_sequence( number_to_matrix(1.0/den)*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/den), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(t) ) )
 
@@ -1198,7 +1198,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1/den) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1/den), mat3)),
             TOL)
 
         
@@ -1215,7 +1215,7 @@ class ComplexFunctionTest(unittest.TestCase):
         equivalent_complex(value(c),v.conjugate(), TOL)
         equivalent_sequence(
             u_component(c,x),
-            array_to_sequence( numpy.matrix([[1,0],[0,-1]])*mat ),
+            array_to_sequence( numpy.matmul(numpy.asarray([[1,0],[0,-1]]), mat) ),
             TOL)
         self.assertTrue( is_infinity( dof(c) ) )
         
@@ -1224,14 +1224,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( numpy.matrix([[1,0],[0,-1]]) * mat3),
+            array_to_sequence( numpy.matmul(numpy.asarray([[1,0],[0,-1]]), mat3) ),
             TOL)
 
         # real -----------------------------------------------      
         equivalent_complex(value(re),complex(v.real),TOL)
         equivalent_sequence(
             u_component(re,x),
-            array_to_sequence( numpy.matrix([[1,0],[0,0]])*mat ),
+            array_to_sequence( numpy.matmul(numpy.asarray([[1,0],[0,0]]), mat) ),
             TOL)
         self.assertTrue( is_infinity( dof(re) ) )
 
@@ -1240,14 +1240,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( numpy.matrix([[1,0],[0,0]]) * mat3),
+            array_to_sequence( numpy.matmul(numpy.asarray([[1,0],[0,0]]), mat3) ),
             TOL)
 
         # imag -----------------------------------------------      
         equivalent_complex(value(im),complex(v.imag),TOL)
         equivalent_sequence(
             u_component(im,x),
-            array_to_sequence( numpy.matrix([[0,1],[0,0]])*mat ),
+            array_to_sequence( numpy.matmul(numpy.asarray([[0,1],[0,0]]), mat) ),
             TOL)
         self.assertTrue( is_infinity( dof(im) ) )
 
@@ -1256,7 +1256,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( numpy.matrix([[0,1],[0,0]]) * mat3),
+            array_to_sequence( numpy.matmul(numpy.asarray([[0,1],[0,0]]), mat3) ),
             TOL)
         
     def misc(self):
@@ -1277,7 +1277,7 @@ class ComplexFunctionTest(unittest.TestCase):
         equivalent_complex(value(l10),cmath.log10(v),TOL)
         equivalent_sequence(
             u_component(l10,x)
-        ,   array_to_sequence( number_to_matrix(LOG10_E/v)*mat )
+        ,   array_to_sequence( numpy.matmul(number_to_matrix(LOG10_E/v), mat ))
         ,   TOL
         )
         self.assertTrue( is_infinity(dof(l10)) )
@@ -1286,7 +1286,7 @@ class ComplexFunctionTest(unittest.TestCase):
         equivalent_complex(value(e),cmath.exp(v),TOL)
         equivalent_sequence(
             u_component(e,x),
-            array_to_sequence( number_to_matrix(cmath.exp(v))*mat),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.exp(v)), mat)),
             TOL)
         self.assertTrue( is_infinity(dof(e)) )
         
@@ -1296,14 +1296,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(cmath.exp(v3)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(cmath.exp(v3)), mat3)),
             TOL)
 
         # log -----------------------------------------------------------        
         equivalent_complex(value(l),cmath.log(v),TOL)
         equivalent_sequence(
             u_component(l,x),
-            array_to_sequence( number_to_matrix(1.0/v)*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/v), mat )),
             TOL)
         self.assertTrue( is_infinity(dof(l)) )
 
@@ -1313,14 +1313,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(1.0/v3) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(1.0/v3), mat3)),
             TOL)
 
         # sqrt ------------------------------------------------------------
         equivalent_complex(value(s),cmath.sqrt(v),TOL)
         equivalent_sequence(
             u_component(s,x),
-            array_to_sequence( number_to_matrix(0.5/cmath.sqrt(v))*mat ),
+            array_to_sequence( numpy.matmul(number_to_matrix(0.5/cmath.sqrt(v)), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(s) ) )
 
@@ -1330,14 +1330,14 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( number_to_matrix(0.5/cmath.sqrt(v3)) * mat3),
+            array_to_sequence( numpy.matmul(number_to_matrix(0.5/cmath.sqrt(v3)), mat3)),
             TOL)
            
         # mag_squared ------------------------------------------------------------
         equivalent_complex(value(n),complex(abs(v)**2),TOL)
         equivalent_sequence(
             u_component(n,x),
-            array_to_sequence( numpy.mat(( (2*v.real,2*v.imag),(0,0) ))*mat ),
+            array_to_sequence( numpy.matmul(numpy.asarray([ [2*v.real,2*v.imag],[0,0] ]), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(n) ) )
 
@@ -1347,7 +1347,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( numpy.mat(( (2*v3.real,2*v3.imag),(0,0) )) * mat3),
+            array_to_sequence( numpy.matmul(numpy.asarray([ [2*v3.real,2*v3.imag],[0,0] ]), mat3)),
             TOL)
 
         # when argument is ureal, it returns self*self
@@ -1366,7 +1366,7 @@ class ComplexFunctionTest(unittest.TestCase):
         equivalent_complex(value(a),complex( abs(v) ),TOL)
         equivalent_sequence(
             u_component(a,x),
-            array_to_sequence( numpy.mat(( (v.real/abs(v),v.imag/abs(v)),(0,0) ))* mat ),
+            array_to_sequence( numpy.matmul(numpy.asarray([ [v.real/abs(v),v.imag/abs(v)],[0,0] ]), mat )),
             TOL)
         self.assertTrue( is_infinity( dof(a) ) )
 
@@ -1376,7 +1376,7 @@ class ComplexFunctionTest(unittest.TestCase):
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
         equivalent_sequence(
             u_component(s3,self.un3),
-            array_to_sequence( numpy.mat(( (v3.real/abs(v3),v3.imag/abs(v3)),(0,0) )) * mat3),
+            array_to_sequence( numpy.matmul(numpy.asarray([ [v3.real/abs(v3),v3.imag/abs(v3)],[0,0] ]), mat3)),
             TOL)
 
     def power(self):
@@ -1400,12 +1400,12 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dx = vp*vy/vx
         equivalent_sequence(
             u_component(p,x),
-            array_to_sequence( number_to_matrix(dp_dx)*matx ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
             TOL)
         dp_dy = cmath.log(vx)*vp
         equivalent_sequence(
             u_component(p,y),
-            array_to_sequence( number_to_matrix(dp_dy)*maty ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dy), maty )),
             TOL)
 
         # intermediate
@@ -1417,7 +1417,7 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dv3 = cmath.log(vx)* vp        
         equivalent_sequence(
             u_component(p,self.un3),
-            array_to_sequence( number_to_matrix(dp_dv3) * mat3 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
 
         p = self.un3**y
@@ -1425,7 +1425,7 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dv3 = vp*vy/v3
         equivalent_sequence(
             u_component(p,self.un3),
-            array_to_sequence( number_to_matrix(dp_dv3) * mat3 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
 
 
@@ -1438,7 +1438,7 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dy = cmath.log(vz)*vp
         equivalent_sequence(
             u_component(p,y),
-            array_to_sequence( number_to_matrix(dp_dy)*maty ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dy), maty )),
             TOL)
 
         # intermediate
@@ -1451,7 +1451,7 @@ class ComplexFunctionTest(unittest.TestCase):
         
         equivalent_sequence(
             u_component(p,self.un3),
-            array_to_sequence( number_to_matrix(dp_dv3) * mat3 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
         
         # uc-numb ---------------------------------------------------        
@@ -1463,7 +1463,7 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dx = vp*vz/vx
         equivalent_sequence(
             u_component(p,x),
-            array_to_sequence( number_to_matrix(dp_dx)*matx ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
             TOL)
 
         # intermediate
@@ -1476,7 +1476,7 @@ class ComplexFunctionTest(unittest.TestCase):
         
         equivalent_sequence(
             u_component(p,self.un3),
-            array_to_sequence( number_to_matrix(dp_dv3) * mat3 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
 
         # uc-ur ------------------------------------------------
@@ -1494,12 +1494,12 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dx = vp*vy/vx
         equivalent_sequence(
             u_component(p,x),
-            array_to_sequence( number_to_matrix(dp_dx)* matx ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
             TOL)
         dp_dy = cmath.log(vx)*vp
         equivalent_sequence(
             u_component(p,y),
-            array_to_sequence( number_to_matrix(dp_dy)* numpy.mat( ((uy,0),(0,0)) ) ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dy), numpy.asarray( [[uy,0],[0,0]] ) )),
             TOL)
 
         # intermediate
@@ -1510,17 +1510,17 @@ class ComplexFunctionTest(unittest.TestCase):
         vp = v3**v4
 
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
-        mat4 = numpy.mat( ((u4,0),(0,0)) )
+        mat4 = numpy.asarray( [[u4,0],[0,0]] )
 
         dp_dv4 = cmath.log(v3)* vp        
         equivalent_sequence(
             u_component(p,self.un4),
-            array_to_sequence( number_to_matrix(dp_dv4) * mat4 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv4), mat4 )),
             TOL)
         dp_dv3 = vp*v4/v3
         equivalent_sequence(
             u_component(p,self.un3),
-            array_to_sequence( number_to_matrix(dp_dv3) * mat3 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
         
         # ur-uc ------------------------------------------------
@@ -1538,12 +1538,12 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dx = vp*vy/vx
         equivalent_sequence(
             u_component(p,x),
-            array_to_sequence( number_to_matrix(dp_dx)* numpy.mat( ((ux,0),(0,0)) ) ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), numpy.asarray( [[ux,0],[0,0]] ) )),
             TOL)
         dp_dy = cmath.log(vx)*vp
         equivalent_sequence(
             u_component(p,y),
-            array_to_sequence( number_to_matrix(dp_dy)* maty ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dy), maty )),
             TOL)
 
         # intermediate
@@ -1554,17 +1554,17 @@ class ComplexFunctionTest(unittest.TestCase):
         vp = v4**v3
 
         mat3,r = to_std_uncertainty( uncertainty(self.un3) )
-        mat4 = numpy.mat( ((u4,0),(0,0)) )
+        mat4 = numpy.asarray( [[u4,0],[0,0]] )
 
         dp_dv3 = cmath.log(v4)* vp        
         equivalent_sequence(
             u_component(p,self.un3),
-            array_to_sequence( number_to_matrix(dp_dv3) * mat3 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
         dp_dv4 = vp*v3/v4
         equivalent_sequence(
             u_component(p,self.un4),
-            array_to_sequence( number_to_matrix(dp_dv4) * mat4 ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dv4), mat4 )),
             TOL)
         
         # special cases ------------------------------------------------
@@ -1583,7 +1583,7 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dx = vp*vz/vx
         equivalent_sequence(
             u_component(p,x),
-            array_to_sequence( number_to_matrix(dp_dx)*matx ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
             TOL)
 
         # x ** n, where n is 1
@@ -1595,7 +1595,7 @@ class ComplexFunctionTest(unittest.TestCase):
         dp_dx = vp*vz/vx
         equivalent_sequence(
             u_component(p,x),
-            array_to_sequence( number_to_matrix(dp_dx)*matx ),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
             TOL)
 
 #-----------------------------------------------------
