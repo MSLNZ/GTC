@@ -105,11 +105,11 @@ class TestVector(unittest.TestCase):
         
         """
         indices = [ Dummy(i) for i in range(9) ]
-        values = range(9)
+        values = list(range(9))
         indices_cp = copy.copy(indices)
         values_cp = copy.copy(values)
         
-        v1 = Vector( index=indices,value=range(9) )
+        v1 = Vector( index=indices,value=list(range(9)) )
         self.assertTrue(is_ordered(v1))
         
         k = 5.
@@ -135,16 +135,16 @@ class TestVector(unittest.TestCase):
         
         """
         index1 = [ Dummy(i) for i in range(9) ]
-        v1 = Vector( index=index1,value=range(9) )
+        v1 = Vector( index=index1,value=list(range(9)) )
         index2 = [ Dummy(i) for i in range(5,15) ]
-        v2 = Vector( index=index2,value=range(10) )    
+        v2 = Vector( index=index2,value=list(range(10)) )
         self.assertTrue(is_ordered(v1))
         self.assertTrue(is_ordered(v2))
         
         v = extend_vector(v1,v2)  
         
         v_range = [ i.uid for i in v.keys() ]
-        self.assertEqual(v_range,range(15))
+        self.assertEqual(v_range,list(range(15)))
         self.assertTrue(is_ordered(v))
         
         for i,x in v.iteritems():
@@ -157,7 +157,7 @@ class TestVector(unittest.TestCase):
 
     def test_merge_weighted_vectors(self):
         # Merge two overlapping continuous ranges
-        rng1 = range(10)
+        rng1 = list(range(10))
         index1 = [ Dummy(i) for i in rng1 ]
         v1 = Vector( index=index1,value=rng1 )
         self.assertTrue(is_ordered(v1))
@@ -181,7 +181,7 @@ class TestVector(unittest.TestCase):
         self.assertTrue( index1 == idx1_cp )
         self.assertTrue( index2 == idx2_cp )
         
-        rng = range(15)   
+        rng = list(range(15))
         rng_merged = [ i.uid for i in v.keys() ]
         self.assertEqual(rng_merged,rng)
         
@@ -197,7 +197,7 @@ class TestVector(unittest.TestCase):
 
     def test_merge_vectors(self):
         # Merge two overlapping continuous ranges
-        rng1 = range(10)
+        rng1 = list(range(10))
         index1 = [ Dummy(i) for i in rng1 ]
         v1 = Vector( index=index1,value=rng1 )
         self.assertTrue(is_ordered(v1))
@@ -219,7 +219,7 @@ class TestVector(unittest.TestCase):
         self.assertTrue( index1 == idx1_cp )
         self.assertTrue( index2 == idx2_cp )
         
-        rng = range(15)   
+        rng = list(range(15))
         rng_merged = [ i.uid for i in v.keys() ]
         self.assertEqual(rng_merged,rng)
         
