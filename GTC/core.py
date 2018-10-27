@@ -4,7 +4,10 @@ import math
 import cmath
 import numbers
 import collections
-import itertools
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
 
 from GTC import lib
 from GTC import reporting
@@ -375,7 +378,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     rtn = [
         # NB `ureal` will create constant objects when u == 0
         ureal(x_i,u_i,df,label=l_i,independent=False)
-            for x_i,u_i,l_i in itertools.izip(
+            for x_i,u_i,l_i in izip(
                 x_seq,u_seq,label_seq
             )
     ]
@@ -631,7 +634,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     rtn = [
         # When u_i == 0 constant objects are created
         ucomplex(x_i,u_i,df,label=l_i,independent=False)
-            for x_i,u_i,l_i in itertools.izip(
+            for x_i,u_i,l_i in izip(
                 x_seq,u_seq,label_seq
             )
     ]

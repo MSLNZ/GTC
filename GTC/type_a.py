@@ -38,7 +38,11 @@ from __future__ import division
 import sys
 import math
 import numbers
-import itertools
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
+
 
 from GTC.context import _context 
 
@@ -525,7 +529,7 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
             cv[i].append(
                 math.fsum(
                     d_i*d_j
-                        for d_i,d_j in itertools.izip(seq_i,seq_j)
+                        for d_i,d_j in izip(seq_i,seq_j)
                 )/N_N_1
             )
 
@@ -657,7 +661,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
         for j in xrange(i+1,TWOM):
             x_j = x[j]
             cv = math.fsum( 
-                d_i*d_j for d_i,d_j in itertools.izip(x_i,x_j) 
+                d_i*d_j for d_i,d_j in izip(x_i,x_j)
             )/N_N_1
             if cv != 0.0:
                 r = cv/(x_u[i]*x_u[j]) 

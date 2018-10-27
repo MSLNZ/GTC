@@ -31,7 +31,11 @@ import numbers
 import math
 import cmath
 
-from itertools import izip
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
+
 from operator import attrgetter as getter
 from functools import reduce
 

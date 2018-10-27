@@ -18,7 +18,11 @@ of elements is checked when appending (but not during construction).
 Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
 
 """
-from itertools import izip
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
+
 
 __all__ = [
         'Vector'

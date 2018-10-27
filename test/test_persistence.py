@@ -2,7 +2,10 @@ import unittest
 import sys
 import math
 import cmath
-import itertools
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
 import os
 
 from GTC import *
@@ -155,7 +158,7 @@ class TestArchive(unittest.TestCase):
         self.assert_(
             all( 
                 z_i.uid == z1_i.uid 
-                    for (z_i, z1_i) in itertools.izip(
+                    for (z_i, z1_i) in izip(
                         z._i_components,z1._i_components) 
             )
         )

@@ -2,7 +2,10 @@ import unittest
 import sys
 import math
 import cmath
-import itertools
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
 
 import numpy
 
@@ -97,7 +100,7 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             re_seq = re_data_.seq(k)
             im_seq = im_data_.seq(k)
-            zseq = [ complex(i,j) for i,j in itertools.izip(re_seq,im_seq) ]
+            zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
         
             self.assert_(
                 equivalent_complex(
@@ -117,7 +120,7 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             re_seq = re_data_.seq(k)
             im_seq = im_data_.seq(k)
-            zseq = [ complex(i,j) for i,j in itertools.izip(re_seq,im_seq) ]
+            zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
 
             root_N = math.sqrt( len(zseq) )            
 
@@ -138,7 +141,7 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             re_seq = re_data_.seq(k)
             im_seq = im_data_.seq(k)
-            zseq = [ complex(i,j) for i,j in itertools.izip(re_seq,im_seq) ]
+            zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
 
             root_N = math.sqrt( len(zseq) )            
 

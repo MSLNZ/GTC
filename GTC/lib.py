@@ -8,8 +8,10 @@ from __future__ import division
 import math
 import cmath
 import numbers
-
-from itertools import izip
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
 
 from GTC import nodes 
 from GTC import vector 

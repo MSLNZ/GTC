@@ -5,7 +5,10 @@ import cmath
 import copy
 import numpy
 import operator
-from itertools import izip
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
 
 TOL = 1E-13
 DIGITS = 13

@@ -1,6 +1,9 @@
 """
 """
-from itertools import izip
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
 import math
 
 __all__ = (
