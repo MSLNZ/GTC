@@ -189,20 +189,20 @@ class TestArchive(unittest.TestCase):
         ar.add(x=x,z=z)
         self.assertEqual( len(ar) , 2)
 
-        names = ['x','z']
-        objs = [x,z]
-        self.assertEqual( names,list(ar.keys()) )
-        self.assertEqual( objs,list(ar.values()) )
-        self.assertEqual( list(zip(names,objs)),list(ar.items()) )
+        names = sorted(['x','z'])
+        objs = sorted([x,z])
+        self.assertEqual( names,sorted(ar.keys()) )
+        self.assertEqual( objs,sorted(ar.values()) )
+        self.assertEqual( sorted(zip(names,objs)),sorted(ar.items()) )
 
-        for i,k in enumerate( ar.iterkeys() ):
+        for i,k in enumerate( sorted(ar.iterkeys()) ):
             self.assertEqual( names[i], k )
 
-        for i,k in enumerate( ar.itervalues() ):
+        for i,k in enumerate( sorted(ar.itervalues()) ):
             self.assertEqual( objs[i], k )
 
-        items = list(zip(names,objs))
-        for i,k in enumerate( ar.iteritems() ):
+        items = sorted(zip(names,objs))
+        for i,k in enumerate( sorted(ar.iteritems()) ):
             self.assertEqual( items[i], k )
 
     def test1(self):
