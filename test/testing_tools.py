@@ -34,7 +34,7 @@ def equivalent_sequence(u,m,tol=TOL):
         for u_i,m_i in izip(u,m):
             print abs(u_i - m_i)
             
-        raise AssertionError,"'%s' <> '%s' " % (u,m)
+        raise AssertionError("'%s' <> '%s' " % (u,m))
 
 #-----------------------------------------------------
 def equivalent_matt(m,n,tol=TOL):
@@ -96,7 +96,7 @@ def equivalent_complex(x,y,tol=TOL):
         return True
     else:
         print "Differences and tolerance: ", abs(xc.real-yc.real), abs(xc.imag-yc.imag), tol
-        raise AssertionError, "'(%.15G,%.15G)' <> '(%.15G,%.15G)' " % (x.real,x.imag,y.real,y.imag)
+        raise AssertionError("'(%.15G,%.15G)' <> '(%.15G,%.15G)' " % (x.real,x.imag,y.real,y.imag))
 
 #-----------------------------------------------------
 def _equivalent(x,y,tol):
@@ -115,4 +115,4 @@ def equivalent(x,y,tol=TOL):
     else:
         msg = "Values are not numerically equivalent: abs(%.16G-%.16G) = %.16G with tol= %.16G" % (
             x,y,abs(x-y),tol)
-        raise AssertionError,msg
+        raise AssertionError(msg)

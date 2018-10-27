@@ -69,7 +69,7 @@ def to_std_uncertainty(x):
         u2 = math.sqrt(tmp[1,1])
         return ( numpy.mat( ((u1,0.),(0.,u2)) ), tmp[0,1] /(u1*u2) )    
     else:
-        raise TypeError, 'cast failed'
+        raise TypeError('cast failed')
 
 #----------------------------------------------------------------------------
 def number_to_matrix(*args):

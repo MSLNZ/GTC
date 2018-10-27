@@ -859,7 +859,7 @@ class UncertainReal(object):
         elif isinstance(rhs,(float,int,long)):
             return _atan2_re_x(self,float(rhs))
         elif isinstance(rhs,complex):
-            raise TypeError,'atan2 is undefined with a complex argument'
+            raise TypeError('atan2 is undefined with a complex argument')
         else:
             return NotImplemented
 
@@ -867,7 +867,7 @@ class UncertainReal(object):
         if isinstance(lhs,(float,int,long)):
             return _atan2_x_re(float(lhs),self)
         elif isinstance(lhs,complex):
-            raise TypeError,'atan2 is undefined with a complex argument'
+            raise TypeError('atan2 is undefined with a complex argument')
         else:
             return NotImplemented
         

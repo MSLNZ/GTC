@@ -111,28 +111,24 @@ def seq_to_complex(seq):
     TOL = 1E-16
     if hasattr(seq,'shape'):
         if seq.shape != (2,2):
-            raise RuntimeError,\
-                "array shape illegal: {}".format(seq)    
+            raise RuntimeError("array shape illegal: {}".format(seq))
         elif (
             math.fabs( seq[0,0] - seq[1,1] ) > TOL
         or  math.fabs( seq[1,0] + seq[0,1] ) > TOL ):
-            raise RuntimeError,\
-                "ill-conditioned sequence: {}".format(seq)
+            raise RuntimeError("ill-conditioned sequence: {}".format(seq))
         else:
             seq = list( seq.flat )
             
     elif is_sequence(seq):
         if len(seq) != 4:
-            raise RuntimeError,\
-                "sequence must have 4 elements: {}".format(seq)
+            raise RuntimeError("sequence must have 4 elements: {}".format(seq))
         elif (
             math.fabs( seq[0] - seq[3] ) > TOL
         or  math.fabs( seq[1] + seq[2] ) > TOL ):
-            raise RuntimeError,\
-                "ill-conditioned sequence: {}".format(seq)
+            raise RuntimeError("ill-conditioned sequence: {}".format(seq))
     
     else:
-        raise RuntimeError,"illegal argument: {}".format(seq)
+        raise RuntimeError("illegal argument: {}".format(seq))
 
     return complex(seq[0],seq[2])
 
