@@ -12,7 +12,10 @@ from __future__ import division
 
 import math
 import cmath
-import collections
+try:
+    from collections import Sequence  # Python 2
+except ImportError:
+    from collections.abc import Sequence
 
 #----------------------------------------------------------------------------
 # Global constants, etc
@@ -32,7 +35,7 @@ LOG10_E = math.log10(math.e)
 def is_sequence(obj):
     if isinstance(obj, basestring):
         return False
-    return isinstance(obj, collections.Sequence)
+    return isinstance(obj, Sequence)
     
 #----------------------------------------------------------------------------
 
