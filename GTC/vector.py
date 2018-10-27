@@ -229,9 +229,9 @@ def is_ordered(v):
     """
     try:
         it = v.iterkeys()
-        x = it.next()
+        x = next(it)
         while True:
-            last, x = x, it.next()
+            last, x = x, next(it)
             if x.uid < last.uid: return False
     except StopIteration:
         return True    
@@ -295,8 +295,8 @@ def merge_vectors(v1,v2):
         it1 = v1.iteritems()
         it2 = v2.iteritems()
 
-        i1,x1 = it1.next()
-        i2,x2 = it2.next()
+        i1,x1 = next(it1)
+        i2,x2 = next(it2)
             
         #------------------------------
         while True:
@@ -309,19 +309,19 @@ def merge_vectors(v1,v2):
                 # i1 == i2
                 index.append(i1)
                 value.append( x1+x2 )           
-                i1,x1 = it1.next()
-                i2,x2 = it2.next()
+                i1,x1 = next(it1)
+                i2,x2 = next(it2)
                     
             elif case < 0:
                 # i1 < i2
                 index.append(i1)
                 value.append( x1 )           
-                i1,x1 = it1.next()
+                i1,x1 = next(it1)
             else:
                 # i1 > i2
                 index.append(i2)
                 value.append( x2 )           
-                i2,x2 = it2.next()
+                i2,x2 = next(it2)
                 
         #------------------------------
         v1.pop() 
@@ -370,8 +370,8 @@ def merge_weighted_vectors(v1,w1,v2,w2):
         it1 = v1.iteritems()
         it2 = v2.iteritems()
 
-        i1,x1 = it1.next()
-        i2,x2 = it2.next()
+        i1,x1 = next(it1)
+        i2,x2 = next(it2)
                     
         #------------------------------
         while True:
@@ -384,19 +384,19 @@ def merge_weighted_vectors(v1,w1,v2,w2):
                 # i1 == i2
                 index.append(i1)
                 value.append(w1*x1+w2*x2)
-                i1,x1 = it1.next()
-                i2,x2 = it2.next()
+                i1,x1 = next(it1)
+                i2,x2 = next(it2)
                     
             elif case < 0:
                 # i1 < i2
                 index.append(i1)
                 value.append(w1*x1)
-                i1,x1 = it1.next()
+                i1,x1 = next(it1)
             else:
                 # i1 > i2
                 index.append(i2)
                 value.append(w2*x2)
-                i2,x2 = it2.next()
+                i2,x2 = next(it2)
 
         #------------------------------
         v1.pop() 
@@ -481,8 +481,8 @@ def merge_weighted_vectors_twice(v1,w1,v2,w2):
         it1 = v1.iteritems()
         it2 = v2.iteritems()
 
-        i1,x1 = it1.next()
-        i2,x2 = it2.next()
+        i1,x1 = next(it1)
+        i2,x2 = next(it2)
         
         #------------------------------
         while True:
@@ -497,22 +497,22 @@ def merge_weighted_vectors_twice(v1,w1,v2,w2):
                 value1.append(w11*x1+w12*x2)
                 value2.append(w21*x1+w22*x2)
                 
-                i1,x1 = it1.next()
-                i2,x2 = it2.next()
+                i1,x1 = next(it1)
+                i2,x2 = next(it2)
                     
             elif case < 0:
                 # i1 < i2
                 index.append(i1)
                 value1.append(w11*x1)
                 value2.append(w21*x1)
-                i1,x1 = it1.next()
+                i1,x1 = next(it1)
 
             else:
                 # i1 > i2
                 index.append(i2)
                 value1.append(w12*x2)
                 value2.append(w22*x2)
-                i2,x2 = it2.next()
+                i2,x2 = next(it2)
 
         #------------------------------
         v1.pop() 

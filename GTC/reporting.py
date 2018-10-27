@@ -454,12 +454,12 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                 it_im = im.iteritems()
                 
                 while True:
-                    ir_0,ur_0 = it_re.next()
-                    ii_0,ui_0 = it_im.next()
+                    ir_0,ur_0 = next(it_re)
+                    ii_0,ui_0 = next(it_im)
 
                     if hasattr(ir_0,'complex'):
-                        ir_1,ur_1 = it_re.next()
-                        ii_1,ui_1 = it_im.next()
+                        ir_1,ur_1 = next(it_re)
+                        ii_1,ui_1 = next(it_im)
                         
                         if ir_0.label is None:
                             # No label assigned, report uids
