@@ -33,8 +33,10 @@ import itertools
 import numbers
 try:
     import cPickle as pickle  # Python 2
+    PY2 = True
 except ImportError:
     import pickle
+    PY2 = False
 
 from GTC.lib import (
     UncertainComplex,
@@ -125,7 +127,9 @@ class Archive(object):
     def iterkeys(self):
         """Return an iterator for names 
         """
-        return self._tagged.iterkeys()
+        if PY2:
+            return self._tagged.iterkeys()
+        return self._tagged.keys()
 
     def values(self):
         """Return a list of uncertain numbers 
@@ -135,7 +139,9 @@ class Archive(object):
     def itervalues(self):
         """Return an iterator for uncertain numbers 
         """
-        return self._tagged.itervalues()
+        if PY2:
+            return self._tagged.itervalues()
+        return self._tagged.values()
 
     def items(self):
         """Return a list of name -to- uncertain-number pairs 
@@ -145,7 +151,9 @@ class Archive(object):
     def iteritems(self):
         """Return an iterator of name -to- uncertain-number pairs 
         """
-        return self._tagged.iteritems()
+        if PY2:
+            return self._tagged.iteritems()
+        return self._tagged.items()
 
     def __len__(self):
         """Return the number of entries 
@@ -232,8 +240,9 @@ class Archive(object):
         """
         if self._extract:
             raise RuntimeError('This archive is write-only!')
-        
-        for key,value in kwargs.iteritems(): 
+
+        items = kwargs.iteritems() if PY2 else kwargs.items()
+        for key,value in items:
             self._setitem(key,value)
 
     def _getitem(self,key):
@@ -294,10 +303,10 @@ class Archive(object):
         NB after freezing, the archive object is immutable.
         
         """        
-        
+        values = self._tagged_reals.itervalues() if PY2 else self._tagged_reals.values()
         self._leaf_nodes = {
             n_i.uid  : FrozenLeaf(n_i)
-                for un in self._tagged_reals.itervalues()
+                for un in values
                     for n_i in itertools.chain(
                         un._u_components.iterkeys(),
                         un._d_components.iterkeys()
@@ -311,10 +320,10 @@ class Archive(object):
         # have been found above and will be archived. 
         # However, intermediate influences may not have 
         # been tagged, in which case they are not archived.
-        
+        values = self._tagged_reals.itervalues() if PY2 else self._tagged_reals.values()
         _intermediate_node_to_uid = {
             v._node: v._node.uid 
-            for v in self._tagged_reals.itervalues()
+            for v in values
                 if not v.is_elementary
         }
                 
@@ -327,7 +336,8 @@ class Archive(object):
         # -------------------------------------------------------------------
         # Convert tagged objects into a standard form for storage 
         #
-        for n,obj in self._tagged.iteritems():
+        items = self._tagged.iteritems() if PY2 else self._tagged.items()
+        for n,obj in items:
             if obj.is_elementary:
                 if isinstance(obj,UncertainReal):
                     tagged = TaggedElementaryReal(
@@ -426,7 +436,8 @@ class Archive(object):
     # -----------------------------------------------------------------------
     def _thaw(self):
         _leaf_nodes = dict()
-        for uid_i,fl_i in self._leaf_nodes.iteritems():
+        items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
+        for uid_i,fl_i in items:
             l = context._context.new_leaf(
                 uid_i, 
                 fl_i.label, 
@@ -445,15 +456,17 @@ class Archive(object):
         # Create the nodes associated for intermediate 
         # uncertain numbers. This must be done before the 
         # intermediate uncertain numbers are recreated.
+        items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items()
         _nodes = {
             uid: context._context.new_node(uid, *args)
-                for uid, args in self._intermediate_uids.iteritems()
+                for uid, args in items
         }
             
         # When reconstructing, `_tagged` needs to be updated with 
         # the new uncertain numbers.
         #
-        for name,obj in self._tagged.iteritems():
+        items = self._tagged.iteritems() if PY2 else self._tagged.items()
+        for name,obj in items:
             if isinstance(obj,TaggedElementaryReal):
                 un = _builder(
                     name,

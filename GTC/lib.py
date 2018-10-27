@@ -10,9 +10,11 @@ import cmath
 import numbers
 try:
     from itertools import izip  # Python 2
+    PY2 = True
 except ImportError:
     izip = zip
     long = int
+    PY2 = False
 
 from GTC import nodes
 from GTC import vector 
@@ -1928,7 +1930,8 @@ def welch_satterthwaite(x):
         
         # Finish building cpts_lst and dof_lst
         # using the values accumulated in `cpts_map`
-        for v_i,df_i in cpts_map.itervalues():
+        values = cpts_map.itervalues() if PY2 else cpts_map.values()
+        for v_i,df_i in values:
             cpts_lst.append(v_i)
             dof_lst.append(df_i)   
             
@@ -4095,8 +4098,9 @@ def willink_hall(x):
                 # update the sums immediately, otherwise wait until the end
                 if len( ensemble_i ) == 0:
                     components_i.accumulate()
-                                
-            for ec_i in ensemble_reg.itervalues():
+
+            values = ensemble_reg.itervalues() if PY2 else ensemble_reg.values()
+            for ec_i in values:
                 ec_i.accumulate()
 
         #------------------------------------------------------                
