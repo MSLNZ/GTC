@@ -93,7 +93,7 @@ version = "1.0.0"
 copyright = """Copyright (c) 2018, \
 Measurement Standards Laboratory of New Zealand"""
 
-from core import *
+from .core import *
  
 
 
