@@ -448,9 +448,10 @@ class UncertainReal(object):
     def __le__(self,other):
         return self._x <= other
         
-    def __nonzero__(self):
+    def __bool__(self):
         # Used to coerce to Boolean 
         return UncertainReal.__ne__(self, 0.0)
+    __nonzero__ = __bool__
 
     #------------------------------------------------------------------------
     @property
@@ -2368,9 +2369,10 @@ class UncertainComplex(object):
     
     #-----------------------------------------------------------------
     # For coercion to Boolean 
-    def __nonzero__(self):
+    def __bool__(self):
         return UncertainComplex.__ne__(self,0.0)
-        
+    __nonzero__ = __bool__
+
     #------------------------------------------------------------------------
     def __abs__(self):
         return abs( self._value )
