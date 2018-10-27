@@ -2,7 +2,8 @@
 Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
 
 """
-import os 
+import os
+import uuid
 import weakref
 
 from GTC.vector import *
@@ -25,7 +26,7 @@ class Context(object):
         # However, the user can enter a specific ID if 
         # required (there is no guarantee then that 
         # Context IDs will be unique - user beware!)
-        self._id = _uuid() if id is None else id
+        self._id = uuid.uuid4().int if id is None else id
     
         self._elementary_id_counter = long(0)
         self._intermediate_id_counter = long(0)
@@ -112,44 +113,8 @@ class Context(object):
             self._registered_intermediate_nodes[uid] = n
 
         return n
-        
-#----------------------------------------------------------------------------
-# TODO: use Python library for this in Python 3 version
-# did not do so in Python 2 version because there were 
-# issues with DLLs and the VC++ complier Python 2 used.  
-#
-def _uuid():
-    """
-    Return a UUID (version 4) as 128-byte integer 
-    
-    """
-    # Obtain 16 integers each between 0 and 255   
-    byte = bytearray( os.urandom(16) )
 
-    # clock_seq_hi_and_reserved
-    byte[7] &= 0xBF  # b6=0 
-    byte[7] |= 0x80  # b7=1
-    
-    # MSB of time_hi_and_version
-    byte[9] &= 15   # upper nibble = 0
-    byte[9] |= 64   # upper nibble = 4
-         
-    # Create a 128-byte integer 
-    u = reduce(
-        lambda u,i: u + (byte[i] << i*8),
-        xrange(16),
-        0
-    )
-    
-    # # Can verify that the UUID conforms to 
-    # # RFC-4122 here, expect version == 4 
-    # import uuid
-    # x = uuid.UUID( int=u ) 
-    # print x 
-    # print x.version
-    
-    return u
-    
+
 #----------------------------------------------------------------------------
 # A default context
 #
