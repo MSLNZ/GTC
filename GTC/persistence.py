@@ -31,7 +31,10 @@ Module contents
 import collections
 import itertools
 import numbers
-import cPickle as pickle
+try:
+    import cPickle as pickle  # Python 2
+except ImportError:
+    import pickle
 
 from GTC.lib import (
     UncertainComplex,
