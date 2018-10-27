@@ -29,7 +29,7 @@ from testing_tools import *
 #
 class Dummy(object):
     def __init__(self,uid):
-        self.uid = uid 
+        self.uid = (uid, 0)
         
 #----------------------------------------------------------------------------
 class TestVector(unittest.TestCase):
@@ -120,7 +120,7 @@ class TestVector(unittest.TestCase):
         self.assertTrue( values == values_cp )
         
         for i,x in v2.iteritems():
-            self.assertEqual(i.uid*k,x)
+            self.assertEqual(i.uid[0]*k,x)
 
         self.assertTrue(is_ordered(v2))
 
@@ -143,15 +143,15 @@ class TestVector(unittest.TestCase):
         
         v = extend_vector(v1,v2)  
         
-        v_range = [ i.uid for i in v.keys() ]
+        v_range = [ i.uid[0] for i in v.keys() ]
         self.assertEqual(v_range,list(range(15)))
         self.assertTrue(is_ordered(v))
         
         for i,x in v.iteritems():
             # The values from v1 should remain,
             # those from v2 should be zero.
-            if i.uid < 9:
-                self.assertEqual(x,i.uid)
+            if i.uid[0] < 9:
+                self.assertEqual(x,i.uid[0])
             else:
                 self.assertEqual(0,x)
 
@@ -182,7 +182,7 @@ class TestVector(unittest.TestCase):
         self.assertTrue( index2 == idx2_cp )
         
         rng = list(range(15))
-        rng_merged = [ i.uid for i in v.keys() ]
+        rng_merged = [ i.uid[0] for i in v.keys() ]
         self.assertEqual(rng_merged,rng)
         
         for i,p in enumerate( v.items() ):
@@ -220,7 +220,7 @@ class TestVector(unittest.TestCase):
         self.assertTrue( index2 == idx2_cp )
         
         rng = list(range(15))
-        rng_merged = [ i.uid for i in v.keys() ]
+        rng_merged = [ i.uid[0] for i in v.keys() ]
         self.assertEqual(rng_merged,rng)
         
         for i,p in enumerate( v.items() ):
