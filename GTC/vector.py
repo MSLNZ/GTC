@@ -22,6 +22,7 @@ try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
+    cmp = lambda a, b: (a > b) - (a < b)
 
 
 __all__ = [
