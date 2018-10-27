@@ -392,14 +392,14 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         >>> x3 = ureal(3,0.1,label='x3')
         >>> y = (x1 - x2) / x3
         >>> for l,u in reporting.budget(y):
-        ... 	print "{0}: {1:G}".format(l,u)
+        ... 	print("{0}: {1:G}".format(l,u))
         ... 	
         x1: 0.333333
         x2: 0.166667
         x3: 0.0111111
         
         >>> for l,u in reporting.budget(y,reverse=False):
-        ... 	print "{0}: {1:G}".format(l,u)
+        ... 	print("{0}: {1:G}".format(l,u))
         ... 	
         x3: 0.0111111
         x2: 0.166667

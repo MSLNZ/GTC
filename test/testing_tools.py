@@ -29,10 +29,10 @@ def equivalent_sequence(u,m,tol=TOL):
     if OK:
         return True
     else:
-        print "Tolerance = %G" % tol
-        print "Differences: "
+        print("Tolerance = %G" % tol)
+        print("Differences: ")
         for u_i,m_i in izip(u,m):
-            print abs(u_i - m_i)
+            print(abs(u_i - m_i))
             
         raise AssertionError("'%s' <> '%s' " % (u,m))
 
@@ -52,12 +52,12 @@ def equivalent_matt(m,n,tol=TOL):
     if (keys == n.keys()):
         for k in keys:
             if abs(m[k] - n[k]) >= tol:
-                print "Values for '%s' differ: abs(%.15G - %.15G) = %.15G" % (
+                print("Values for '%s' differ: abs(%.15G - %.15G) = %.15G" % (
                         k,
                         m[k],
                         n[k],
                         abs(m[k] - n[k])
-                    )
+                    ))
                 return False
         return True
     else:
@@ -73,12 +73,12 @@ def equivalent_matrix(u,m,tol=TOL):
     ):
         return True
     else:
-        print "Differences and tolerance: ", (
+        print("Differences and tolerance: {} {} {} {} {}".format(
             abs(u[0,0] - m[0,0])
         ,   abs(u[1,0] - m[1,0])
         ,   abs(u[0,1] - m[0,1])
         ,   abs(u[1,1] - m[1,1])
-        ,   tol)
+        ,   tol))
         raise AssertionError("'%s' <> '%s' " % (u,m))
 #-----------------------------------------------------
 def show_complex_difference(x,y):
@@ -95,7 +95,7 @@ def equivalent_complex(x,y,tol=TOL):
     if _equivalent(xc.real,yc.real,tol) and _equivalent(xc.imag,yc.imag,tol):
         return True
     else:
-        print "Differences and tolerance: ", abs(xc.real-yc.real), abs(xc.imag-yc.imag), tol
+        print("Differences and tolerance: {} {} {}".format(abs(xc.real-yc.real), abs(xc.imag-yc.imag), tol))
         raise AssertionError("'(%.15G,%.15G)' <> '(%.15G,%.15G)' " % (x.real,x.imag,y.real,y.imag))
 
 #-----------------------------------------------------
