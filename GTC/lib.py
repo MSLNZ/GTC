@@ -323,10 +323,13 @@ class UncertainReal(object):
                 u_digits = "{1:.{0}f}".format(decimal_places,u)
             else:
                 u_digits = "{:.0f}".format(self.u/factor)
-                
-            df_factor = 10**(-df_decimals)       
-            df = df_factor*math.floor(self.df/df_factor)
-            if df > 1E6: df = float('inf')
+
+            if is_infinity(self.df):
+                df = inf
+            else:
+                df_factor = 10**(-df_decimals)
+                df = df_factor*math.floor(self.df/df_factor)
+                if df > 1E6: df = float('inf')
             
             if self.label is None:
                 return GroomedUncertainReal(
@@ -2275,11 +2278,14 @@ class UncertainComplex(object):
                 im_u_digits = "{:.0f}".format(im_u/factor)
 
             r_factor = 10**(-3)
-            r = r_factor*round(r/r_factor) 
-            
-            df_factor = 10**(-df_decimals)       
-            df = df_factor*math.floor(self.df/df_factor)
-            if df > 1E6: df = float('inf')
+            r = r_factor*round(r/r_factor)
+
+            if is_infinity(self.df):
+                df = inf
+            else:
+                df_factor = 10**(-df_decimals)
+                df = df_factor*math.floor(self.df/df_factor)
+                if df > 1E6: df = float('inf')
             
             return GroomedUncertainComplex(
                 x = complex(re_x,im_x),
