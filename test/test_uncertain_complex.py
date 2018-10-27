@@ -6,7 +6,10 @@ import cmath
 import itertools
 
 import numpy
-import operator
+try:
+    from operator import div  # Python 2
+except ImportError:
+    from operator import truediv as div
 
 from GTC import *
 from GTC.context import _context 
@@ -667,7 +670,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         ,   TOL
         )
 
-        self.assertRaises(ZeroDivisionError,operator.div,y,0)
+        self.assertRaises(ZeroDivisionError,div,y,0)
  
         # Intermediate u_component test
         y = self.un2 / self.un5
