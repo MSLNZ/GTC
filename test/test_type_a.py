@@ -6,6 +6,7 @@ try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
+    xrange = range
 
 import numpy
 

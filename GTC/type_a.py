@@ -42,6 +42,7 @@ try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
+    xrange = range
 from functools import reduce
 
 from GTC.context import _context 

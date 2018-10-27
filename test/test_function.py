@@ -3,6 +3,10 @@ import sys
 import math
 import cmath
 import itertools
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range
 
 import numpy
 
