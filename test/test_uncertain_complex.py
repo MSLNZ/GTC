@@ -102,9 +102,9 @@ class NamesUncertainComplex(unittest.TestCase):
         y = 1+3j
         z = ucomplex(1,1)
         
-        self.assert_( not is_ucomplex(x) )
-        self.assert_( not is_ucomplex(y) )
-        self.assert_( is_ucomplex(z) )
+        self.assertTrue( not is_ucomplex(x) )
+        self.assertTrue( not is_ucomplex(y) )
+        self.assertTrue( is_ucomplex(z) )
     
 #----------------------------------------------------------------------------
 class NamesComplex(unittest.TestCase):
@@ -227,7 +227,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         num = 0.0
         y = num + self.un2
-        self.assert_(y is self.un2)
+        self.assertTrue(y is self.un2)
         equivalent_complex(value(y),num+self.x2,TOL)
         equivalent_sequence(u_component(y,self.un2),[self.u2[0],0.,0.,self.u2[1]],TOL)
         
@@ -252,7 +252,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         num = 0.0
         y = self.un1 + num
-        self.assert_(y is self.un1)
+        self.assertTrue(y is self.un1)
         equivalent_complex(value(y),self.x1+num,TOL)
         equivalent_sequence(
             u_component(y,self.un1)
@@ -262,8 +262,8 @@ class ArithmeticTestsComplex(unittest.TestCase):
         
         num = 0+2j
         y = self.un1 + num
-        self.assert_(y.real is not self.un1)
-        self.assert_(not y.is_elementary)
+        self.assertTrue(y.real is not self.un1)
+        self.assertTrue(not y.is_elementary)
         equivalent_complex(value(y),self.x1+num,TOL)
         
         # uc-ur and ur-uc
@@ -376,7 +376,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         # Sub from 0 on right
         y = self.un1 - 0.0+0.0j
-        self.assert_(y is self.un1)
+        self.assertTrue(y is self.un1)
         equivalent_complex(value(y),self.x1,TOL)
         equivalent_sequence(
             u_component(y,self.un1)
@@ -385,7 +385,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         )
 
         y = self.un1 - 0.0
-        self.assert_(y is self.un1)
+        self.assertTrue(y is self.un1)
         equivalent_complex(value(y),self.x1,TOL)
         equivalent_sequence(
             u_component(y,self.un1)
@@ -395,19 +395,19 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         num = 0+2j
         y = self.un1 - num
-        self.assert_(y.real is not self.un1)
-        self.assert_(not y.is_elementary)
+        self.assertTrue(y.real is not self.un1)
+        self.assertTrue(not y.is_elementary)
         equivalent_complex(value(y),self.x1-num,TOL)
 
         # Sub from 0 on left
         y = 0+0j - self.un1
-        self.assert_(y is not self.un1)
+        self.assertTrue(y is not self.un1)
         equivalent_complex(value(y),-self.x1,TOL)
 
         num = 0+2j
         y = num - self.un1
-        self.assert_(y.real is not self.un1)
-        self.assert_(not y.is_elementary)
+        self.assertTrue(y.real is not self.un1)
+        self.assertTrue(not y.is_elementary)
         equivalent_complex(value(y),num-self.x1,TOL)
 
         # uc-ur and ur-uc
@@ -546,7 +546,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         num = 1.0
         y = num * self.un2
-        self.assert_(y is self.un2)
+        self.assertTrue(y is self.un2)
         equivalent_complex(value(y),num*self.x2,TOL)
         u2,r = to_std_uncertainty(self.u2)
         equivalent_sequence(
@@ -575,7 +575,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         num = 1.0
         y = self.un1 * num
-        self.assert_(y is self.un1)
+        self.assertTrue(y is self.un1)
         equivalent_complex(value(y),self.x1*num,TOL)
         u1,r = to_std_uncertainty(self.u1)
         equivalent_sequence(
@@ -717,7 +717,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         )
 
         y = self.un1 / 1.0
-        self.assert_(y is self.un1)
+        self.assertTrue(y is self.un1)
         equivalent_complex(value(y),self.x1,TOL)
         equivalent_sequence(
             u_component(y,self.un1) 
@@ -797,7 +797,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         q = n/d
         dq_dn = 1.0/value(d)
         dq_dd = 0.0
-        self.assert_(
+        self.assertTrue(
             equivalent_complex(q.x,0.0)
         )
         equivalent_sequence(
@@ -810,7 +810,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         q = n/d
         dq_dn = 1.0/value(d)
         dq_dd = 0.0
-        self.assert_(
+        self.assertTrue(
             equivalent_complex(q.x,0.0)
         )
         equivalent_sequence(
@@ -825,7 +825,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         q = n/d
         dq_dn = 1.0/value(d)
         dq_dd = 0.0
-        self.assert_(
+        self.assertTrue(
             equivalent_complex(q.x,0.0)
         )
         equivalent_sequence(
@@ -839,8 +839,8 @@ class ArithmeticTestsComplex(unittest.TestCase):
         q = z/x
         dq_dz = 1.0/value(x)
         dq_dx = -value(q)/value(x)
-        self.assert_( equivalent_complex(value(q),0.0) )
-        self.assert_( 
+        self.assertTrue( equivalent_complex(value(q),0.0) )
+        self.assertTrue(
             equivalent_sequence(u_component(q,z), [dq_dz.real,-dq_dz.imag,dq_dz.imag,dq_dz.real] ) 
         )
  
@@ -848,8 +848,8 @@ class ArithmeticTestsComplex(unittest.TestCase):
         x = ureal(0,1)
         q = x/z
         dq_dx = 1.0/value(z)
-        self.assert_( equivalent_complex(value(q),0.0) )
-        self.assert_( 
+        self.assertTrue( equivalent_complex(value(q),0.0) )
+        self.assertTrue(
             equivalent_sequence(u_component(q,x), [dq_dx.real,-dq_dx.imag,0,0] ) 
         )
 
@@ -933,7 +933,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( number_to_matrix( cmath.cos(v) ) * mat ),
             TOL)
-        self.assert_( is_infinity( dof(s) ) )
+        self.assertTrue( is_infinity( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -950,7 +950,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( number_to_matrix(-cmath.sin(v)) * mat ),
             TOL)
-        self.assert_( is_infinity( dof(c) ) )
+        self.assertTrue( is_infinity( dof(c) ) )
         
         # intermediate
         v3 = value(self.un3)
@@ -967,7 +967,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( number_to_matrix(1.0/( cmath.cos(v))**2) * mat ),
             TOL)
-        self.assert_( is_infinity( dof(c) ) )
+        self.assertTrue( is_infinity( dof(c) ) )
         
         # intermediate
         v3 = value(self.un3)
@@ -993,7 +993,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( number_to_matrix(cmath.cosh(v)) * mat),
             TOL)
-        self.assert_( is_infinity( dof(s) ) )
+        self.assertTrue( is_infinity( dof(s) ) )
         
         # intermediate
         v3 = value(self.un3)
@@ -1011,7 +1011,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( number_to_matrix(cmath.sinh(v)) * mat),
             TOL)
-        self.assert_(is_infinity( dof(c) ))
+        self.assertTrue(is_infinity( dof(c) ))
 
         # intermediate
         v3 = value(self.un3)
@@ -1028,7 +1028,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( number_to_matrix(1.0/(cmath.cosh(v))**2) * mat ),
             TOL)
-        self.assert_( is_infinity( dof(t) ) )
+        self.assertTrue( is_infinity( dof(t) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1064,7 +1064,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( number_to_matrix(1/cmath.sqrt(den)) * mat ),
             TOL)
-        self.assert_( is_infinity( dof(s) ) )
+        self.assertTrue( is_infinity( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1083,7 +1083,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( number_to_matrix(-1/cmath.sqrt(den))*mat ),
             TOL)
-        self.assert_( is_infinity( dof(c) ) )
+        self.assertTrue( is_infinity( dof(c) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1102,7 +1102,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( number_to_matrix(1.0/den)*mat ),
             TOL)
-        self.assert_( is_infinity( dof(t) ) )
+        self.assertTrue( is_infinity( dof(t) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1148,7 +1148,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( number_to_matrix(1.0/cmath.sqrt(den))*mat ),
             TOL)
-        self.assert_( is_infinity( dof(s) ) )
+        self.assertTrue( is_infinity( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1167,7 +1167,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( number_to_matrix(1.0/den)*mat ),
             TOL)
-        self.assert_( is_infinity( dof(c) ) )
+        self.assertTrue( is_infinity( dof(c) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1186,7 +1186,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( number_to_matrix(1.0/den)*mat ),
             TOL)
-        self.assert_( is_infinity( dof(t) ) )
+        self.assertTrue( is_infinity( dof(t) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1214,7 +1214,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( numpy.matrix([[1,0],[0,-1]])*mat ),
             TOL)
-        self.assert_( is_infinity( dof(c) ) )
+        self.assertTrue( is_infinity( dof(c) ) )
         
         # intermediate
         s3 = self.un3.conjugate()
@@ -1230,7 +1230,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(re,x),
             array_to_sequence( numpy.matrix([[1,0],[0,0]])*mat ),
             TOL)
-        self.assert_( is_infinity( dof(re) ) )
+        self.assertTrue( is_infinity( dof(re) ) )
 
         # intermediate
         s3 = self.un3.real
@@ -1246,7 +1246,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(im,x),
             array_to_sequence( numpy.matrix([[0,1],[0,0]])*mat ),
             TOL)
-        self.assert_( is_infinity( dof(im) ) )
+        self.assertTrue( is_infinity( dof(im) ) )
 
         # intermediate
         s3 = self.un3.imag
@@ -1277,7 +1277,7 @@ class ComplexFunctionTest(unittest.TestCase):
         ,   array_to_sequence( number_to_matrix(LOG10_E/v)*mat )
         ,   TOL
         )
-        self.assert_( is_infinity(dof(l10)) )
+        self.assertTrue( is_infinity(dof(l10)) )
         
         # exp --------------------------------------------------------
         equivalent_complex(value(e),cmath.exp(v),TOL)
@@ -1285,7 +1285,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(e,x),
             array_to_sequence( number_to_matrix(cmath.exp(v))*mat),
             TOL)
-        self.assert_( is_infinity(dof(e)) )
+        self.assertTrue( is_infinity(dof(e)) )
         
         # intermediate
         v3 = value(self.un3)
@@ -1302,7 +1302,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(l,x),
             array_to_sequence( number_to_matrix(1.0/v)*mat ),
             TOL)
-        self.assert_( is_infinity(dof(l)) )
+        self.assertTrue( is_infinity(dof(l)) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1319,7 +1319,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( number_to_matrix(0.5/cmath.sqrt(v))*mat ),
             TOL)
-        self.assert_( is_infinity( dof(s) ) )
+        self.assertTrue( is_infinity( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1336,7 +1336,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(n,x),
             array_to_sequence( numpy.mat(( (2*v.real,2*v.imag),(0,0) ))*mat ),
             TOL)
-        self.assert_( is_infinity( dof(n) ) )
+        self.assertTrue( is_infinity( dof(n) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1352,10 +1352,10 @@ class ComplexFunctionTest(unittest.TestCase):
         u4 = 0.5
         z4 = ureal(v4,u4)
         z4_mag = mag_squared(z4)
-        self.assert_(
+        self.assertTrue(
             equivalent(value(z4_mag),v4**2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent(uncertainty(z4_mag),2*v4*u4)
         )
         
@@ -1365,7 +1365,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(a,x),
             array_to_sequence( numpy.mat(( (v.real/abs(v),v.imag/abs(v)),(0,0) ))* mat ),
             TOL)
-        self.assert_( is_infinity( dof(a) ) )
+        self.assertTrue( is_infinity( dof(a) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1586,7 +1586,7 @@ class ComplexFunctionTest(unittest.TestCase):
         # x ** n, where n is 1
         vz = 1.0
         p = x ** vz
-        self.assert_( p is x )
+        self.assertTrue( p is x )
         vp = vx ** vz
         equivalent_complex(value(p),vp,TOL)
         dp_dx = vp*vz/vx
@@ -1618,16 +1618,16 @@ class TestMultipleUNsWithComplexConstants(unittest.TestCase):
         
         v,i,phi = multiple_ucomplex(values,uncert,5)
 
-        self.assert_( equivalent_complex(v.x, values[0]) )
-        self.assert_( equivalent_sequence(v.u, uncert[0]) )
-        self.assert_(v.df == 5)
+        self.assertTrue( equivalent_complex(v.x, values[0]) )
+        self.assertTrue( equivalent_sequence(v.u, uncert[0]) )
+        self.assertTrue(v.df == 5)
 
-        self.assert_( equivalent_complex(i.x, values[1]) )
-        self.assert_( equivalent_sequence(i.u, uncert[1]) )
+        self.assertTrue( equivalent_complex(i.x, values[1]) )
+        self.assertTrue( equivalent_sequence(i.u, uncert[1]) )
         self.assertEqual(i.df, inf)
 
-        self.assert_( equivalent_complex(phi.x, values[2]) )
-        self.assert_( equivalent_sequence(phi.u, uncert[2]) )
+        self.assertTrue( equivalent_complex(phi.x, values[2]) )
+        self.assertTrue( equivalent_sequence(phi.u, uncert[2]) )
         self.assertEqual(phi.df, 5)
 
         # We can set a zero correlation 
@@ -1648,40 +1648,40 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         z = complex(a,b)
 
         y = x + z
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
         
-        self.assert_( equivalent_complex( complex(1+a,b), value(y), TOL) )
-        self.assert_( equivalent( 1, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( 0, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( complex(1+a,b), value(y), TOL) )
+        self.assertTrue( equivalent( 1, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( 0, uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (1,0,0,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         xz = ucomplex(1,(1,0))
         yz = xz + z
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
         # complex on right        
         y = z + x
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
-        self.assert_( equivalent_complex( complex(1+a,b), value(y), TOL) )
-        self.assert_( equivalent( 1, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( 0, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( complex(1+a,b), value(y), TOL) )
+        self.assertTrue( equivalent( 1, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( 0, uncertainty(y).imag, TOL) )
         
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (1,0,0,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         yz = z + xz
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
         # intermediate components
         # -- on the right
@@ -1694,11 +1694,11 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         y = x1 + z
 
         ux1 = uncertainty(x1)
-        self.assert_( equivalent_sequence( u_component(y,x1), (ux1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (ux1,0,0,0) ) )
 
         # -- on the left
         y = z + x1
-        self.assert_( equivalent_sequence( u_component(y,x1), (ux1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (ux1,0,0,0) ) )
       
 
     def test_subtraction(self):
@@ -1708,40 +1708,40 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         z = complex(a,b)
 
         y = x - z
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
-        self.assert_( equivalent_complex( complex(1-a,-b), value(y), TOL) )
-        self.assert_( equivalent( 1, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( 0, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( complex(1-a,-b), value(y), TOL) )
+        self.assertTrue( equivalent( 1, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( 0, uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (1,0,0,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         xz = ucomplex(1,(1,0))
         yz = xz - z
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
         
         # complex on right        
         y = z - x
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
-        self.assert_( equivalent_complex( complex(a-1,b), value(y), TOL) )
-        self.assert_( equivalent( 1, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( 0, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( complex(a-1,b), value(y), TOL) )
+        self.assertTrue( equivalent( 1, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( 0, uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (-1,0,0,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (-1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         yz = z - xz
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
         # intermediate components
         # -- on the right
@@ -1754,11 +1754,11 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         y = x1 - z
 
         ux1 = uncertainty(x1)
-        self.assert_( equivalent_sequence( u_component(y,x1), (ux1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (ux1,0,0,0) ) )
 
         # -- on the left
         y = z - x1
-        self.assert_( equivalent_sequence( u_component(y,x1), (-ux1,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (-ux1,0,0,0) ) )
       
     def test_multiplication(self):
         x = ureal(1,1)
@@ -1767,44 +1767,44 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         z = complex(a,b)
 
         y = x * z
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
-        self.assert_( equivalent_complex( complex(a,b), value(y), TOL) )
-        self.assert_( equivalent( a, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( b, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( complex(a,b), value(y), TOL) )
+        self.assertTrue( equivalent( a, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( b, uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (z.real,0,z.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (z.real,0,z.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         xz = ucomplex(1,(1,0))
         yz = xz * z
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
         
         # complex on right        
         y = z * x
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
-        self.assert_( equivalent_complex( complex(a,b), value(y), TOL) )
-        self.assert_( equivalent( a, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( b, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( complex(a,b), value(y), TOL) )
+        self.assertTrue( equivalent( a, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( b, uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (z.real,0,z.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (z.real,0,z.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         yz = z * xz
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
 
         # intermediate components
         # -- on the right
@@ -1818,11 +1818,11 @@ class TestComplexUncertainRealMath(unittest.TestCase):
 
         ux1 = uncertainty(x1)
         dy_dx = ux1 * z
-        self.assert_( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
 
         # -- on the left
         y = z * x1
-        self.assert_( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
       
     def test_division(self):
         xv = 2
@@ -1832,45 +1832,45 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         z = complex(a,b)
 
         y = x / z
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
         inv_z = 1.0/z 
-        self.assert_( equivalent_complex( xv/z, value(y), TOL) )
-        self.assert_( equivalent( abs(inv_z.real), uncertainty(y).real, TOL) )
-        self.assert_( equivalent( abs(inv_z.imag), uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( xv/z, value(y), TOL) )
+        self.assertTrue( equivalent( abs(inv_z.real), uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( abs(inv_z.imag), uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (inv_z.real,0,inv_z.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (inv_z.real,0,inv_z.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         xz = ucomplex(2,(1,0))
         yz = xz / z
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
 
         # complex on right        
         y = z / x
-        self.assert_( isinstance(y,UncertainComplex) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
 
-        self.assert_( equivalent_complex( z/xv, value(y), TOL) )
-        self.assert_( equivalent( abs(z.real)/xv**2, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( abs(z.imag)/xv**2, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( z/xv, value(y), TOL) )
+        self.assertTrue( equivalent( abs(z.real)/xv**2, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( abs(z.imag)/xv**2, uncertainty(y).imag, TOL) )
 
         # components
-        self.assert_( equivalent_sequence( u_component(y,x), (-z.real/xv**2,0,-z.imag/xv**2,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (-z.real/xv**2,0,-z.imag/xv**2,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # same thing
         yz = z / xz
-        self.assert_( equivalent_complex( value(yz), value(y), TOL) )
-        self.assert_( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent_complex( value(yz), value(y), TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yz).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yz,xz), ) )
 
         # intermediate components
         # -- on the right
@@ -1884,12 +1884,12 @@ class TestComplexUncertainRealMath(unittest.TestCase):
 
         ux1 = uncertainty(x1)
         dy_dx = ux1 * 1.0/z
-        self.assert_( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
 
         # -- on the left
         y = z / x1
         dy_dx = -ux1 * z / value(x1)**2
-        self.assert_( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
 
     def test_power(self):
         # complex on the right ----------------------------------
@@ -1904,20 +1904,20 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         y = x ** z
         yc = xc ** z
         
-        self.assert_( isinstance(y,UncertainComplex) )
-        self.assert_( equivalent_complex( xv ** z, value(y), TOL) )
-        self.assert_( equivalent_complex( value(yc), value(y), TOL) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
+        self.assertTrue( equivalent_complex( xv ** z, value(y), TOL) )
+        self.assertTrue( equivalent_complex( value(yc), value(y), TOL) )
         
         # components
         dy_dx =z * xv**(z-1) 
-        self.assert_( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # make sure that results are equivalent to full complex calculation
-        self.assert_( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
 
         # Different numbers
         xv = -3.1
@@ -1931,20 +1931,20 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         y = x ** z
         yc = xc ** z
         
-        self.assert_( isinstance(y,UncertainComplex) )
-        self.assert_( equivalent_complex( xv ** z, value(y), TOL) )
-        self.assert_( equivalent_complex( value(yc), value(y), TOL) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
+        self.assertTrue( equivalent_complex( xv ** z, value(y), TOL) )
+        self.assertTrue( equivalent_complex( value(yc), value(y), TOL) )
 
         # components
         dy_dx = z * xv**(z-1)
-        self.assert_( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # make sure that results are equivalent to full complex calculation
-        self.assert_( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
 
         # complex on the left ----------------------------------
         xv = 3.1
@@ -1959,20 +1959,20 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         yc = z ** xc
         yv = z ** xv
         
-        self.assert_( isinstance(y,UncertainComplex) )
-        self.assert_( equivalent_complex( yv, value(y), TOL) )
-        self.assert_( equivalent_complex( value(yc), value(y), TOL) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
+        self.assertTrue( equivalent_complex( yv, value(y), TOL) )
+        self.assertTrue( equivalent_complex( value(yc), value(y), TOL) )
 
         # components
         dy_dx = yv * cmath.log(z) if z != 0 else 0
-        self.assert_( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # make sure that results are equivalent to full complex calculation
-        self.assert_( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
 
         # different numbers
         xv = -3.1
@@ -1987,20 +1987,20 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         yc = z ** xc
         yv = z ** xv
         
-        self.assert_( isinstance(y,UncertainComplex) )
-        self.assert_( equivalent_complex( yv, value(y), TOL) )
-        self.assert_( equivalent_complex( value(yc), value(y), TOL) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
+        self.assertTrue( equivalent_complex( yv, value(y), TOL) )
+        self.assertTrue( equivalent_complex( value(yc), value(y), TOL) )
 
         # components
         dy_dx = yv * cmath.log(z) if z != 0 else 0
-        self.assert_( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # make sure that results are equivalent to full complex calculation
-        self.assert_( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
         
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
 
         # Special case z==0 here
         xv = 3.1
@@ -2015,20 +2015,20 @@ class TestComplexUncertainRealMath(unittest.TestCase):
         yc = z ** xc
         yv = z ** xv
         
-        self.assert_( isinstance(y,UncertainComplex) )
-        self.assert_( equivalent_complex( yv, value(y), TOL) )
-        self.assert_( equivalent_complex( value(yc), value(y), TOL) )
+        self.assertTrue( isinstance(y,UncertainComplex) )
+        self.assertTrue( equivalent_complex( yv, value(y), TOL) )
+        self.assertTrue( equivalent_complex( value(yc), value(y), TOL) )
 
         # components
         dy_dx = yv * cmath.log(z) if z != 0 else 0
-        self.assert_( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
-        self.assert_( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,z), (0,0,0,0) ) )
 
         # make sure that results are equivalent to full complex calculation
-        self.assert_( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
-        self.assert_( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).real, uncertainty(y).real, TOL) )
+        self.assertTrue( equivalent( uncertainty(yc).imag, uncertainty(y).imag, TOL) )
 
-        self.assert_( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x), u_component(yc,xc), ) )
 
         # intermediate components
         # -- on the right
@@ -2043,13 +2043,13 @@ class TestComplexUncertainRealMath(unittest.TestCase):
 
         ux1 = uncertainty(x1)
         dy_dx = z * value(x1)**(z-1) * ux1
-        self.assert_( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
 
         # -- on the left
         y = z ** x1
         yv = value(y)
         dy_dx = yv * cmath.log(z) * ux1 if z != 0 else 0
-        self.assert_( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
+        self.assertTrue( equivalent_sequence( u_component(y,x1), (dy_dx.real,0,dy_dx.imag,0) ) )
 
 #-----------------------------------------------------
 class TestGetSetCorrelation(unittest.TestCase):
@@ -2067,11 +2067,11 @@ class TestGetSetCorrelation(unittest.TestCase):
         r = (.1,.2,.3,.4)
         set_correlation(r,z1,z2)
         check_r = get_correlation(z1,z2)
-        self.assert_( equivalent_sequence(r,check_r) )
+        self.assertTrue( equivalent_sequence(r,check_r) )
 
         r_t = (.1,.3,.2,.4)
         check_r = get_correlation(z2,z1)
-        self.assert_( equivalent_sequence(r_t,check_r) )
+        self.assertTrue( equivalent_sequence(r_t,check_r) )
 
         self.assertRaises(RuntimeError,set_correlation,r,z1,x1)
         self.assertRaises(RuntimeError,set_correlation,r,x1,z1)
@@ -2083,39 +2083,39 @@ class TestGetSetCorrelation(unittest.TestCase):
         r1 = .1
         set_correlation(r1,z1.real,x1)
         check_r = get_correlation(z1,x1)
-        self.assert_( equivalent_sequence([r1,0,0,0],check_r) )
+        self.assertTrue( equivalent_sequence([r1,0,0,0],check_r) )
         
         r2 = -.3
         set_correlation(r2,z1.imag,x1)
         check_r = get_correlation(z1,x1)
-        self.assert_( equivalent_sequence([r1,0,r2,0],check_r) )
+        self.assertTrue( equivalent_sequence([r1,0,r2,0],check_r) )
         
         check_r = get_correlation(x1,z1)
-        self.assert_( equivalent_sequence([r1,r2,0,0],check_r) )
+        self.assertTrue( equivalent_sequence([r1,r2,0,0],check_r) )
 
         check_r = get_correlation(1.0,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(1.0+7j)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_correlation(1.0+7j,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(z1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(1.0+7j,x1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(x1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
       
         check_r = get_correlation(7,x1)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_correlation(x1,1.0)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
         
 #-----------------------------------------------------
 class TestGetCovariance(unittest.TestCase):
@@ -2142,21 +2142,21 @@ class TestGetCovariance(unittest.TestCase):
         
         set_correlation(r,z1,z2)
         check_r = get_covariance(z1,z2)
-        self.assert_( equivalent_sequence(self.cv(uz1,uz2,r),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,uz2,r),check_r) )
 
         r_t = (.1,.3,.2,.4)
         check_r = get_covariance(z2,z1)
-        self.assert_( equivalent_sequence(self.cv(uz2,uz1,r_t),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz2,uz1,r_t),check_r) )
 
         rx = [-.3,0,.7,0]
         set_correlation(rx[0],z1.real,x1)
         set_correlation(rx[2],z1.imag,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent_sequence(self.cv(uz1,ux1,rx),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,ux1,rx),check_r) )
 
         check_r = get_covariance(x1,z1)
         rx_t = [-.3,.7,0,0]
-        self.assert_( equivalent_sequence(self.cv(ux1,uz1,rx_t),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(ux1,uz1,rx_t),check_r) )
 
     def test_with_mixed_unumbers(self):
         ux1 = [2,0]
@@ -2167,39 +2167,39 @@ class TestGetCovariance(unittest.TestCase):
         r1 = .1
         set_correlation(r1,z1.real,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent_sequence(self.cv(uz1,ux1,[r1,0,0,0]),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,ux1,[r1,0,0,0]),check_r) )
         
         r2 = -.3
         set_correlation(r2,z1.imag,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent_sequence(self.cv(uz1,ux1,[r1,0,r2,0]),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,ux1,[r1,0,r2,0]),check_r) )
         
         check_r = get_covariance(x1,z1)
-        self.assert_( equivalent_sequence(self.cv(ux1,uz1,[r1,r2,0,0]),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(ux1,uz1,[r1,r2,0,0]),check_r) )
 
         check_r = get_covariance(1.0,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(1.0+7j)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_covariance(1.0+7j,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(z1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(1.0+7j,x1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(x1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
       
         check_r = get_covariance(7,x1)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_covariance(x1,1.0)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
  
 #-----------------------------------------------------
 class TestStringRepresentations(unittest.TestCase):
@@ -2223,20 +2223,20 @@ class TestMisc(unittest.TestCase):
     def test_constant(self):
         z = 1+0j
         uc = constant(z)
-        self.assert_( _is_uncertain_complex_constant(uc) )
+        self.assertTrue( _is_uncertain_complex_constant(uc) )
         self.assertRaises(RuntimeError,_is_uncertain_complex_constant,z)
         
         # Setting u=0 makes a constant (at the moment, should this be changed?)
         un = ucomplex(1j,0)
-        self.assert_( _is_uncertain_complex_constant(un) )
+        self.assertTrue( _is_uncertain_complex_constant(un) )
         
     def test_nonzero(self):
         un = ucomplex(1+0j,1)
-        self.assert_( bool(un) is True )
+        self.assertTrue( bool(un) is True )
         un = ucomplex(1j,1)
-        self.assert_( bool(un) is True )
+        self.assertTrue( bool(un) is True )
         un = ucomplex(0+0j,1)
-        self.assert_( bool(un) is not True )
+        self.assertTrue( bool(un) is not True )
         
 #============================================================================
 if(__name__== '__main__'):

@@ -63,7 +63,7 @@ class GuideExampleH1(unittest.TestCase):
         df = dof(theta)
         equivalent(v,-0.1,TOL)
         equivalent(u,0.406201920232,TOL)
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         x1 = self.Ls * self.delta_alpha * theta       
         u = uncertainty(x1)
@@ -114,7 +114,7 @@ class GuideExampleH1SIUnits(unittest.TestCase):
         df = dof(theta)
         equivalent(v,-0.1,TOL)
         equivalent(u,0.406201920232,TOL)
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         x1 = self.Ls * self.delta_alpha * theta       
         u = uncertainty(x1)
@@ -324,7 +324,7 @@ class GuideExampleH2(unittest.TestCase):
         df = dof(y)
         nu_eff = variance(y)**2 / den
         
-        self.assert_( equivalent(nu_eff,df))
+        self.assertTrue( equivalent(nu_eff,df))
 
     def test_with_infinity_2(self):
         """
@@ -349,7 +349,7 @@ class GuideExampleH2(unittest.TestCase):
         nu_eff = variance(y)**2 / den
         df = dof(y)
         
-        self.assert_( equivalent(nu_eff,df))
+        self.assertTrue( equivalent(nu_eff,df))
         
 #============================================================================
 if(__name__== '__main__'):

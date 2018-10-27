@@ -58,19 +58,19 @@ class TestComplexToSeq(unittest.TestCase):
     def test(self):
         z = 1 + 2j
         zm = function.complex_to_seq(z)
-        self.assert_( equivalent_sequence((z.real,-z.imag,z.imag,z.real),zm ) )
+        self.assertTrue( equivalent_sequence((z.real,-z.imag,z.imag,z.real),zm ) )
 
         z = -1.1 - 4.5j
         zm = (z.real,-z.imag,z.imag,z.real)
-        self.assert_( equivalent_complex(z,function.seq_to_complex(zm) ) )
+        self.assertTrue( equivalent_complex(z,function.seq_to_complex(zm) ) )
 
         z = 1 
         zm = function.complex_to_seq(z)
-        self.assert_( equivalent_sequence((z.real,-z.imag,z.imag,z.real),zm ) )
+        self.assertTrue( equivalent_sequence((z.real,-z.imag,z.imag,z.real),zm ) )
 
         z = 0 - 4.5j
         zm = (z.real,-z.imag,z.imag,z.real)
-        self.assert_( equivalent_complex(z,function.seq_to_complex(zm) ) )
+        self.assertTrue( equivalent_complex(z,function.seq_to_complex(zm) ) )
 
         self.assertRaises(RuntimeError,function.seq_to_complex,"hell")
         self.assertRaises(RuntimeError,function.seq_to_complex,(1,2,3,1))   # ill-conditioned
@@ -81,7 +81,7 @@ class TestComplexToSeq(unittest.TestCase):
         self.assertRaises(RuntimeError,function.seq_to_complex,z)
 
         zm = numpy.array(zm)   
-        self.assert_( zm.shape == (4,) )
+        self.assertTrue( zm.shape == (4,) )
         self.assertRaises(RuntimeError,function.seq_to_complex,zm)
 
 #-----------------------------------------------------
@@ -94,11 +94,11 @@ class TestFunctionFunctions(unittest.TestCase):
     def test_mean(self):
         # generator argument (iterable)
         m = function.mean( i for i in range(10) )
-        self.assert_( equivalent(m,4.5) )
+        self.assertTrue( equivalent(m,4.5) )
         
         # sequence argument 
         m = function.mean( range(10) )
-        self.assert_( equivalent(m,4.5) )
+        self.assertTrue( equivalent(m,4.5) )
         
         # anything else makes no sense
         self.assertRaises(RuntimeError,function.mean,3)

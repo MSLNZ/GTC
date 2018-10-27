@@ -45,7 +45,7 @@ class TestWillinkHall(unittest.TestCase):
         equivalent( dof(x2), 3, 1E-15)
         equivalent( dof(x3), 6, 1E-15)
 
-        self.assert_( equivalent( dof(x), 11.34 , TOL ) ) 
+        self.assertTrue( equivalent( dof(x), 11.34 , TOL ) )
 
     def testDoF2(self):
         
@@ -63,7 +63,7 @@ class TestWillinkHall(unittest.TestCase):
 
         x = q1 + q2 + q3;
         
-        self.assert_( equivalent( dof(x), 11.34 , TOL ) )
+        self.assertTrue( equivalent( dof(x), 11.34 , TOL ) )
 
     def testDoF3(self):
         # Here we use a mixture of float and complex
@@ -79,7 +79,7 @@ class TestWillinkHall(unittest.TestCase):
         # Note values from the guide are only approximate
         d = d_1 + d_2 + d_3
         df = dof(d)
-        self.assert_( equivalent(df,25.4472507774,TOL) )
+        self.assertTrue( equivalent(df,25.4472507774,TOL) )
 
         alpha_s = ureal(0.0000115,tb.uniform(0.000002))
         delta_alpha = ureal(0.0,tb.uniform(0.000001),50)
@@ -92,13 +92,13 @@ class TestWillinkHall(unittest.TestCase):
 
         theta = theta_1 + theta_2 
         df = dof(theta)
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         x1 = Ls * delta_alpha * theta       
         x2 = Ls * alpha_s * delta_theta        
         y = Ls + d - (x1 + x2)
         df = dof(y)
-        self.assert_( equivalent(df,16.7521475092,TOL) )
+        self.assertTrue( equivalent(df,16.7521475092,TOL) )
         
     # Do a few tests of the invalid calculation to try to
     # cover various limit cases within the algorithm
@@ -115,7 +115,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assert_( not is_undefined(dof(x)) )
+        self.assertTrue( not is_undefined(dof(x)) )
 
     def testDoF5(self):
         # Correlations should cause the calculation to abort
@@ -129,7 +129,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assert_( not is_undefined(dof(x)) )
+        self.assertTrue( not is_undefined(dof(x)) )
 
     def testDoF6(self):
         # Correlations should cause the calculation to abort
@@ -143,7 +143,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assert_( not is_undefined(dof(x)) )
+        self.assertTrue( not is_undefined(dof(x)) )
 
     def testDoF7(self):
         # Correlations should cause the calculation to abort
@@ -157,7 +157,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assert_( not is_undefined(dof(x)) )
+        self.assertTrue( not is_undefined(dof(x)) )
 
     def testDoF8(self):
         # Look at the numerical stability of the dof calculation
@@ -177,7 +177,7 @@ class TestWillinkHall(unittest.TestCase):
         x3 = ucomplex( 1, scale_cv(cv3), 6 )
         x = x1 + x2 + x3
 
-        self.assert_( equivalent( dof(x), 11.3409777904914 , TOL ) )
+        self.assertTrue( equivalent( dof(x), 11.3409777904914 , TOL ) )
         
     def testDoF9(self):
         TOL = 1E-5
@@ -241,7 +241,7 @@ class TestWillinkHall(unittest.TestCase):
         x3 = ucomplex( 1, (0.45,0.28,0.28,1.65) )
         x = x1 + x2 + x3
         set_correlation(0.5,x2.imag,x3.imag)
-        self.assert_( not is_undefined(dof(x)) )
+        self.assertTrue( not is_undefined(dof(x)) )
  
     def test_correlated_ensemble(self):
         # test when non-consecutive influences 
@@ -271,7 +271,7 @@ class TestWillinkHall(unittest.TestCase):
 
         equivalent( get_correlation(z),-0.591484610819,TOL)
 
-        self.assert_( not is_undefined(dof(z)) )
+        self.assertTrue( not is_undefined(dof(z)) )
         equivalent( dof(z),5,TOL)
 
     def test_illegal_complex_ensemble(self):
@@ -321,7 +321,7 @@ class WelchSatterthwaiteExtensions(unittest.TestCase):
         
         df = dof(y)
         
-        self.assert_( equivalent(nu_eff,df) )
+        self.assertTrue( equivalent(nu_eff,df) )
 
         # but if others are correlated it fails
         self.assertRaises(RuntimeError,set_correlation,r,x1,x2)
@@ -353,11 +353,11 @@ class WelchSatterthwaiteExtensions(unittest.TestCase):
         zre = xre + yre
         zim = xim + yim
         
-        self.assert_( dof(zre) != 0 )
-        self.assert_( dof(zim) != 0 )
+        self.assertTrue( dof(zre) != 0 )
+        self.assertTrue( dof(zim) != 0 )
         
-        self.assert_( equivalent(dof(z.real),dof(zre) ) )
-        self.assert_( equivalent(dof(z.imag),dof(zim) ) )
+        self.assertTrue( equivalent(dof(z.real),dof(zre) ) )
+        self.assertTrue( equivalent(dof(z.imag),dof(zim) ) )
 
     def test_with_infinity_1(self):
         """
@@ -379,7 +379,7 @@ class WelchSatterthwaiteExtensions(unittest.TestCase):
         df = dof(y)
         nu_eff = variance(y)**2 / den
         
-        self.assert_( equivalent(nu_eff,df))
+        self.assertTrue( equivalent(nu_eff,df))
 
     def test_with_infinity_2(self):
         """
@@ -404,7 +404,7 @@ class WelchSatterthwaiteExtensions(unittest.TestCase):
         nu_eff = variance(y)**2 / den
         df = dof(y)
         
-        self.assert_( equivalent(nu_eff,df))
+        self.assertTrue( equivalent(nu_eff,df))
         
 #-----------------------------------------------------
 class TestDoF(unittest.TestCase):
@@ -421,8 +421,8 @@ class TestDoF(unittest.TestCase):
         z = ucomplex( (1+1j), [1.0,0.5,0.5,1.0], 6.0 )
         z_mag_sq = mag_squared(z)
         
-        self.assert_( isinstance(z_mag_sq,UncertainReal) )
-        self.assert_( equivalent(z_mag_sq.df,6) )
+        self.assertTrue( isinstance(z_mag_sq,UncertainReal) )
+        self.assertTrue( equivalent(z_mag_sq.df,6) )
         
 
 #============================================================================

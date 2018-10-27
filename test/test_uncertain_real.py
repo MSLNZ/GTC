@@ -60,68 +60,68 @@ class SimpleAttributesAndFunctions(unittest.TestCase):
         self.const = constant(x,label)    
             
     def test_value(self):
-        self.assert_( equivalent(self.x,value(self.un) ) )
-        self.assert_( equivalent(self.x,value(self.const) ) )
-        self.assert_( equivalent(self.x,self.un.x ) )
-        self.assert_( equivalent(self.x,self.const.x ) )
+        self.assertTrue( equivalent(self.x,value(self.un) ) )
+        self.assertTrue( equivalent(self.x,value(self.const) ) )
+        self.assertTrue( equivalent(self.x,self.un.x ) )
+        self.assertTrue( equivalent(self.x,self.const.x ) )
       
     def test_uncertainty(self):
-        self.assert_( equivalent(self.u,uncertainty(self.un) ) )
-        self.assert_( equivalent(0,uncertainty(self.const) ) )
-        self.assert_( equivalent(self.u,self.un.u ) )
-        self.assert_( equivalent(0,self.const.u ) )
+        self.assertTrue( equivalent(self.u,uncertainty(self.un) ) )
+        self.assertTrue( equivalent(0,uncertainty(self.const) ) )
+        self.assertTrue( equivalent(self.u,self.un.u ) )
+        self.assertTrue( equivalent(0,self.const.u ) )
       
     def test_variance(self):
-        self.assert_( equivalent(self.u**2,variance(self.un) ) )
-        self.assert_( equivalent(0,variance(self.const) ) )
-        self.assert_( equivalent(self.u**2,self.un.v ) )
-        self.assert_( equivalent(0,self.const.v ) )
+        self.assertTrue( equivalent(self.u**2,variance(self.un) ) )
+        self.assertTrue( equivalent(0,variance(self.const) ) )
+        self.assertTrue( equivalent(self.u**2,self.un.v ) )
+        self.assertTrue( equivalent(0,self.const.v ) )
       
     def test_dof(self): 
-        self.assert_( equivalent(self.df,dof(self.un) ) )
-        self.assert_( equivalent(inf,dof(self.const) ) )
-        self.assert_( equivalent(self.df,self.un.df ) )
-        self.assert_( equivalent(inf,self.const.df ) )
-        self.assert_( is_infinity( self.const.df ) )
+        self.assertTrue( equivalent(self.df,dof(self.un) ) )
+        self.assertTrue( equivalent(inf,dof(self.const) ) )
+        self.assertTrue( equivalent(self.df,self.un.df ) )
+        self.assertTrue( equivalent(inf,self.const.df ) )
+        self.assertTrue( is_infinity( self.const.df ) )
  
     def test_conjugate(self):
-        self.assert_( self.un.conjugate() is self.un )
+        self.assertTrue( self.un.conjugate() is self.un )
         
     def test_real_imaginary(self):
-        self.assert_( self.un.real == self.x )
-        self.assert_( self.un.imag == 0 )
+        self.assertTrue( self.un.real == self.x )
+        self.assertTrue( self.un.imag == 0 )
         
     def test_conversions(self):
-        self.assert_( equivalent( value(self.un), self.x )  )
+        self.assertTrue( equivalent( value(self.un), self.x )  )
         z = value( self.un )
-        self.assert_( equivalent( z.real, self.x ) )
-        self.assert_( z.imag == 0 )
-        self.assert_( bool(z.imag) == False )
-        self.assert_( bool(z.real) == True )
+        self.assertTrue( equivalent( z.real, self.x ) )
+        self.assertTrue( z.imag == 0 )
+        self.assertTrue( bool(z.imag) == False )
+        self.assertTrue( bool(z.real) == True )
         
     def test_positive_unary(self):
         un_plus = +self.un
-        self.assert_(un_plus is not self.un)
-        self.assert_( equivalent(self.x,value(un_plus) ) )
-        self.assert_( equivalent(self.u,uncertainty(un_plus) ) )
-        self.assert_( equivalent(self.df,dof(un_plus) ) )
+        self.assertTrue(un_plus is not self.un)
+        self.assertTrue( equivalent(self.x,value(un_plus) ) )
+        self.assertTrue( equivalent(self.u,uncertainty(un_plus) ) )
+        self.assertTrue( equivalent(self.df,dof(un_plus) ) )
 
     def test_absolute(self):
         un_minus = -self.un
-        self.assert_( isinstance( abs(un_minus), float ) )
-        self.assert_( equivalent(self.un.x,abs(un_minus) ) )
+        self.assertTrue( isinstance( abs(un_minus), float ) )
+        self.assertTrue( equivalent(self.un.x,abs(un_minus) ) )
 
     def test_non_zero(self):
         x = ureal(1,1)
-        self.assert_( bool(x) is True )
+        self.assertTrue( bool(x) is True )
         x = ureal(0,1)
-        self.assert_( bool(x) is not True )
+        self.assertTrue( bool(x) is not True )
         
     def test_is_constant(self): 
         x = constant(1.1)
-        self.assert_( _is_uncertain_real_constant(x) )
+        self.assertTrue( _is_uncertain_real_constant(x) )
         x = ureal(1,1)
-        self.assert_( _is_uncertain_real_constant(x) is not True )
+        self.assertTrue( _is_uncertain_real_constant(x) is not True )
         
 #----------------------------------------------------------------------------
 class ArithmeticTestsReal(unittest.TestCase):
@@ -151,7 +151,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         ,   math.sqrt( uncertainty(self.x)**2 + uncertainty(self.z)**2 )
         ,   TOL
         )
-        self.assert_( is_infinity( dof(x) ) )
+        self.assertTrue( is_infinity( dof(x) ) )
 
         #---------------------------------------------------------
         # Adding a constant on the right
@@ -200,7 +200,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         equivalent(value(y),3.0,TOL)
         
         equivalent(uncertainty(y),2.0 * math.sqrt(2.0),TOL)
-        self.assert_( is_infinity( dof(y) ) )
+        self.assertTrue( is_infinity( dof(y) ) )
 
         # component of uncertainty
         x1 = result( y )
@@ -217,11 +217,11 @@ class ArithmeticTestsReal(unittest.TestCase):
         # trivial addition
         oldy = y
         y += 0
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
         y = y + 0
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
         y = 0 + y
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
 
         #---------------------------------------------------------
         # Adding a complex constant on the left
@@ -305,7 +305,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         ,   math.sqrt(uncertainty(self.x)**2+uncertainty(self.z)**2)
         ,   TOL
         )
-        self.assert_( is_infinity( dof(x) ) )
+        self.assertTrue( is_infinity( dof(x) ) )
 
         #---------------------------------------------------------
         # Subtracting a constant
@@ -366,11 +366,11 @@ class ArithmeticTestsReal(unittest.TestCase):
         # trivial subtraction
         oldy = y
         y -= 0
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
         y = y - 0
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
         y = 0 - y
-        self.assert_(oldy is not y)
+        self.assertTrue(oldy is not y)
         equivalent(value(y),-value(oldy))
 
         #---------------------------------------------------------
@@ -458,7 +458,7 @@ class ArithmeticTestsReal(unittest.TestCase):
             )
         ,   TOL
         )
-        self.assert_( is_infinity( dof(x) ) )
+        self.assertTrue( is_infinity( dof(x) ) )
 
         #---------------------------------------------------------
         # multiplying by a constant
@@ -524,11 +524,11 @@ class ArithmeticTestsReal(unittest.TestCase):
         # trivial multiplication
         oldy = y
         y *= 1
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
         y = y * 1
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
         y = 1.0 * y
-        self.assert_(oldy is y)
+        self.assertTrue(oldy is y)
 
         #---------------------------------------------------------
         # Multiplying a complex constant on the left
@@ -610,7 +610,7 @@ class ArithmeticTestsReal(unittest.TestCase):
             )
         ,   TOL
         )
-        self.assert_( is_infinity(dof(x)) )
+        self.assertTrue( is_infinity(dof(x)) )
 
         #---------------------------------------------------------
         # regular division
@@ -671,9 +671,9 @@ class ArithmeticTestsReal(unittest.TestCase):
         #---------------------------------------------------------
         # trivial division
         y = self.w / 1.0
-        self.assert_( y is self.w )
+        self.assertTrue( y is self.w )
         y = 1.0 / self.w
-        self.assert_( y is not self.w )
+        self.assertTrue( y is not self.w )
         
         self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
 
@@ -769,22 +769,22 @@ class TestUncertainReal(unittest.TestCase):
     """
     def test_elementary(self):
         x = ureal(1,1)
-        self.assert_( x.is_elementary )
-        self.assert_( not x.is_intermediate )
+        self.assertTrue( x.is_elementary )
+        self.assertTrue( not x.is_intermediate )
         self.assertEqual( None, x.label )
         
         y = x + 10
-        self.assert_( not y.is_elementary )
-        self.assert_( not y.is_intermediate )
+        self.assertTrue( not y.is_elementary )
+        self.assertTrue( not y.is_intermediate )
         self.assertEqual( None, y.label )
         
         y = result(x + 10,label='y')
-        self.assert_( y.is_intermediate )
+        self.assertTrue( y.is_intermediate )
         self.assertEqual( 'y', y.label )
     
         z = constant(10,label='z')
-        self.assert_( not z.is_elementary )
-        self.assert_( not z.is_intermediate )
+        self.assertTrue( not z.is_elementary )
+        self.assertTrue( not z.is_intermediate )
         self.assertEqual( 'z', z.label )
             
     def test(self):
@@ -825,9 +825,9 @@ class TestUncertainReal(unittest.TestCase):
         d_comp.extend( [(2,2*u)] )
         i_comp = Vector()
         un = UncertainReal(x,u_comp,d_comp,i_comp)
-        self.assert_( un._u_components is u_comp )
-        self.assert_( un._i_components is i_comp )
-        self.assert_( un._d_components is d_comp )
+        self.assertTrue( un._u_components is u_comp )
+        self.assertTrue( un._i_components is i_comp )
+        self.assertTrue( un._d_components is d_comp )
 
         # Here is an uncertain number with a node
         # args: uid,label,u,df [,independent=True]
@@ -835,12 +835,12 @@ class TestUncertainReal(unittest.TestCase):
         df = 10
         lf = Leaf(3,label,u,df)
         un = UncertainReal(x,u_comp,d_comp,i_comp,lf)
-        self.assert_( un._u_components is u_comp )
-        self.assert_( un._i_components is i_comp )
-        self.assert_( un._d_components is d_comp )
-        self.assert_( un._node.label is label )
-        self.assert_( un._node.independent is True )
-        self.assert_( un._node.df == df )
+        self.assertTrue( un._u_components is u_comp )
+        self.assertTrue( un._i_components is i_comp )
+        self.assertTrue( un._d_components is d_comp )
+        self.assertTrue( un._node.label is label )
+        self.assertTrue( un._node.independent is True )
+        self.assertTrue( un._node.df == df )
         
     def test_check_identity(self):
         """
@@ -849,16 +849,16 @@ class TestUncertainReal(unittest.TestCase):
         
         """
         x = ureal(1,1)
-        self.assert_( reporting.is_ureal(x) )
+        self.assertTrue( reporting.is_ureal(x) )
 
         y = ureal(1,1) * x
-        self.assert_( reporting.is_ureal(y) )
+        self.assertTrue( reporting.is_ureal(y) )
 
         z = constant(6)        
-        self.assert_( reporting.is_ureal(z) )
+        self.assertTrue( reporting.is_ureal(z) )
 
         z1 = ucomplex(1+3j,1)
-        self.assert_( reporting.is_ureal( z1.real ) )
+        self.assertTrue( reporting.is_ureal( z1.real ) )
         
 #----------------------------------------------------------------------------
 class TestComparisons(unittest.TestCase):
@@ -877,28 +877,28 @@ class TestComparisons(unittest.TestCase):
         x_l = ureal(x_less,1)
         x_false = ureal(0,1)
 
-        self.assert_(x == x_value)
-        self.assert_(x <= x_greater)
-        self.assert_(x >= x_less)
-        self.assert_(x < x_greater)
-        self.assert_(x > x_less)
-        self.assert_(x != x_greater)
-        self.assert_(x != x_less)
+        self.assertTrue(x == x_value)
+        self.assertTrue(x <= x_greater)
+        self.assertTrue(x >= x_less)
+        self.assertTrue(x < x_greater)
+        self.assertTrue(x > x_less)
+        self.assertTrue(x != x_greater)
+        self.assertTrue(x != x_less)
 
-        self.assert_(x <= x_g)
-        self.assert_(x >= x_l)
-        self.assert_(x < x_g)
-        self.assert_(x > x_l)
-        self.assert_(x != x_g)
-        self.assert_(x != x_l)
+        self.assertTrue(x <= x_g)
+        self.assertTrue(x >= x_l)
+        self.assertTrue(x < x_g)
+        self.assertTrue(x > x_l)
+        self.assertTrue(x != x_g)
+        self.assertTrue(x != x_l)
         
         # Boolean tests depend on value 
-        self.assert_( bool(x) )
-        self.assert_( not bool(x_false) )
-        self.assert_( x )
-        self.assert_( not x_false )
+        self.assertTrue( bool(x) )
+        self.assertTrue( not bool(x_false) )
+        self.assertTrue( x )
+        self.assertTrue( not x_false )
 
-        self.assert_( equivalent(abs(x_value),abs(x)) )
+        self.assertTrue( equivalent(abs(x_value),abs(x)) )
 
 #----------------------------------------------------------------------------
 class FunctionTestsReal(unittest.TestCase):
@@ -942,14 +942,14 @@ class FunctionTestsReal(unittest.TestCase):
         # conjugate() is implemented so as to simply return self
         
         # """
-        # self.assert_( equivalent(self.un1.x, self.un1.conjugate().x) )
-        # self.assert_( equivalent(self.un1.u, self.un1.conjugate().u) )
-        # self.assert_( self.un1 is self.un1.conjugate() )
+        # self.assertTrue( equivalent(self.un1.x, self.un1.conjugate().x) )
+        # self.assertTrue( equivalent(self.un1.u, self.un1.conjugate().u) )
+        # self.assertTrue( self.un1 is self.un1.conjugate() )
         
         # # 
         # x2 = result( +self.un5 )
         # xc = x2.conjugate() 
-        # self.assert_( 
+        # self.assertTrue(
             # equivalent_matt(
                 # xc._i_components,
                 # x2._i_components,
@@ -1037,7 +1037,7 @@ class FunctionTestsReal(unittest.TestCase):
  
         # x ** 1
         y = self.un1 ** 1.0
-        self.assert_( y is self.un1 )
+        self.assertTrue( y is self.un1 )
         
         # x ** 0
         y = self.un1 ** 0.0
@@ -1112,7 +1112,7 @@ class TrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.sin( self.x ), TOL )
         equivalent( u, math.cos( self.x ) * self.u, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.sin(self.x2)
@@ -1131,7 +1131,7 @@ class TrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.cos( self.x ),TOL )
         equivalent( u, math.sin( self.x) * self.u, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
         
         # This will test an intermediate component of uncertainty
         vv = math.cos(self.x2)
@@ -1151,7 +1151,7 @@ class TrigTestsReal(unittest.TestCase):
         equivalent( v, math.tan( self.x ), TOL )
         uu = self.u/(math.cos( self.x )**2)
         equivalent( u, uu, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.tan(self.x2)
@@ -1309,10 +1309,10 @@ class FunctionTestsReal(unittest.TestCase):
         u4 = 0.5
         z4 = ureal(v4,u4)
         z4_mag = mag_squared(z4)
-        self.assert_(
+        self.assertTrue(
             equivalent(value(z4_mag),v4**2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent(uncertainty(z4_mag),2*v4*u4)
         )
 
@@ -1325,19 +1325,19 @@ class FunctionTestsReal(unittest.TestCase):
         u3 = 1
         z1 = ureal(v1,u1)
         z1_mag = magnitude(z1)
-        self.assert_(
+        self.assertTrue(
             equivalent(value(z1_mag),v1)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent(uncertainty(z1),u1)
         )
         
         z = ureal(v2,u2)
         z_mag = magnitude(z)
-        self.assert_(
+        self.assertTrue(
             equivalent(value(z_mag),abs(v2) )
         )
-        self.assert_(
+        self.assertTrue(
             equivalent(uncertainty(z),u2)
         )
         z = ureal(v3,u3)
@@ -1362,12 +1362,12 @@ class TestGetCovariance(unittest.TestCase):
         r1 = .1
         set_correlation(r1,z1,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent(r1,check_r) )
+        self.assertTrue( equivalent(r1,check_r) )
         
         r2 = -.3
         set_correlation(r2,z1,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent(r2,check_r) )
+        self.assertTrue( equivalent(r2,check_r) )
 
     def test_simple_correlation(self):
         x1 = ureal(0,1,5,None,independent=True)
@@ -1387,24 +1387,24 @@ class TestGetCovariance(unittest.TestCase):
         r = 0.65
         set_correlation_real(x1,x2,r)
         
-        self.assert_( equivalent( r, get_correlation_real(x1,x2) ) )
+        self.assertTrue( equivalent( r, get_correlation_real(x1,x2) ) )
 
         # When we delete one node the other remains
         x1_uid = x1._node.uid
         x2_uid = x2._node.uid
-        self.assert_( x1_uid in context._context._registered_leaf_nodes )
-        self.assert_( x2_uid in context._context._registered_leaf_nodes )
+        self.assertTrue( x1_uid in context._context._registered_leaf_nodes )
+        self.assertTrue( x2_uid in context._context._registered_leaf_nodes )
         del x1
-        self.assert_( x1_uid not in context._context._registered_leaf_nodes )
-        self.assert_( x2_uid in context._context._registered_leaf_nodes )
+        self.assertTrue( x1_uid not in context._context._registered_leaf_nodes )
+        self.assertTrue( x2_uid in context._context._registered_leaf_nodes )
 
         # self.assertEqual(1, len(c._registered_leaf_nodes) )
-        # self.assert_( x2._node.uid in c._registered_leaf_nodes )
+        # self.assertTrue( x2._node.uid in c._registered_leaf_nodes )
         
         # Correlation matrix is not trimmed when `x1` is destroyed
         self.assertEqual(2, len(x2._node.correlation) )
-        self.assert_( x2_uid in x2._node.correlation )
-        self.assert_( x1_uid in x2._node.correlation )
+        self.assertTrue( x2_uid in x2._node.correlation )
+        self.assertTrue( x1_uid in x2._node.correlation )
         
         self.assertEqual(2, len(x2._node.correlation) )
         self.assertEqual(1.0, x2._node.correlation[x2_uid] )
@@ -1755,7 +1755,7 @@ class HyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.sinh( self.x ), TOL )
         equivalent( u, math.cosh( self.x ) * self.u, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.sinh(self.x2)
@@ -1773,7 +1773,7 @@ class HyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.cosh( self.x ),TOL )
         equivalent( u, math.sinh( self.x) * self.u, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
         
         # This will test an intermediate component of uncertainty
         vv = math.cosh(self.x2)
@@ -1792,7 +1792,7 @@ class HyperbolicTrigTestsReal(unittest.TestCase):
         equivalent( v, math.tanh( self.x ), TOL )
         uu = self.u/(math.cosh( self.x )**2)
         equivalent( u, uu, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.tanh(self.x2)
@@ -1838,7 +1838,7 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, log_form( self.x ), TOL )
         equivalent( u, derivative( self.x ) * self.u, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         # This will test an intermediate component of uncertainty
         vv = log_form(self.x2)
@@ -1859,7 +1859,7 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, log_form( self.x ),TOL )
         equivalent( u, derivative( self.x) * self.u, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
         
         # This will test an intermediate component of uncertainty
         vv = log_form(self.x2)
@@ -1881,7 +1881,7 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         equivalent( v, log_form( self.x3 ), TOL )
         uu = derivative(self.x3) * self.u3
         equivalent( u, uu, TOL )
-        self.assert_( is_infinity(df) )
+        self.assertTrue( is_infinity(df) )
 
         # This will test an intermediate component of uncertainty
         vv = log_form(self.x5)
@@ -2084,17 +2084,17 @@ class TestMultipleUNsWithRealConstants(unittest.TestCase):
         
         v,i,phi = multiple_ureal(x,u,4,labels)
         
-        self.assert_(v.x == x[0])
-        self.assert_(v.u == u[0])
-        self.assert_(v.df == 4)
+        self.assertTrue(v.x == x[0])
+        self.assertTrue(v.u == u[0])
+        self.assertTrue(v.df == 4)
 
-        self.assert_(i.x == x[1])
-        self.assert_(i.u == u[1])
-        self.assert_(i.df == inf)
+        self.assertTrue(i.x == x[1])
+        self.assertTrue(i.u == u[1])
+        self.assertTrue(i.df == inf)
         
-        self.assert_(phi.x == x[2])
-        self.assert_(phi.u == u[2])
-        self.assert_(phi.df == 4)
+        self.assertTrue(phi.x == x[2])
+        self.assertTrue(phi.u == u[2])
+        self.assertTrue(phi.df == 4)
 
         # We can set a zero correlation ...
         set_correlation(0.0,v,i)

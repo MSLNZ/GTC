@@ -23,20 +23,20 @@ class TestAPIFunctions(unittest.TestCase):
     """
     def test_ureal_float_interface(self):
         x = ureal(1.0,1.0)
-        self.assert_( equivalent(x.x,x.real.x) )
-        self.assert_( equivalent(x.u,x.real.u) )
-        self.assert_( x is x.real )
+        self.assertTrue( equivalent(x.x,x.real.x) )
+        self.assertTrue( equivalent(x.u,x.real.u) )
+        self.assertTrue( x is x.real )
         
-        self.assert_( equivalent(0,x.imag.x) )
-        self.assert_( equivalent(0,x.imag.u) )
+        self.assertTrue( equivalent(0,x.imag.x) )
+        self.assertTrue( equivalent(0,x.imag.u) )
        
         y = x + ureal(2,2)
-        self.assert_( equivalent(y.x,y.real.x) )
-        self.assert_( equivalent(y.u,y.real.u) )
-        self.assert_( y is y.real )
+        self.assertTrue( equivalent(y.x,y.real.x) )
+        self.assertTrue( equivalent(y.u,y.real.u) )
+        self.assertTrue( y is y.real )
 
-        self.assert_( equivalent(0,y.imag.x) )
-        self.assert_( equivalent(0,y.imag.u) )
+        self.assertTrue( equivalent(0,y.imag.x) )
+        self.assertTrue( equivalent(0,y.imag.u) )
         
     def test_ureal_arg_typs(self):
         """
@@ -148,7 +148,7 @@ class TestAPIFunctions(unittest.TestCase):
         cv_z = variance(z)
 
         for i in range(4):
-            self.assert_( equivalent(cv[i],cv_z[i],TOL) )
+            self.assertTrue( equivalent(cv[i],cv_z[i],TOL) )
             
         self.assertEqual(variance(4),0)
 
@@ -159,26 +159,26 @@ class TestAPIFunctions(unittest.TestCase):
         l = constant(1)
         r = ureal(1,1) * ureal(1,1)
         cc = get_correlation(l,r)
-        self.assert_( equivalent(cc,0.0) )
+        self.assertTrue( equivalent(cc,0.0) )
         
         # Asking for correlation wrt a number gives zero
         #
         x = ureal(1,1)
         cc = get_correlation(x,1.5)
-        self.assert_( equivalent(cc,0.0) )
+        self.assertTrue( equivalent(cc,0.0) )
  
         z = ucomplex(1,1)
         cc = get_correlation(z,1.5+6j)
-        self.assert_( equivalent_sequence(cc,[0.0,0.0,0.0,0.0]) )
+        self.assertTrue( equivalent_sequence(cc,[0.0,0.0,0.0,0.0]) )
 
         cc = get_correlation(1.5+6j)
-        self.assert_( equivalent(cc,0.0) )
+        self.assertTrue( equivalent(cc,0.0) )
 
         # You can have complex number (implied) with no imaginary
         # component. If that is the only argument to get_correlation
         # then return zero
         cc = get_correlation(1.5)
-        self.assert_( equivalent(cc,0.0) )
+        self.assertTrue( equivalent(cc,0.0) )
      
         # uc = ucomplex(1 + 1j, 0.1)
         # ur = ureal(2, 0.2)
@@ -198,29 +198,29 @@ class TestAPIFunctions(unittest.TestCase):
             z = x**y 
             z_ = result(z)
             
-            self.assert_( z is not z_ )
-            self.assert_( equivalent(z.x,z_.x) )
-            self.assert_( equivalent(z.u,z_.u) )
-            self.assert_( equivalent(z.df,z_.df) )
+            self.assertTrue( z is not z_ )
+            self.assertTrue( equivalent(z.x,z_.x) )
+            self.assertTrue( equivalent(z.u,z_.u) )
+            self.assertTrue( equivalent(z.df,z_.df) )
             self.assertEqual( len(z._u_components), len(z_._u_components)) 
             self.assertEqual( len(z._i_components)+1, len(z_._i_components))    # a reference to self is added
-            self.assert_( equivalent_sequence(z._u_components.values(),z_._u_components.values()) )
+            self.assertTrue( equivalent_sequence(z._u_components.values(),z_._u_components.values()) )
             
             x = ucomplex(1.2+.4j,1)
             y = ucomplex(-.5+1.1j,1)
             z = x * y 
             z_ = result(z)
             
-            self.assert_( z is not z_ )
-            self.assert_( equivalent_complex(z.x,z_.x) )
-            self.assert_( equivalent_sequence(z.u,z_.u) )
-            self.assert_( equivalent(z.df,z_.df) )
+            self.assertTrue( z is not z_ )
+            self.assertTrue( equivalent_complex(z.x,z_.x) )
+            self.assertTrue( equivalent_sequence(z.u,z_.u) )
+            self.assertTrue( equivalent(z.df,z_.df) )
             self.assertEqual( len(z.real._u_components), len(z_.real._u_components)) 
             self.assertEqual( len(z.imag._u_components), len(z_.imag._u_components)) 
             self.assertEqual( len(z.real._i_components)+1, len(z_.real._i_components)) 
             self.assertEqual( len(z.imag._i_components)+1, len(z_.imag._i_components)) 
-            self.assert_( equivalent_sequence(z.real._u_components.values(),z_.real._u_components.values()) )
-            self.assert_( equivalent_sequence(z.imag._u_components.values(),z_.imag._u_components.values()) )
+            self.assertTrue( equivalent_sequence(z.real._u_components.values(),z_.real._u_components.values()) )
+            self.assertTrue( equivalent_sequence(z.imag._u_components.values(),z_.imag._u_components.values()) )
     
 #----------------------------------------------------------------------------
 class TestMultipleUN(unittest.TestCase):
@@ -256,11 +256,11 @@ class TestGetSetCorrelation(unittest.TestCase):
         r = (.1,.2,.3,.4)
         set_correlation(r,z1,z2)
         check_r = get_correlation(z1,z2)
-        self.assert_( equivalent_sequence(r,check_r) )
+        self.assertTrue( equivalent_sequence(r,check_r) )
 
         r_t = (.1,.3,.2,.4)
         check_r = get_correlation(z2,z1)
-        self.assert_( equivalent_sequence(r_t,check_r) )
+        self.assertTrue( equivalent_sequence(r_t,check_r) )
 
         self.assertRaises(RuntimeError,set_correlation,r,z1,x1)
         self.assertRaises(RuntimeError,set_correlation,r,x1,z1)
@@ -274,7 +274,7 @@ class TestGetSetCorrelation(unittest.TestCase):
         r = 0.5
         
         self.assertRaises(RuntimeError,set_correlation,r,x1,x2)
-        self.assert_( set_correlation(r,z1) is None )
+        self.assertTrue( set_correlation(r,z1) is None )
         
     def test_with_mixed_unumbers(self):
         x1 = ureal(1,2,independent=False)
@@ -283,39 +283,39 @@ class TestGetSetCorrelation(unittest.TestCase):
         r1 = .1
         set_correlation(r1,z1.real,x1)
         check_r = get_correlation(z1,x1)
-        self.assert_( equivalent_sequence([r1,0,0,0],check_r) )
+        self.assertTrue( equivalent_sequence([r1,0,0,0],check_r) )
         
         r2 = -.3
         set_correlation(r2,z1.imag,x1)
         check_r = get_correlation(z1,x1)
-        self.assert_( equivalent_sequence([r1,0,r2,0],check_r) )
+        self.assertTrue( equivalent_sequence([r1,0,r2,0],check_r) )
         
         check_r = get_correlation(x1,z1)
-        self.assert_( equivalent_sequence([r1,r2,0,0],check_r) )
+        self.assertTrue( equivalent_sequence([r1,r2,0,0],check_r) )
 
         check_r = get_correlation(1.0,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(1.0+7j)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_correlation(1.0+7j,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(z1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(1.0+7j,x1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_correlation(x1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
       
         check_r = get_correlation(7,x1)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_correlation(x1,1.0)
-        self.assert_( equivalent(0,check_r) ) 
+        self.assertTrue( equivalent(0,check_r) )
         
 #----------------------------------------------------------------------------
 class TestGetCovariance(unittest.TestCase):
@@ -342,21 +342,21 @@ class TestGetCovariance(unittest.TestCase):
         
         set_correlation(r,z1,z2)
         check_r = get_covariance(z1,z2)
-        self.assert_( equivalent_sequence(self.cv(uz1,uz2,r),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,uz2,r),check_r) )
 
         r_t = (.1,.3,.2,.4)
         check_r = get_covariance(z2,z1)
-        self.assert_( equivalent_sequence(self.cv(uz2,uz1,r_t),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz2,uz1,r_t),check_r) )
 
         rx = [-.3,0,.7,0]
         set_correlation(rx[0],z1.real,x1)
         set_correlation(rx[2],z1.imag,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent_sequence(self.cv(uz1,ux1,rx),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,ux1,rx),check_r) )
 
         check_r = get_covariance(x1,z1)
         rx_t = [-.3,.7,0,0]
-        self.assert_( equivalent_sequence(self.cv(ux1,uz1,rx_t),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(ux1,uz1,rx_t),check_r) )
 
     def test_with_mixed_unumbers(self):
         ux1 = [2,0]
@@ -367,39 +367,39 @@ class TestGetCovariance(unittest.TestCase):
         r1 = .1
         set_correlation(r1,z1.real,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent_sequence(self.cv(uz1,ux1,[r1,0,0,0]),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,ux1,[r1,0,0,0]),check_r) )
         
         r2 = -.3
         set_correlation(r2,z1.imag,x1)
         check_r = get_covariance(z1,x1)
-        self.assert_( equivalent_sequence(self.cv(uz1,ux1,[r1,0,r2,0]),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(uz1,ux1,[r1,0,r2,0]),check_r) )
         
         check_r = get_covariance(x1,z1)
-        self.assert_( equivalent_sequence(self.cv(ux1,uz1,[r1,r2,0,0]),check_r) )
+        self.assertTrue( equivalent_sequence(self.cv(ux1,uz1,[r1,r2,0,0]),check_r) )
 
         check_r = get_covariance(1.0,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(1.0+7j)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_covariance(1.0+7j,z1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(z1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(1.0+7j,x1)
-        self.assert_( equivalent_sequence([0]*4,check_r) )    
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
 
         check_r = get_covariance(x1,1.0+7j)
-        self.assert_( equivalent_sequence([0]*4,check_r) )
+        self.assertTrue( equivalent_sequence([0]*4,check_r) )
       
         check_r = get_covariance(7,x1)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
 
         check_r = get_covariance(x1,1.0)
-        self.assert_( equivalent(0,check_r) )
+        self.assertTrue( equivalent(0,check_r) )
         
 #============================================================================
 if(__name__== '__main__'):

@@ -63,9 +63,9 @@ class TestTypeA(unittest.TestCase):
 
         for k in range(5):
             seq = data_.seq(k)
-            self.assert_( equivalent( numpy.mean(seq) , data_.mean(), TOL) )
-            self.assert_( equivalent( type_a.mean(seq) , data_.mean(), TOL) )
-            self.assert_( equivalent( type_a.mean(seq) , numpy.mean(seq), TOL) )
+            self.assertTrue( equivalent( numpy.mean(seq) , data_.mean(), TOL) )
+            self.assertTrue( equivalent( type_a.mean(seq) , data_.mean(), TOL) )
+            self.assertTrue( equivalent( type_a.mean(seq) , numpy.mean(seq), TOL) )
 
     def testStd(self):
         TOL = 1E-13
@@ -80,12 +80,12 @@ class TestTypeA(unittest.TestCase):
             N = float(len(seq))
             root_N = math.sqrt(N)
             
-            self.assert_( equivalent( numpy.std(seq,ddof=1) , data_.std(), TOL) )
-            self.assert_( equivalent(
+            self.assertTrue( equivalent( numpy.std(seq,ddof=1) , data_.std(), TOL) )
+            self.assertTrue( equivalent(
                 root_N * type_a.standard_uncertainty(seq) ,
                 data_.std(), TOL)
             )
-            self.assert_( equivalent(
+            self.assertTrue( equivalent(
                 root_N * type_a.standard_uncertainty(seq) ,
                 numpy.std(seq,ddof=1), TOL )
             )            
@@ -103,7 +103,7 @@ class TestTypeA(unittest.TestCase):
             im_seq = im_data_.seq(k)
             zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
         
-            self.assert_(
+            self.assertTrue(
                 equivalent_complex(
                     type_a.mean(zseq),
                     complex( re_data_.mean(),im_data_.mean() ),
@@ -127,9 +127,9 @@ class TestTypeA(unittest.TestCase):
 
             (u_re,u_im), r = type_a.standard_uncertainty(zseq)
 
-            self.assert_( equivalent(r,1.0,TOL) )
-            self.assert_( equivalent( root_N * u_re , re_data_.std(), TOL) )
-            self.assert_( equivalent( root_N * u_im , im_data_.std(), TOL) )
+            self.assertTrue( equivalent(r,1.0,TOL) )
+            self.assertTrue( equivalent( root_N * u_re , re_data_.std(), TOL) )
+            self.assertTrue( equivalent( root_N * u_im , im_data_.std(), TOL) )
 
     def testTypeAComplex(self):
         TOL = 1E-12
@@ -148,13 +148,13 @@ class TestTypeA(unittest.TestCase):
 
             z = type_a.estimate(zseq)
             
-            self.assert_( equivalent(get_correlation(z),1.0,TOL) )
+            self.assertTrue( equivalent(get_correlation(z),1.0,TOL) )
             self.assertEqual( dof(z), len(zseq)-1 )
-            self.assert_( equivalent_complex(value(z),complex( re_data_.mean(),im_data_.mean() ),TOL) )
+            self.assertTrue( equivalent_complex(value(z),complex( re_data_.mean(),im_data_.mean() ),TOL) )
             
             u = uncertainty(z)
-            self.assert_( equivalent( root_N * u[0] , re_data_.std(), TOL) )
-            self.assert_( equivalent( root_N * u[1] , im_data_.std(), TOL) )
+            self.assertTrue( equivalent( root_N * u[0] , re_data_.std(), TOL) )
+            self.assertTrue( equivalent( root_N * u[1] , im_data_.std(), TOL) )
 
     def testTypeAReal(self):
         TOL = 1E-12
@@ -169,8 +169,8 @@ class TestTypeA(unittest.TestCase):
             x = type_a.estimate(seq)
             
             self.assertEqual( dof(x), len(seq)-1 )
-            self.assert_( equivalent(value(x),data_.mean(),TOL) )
-            self.assert_( equivalent( root_N * uncertainty(x) , data_.std(), TOL) )
+            self.assertTrue( equivalent(value(x),data_.mean(),TOL) )
+            self.assertTrue( equivalent( root_N * uncertainty(x) , data_.std(), TOL) )
 
 #-----------------------------------------------------
 class TestEnsembleWS(unittest.TestCase):
@@ -197,21 +197,21 @@ class TestEnsembleWS(unittest.TestCase):
 
         # Check that the calculation of covariance and the
         # definition of ureals is correct.
-        self.assert_( equivalent(value(v),4.9990,TOL) )
-        self.assert_( equivalent(uncertainty(v),0.0032,TOL) )
-        self.assert_( equivalent(dof(v),4,TOL) )
+        self.assertTrue( equivalent(value(v),4.9990,TOL) )
+        self.assertTrue( equivalent(uncertainty(v),0.0032,TOL) )
+        self.assertTrue( equivalent(dof(v),4,TOL) )
 
-        self.assert_( equivalent(value(i),0.019661,TOL) )
-        self.assert_( equivalent(uncertainty(i),0.0000095,TOL) )
-        self.assert_( equivalent(dof(i),4,TOL) )
+        self.assertTrue( equivalent(value(i),0.019661,TOL) )
+        self.assertTrue( equivalent(uncertainty(i),0.0000095,TOL) )
+        self.assertTrue( equivalent(dof(i),4,TOL) )
 
-        self.assert_( equivalent(value(p),1.04446,TOL) )
-        self.assert_( equivalent(uncertainty(p),0.00075,TOL) )
-        self.assert_( equivalent(dof(p),4,TOL) )
+        self.assertTrue( equivalent(value(p),1.04446,TOL) )
+        self.assertTrue( equivalent(uncertainty(p),0.00075,TOL) )
+        self.assertTrue( equivalent(dof(p),4,TOL) )
 
-        self.assert_( equivalent(get_correlation(v,i),-0.36,1E-2) )
-        self.assert_( equivalent(get_correlation(i,p),-0.65,1E-2) )
-        self.assert_( equivalent(get_correlation(v,p),0.86,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v,i),-0.36,1E-2) )
+        self.assertTrue( equivalent(get_correlation(i,p),-0.65,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v,p),0.86,1E-2) )
 
         # Perform the data analysis and check that calculations
         # are correct.
@@ -221,17 +221,17 @@ class TestEnsembleWS(unittest.TestCase):
 
         # Comparing with the numbers in the GUM
         TOL = 1E-3
-        self.assert_( equivalent(value(r),127.732,TOL) )
-        self.assert_( equivalent(uncertainty(r), 0.071,TOL) )
-        self.assert_( equivalent(dof(r),4,TOL) )
+        self.assertTrue( equivalent(value(r),127.732,TOL) )
+        self.assertTrue( equivalent(uncertainty(r), 0.071,TOL) )
+        self.assertTrue( equivalent(dof(r),4,TOL) )
 
-        self.assert_( equivalent(value(x), 219.847,TOL) )
-        self.assert_( equivalent(uncertainty(x), 0.295,TOL) )
-        self.assert_( equivalent(dof(x),4,TOL) )
+        self.assertTrue( equivalent(value(x), 219.847,TOL) )
+        self.assertTrue( equivalent(uncertainty(x), 0.295,TOL) )
+        self.assertTrue( equivalent(dof(x),4,TOL) )
 
-        self.assert_( equivalent(value(z), 254.260,TOL) )
-        self.assert_( equivalent(uncertainty(z), 0.236,TOL) )
-        self.assert_( equivalent(dof(z),4,TOL) )
+        self.assertTrue( equivalent(value(z), 254.260,TOL) )
+        self.assertTrue( equivalent(uncertainty(z), 0.236,TOL) )
+        self.assertTrue( equivalent(dof(z),4,TOL) )
 
         equivalent( get_correlation(r,x),-0.588,TOL)
         equivalent( get_correlation(x,z),0.993,TOL)
@@ -260,17 +260,17 @@ class TestEnsembleWS(unittest.TestCase):
         
         # Check that the calculation of covariance and the
         # definition of ureals is correct.
-        self.assert_( equivalent(value(v),4.9990,TOL) )
-        self.assert_( equivalent(uncertainty(v),0.0032,TOL) )
-        self.assert_( equivalent(dof(v),4,TOL) )
+        self.assertTrue( equivalent(value(v),4.9990,TOL) )
+        self.assertTrue( equivalent(uncertainty(v),0.0032,TOL) )
+        self.assertTrue( equivalent(dof(v),4,TOL) )
 
-        self.assert_( equivalent(value(i),0.019661,TOL) )
-        self.assert_( equivalent(uncertainty(i),0.0000095,TOL) )
-        self.assert_( equivalent(dof(i),4,TOL) )
+        self.assertTrue( equivalent(value(i),0.019661,TOL) )
+        self.assertTrue( equivalent(uncertainty(i),0.0000095,TOL) )
+        self.assertTrue( equivalent(dof(i),4,TOL) )
 
-        self.assert_( equivalent(value(p),1.04446,TOL) )
-        self.assert_( equivalent(uncertainty(p),0.00075,TOL) )
-        self.assert_( equivalent(dof(p),4,TOL) )
+        self.assertTrue( equivalent(value(p),1.04446,TOL) )
+        self.assertTrue( equivalent(uncertainty(p),0.00075,TOL) )
+        self.assertTrue( equivalent(dof(p),4,TOL) )
         
     def test_GUM_H2_illegal(self):
         """Test illegal cases:
@@ -307,21 +307,21 @@ class TestEnsembleWS(unittest.TestCase):
 
         # Check that the calculation of covariance and the
         # definition of ureals is correct.
-        self.assert_( equivalent_complex(value(v),4.9990,TOL) )
-        self.assert_( equivalent(uncertainty(v.real),0.0032,TOL) )
-        self.assert_( equivalent(dof(v),4,TOL) )
+        self.assertTrue( equivalent_complex(value(v),4.9990,TOL) )
+        self.assertTrue( equivalent(uncertainty(v.real),0.0032,TOL) )
+        self.assertTrue( equivalent(dof(v),4,TOL) )
 
-        self.assert_( equivalent_complex(value(i),0.019661,TOL) )
-        self.assert_( equivalent(uncertainty(i.real),0.0000095,TOL) )
-        self.assert_( equivalent(dof(i),4,TOL) )
+        self.assertTrue( equivalent_complex(value(i),0.019661,TOL) )
+        self.assertTrue( equivalent(uncertainty(i.real),0.0000095,TOL) )
+        self.assertTrue( equivalent(dof(i),4,TOL) )
 
-        self.assert_( equivalent_complex(value(p),0+1.04446j,TOL) )
-        self.assert_( equivalent(uncertainty(p.imag),0.00075,TOL) )
-        self.assert_( equivalent(dof(p),4,TOL) )
+        self.assertTrue( equivalent_complex(value(p),0+1.04446j,TOL) )
+        self.assertTrue( equivalent(uncertainty(p.imag),0.00075,TOL) )
+        self.assertTrue( equivalent(dof(p),4,TOL) )
 
-        self.assert_( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
-        self.assert_( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
-        self.assert_( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
+        self.assertTrue( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
 
         # Perform the data analysis and check that calculations
         # are correct.
@@ -329,12 +329,12 @@ class TestEnsembleWS(unittest.TestCase):
 
         # Comparing with the numbers in the GUM
         TOL = 1E-3
-        self.assert_( equivalent(value(z.real),127.732,TOL) )
-        self.assert_( equivalent(uncertainty(z.real), 0.071,TOL) )
-        self.assert_( equivalent(dof(z),4,TOL) )
+        self.assertTrue( equivalent(value(z.real),127.732,TOL) )
+        self.assertTrue( equivalent(uncertainty(z.real), 0.071,TOL) )
+        self.assertTrue( equivalent(dof(z),4,TOL) )
 
-        self.assert_( equivalent(value(z.imag), 219.847,TOL) )
-        self.assert_( equivalent(uncertainty(z.imag), 0.295,TOL) )
+        self.assertTrue( equivalent(value(z.imag), 219.847,TOL) )
+        self.assertTrue( equivalent(uncertainty(z.imag), 0.295,TOL) )
 
         equivalent( get_correlation(z.real,z.imag),-0.588,TOL)
 
@@ -357,21 +357,21 @@ class TestEnsembleWS(unittest.TestCase):
         
         # Check that the calculation of covariance and the
         # definition of ureals is correct.
-        self.assert_( equivalent_complex(value(v),4.9990,TOL) )
-        self.assert_( equivalent(uncertainty(v.real),0.0032,TOL) )
-        self.assert_( equivalent(dof(v),4,TOL) )
+        self.assertTrue( equivalent_complex(value(v),4.9990,TOL) )
+        self.assertTrue( equivalent(uncertainty(v.real),0.0032,TOL) )
+        self.assertTrue( equivalent(dof(v),4,TOL) )
 
-        self.assert_( equivalent_complex(value(i),0.019661,TOL) )
-        self.assert_( equivalent(uncertainty(i.real),0.0000095,TOL) )
-        self.assert_( equivalent(dof(i),4,TOL) )
+        self.assertTrue( equivalent_complex(value(i),0.019661,TOL) )
+        self.assertTrue( equivalent(uncertainty(i.real),0.0000095,TOL) )
+        self.assertTrue( equivalent(dof(i),4,TOL) )
 
-        self.assert_( equivalent_complex(value(p),0+1.04446j,TOL) )
-        self.assert_( equivalent(uncertainty(p.imag),0.00075,TOL) )
-        self.assert_( equivalent(dof(p),4,TOL) )
+        self.assertTrue( equivalent_complex(value(p),0+1.04446j,TOL) )
+        self.assertTrue( equivalent(uncertainty(p.imag),0.00075,TOL) )
+        self.assertTrue( equivalent(dof(p),4,TOL) )
 
-        self.assert_( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
-        self.assert_( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
-        self.assert_( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
+        self.assertTrue( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
 
     def test_GUM_H2_complex_illegal(self):
         """Test illegal cases:
@@ -421,21 +421,21 @@ class TestEnsembleWSComplex(unittest.TestCase):
 
         # Check that the calculation of covariance and the
         # definition of ureals is correct.
-        self.assert_( equivalent_complex(value(v),4.9990,TOL) )
-        self.assert_( equivalent(uncertainty(v.real),0.0032,TOL) )
-        self.assert_( equivalent(dof(v),4,TOL) )
+        self.assertTrue( equivalent_complex(value(v),4.9990,TOL) )
+        self.assertTrue( equivalent(uncertainty(v.real),0.0032,TOL) )
+        self.assertTrue( equivalent(dof(v),4,TOL) )
 
-        self.assert_( equivalent_complex(value(i),0.019661,TOL) )
-        self.assert_( equivalent(uncertainty(i.real),0.0000095,TOL) )
-        self.assert_( equivalent(dof(i),4,TOL) )
+        self.assertTrue( equivalent_complex(value(i),0.019661,TOL) )
+        self.assertTrue( equivalent(uncertainty(i.real),0.0000095,TOL) )
+        self.assertTrue( equivalent(dof(i),4,TOL) )
 
-        self.assert_( equivalent_complex(value(p),0+1.04446j,TOL) )
-        self.assert_( equivalent(uncertainty(p.imag),0.00075,TOL) )
-        self.assert_( equivalent(dof(p),4,TOL) )
+        self.assertTrue( equivalent_complex(value(p),0+1.04446j,TOL) )
+        self.assertTrue( equivalent(uncertainty(p.imag),0.00075,TOL) )
+        self.assertTrue( equivalent(dof(p),4,TOL) )
 
-        self.assert_( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
-        self.assert_( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
-        self.assert_( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
+        self.assertTrue( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
 
         # Perform the data analysis and check that calculations
         # are correct.
@@ -443,12 +443,12 @@ class TestEnsembleWSComplex(unittest.TestCase):
 
         # Comparing with the numbers in the GUM
         TOL = 1E-3
-        self.assert_( equivalent(value(z.real),127.732,TOL) )
-        self.assert_( equivalent(uncertainty(z.real), 0.071,TOL) )
-        self.assert_( equivalent(dof(z),4,TOL) )
+        self.assertTrue( equivalent(value(z.real),127.732,TOL) )
+        self.assertTrue( equivalent(uncertainty(z.real), 0.071,TOL) )
+        self.assertTrue( equivalent(dof(z),4,TOL) )
 
-        self.assert_( equivalent(value(z.imag), 219.847,TOL) )
-        self.assert_( equivalent(uncertainty(z.imag), 0.295,TOL) )
+        self.assertTrue( equivalent(value(z.imag), 219.847,TOL) )
+        self.assertTrue( equivalent(uncertainty(z.imag), 0.295,TOL) )
 
         equivalent( get_correlation(z.real,z.imag),-0.588,TOL)
 
@@ -471,21 +471,21 @@ class TestEnsembleWSComplex(unittest.TestCase):
         
         # Check that the calculation of covariance and the
         # definition of ureals is correct.
-        self.assert_( equivalent_complex(value(v),4.9990,TOL) )
-        self.assert_( equivalent(uncertainty(v.real),0.0032,TOL) )
-        self.assert_( equivalent(dof(v),4,TOL) )
+        self.assertTrue( equivalent_complex(value(v),4.9990,TOL) )
+        self.assertTrue( equivalent(uncertainty(v.real),0.0032,TOL) )
+        self.assertTrue( equivalent(dof(v),4,TOL) )
 
-        self.assert_( equivalent_complex(value(i),0.019661,TOL) )
-        self.assert_( equivalent(uncertainty(i.real),0.0000095,TOL) )
-        self.assert_( equivalent(dof(i),4,TOL) )
+        self.assertTrue( equivalent_complex(value(i),0.019661,TOL) )
+        self.assertTrue( equivalent(uncertainty(i.real),0.0000095,TOL) )
+        self.assertTrue( equivalent(dof(i),4,TOL) )
 
-        self.assert_( equivalent_complex(value(p),0+1.04446j,TOL) )
-        self.assert_( equivalent(uncertainty(p.imag),0.00075,TOL) )
-        self.assert_( equivalent(dof(p),4,TOL) )
+        self.assertTrue( equivalent_complex(value(p),0+1.04446j,TOL) )
+        self.assertTrue( equivalent(uncertainty(p.imag),0.00075,TOL) )
+        self.assertTrue( equivalent(dof(p),4,TOL) )
 
-        self.assert_( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
-        self.assert_( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
-        self.assert_( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,i.real),-0.36,1E-2) )
+        self.assertTrue( equivalent(get_correlation(i.real,p.imag),-0.65,1E-2) )
+        self.assertTrue( equivalent(get_correlation(v.real,p.imag),0.86,1E-2) )
 
     def test_GUM_H2_complex_illegal(self):
         """Test illegal cases:

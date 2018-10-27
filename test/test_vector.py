@@ -62,7 +62,7 @@ class TestVector(unittest.TestCase):
         
         d = dict(zip(indices,values))
         for i,x in v.iteritems():
-            self.assert_( equivalent(x,d[i]) )
+            self.assertTrue( equivalent(x,d[i]) )
 
         v = Vector(index=indices,value=values)
         for i,x in v.iteritems():
@@ -92,7 +92,7 @@ class TestVector(unittest.TestCase):
             self.assertEqual(lst[i][0],p[0])
             self.assertEqual(lst[i][1],p[1])
 
-        self.assert_(is_ordered(v))
+        self.assertTrue(is_ordered(v))
         
         lst[0] = ( Dummy(5),6)
         self.assertNotEqual(lst[0][0],p[0])
@@ -110,19 +110,19 @@ class TestVector(unittest.TestCase):
         values_cp = copy.copy(values)
         
         v1 = Vector( index=indices,value=range(9) )
-        self.assert_(is_ordered(v1))
+        self.assertTrue(is_ordered(v1))
         
         k = 5.
         v2 = scale_vector(v1,k)
         
         # Make sure the arguments do not change 
-        self.assert_( indices == indices_cp )
-        self.assert_( values == values_cp )
+        self.assertTrue( indices == indices_cp )
+        self.assertTrue( values == values_cp )
         
         for i,x in v2.iteritems():
             self.assertEqual(i.uid*k,x)
 
-        self.assert_(is_ordered(v2))
+        self.assertTrue(is_ordered(v2))
 
         for i1,i2 in izip(v1.iterkeys(),v2.iterkeys()):
             self.assertEqual(i1.uid,i2.uid)
@@ -138,14 +138,14 @@ class TestVector(unittest.TestCase):
         v1 = Vector( index=index1,value=range(9) )
         index2 = [ Dummy(i) for i in range(5,15) ]
         v2 = Vector( index=index2,value=range(10) )    
-        self.assert_(is_ordered(v1))
-        self.assert_(is_ordered(v2))
+        self.assertTrue(is_ordered(v1))
+        self.assertTrue(is_ordered(v2))
         
         v = extend_vector(v1,v2)  
         
         v_range = [ i.uid for i in v.keys() ]
         self.assertEqual(v_range,range(15))
-        self.assert_(is_ordered(v))
+        self.assertTrue(is_ordered(v))
         
         for i,x in v.iteritems():
             # The values from v1 should remain,
@@ -160,7 +160,7 @@ class TestVector(unittest.TestCase):
         rng1 = range(10)
         index1 = [ Dummy(i) for i in rng1 ]
         v1 = Vector( index=index1,value=rng1 )
-        self.assert_(is_ordered(v1))
+        self.assertTrue(is_ordered(v1))
         k1 = 3.
         
         idx1_cp = copy.copy(index1)
@@ -168,18 +168,18 @@ class TestVector(unittest.TestCase):
         
         index2 = [ Dummy(i) for i in range(5,15) ]
         v2 = Vector( index=index2,value=rng1 )   # Note that the values are the same as v1
-        self.assert_(is_ordered(v2))
+        self.assertTrue(is_ordered(v2))
         k2 = -4.
  
         idx2_cp = copy.copy(index2)
  
         v = merge_weighted_vectors(v1,k1,v2,k2)
         
-        self.assert_(is_ordered(v))
+        self.assertTrue(is_ordered(v))
         
-        self.assert_( rng1 == v1_cp )
-        self.assert_( index1 == idx1_cp )
-        self.assert_( index2 == idx2_cp )
+        self.assertTrue( rng1 == v1_cp )
+        self.assertTrue( index1 == idx1_cp )
+        self.assertTrue( index2 == idx2_cp )
         
         rng = range(15)   
         rng_merged = [ i.uid for i in v.keys() ]
@@ -200,24 +200,24 @@ class TestVector(unittest.TestCase):
         rng1 = range(10)
         index1 = [ Dummy(i) for i in rng1 ]
         v1 = Vector( index=index1,value=rng1 )
-        self.assert_(is_ordered(v1))
+        self.assertTrue(is_ordered(v1))
         
         idx1_cp = copy.copy(index1)
         v1_cp = copy.copy(rng1)
         
         index2 = [ Dummy(i) for i in range(5,15) ]
         v2 = Vector( index=index2,value=rng1 )   # Note that the values are the same as v1
-        self.assert_(is_ordered(v2))
+        self.assertTrue(is_ordered(v2))
  
         idx2_cp = copy.copy(index2)
  
         v = merge_vectors(v1,v2)
         
-        self.assert_(is_ordered(v))
+        self.assertTrue(is_ordered(v))
         
-        self.assert_( rng1 == v1_cp )
-        self.assert_( index1 == idx1_cp )
-        self.assert_( index2 == idx2_cp )
+        self.assertTrue( rng1 == v1_cp )
+        self.assertTrue( index1 == idx1_cp )
+        self.assertTrue( index2 == idx2_cp )
         
         rng = range(15)   
         rng_merged = [ i.uid for i in v.keys() ]
@@ -238,7 +238,7 @@ class TestVector(unittest.TestCase):
         v2 = Vector( index=[Dummy(2)], value=[1] )
         v = merge_weighted_vectors(v1,2,v2,3)
         self.assertEqual( len(v), 2)
-        self.assert_(is_ordered(v))
+        self.assertTrue(is_ordered(v))
 
 
 #=====================================================

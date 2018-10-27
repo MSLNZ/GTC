@@ -84,10 +84,10 @@ class TestBudget(unittest.TestCase):
         self.assertEqual(b[2].label,'x1')
         self.assertEqual(b[3].label,'z1_im')
 
-        self.assert_( equivalent(b[0].u,2.0,TOL) )
-        self.assert_( equivalent(b[1].u,3*.2,TOL) )
-        self.assert_( equivalent(b[2].u,0.1,TOL) )
-        self.assert_( equivalent(b[3].u,0,TOL) )
+        self.assertTrue( equivalent(b[0].u,2.0,TOL) )
+        self.assertTrue( equivalent(b[1].u,3*.2,TOL) )
+        self.assertTrue( equivalent(b[2].u,0.1,TOL) )
+        self.assertTrue( equivalent(b[3].u,0,TOL) )
 
         # Sorting in different ways
         b = reporting.budget(y,reverse=False,trim=0)
@@ -149,15 +149,15 @@ class TestBudget(unittest.TestCase):
         b = reporting.budget(y)
         self.assertEqual( len(b), 3)
 
-        self.assert_( equivalent(b[0].u,1.0,TOL) )
-        self.assert_( equivalent(b[1].u,0.5,TOL) )
-        self.assert_( equivalent(b[2].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
+        self.assertTrue( equivalent(b[0].u,1.0,TOL) )
+        self.assertTrue( equivalent(b[1].u,0.5,TOL) )
+        self.assertTrue( equivalent(b[2].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
 
         b = reporting.budget(y,[ux1,uz1])
         self.assertEqual( len(b), 2)
         
-        self.assert_( equivalent(b[0].u,1.0,TOL) )
-        self.assert_( equivalent(b[1].u,math.sqrt((.1**2 + .2**2)/2),TOL) )   
+        self.assertTrue( equivalent(b[0].u,1.0,TOL) )
+        self.assertTrue( equivalent(b[1].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
 
 
 #============================================================================
