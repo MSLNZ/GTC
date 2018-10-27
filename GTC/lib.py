@@ -12,8 +12,9 @@ try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
+    long = int
 
-from GTC import nodes 
+from GTC import nodes
 from GTC import vector 
 from GTC import context
 

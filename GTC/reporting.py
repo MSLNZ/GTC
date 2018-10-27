@@ -35,6 +35,7 @@ try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
+    long = int
 
 from operator import attrgetter as getter
 from functools import reduce

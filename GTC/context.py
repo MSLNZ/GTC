@@ -5,6 +5,10 @@ Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
 import os
 import uuid
 import weakref
+try:
+    long  # Python 2
+except NameError:
+    long = int
 
 from GTC.vector import *
 from GTC.nodes import *
