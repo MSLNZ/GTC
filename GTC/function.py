@@ -13,7 +13,10 @@ Module contents
 from __future__ import division
 
 import math
-import collections
+try:
+    from collections.abc import Iterable  # Python 3
+except ImportError:
+    from collections import Iterable
 import itertools
 
 from GTC.lib import (
@@ -48,7 +51,7 @@ def mean(seq):
     """
     if is_sequence(seq):
         return sum(seq)/len(seq)
-    elif isinstance(seq,collections.Iterable):
+    elif isinstance(seq,Iterable):
         seq = list(seq)
         return sum(seq)/len(seq)
     else:
