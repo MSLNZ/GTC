@@ -13,8 +13,10 @@ from __future__ import division
 import math
 import cmath
 try:
-    from collections import Sequence  # Python 2
-except ImportError:
+    basestring  # Python 2
+    from collections import Sequence
+except NameError:
+    basestring = (str, bytes)
     from collections.abc import Sequence
 
 #----------------------------------------------------------------------------
