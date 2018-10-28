@@ -1,12 +1,9 @@
 import unittest
-import sys
-import math
-import cmath
+import os
 try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
-import os
 
 from GTC import *
 from GTC.context import Context

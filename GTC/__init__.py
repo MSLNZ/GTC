@@ -99,8 +99,3 @@ copyright = """Copyright (c) 2018, \
 Measurement Standards Laboratory of New Zealand"""
 
 from .core import *
- 
-
-
-
-       

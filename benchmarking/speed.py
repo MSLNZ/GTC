@@ -3,13 +3,10 @@ A benchmark used in the past for uncertain complex number calculations
 
 """
 from GTC import *
-from GTC.vector import is_ordered
 
-import math
 import numpy
 import time
 
-import sys
 
 def fn():
     

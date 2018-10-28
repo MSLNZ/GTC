@@ -1,10 +1,5 @@
 import unittest
-import sys
-import math
-import cmath
 import copy
-import numpy
-import operator
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -13,14 +8,14 @@ except ImportError:
 TOL = 1E-13
 DIGITS = 13
 
-from GTC import *
-
-from GTC.vector import Vector
-from GTC.vector import scale_vector
-from GTC.vector import extend_vector
-from GTC.vector import merge_weighted_vectors
-from GTC.vector import merge_vectors
-from GTC.vector import is_ordered
+from GTC.vector import (
+    Vector,
+    scale_vector,
+    extend_vector,
+    merge_weighted_vectors,
+    merge_vectors,
+    is_ordered
+)
 
 from testing_tools import *
 

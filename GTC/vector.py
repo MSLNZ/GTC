@@ -25,15 +25,15 @@ except ImportError:
     cmp = lambda a, b: (a > b) - (a < b)
 
 
-__all__ = [
-        'Vector'
-    ,   'scale_vector'
-    ,   'scale_vector_twice'
-    ,   'merge_vectors'
-    ,   'merge_weighted_vectors'
-    ,   'merge_weighted_vectors_twice'
-    ,   'extend_vector'
-]
+__all__ = (
+    'Vector',
+    'scale_vector',
+    'scale_vector_twice',
+    'merge_vectors',
+    'merge_weighted_vectors',
+    'merge_weighted_vectors_twice',
+    'extend_vector'
+)
 
 # The `cmp` function works as follows.
 # Tuples and lists are compared lexicographically by comparing 

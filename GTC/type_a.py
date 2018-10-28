@@ -38,25 +38,22 @@ from __future__ import division
 import sys
 import math
 import numbers
+from functools import reduce
 try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
     xrange = range
-from functools import reduce
 
 from GTC.context import _context 
 
 from GTC.lib import (
     UncertainReal, 
     UncertainComplex,
-    get_correlation_real, 
     set_correlation_real,
     real_ensemble,
     complex_ensemble
 )
-
-from GTC import inf
 
 from GTC.named_tuples import (
     VarianceCovariance,
@@ -65,13 +62,15 @@ from GTC.named_tuples import (
 )
 
 __all__ = (
-    'estimate','multi_estimate_real','multi_estimate_complex',
+    'estimate',
     'estimate_digitized',
+    'multi_estimate_real',
+    'multi_estimate_complex',
     'mean',
     'standard_deviation',
     'standard_uncertainty',
     'variance_covariance_complex',
-    )
+)
 
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):

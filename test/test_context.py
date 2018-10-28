@@ -1,14 +1,8 @@
 import unittest
-import sys
-import math
-import cmath
-import itertools
 
-from GTC import *
-from GTC.context import Context, _context
+from GTC import ucomplex
+from GTC.context import _context
 from GTC.lib import UncertainReal
-
-from testing_tools import *
 
 TOL = 1E-13 
 

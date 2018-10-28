@@ -1,11 +1,6 @@
 import unittest
-import sys
-import math
-import cmath
-import itertools
 
 from GTC import *
-from GTC.context import Context
 
 from testing_tools import *
 

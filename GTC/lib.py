@@ -26,7 +26,6 @@ from GTC.named_tuples import (
     StandardUncertainty,
     GroomedUncertainReal,
     GroomedUncertainComplex,
-    ComponentOfUncertainty
 )
 
 from GTC import (

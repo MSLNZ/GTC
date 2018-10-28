@@ -27,26 +27,30 @@ Module contents
 """
 from __future__ import division     # True division
 
-import numbers
 import math
-import cmath
-
+import numbers
+from operator import attrgetter as getter
+from functools import reduce
 try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
     long = int
 
-from operator import attrgetter as getter
-from functools import reduce
+from GTC.lib import (
+    std_variance_real,
+    std_variance_covariance_complex,
+    UncertainReal,
+    UncertainComplex,
+    welch_satterthwaite,
+    willink_hall,
 
-from GTC.lib import *
-from GTC.vector import *
+)
 from GTC.named_tuples import (
     ComponentOfUncertainty, 
     Influence
 )
-
+from GTC.vector import extend_vector
 from GTC import is_sequence
 
 __all__ = (

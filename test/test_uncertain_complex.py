@@ -1,25 +1,21 @@
 import re
 import unittest
-import sys
-import math
-import cmath
-import itertools
-
-import numpy
 try:
     from operator import div  # Python 2
 except ImportError:
     from operator import truediv as div
 
+import numpy
+
 from GTC import *
 from GTC.context import _context 
 from GTC.reporting import *
 from GTC.lib import (
-    UncertainReal,
-    UncertainComplex, 
+    UncertainComplex,
     willink_hall,
     _is_uncertain_complex_constant
 )
+
 from testing_tools import *
 
 TOL = 1E-13 

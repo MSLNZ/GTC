@@ -1,8 +1,5 @@
 import unittest
-import sys
 import math
-import cmath
-import itertools
 try:
     xrange  # Python 2
 except NameError:
@@ -10,7 +7,6 @@ except NameError:
 
 import numpy
 
-from GTC import *
 from GTC import function
 
 from testing_tools import *

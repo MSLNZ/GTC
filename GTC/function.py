@@ -17,13 +17,6 @@ try:
     from collections.abc import Iterable  # Python 3
 except ImportError:
     from collections import Iterable
-import itertools
-
-from GTC.lib import (
-    UncertainReal,
-    UncertainComplex,
-    z_to_seq
-)
 
 from GTC import is_sequence
 
@@ -31,7 +24,7 @@ __all__ = (
     'complex_to_seq',
     'seq_to_complex',
     'mean'
-    )
+)
         
 #---------------------------------------------------------------------------
 def mean(seq):

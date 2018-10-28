@@ -55,14 +55,14 @@ from __future__ import division
 import math
 
 __all__ = (
-        'uniform'
-    ,   'triangular'
-    ,   'u_shaped'
-    ,   'arcsine'
-    ,   'uniform_ring'
-    ,   'uniform_disk'
-    ,   'unknown_phase_product'
-    ,   'distribution'
+    'uniform',
+    'triangular',
+    'u_shaped',
+    'arcsine',
+    'uniform_ring',
+    'uniform_disk',
+    'unknown_phase_product',
+    'distribution'
 )
 
 _root_2 = math.sqrt(2.0)

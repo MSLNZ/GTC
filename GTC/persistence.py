@@ -28,9 +28,7 @@ Module contents
 ---------------
 
 """
-import collections
 import itertools
-import numbers
 try:
     import cPickle as pickle  # Python 2
     PY2 = True
@@ -43,10 +41,7 @@ from GTC.lib import (
     UncertainReal
 )
 from GTC.vector import Vector 
-from GTC.nodes import *
 from GTC import context
-
-from GTC import inf
 
 __all__ = (
     'Archive',

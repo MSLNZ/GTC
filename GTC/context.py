@@ -2,7 +2,6 @@
 Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
 
 """
-import os
 import uuid
 import weakref
 try:
@@ -10,12 +9,15 @@ try:
 except NameError:
     long = int
 
-from GTC.vector import *
-from GTC.nodes import *
+from GTC.nodes import (
+    Leaf,
+    Node
+)
 
-from GTC import inf, nan
-
-__all__ = ('Context','_context')
+__all__ = (
+    'Context',
+    '_context'
+)
 
 #----------------------------------------------------------------------------
 class Context(object):

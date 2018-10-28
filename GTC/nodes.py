@@ -3,7 +3,10 @@ Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
 
 """
 
-__all__ = [ 'Leaf', 'Node' ]
+__all__ = (
+    'Leaf',
+    'Node'
+)
 
 #----------------------------------------------------------------------------
 class Node(object):

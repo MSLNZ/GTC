@@ -1,7 +1,4 @@
 import unittest
-import sys
-import math
-import cmath
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -11,12 +8,6 @@ except ImportError:
 import numpy
 
 from GTC import *
-from GTC.vector import *
-from GTC.nodes import *
-from GTC.vector import is_ordered
-from GTC.reporting import u_component
-from GTC.lib import (UncertainReal,welch_satterthwaite)
-from GTC import reporting
 
 from testing_tools import *
 
