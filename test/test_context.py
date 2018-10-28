@@ -1,7 +1,6 @@
 import unittest
 
 from GTC import ucomplex
-from GTC.context import _context
 from GTC.lib import UncertainReal
 
 TOL = 1E-13 
@@ -10,6 +9,9 @@ TOL = 1E-13
 class TestContext(unittest.TestCase):
 
     def test_construction(self):        
+        # import here to get the tests to work with Python 2.7 on linux
+        from GTC.context import _context
+
         x_value = 1.2
         x_u = 0.5
         x_dof = 6
