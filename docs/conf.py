@@ -16,17 +16,20 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../GTC'))
 
+import sphinx
+
+from GTC import version, copyright
 
 # -- Project information -----------------------------------------------------
 
-project = u'GUM Tree Calculator 2'
-copyright = u'2018, Measurement Standards Laboratory of New Zealand'
+project = u'GUM Tree Calculator'
+copyright =copyright
 author = u'Measurement Standards Laboratory of New Zealand'
 
 # The short X.Y version
-version = u'0.1'
+version = version
 # The full version, including alpha/beta/rc tags
-release = u'0'
+release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,7 +46,37 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.githubpages',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
 ]
+
+# autodoc options
+if sphinx.version_info < (1, 8):
+    # 'alphabetical', 'bysource', 'groupwise'
+    autodoc_member_order = 'bysource'
+
+    # 'members', 'undoc-members', 'private-members', 'special-members', 'inherited-members', 'show-inheritance'
+    autodoc_default_flags = ['members', 'inherited-members']
+else:
+    autodoc_default_options = {
+        'members': None,
+        'inherited-members': None,
+        'member-order': 'bysource',
+    }
+
+# Napoleon settings
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -52,7 +85,7 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = '.txt'
+source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -84,7 +117,11 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
+if on_rtd:
+    html_theme = 'default'
+else:
+    html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -95,7 +132,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -128,7 +165,7 @@ html_show_copyright = False
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'GUMTreeCalculator2doc'
+htmlhelp_basename = 'GUMTreeCalculatordoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -155,7 +192,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'GUMTreeCalculator2.tex', u'GUM Tree Calculator 2 Documentation',
+    (master_doc, 'GUMTreeCalculator.tex', u'GUM Tree Calculator Documentation',
      u'Measurement Standards Laboratory of New Zealand', 'manual'),
 ]
 
@@ -165,7 +202,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'gumtreecalculator2', u'GUM Tree Calculator 2 Documentation',
+    (master_doc, 'gumtreecalculator', u'GUM Tree Calculator Documentation',
      [author], 1)
 ]
 
@@ -176,8 +213,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'GUMTreeCalculator2', u'GUM Tree Calculator 2 Documentation',
-     author, 'GUMTreeCalculator2', 'One line description of project.',
+    (master_doc, 'GUMTreeCalculator', u'GUM Tree Calculator Documentation',
+     author, 'GUMTreeCalculator', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -201,3 +238,10 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/{}'.format(sys.version_info.major), None),
+}
+
+# warn about all broken links
+nitpicky = True
