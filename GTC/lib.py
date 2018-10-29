@@ -329,7 +329,7 @@ class UncertainReal(object):
             else:
                 df_factor = 10**(-df_decimals)
                 df = df_factor*math.floor(self.df/df_factor)
-                if df > 1E6: df = float('inf')
+                if df > inf_dof: df = inf
             
             if self.label is None:
                 return GroomedUncertainReal(
@@ -2286,7 +2286,7 @@ class UncertainComplex(object):
             else:
                 df_factor = 10**(-df_decimals)
                 df = df_factor*math.floor(self.df/df_factor)
-                if df > 1E6: df = float('inf')
+                if df > inf_dof: df = inf
             
             return GroomedUncertainComplex(
                 x = complex(re_x,im_x),
