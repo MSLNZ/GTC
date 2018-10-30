@@ -34,8 +34,8 @@ from GTC import (
 rp = reporting
 tb = type_b
 ta = type_a
-pr = persistence
 fn = function
+pr = persistence
 
 UncertainReal = lib.UncertainReal 
 UncertainComplex = lib.UncertainComplex 
@@ -84,6 +84,7 @@ __all__ = (
     ,   'function',     'fn'
     ,   'type_b',       'tb'
     ,   'type_a',       'ta'
+    ,   'persistence',  'pr'
     ,   'math'
     ,   'cmath'
     ,   'is_infinity'
@@ -1215,6 +1216,6 @@ def mag_squared(x):
         
 #============================================================================    
 if __name__ == "__main__":
-    # from GTC import *
     import doctest       
+    # from GTC import *
     doctest.testmod(  optionflags=doctest.NORMALIZE_WHITESPACE )

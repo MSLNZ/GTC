@@ -85,6 +85,7 @@ __all__ = (
     ,   'function',     'fn'
     ,   'type_b',       'tb'
     ,   'type_a',       'ta'
+    ,   'persistence',  'pr'
     ,   'math'
     ,   'cmath'
     ,   'is_infinity'

@@ -209,7 +209,7 @@ class Archive(object):
         
         **Example**::
         
-            >>> a = pr.Archive()
+            >>> a = Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
             >>> a['x'] = x
@@ -227,7 +227,7 @@ class Archive(object):
 
         **Example**::
         
-            >>> a = pr.Archive()
+            >>> a = Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
             >>> a.add(x=x,fred=y)
@@ -257,11 +257,6 @@ class Archive(object):
 
         `key` - the name of the archived number
         
-        **Example**::
-
-            >>> x = a['x']
-            >>> harry = a['harry']
-
         """
         if not self._extract:
             raise RuntimeError('This archive is write-only!')
@@ -278,10 +273,10 @@ class Archive(object):
         number is returned, otherwise a sequence of
         uncertain numbers is returned.
         
-        **Example**::
+        # **Example**::
 
-            >>> x, fred = a.extract('x','fred')
-            >>> harry = a.extract('harry')
+            # >>> x, fred = a.extract('x','fred')
+            # >>> harry = a.extract('harry')
             
         """        
         if not self._extract:
@@ -678,3 +673,8 @@ def loads(s):
     
     return ar
 
+#============================================================================    
+if __name__ == "__main__":
+    import doctest
+    from GTC import *  
+    doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
