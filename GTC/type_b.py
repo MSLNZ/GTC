@@ -31,11 +31,11 @@ A table of distributions
 
         >>> a = 1.5
         >>> ureal( 1, type_b.distribution['gaussian'](a) )
-        ureal(1,1.5,inf)
+        ureal(1.0,1.5,inf)
         >>> ureal( 1, type_b.distribution['uniform'](a) )
-        ureal(1,0.8660254037844387,inf)
+        ureal(1.0,0.8660254037844387,inf)
         >>> ureal( 1, type_b.distribution['arcsine'](a) )
-        ureal(1,1.06066017177982,inf)
+        ureal(1.0,1.0606601717798212,inf)
 
     The names are (case-sensitive):
     
@@ -79,7 +79,7 @@ def uniform(a):
 
         >>> x = ureal(1,type_b.uniform(1))
         >>> x
-        ureal(1,0.5773502691896258,inf)
+        ureal(1.0,0.5773502691896258,inf)
     
     """
     return a/_root_3
@@ -94,7 +94,7 @@ def triangular(a):
 
         >>> x = ureal(1,type_b.triangular(1))
         >>> x
-        ureal(1,0.4082482904638631,inf)
+        ureal(1.0,0.4082482904638631,inf)
         
     """
     return a/_root_6
@@ -113,7 +113,7 @@ def arcsine(a):
 
         >>> x = ureal(1,type_b.arcsine(1))
         >>> x
-        ureal(1,0.7071067811865475,inf)
+        ureal(1.0,0.7071067811865475,inf)
 
     """
     return a/_root_2
@@ -136,8 +136,7 @@ def uniform_ring(a):
 
         >>> z = ucomplex( 0, type_b.uniform_ring(1) )
         >>> z
-        ucomplex((0+0j), u=[0.7071067811865475,0.7071067811865475], 
-                r=0, df=inf)
+        ucomplex((0+0j), u=[0.7071067811865475,0.7071067811865475], r=0.0, df=inf)
         
     """
     return arcsine(a)
@@ -157,7 +156,7 @@ def uniform_disk(a):
 
         >>> z = ucomplex( 0, type_b.uniform_disk(1) )
         >>> z
-        ucomplex((0+0j), u=[0.5,0.5], r=0, df=inf)
+        ucomplex((0+0j), u=[0.5,0.5], r=0.0, df=inf)
         
     """
     return a / 2.0
@@ -180,7 +179,7 @@ def uncertain_ring(a_u_r):
         >>> estimate = (1,0.1)
         >>> z = ucomplex( 0, type_b.uncertain_ring( estimate ) )
         >>> z
-        ucomplex((0+0j), u=[0.714142842854285,0.714142842854285], r=0, df=inf)
+        ucomplex((0+0j), u=[0.714142842854285,0.714142842854285], r=0.0, df=inf)
 
     .. note::
     
@@ -222,8 +221,7 @@ def unknown_phase_product(u1,u2):
         # X = Gamma1 * Gamma2
         >>> X = ucomplex( 0, type_b.unknown_phase_product(.1,.1) )
         >>> X
-        ucomplex((0+0j), u=[0.014142135623730951,0.014142135623730951], 
-                r=0, df=inf)
+        ucomplex((0+0j), u=[0.014142135623730954,0.014142135623730954], r=0.0, df=inf)
 
     """
     return _root_2 * u1 * u2

@@ -204,11 +204,7 @@ def estimate(seq,label=None,context=_context):
         ... (1.6770229536619197+0.77195994890476838j)]
 
         >>> type_a.estimate(data)
-        ucomplex(
-            (1.059187840567141+0.9574410497332932j), 
-            u=[0.28881665310241805,0.2655555630050262], 
-            r=-4.090655272692547, 
-            df=9)
+        ucomplex((1.059187840567141+0.9574410497332932j), u=[0.28881665310241805,0.2655555630050262], r=-4.090655272692547, df=9)
 
     """
     df = len(seq)-1
@@ -674,8 +670,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
 #============================================================================    
 if __name__ == "__main__":
     import doctest
-    from GTC import *
-    
+    from GTC import *    
     doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
 
     

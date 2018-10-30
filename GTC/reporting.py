@@ -518,7 +518,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         
     return this_budget
         
-#-------------------------------------------------------
+#============================================================================
 if __name__ == "__main__":
     import doctest
     from GTC import *

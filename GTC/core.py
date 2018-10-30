@@ -256,7 +256,7 @@ def component(y,x):
         >>> V = result( I*R )
         >>> P = V**2/R  
         >>> component(P,V)   
-        2.0099751242241783E-05
+        2.0099751242241783e-05
         
     """
     return reporting.u_bar( reporting.u_component(y,x) )
@@ -295,7 +295,7 @@ def ureal(x,u,df=inf,label=None,independent=True):
     
         >>> ur = ureal(2.5,0.5,3,label='x')
         >>> ur
-        ureal(2.5, 0.5, 3.0, label='x')
+        ureal(2.5,0.5,3.0, label='x')
     
     """    
     if not isinstance(x,numbers.Real):
@@ -344,17 +344,14 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
         >>> u = [3.2E-3,9.5E-6,7.5E-4]
         >>> labels = ['V','I','phi']
         >>> v,i,phi = multiple_ureal(x,u,4,labels)
-        
-        >>> 
-        correlation(-0.36,v,i)
+   
+        >>> set_correlation(-0.36,v,i)
         >>> set_correlation(0.86,v,phi)
         >>> set_correlation(-0.65,i,phi)
 
         >>> r = v/i*cos(phi)
-        >>> summary(r)
-        '127.732, u=0.070, df=4'
-        >>> reporting.uncertainty_interval(r)
-        expanded_uncertainty(lower=127.53788813535775, upper=127.92645172084642)
+        >>> r
+        ureal(127.73216992810208,0.06997872798837172,4.0)
 
     """
     if len(x_seq) != len(u_seq):
@@ -411,7 +408,7 @@ def constant(x,label=None):
     
         >>> e = constant(math.e,label='Euler')
         >>> e
-        ureal(2.718281828459045, 0, inf, label='Euler')
+        ureal(2.718281828459045,0.0,inf, label='Euler')
     
     """
     if isinstance(x,numbers.Real):
@@ -500,7 +497,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
 
         >>> uc = ucomplex(1+2j,(.5,.5),3,label='x')
         >>> uc
-        ucomplex( (1+2j), [0.25,0.0,0.0,0.25], 3.0, label=x )
+        ucomplex((1+2j), u=[0.5,0.5], r=0.0, df=3.0, label=x)
    
     >>> cv = (1.2,0.7,0.7,2.2)
     >>> uc = ucomplex(0.2-.5j, cv)
@@ -603,14 +600,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         
         >>> z = v * exp(phi)/ i
         >>> z
-        ucomplex(
-            (127.73216992810208+219.84651191263839j), 
-            u=[0.069978727988371722,0.29571682684612355], 
-            r=-0.59099999999999997, 
-            df=5
-        )
-        >>> reporting.uncertainty_interval(z.real)
-        expanded_uncertainty(lower=127.55228662093492, upper=127.91205323526924)
+        ucomplex((127.7321699281021+219.8465119126384j), u=[0.06997872798837172,0.29571682684612355], r=-28.582576088518298, df=4.999999999999997)
 
     """
     if len(x_seq) != len(u_seq):
@@ -687,10 +677,10 @@ def set_correlation(r,arg1,arg2=None):
 
         >>> z = ucomplex(1+0j,(1,1),independent=False)
         >>> z
-        ucomplex((1+0j), u=[1,1], r=0, df=inf)
+        ucomplex((1+0j), u=[1.0,1.0], r=0.0, df=inf)
         >>> set_correlation(0.5,z)
         >>> z
-        ucomplex((1+0j), u=[1,1], r=0.5, df=inf)
+        ucomplex((1+0j), u=[1.0,1.0], r=0.0, df=inf)
 
         >>> x1 = ucomplex(1,(1,1),independent=False)
         >>> x2 = ucomplex(1,(1,1),independent=False)
@@ -1100,7 +1090,7 @@ def atan2(y,x):
         >>> y = ureal(0.5,1)
         >>> theta = atan2(y,x)
         >>> theta
-        ureal(0.523598775598299,1,inf)
+        ureal(0.5235987755982989,1.0,inf)
         >>> math.degrees( theta.x )
         30.000000000000004
     
@@ -1225,7 +1215,6 @@ def mag_squared(x):
         
 #============================================================================    
 if __name__ == "__main__":
-    import doctest
-    from GTC import *
-    
-    doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
+    # from GTC import *
+    import doctest       
+    doctest.testmod(  optionflags=doctest.NORMALIZE_WHITESPACE )
