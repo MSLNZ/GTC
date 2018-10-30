@@ -107,7 +107,7 @@ def value(x):
         >>> value(un)
         3.0
         >>> un.x
-        3.0                  
+        3.0
 
     """
     try:
@@ -248,7 +248,7 @@ def component(y,x):
         >>> z2 = ucomplex(3-2j,1)
         >>> y = z1 - z2
         >>> reporting.u_component(y,z2)
-        u_components(rr=-1.0, ri=0.0, ir=0.0, ii=-1.0)        
+        u_components(rr=-1.0, ri=0.0, ir=0.0, ii=-1.0)
         >>> component(y,z2)
         1.0
 
@@ -503,7 +503,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     >>> cv = (1.2,0.7,0.7,2.2)
     >>> uc = ucomplex(0.2-.5j, cv)
     >>> variance(uc)
-    variance_covariance(rr=1.1999999999999997, ri=0.7, ir=0.7, ii=2.2)   
+    variance_covariance(rr=1.1999999999999997, ri=0.7, ir=0.7, ii=2.2)
     
     """
     if not isinstance(z,numbers.Complex):
