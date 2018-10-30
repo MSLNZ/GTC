@@ -422,8 +422,7 @@ def variance_covariance_complex(seq,mu=None):
         ... (2.0122536479379196-0.23283009302603963j),
         ... (1.6770229536619197+0.77195994890476838j)]
         >>> type_a.variance_covariance_complex(data)
-        variance_covariance(rr=0.8341505910928249, ri=-0.24062910264062262, 
-            ir=-0.24062910264062262, ii=0.7051975704291644)
+        variance_covariance(rr=0.8341505910928249, ri=-0.24062910264062262, ir=-0.24062910264062262, ii=0.7051975704291644)
 
         >>> v = type_a.variance_covariance_complex(data)
         >>> v[0]

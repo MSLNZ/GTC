@@ -533,7 +533,7 @@ class UncertainReal(object):
         **Example**::
             >>> ur = ureal(2.5,0.5,3)
             >>> ur.df
-            3
+            3.0
 
         .. note:: ``un.df`` is equivalent to ``dof(un)``
         
@@ -2482,7 +2482,7 @@ class UncertainComplex(object):
         **Example**::
             >>> uc = ucomplex(1+2j,(.3,.2),3)
             >>> uc.df
-            3
+            3.0
 
         .. note:: 
         

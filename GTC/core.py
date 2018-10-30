@@ -242,7 +242,7 @@ def component(y,x):
         >>> reporting.u_component(y,x2)
         -0.08
         >>> component(y,x2)
-        0.08    
+        0.08
         
         >>> z1 = ucomplex(1+2j,1)
         >>> z2 = ucomplex(3-2j,1)
