@@ -123,13 +123,13 @@ def variance_and_dof(x):
     """
     if isinstance(x,UncertainReal):
         if x.is_elementary:
-            return (std_variance_real(x),x._context.get_dof(x._uid))
+            return (std_variance_real(x),x.df)
         else:
             return welch_satterthwaite(x)
     elif isinstance(x,UncertainComplex):
         if x.real.is_elementary:
             assert x.imag.is_elementary
-            return (std_variance_covariance_complex(x),x.real._node.df)
+            return (std_variance_covariance_complex(x),x.real.df)
         else:
             return willink_hall(x)
     else:
