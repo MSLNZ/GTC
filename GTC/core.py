@@ -213,10 +213,10 @@ def component(y,x):
     in ``y`` due to ``x``.
 
     :arg y: an uncertain number
-    :type y: :class:`UncertainReal` or :class:`UncertainComplex`
+    :type y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
 
     :arg x: an uncertain number
-    :type x: :class:`UncertainReal` or :class:`UncertainComplex`
+    :type x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
 
     :rtype: float
     
@@ -285,12 +285,12 @@ def ureal(x,u,df=inf,label=None,independent=True):
     :type df: float
     
     :arg label: a string label 
-    :type label: string 
+    :type label: str 
     
     :arg independent: not correlated with other UNs
-    :type independent: Boolean
+    :type independent: bool
     
-    :rtype: :class:`UncertainReal`
+    :rtype: :class:`~lib.UncertainReal`
     
     **Example**::
     
@@ -328,7 +328,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     :arg df: the degrees-of-freedom 
     :arg label_seq: a sequence of labels
     
-    :rtype: a sequence of :class:`UncertainReal`
+    :rtype: a sequence of :class:`~lib.UncertainReal`
 
     Defines an set of related uncertain real
     numbers with the same number of degrees-of-freedom.
@@ -399,7 +399,7 @@ def constant(x,label=None):
     :arg x: a number
     :type x: float or complex
 
-    :rtype: :class:`UncertainReal` or :class:`UncertainComplex`
+    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
 
     If ``x`` is complex, return an uncertain complex number.
     
@@ -469,7 +469,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     :type z: complex
 
     :arg u: the standard uncertainty or variance
-    :type u: a float, 2-element or 4-element sequence
+    :type u: float, 2-element or 4-element sequence
 
     :arg df: the degrees-of-freedom
     :type df: float
@@ -477,19 +477,20 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     :arg label: a string label 
     :type label: string 
     
-    :rtype: :class:`UncertainComplex`
+    :rtype: :class:`~lib.UncertainComplex`
 
     ``u`` can be a float, a 2-element or 4-element sequence.
 
     If ``u`` is a float, the standard uncertainty in both
-    the real and imaginary components is equal to ``u``.
+    the real and imaginary components is taken to be ``u``.
 
     If ``u`` is a 2-element sequence, the first element is
-    the standard uncertainty in the real component and the second
-    element is the standard uncertainty in the imaginary.
+    taken to be the standard uncertainty in the real component 
+    and the second element is taken to be the standard 
+    uncertainty in the imaginary component.
 
-    If ``u`` is a 4-element sequence, it is 
-    associated with a variance-covariance matrix.
+    If ``u`` is a 4-element sequence, the sequence is 
+    interpreted as a variance-covariance matrix.
 
     A `RuntimeError` is raised if ``df`` or
     ``u`` have illegal values.
@@ -579,7 +580,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     :arg df: the degrees-of-freedom
     :arg label_seq: a sequence of labels for the uncertain numbers
 
-    :rtype: a sequence of :class:`UncertainComplex`
+    :rtype: a sequence of :class:`~lib.UncertainComplex`
     
     This function defines an set of related uncertain complex
     numbers with the same number of degrees-of-freedom.
@@ -1078,9 +1079,9 @@ def atan2(y,x):
     Two-argument uncertain number arctangent function    
 
     :arg x: abscissa
-    :type x: :class:`UncertainReal`
+    :type x: :class:`~lib.UncertainReal`
     :arg y: ordinate
-    :type y: :class:`UncertainReal`
+    :type y: :class:`~lib.UncertainReal`
     
     .. note::   this function is not defined for uncertain complex numbers
                 (use :func:`phase`)
@@ -1189,10 +1190,10 @@ def magnitude(x):
 def phase(z):
     """
     :arg z: an uncertain complex number    
-    :type z: :class:`UncertainComplex`
+    :type z: :class:`~lib.UncertainComplex`
 
     :returns:   the phase in radians
-    :rtype:     :class:`UncertainReal`
+    :rtype:     :class:`~lib.UncertainReal`
     
     """
     return z._phase()

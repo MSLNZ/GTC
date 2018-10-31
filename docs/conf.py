@@ -51,19 +51,19 @@ extensions = [
     'sphinx.ext.todo',
 ]
 
-# autodoc options
-if sphinx.version_info < (1, 8):
-    # 'alphabetical', 'bysource', 'groupwise'
-    autodoc_member_order = 'bysource'
+# # autodoc options
+# if sphinx.version_info < (1, 8):
+    # # 'alphabetical', 'bysource', 'groupwise'
+    # autodoc_member_order = 'bysource'
 
-    # 'members', 'undoc-members', 'private-members', 'special-members', 'inherited-members', 'show-inheritance'
-    autodoc_default_flags = ['members', 'inherited-members']
-else:
-    autodoc_default_options = {
-        'members': None,
-        'inherited-members': None,
-        'member-order': 'bysource',
-    }
+    # # 'members', 'undoc-members', 'private-members', 'special-members', 'inherited-members', 'show-inheritance'
+    # autodoc_default_flags = ['members', 'inherited-members']
+# else:
+    # autodoc_default_options = {
+        # 'members': None,
+        # 'inherited-members': None,
+        # 'member-order': 'bysource',
+    # }
 
 # Napoleon settings
 napoleon_google_docstring = False

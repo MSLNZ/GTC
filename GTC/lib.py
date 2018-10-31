@@ -118,11 +118,8 @@ class UncertainReal(object):
         Parameters
         ----------
         x : float
-        label : string or None
-
-        Returns
-        -------
-        UncertainReal
+        label : str or None
+        rtype : UncertainReal
             
         """
         # A constant will not be archived,
@@ -160,7 +157,7 @@ class UncertainReal(object):
 
         Returns
         -------
-        UncertainReal
+        :class:`UncertainReal`
         
         """
         if df < 1:
