@@ -40,7 +40,7 @@ Uncertain Real Numbers
         >>> un == 2.5
         True
     
-    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by `str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
+    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by :func:`str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
     
     For example, ::
 	
@@ -50,7 +50,7 @@ Uncertain Real Numbers
         >>> print(x)
         1.414(10)
 	
-    When an :class:`~lib.UncertainReal` is converted to its Python *representation* (e.g., by :func:`repr` a string is returned that shows  the representation of the elements that define the uncertain number.  
+    When an :class:`~lib.UncertainReal` is converted to its Python *representation* (e.g., by :func:`repr`) a string is returned that shows  the representation of the elements that define the uncertain number.  
     
     For example, ::
 
@@ -59,7 +59,7 @@ Uncertain Real Numbers
         "ureal(0.4666666666666666,0.01,5.0, label='x')"
 
 .. autoclass:: lib.UncertainReal
-   :members: 
+   :members: conjugate, df, imag, real, label, u, v, x
 
 Uncertain Complex Numbers
 -------------------------
@@ -93,7 +93,7 @@ Uncertain Complex Numbers
                    
     When an :class:`~lib.UncertainComplex` is converted to a string (e.g., by the :func:`str` function or by :func:`print`), the precision depends on the uncertainty. 
     
-    The lesser of the two component uncertainties is used for formatting. The two least significant digits of component values correspond to the two most significant digits of this standard uncertainty. The values of standard uncertainties are appended to the components in parentheses.
+    The lesser of the real and imaginary component uncertainties is used for formatting. The two least significant digits of component values correspond to the two most significant digits of this standard uncertainty. Values of standard uncertainty are appended to the component values in parentheses.
     
     For example, ::
 	
@@ -111,6 +111,7 @@ Uncertain Complex Numbers
         'ucomplex((1.333-0.121212j), u=[0.01,0.002], r=0.0, df=inf)'	
 
 .. autoclass:: lib.UncertainComplex
+    :members: conjugate, df, imag, real, label, u, v, x, r
    
 .. _core_module:
 

@@ -2449,9 +2449,10 @@ class UncertainComplex(object):
     #------------------------------------------------------------------------
     @property
     def r(self):
-        """Return the correlation coefficient
+        """Return the correlation coefficient between real 
+        and imaginary components
 
-        :returns: float
+        :rtype: float
         
         """
         if not hasattr(self,"_r"):
@@ -2466,8 +2467,8 @@ class UncertainComplex(object):
         """Return the degrees-of-freedom 
 
         When the object is not an elementary uncertain number, the 
-        effective degrees-of-freedom is calculated by the function
-        :func:`~library_complex.willink_hall`.
+        effective degrees-of-freedom is calculated using the method
+        described by Willink and Hall in Metrologia 2002, 39, pp 361-369.
 
         :returns: float
         
@@ -2556,8 +2557,8 @@ class UncertainComplex(object):
                 return self
             else:
                 # # Force addition between uncertain numbers
-                r = self.real + UncertainReal.constant( rhs.real )
-                i = self.imag + UncertainReal.constant( rhs.imag )
+                r = self.real + UncertainReal._constant( rhs.real )
+                i = self.imag + UncertainReal._constant( rhs.imag )
                 return UncertainComplex(r,i)
                 
         else:

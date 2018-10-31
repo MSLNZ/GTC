@@ -15,8 +15,8 @@ class TestContext(unittest.TestCase):
         x_value = 1.2
         x_u = 0.5
         x_dof = 6
-        x1 = UncertainReal.elementary(x_value,x_u,x_dof,None,independent=True)
-        x2 = UncertainReal.elementary(x_value,x_u,x_dof,None,independent=True)
+        x1 = UncertainReal._elementary(x_value,x_u,x_dof,None,independent=True)
+        x2 = UncertainReal._elementary(x_value,x_u,x_dof,None,independent=True)
 
         # uid's must be in order
         self.assertTrue( x1._node.uid < x2._node.uid )
@@ -29,7 +29,7 @@ class TestContext(unittest.TestCase):
         # illegal dof is checked when the object is created
         self.assertRaises(
             RuntimeError,
-            UncertainReal.elementary,x_value,x_u,0,None,False
+            UncertainReal._elementary,x_value,x_u,0,None,False
         )
 
     def test_invalid_ucomplex_creation(self):
