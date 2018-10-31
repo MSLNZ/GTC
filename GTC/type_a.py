@@ -163,7 +163,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     if truncate:
         mean += delta/2.0
         
-    return UncertainReal.elementary(mean,u,N-1,label,independent=True)
+    return UncertainReal._elementary(mean,u,N-1,label,independent=True)
     
 #-----------------------------------------------------------------------------------------
 def estimate(seq,label=None,context=_context):
@@ -212,7 +212,7 @@ def estimate(seq,label=None,context=_context):
     
     if isinstance(mu,complex):
         u,r = standard_uncertainty(seq,mu)
-        return UncertainComplex.elementary(
+        return UncertainComplex._elementary(
             mu,u[0],u[1],r,df,
             label,
             independent = (r == 0.0)
@@ -220,7 +220,7 @@ def estimate(seq,label=None,context=_context):
         
     else:
         u = standard_uncertainty(seq,mu)
-        return UncertainReal.elementary(
+        return UncertainReal._elementary(
             mu,u,df,label,independent=True
         )
 
@@ -528,7 +528,7 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
                 )/N_N_1
             )
 
-    ureal = UncertainReal.elementary
+    ureal = UncertainReal._elementary
 
     # Create a list of elementary uncertain numbers
     # to return a list of standard uncertainties
@@ -632,7 +632,7 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
             )
         )
     # 3. Define uncertain M complex numbers
-    ucomplex = UncertainComplex.elementary
+    ucomplex = UncertainComplex._elementary
 
     x_influences = []
     rtn = []

@@ -108,7 +108,7 @@ class UncertainReal(object):
 
     #----------------------------------------------------------------------------
     @classmethod
-    def constant(cls,x,label=None):
+    def _constant(cls,x,label=None):
         """
         Return a constant uncertain real number with value ``x`` 
         
@@ -134,7 +134,7 @@ class UncertainReal(object):
         
     #------------------------------------------------------------------------
     @classmethod
-    def elementary(cls,x,u,df,label,independent):
+    def _elementary(cls,x,u,df,label,independent):
         """
         Return an elementary uncertain real number.
 
@@ -152,8 +152,8 @@ class UncertainReal(object):
         x : float
         u : float
         df : float
-        label : string, or None
-        independent : Boolean
+        label : str, or None
+        independent : bool
 
         Returns
         -------
@@ -191,7 +191,7 @@ class UncertainReal(object):
                 )
     #------------------------------------------------------------------------
     @classmethod
-    def intermediate(cls,un,label):
+    def _intermediate(cls,un,label):
         """
         Create an intermediate uncertain number
         
@@ -200,7 +200,8 @@ class UncertainReal(object):
         
         Parameters
         ----------
-        un : uncertain real number
+        :arg un: :class:`UncertainReal`
+        :arg label: str
         
         """
         if not un.is_elementary:
@@ -232,7 +233,7 @@ class UncertainReal(object):
             
     #------------------------------------------------------------------------
     @classmethod
-    def archived_elementary(cls,uid,x):
+    def _archived_elementary(cls,uid,x):
         """
         Restore an uncertain number that has been archived. 
 
@@ -417,7 +418,7 @@ class UncertainReal(object):
         """
         # Returning an UN constant ensures that an algorithm
         # expecting an uncertain number will not break
-        return UncertainReal.constant(0.0)
+        return UncertainReal._constant(0.0)
  
     #------------------------------------------------------------------------
     def conjugate(self):
@@ -1022,8 +1023,7 @@ class UncertainReal(object):
         with no uncertainty.
         
         """
-        return UncertainReal.constant(0.0)
-        # return self._context.constant_real(0,label=None)
+        return UncertainReal._constant(0.0)
 
 #----------------------------------------------------------------------------
 def _atan2_re_re(lhs,rhs): 
@@ -1106,9 +1106,6 @@ def _pow(lhs,rhs):
         elif rhs == 1:
             return lhs
         else:
-            # Raise an uncertain real number to the power
-            # of a number
-
             l = lhs.x
             r = rhs 
             
@@ -1155,7 +1152,6 @@ def _pow_z_re(lhs,rhs):
     r = rhs.x
     y = l**r
     
-    # Sensitivity coefficient
     dy_dr = y * cmath.log(l) if l != 0 else 0
             
     r = UncertainReal(
@@ -1183,7 +1179,6 @@ def _pow_re_z(lhs,rhs):
     r = rhs
     y = l**r
     
-    # Sensitivity coefficient
     dy_dl = r * l**(r-1)
 
     r = UncertainReal(
@@ -1455,7 +1450,7 @@ def _sub_z_re(lhs,rhs):
     Subtract an uncertain real number `rhs` from a complex `lhs`
     """
     r = lhs.real - rhs 
-    i = UncertainReal.constant(lhs.imag)
+    i = UncertainReal._constant(lhs.imag)
     
     return UncertainComplex(r,i)
  
@@ -1465,8 +1460,7 @@ def _sub_re_z(lhs,rhs):
     Subtract a complex `rhs` from an uncertain real number `lhs` 
     """
     r = lhs - rhs.real
-    i = UncertainReal.constant( -rhs.imag )
-    # i = c.constant_real( -rhs.imag, None )
+    i = UncertainReal._constant( -rhs.imag )
     
     return UncertainComplex(r,i)
  
@@ -1536,7 +1530,7 @@ def _add_re_z(lhs,rhs):
     
     """
     r = lhs + rhs.real 
-    i = UncertainReal.constant(rhs.imag)
+    i = UncertainReal._constant(rhs.imag)
     
     return UncertainComplex(r,i)
 
@@ -1547,7 +1541,7 @@ def _add_z_re(lhs,rhs):
     
     """
     r = lhs.real + rhs
-    i = UncertainReal.constant(lhs.imag)
+    i = UncertainReal._constant(lhs.imag)
     
     return UncertainComplex(r,i)
 
@@ -2084,7 +2078,7 @@ class UncertainComplex(object):
 
     #----------------------------------------------------------------------------
     @classmethod
-    def constant(cls,z,label=None):
+    def _constant(cls,z,label=None):
         """
         Return a constant uncertain complex number.
         
@@ -2110,8 +2104,8 @@ class UncertainComplex(object):
             label_r = "{}_re".format(label)
             label_i = "{}_im".format(label)
             
-        real = UncertainReal.constant(z.real,label_r)
-        imag = UncertainReal.constant(z.imag,label_i)
+        real = UncertainReal._constant(z.real,label_r)
+        imag = UncertainReal._constant(z.imag,label_i)
 
         ucomplex = UncertainComplex(real,imag)    
         ucomplex._label = label
@@ -2120,7 +2114,7 @@ class UncertainComplex(object):
 
     #----------------------------------------------------------------------------
     @classmethod
-    def elementary(cls,z,u_r,u_i,r,df,label,independent):
+    def _elementary(cls,z,u_r,u_i,r,df,label,independent):
         """
         Return an elementary uncertain complex number.
 
@@ -2151,8 +2145,8 @@ class UncertainComplex(object):
             label_i = "{}_im".format(label)
             
         # `independent` will be False if `r != 0`
-        real = UncertainReal.elementary(z.real,u_r,df,label_r,independent)
-        imag = UncertainReal.elementary(z.imag,u_i,df,label_i,independent)
+        real = UncertainReal._elementary(z.real,u_r,df,label_r,independent)
+        imag = UncertainReal._elementary(z.imag,u_i,df,label_i,independent)
 
         # We need to be able to look up complex pairs
         # The integer part of the IDs are consecutive.
@@ -2173,30 +2167,30 @@ class UncertainComplex(object):
         
     #----------------------------------------------------------------------------
     @classmethod
-    def intermediate(cls,z,label):
+    def _intermediate(cls,z,label):
         """
         Return an intermediate uncertain complex number
 
         :arg z: the uncertain complex number
         :type z: :class:`UncertainComplex`
 
-        :arg label: a label
+        :arg label: str
 
-        If ``label is not None`` the label will be applied
+        If ``label`` is not ``None`` the label will be applied
         to the uncertain complex number and labels with
         a suitable suffix will be applied to the
         real and imaginary components.
         
         """
         if label is None:
-            UncertainReal.intermediate(z.real,None)
-            UncertainReal.intermediate(z.imag,None) 
+            UncertainReal._intermediate(z.real,None)
+            UncertainReal._intermediate(z.imag,None) 
         else:
             label_r = "{}_re".format(label)
             label_i = "{}_im".format(label)
             
-            UncertainReal.intermediate(z.real,label_r)
-            UncertainReal.intermediate(z.imag,label_i) 
+            UncertainReal._intermediate(z.real,label_r)
+            UncertainReal._intermediate(z.imag,label_i) 
             
         z._label = label
         
@@ -3045,8 +3039,8 @@ class UncertainComplex(object):
                 return self
             else:
                 # Force addition between uncertain numbers
-                r = UncertainReal.constant( lhs.real ) + self.real
-                i = UncertainReal.constant( lhs.imag ) + self.imag
+                r = UncertainReal._constant( lhs.real ) + self.real
+                i = UncertainReal._constant( lhs.imag ) + self.imag
                 return UncertainComplex(r,i)
                 
         elif isinstance(lhs,numbers.Real):
@@ -3086,8 +3080,8 @@ class UncertainComplex(object):
             if rhs == 0.0:
                 return self
             else:
-                r = self.real - UncertainReal.constant( rhs.real )
-                i = self.imag - UncertainReal.constant( rhs.imag )
+                r = self.real - UncertainReal._constant( rhs.real )
+                i = self.imag - UncertainReal._constant( rhs.imag )
                 return UncertainComplex(r,i)
                 
         else:

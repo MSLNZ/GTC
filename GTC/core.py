@@ -308,10 +308,10 @@ def ureal(x,u,df=inf,label=None,independent=True):
     
     if u == 0:
         # Is this what we want? Perhaps not.
-        return UncertainReal.constant(float(x),label)
+        return UncertainReal._constant(float(x),label)
 
     else:
-        return UncertainReal.elementary(
+        return UncertainReal._elementary(
             float(x),
             float(u),
             float(df),
@@ -413,9 +413,9 @@ def constant(x,label=None):
     
     """
     if isinstance(x,numbers.Real):
-        return UncertainReal.constant(x,label)
+        return UncertainReal._constant(x,label)
     elif isinstance(x,numbers.Complex):
-        return UncertainComplex.constant(x,label)
+        return UncertainComplex._constant(x,label)
     else:
         raise RuntimeError(
             "Cannot make a constant: {!r}".format( x )
@@ -448,10 +448,10 @@ def result(un,label=None):
     un = +un 
     
     if isinstance(un,UncertainReal):
-        UncertainReal.intermediate(un,label)
+        UncertainReal._intermediate(un,label)
         
     elif isinstance(un,UncertainComplex):
-        UncertainComplex.intermediate(un,label)
+        UncertainComplex._intermediate(un,label)
         
     else:
         raise RuntimeError(
@@ -561,9 +561,9 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
         
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
-        return UncertainComplex.constant(complex(z),label)
+        return UncertainComplex._constant(complex(z),label)
     else:
-        return UncertainComplex.elementary(
+        return UncertainComplex._elementary(
             complex(z),
             u_r,u_i,r,
             float(df),
