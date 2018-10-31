@@ -574,7 +574,7 @@ def _builder(o_name,_nodes,_tagged_reals):
     obj = _tagged_reals[o_name]
     
     if isinstance(obj,TaggedElementaryReal):
-        un = UncertainReal.archived_elementary(
+        un = UncertainReal._archived_elementary(
             uid = obj.uid,
             x = obj.x
         )

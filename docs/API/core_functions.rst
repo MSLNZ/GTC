@@ -8,7 +8,7 @@ Core Functions and Classes
    :local:
 
 The functions and classes defined in the :mod:`core` module are automatically
-available after ``from GTC import *``.
+available after performing ``from GTC import *``.
 
 Uncertain Number Types
 ======================
@@ -20,14 +20,17 @@ There are two types of uncertain number, one for real quantities and one for com
 Uncertain Real Numbers
 ----------------------
 
-    The class :class:`~lib.UncertainReal` represents uncertain real numbers. 
+    The :class:`~lib.UncertainReal` class defines uncertain-number objects to represent real-valued quantities.  
+    These objects take into account the uncertainty in measured values.
     
-    The function :func:`~core.ureal` creates elementary :class:`~lib.UncertainReal` objects, for example ::
+    :class:`~lib.UncertainReal` objects have the attributes ``x``, ``u``, ``v`` and ``df``, 
+    which obtain the value, uncertainty, variance and degrees-of-freedom for the uncertain number, respectively. 
+
+    The function :func:`~core.ureal` creates elementary :class:`~lib.UncertainReal` objects. For example, ::
     
         >>> x = ureal(1.414141,0.01)
         >>> x
         ureal(1.414141, 0.01, inf)
-
 
     All logical comparison operations (e.g., <, >, ==, etc) are applied to the *value* of an uncertain number. For example, ::
     
@@ -37,7 +40,7 @@ Uncertain Real Numbers
         >>> un == 2.5
         True
     
-    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by :func:`str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
+    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by `str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
     
     For example, ::
 	
@@ -47,7 +50,7 @@ Uncertain Real Numbers
         >>> print(x)
         1.414(10)
 	
-    When an :class:`~lib.UncertainReal` is converted to its Python *representation* (e.g., by :func:`repr()` a string is returned that shows  the representation of the elements that define the uncertain number.  
+    When an :class:`~lib.UncertainReal` is converted to its Python *representation* (e.g., by :func:`repr` a string is returned that shows  the representation of the elements that define the uncertain number.  
     
     For example, ::
 
@@ -55,19 +58,18 @@ Uncertain Real Numbers
         >>> repr(x)
         "ureal(0.4666666666666666,0.01,5.0, label='x')"
 
-    :class:`~lib.UncertainReal` objects have the attributes ``x``, ``u``, ``v`` and ``df``, 
-    which obtain the value, uncertainty, variance and degrees-of-freedom for the uncertain number, respectively. 
-
-    The documentation for :class:`~lib.UncertainReal` follows.
-    
 .. autoclass:: lib.UncertainReal
    :members: 
 
 Uncertain Complex Numbers
 -------------------------
 	
-    The class :class:`~lib.UncertainComplex` represents uncertain complex numbers. 
+    The class :class:`~lib.UncertainComplex` defines uncertain-number objects to represent complex-valued quantities. 
+    These objects take into account the uncertainty in measured values.
     
+    :class:`~lib.UncertainComplex` objects have attributes ``x``, ``u``, ``v`` and ``df``, 
+    which obtain the value, uncertainty, variance-covariance matrix and degrees-of-freedom, respectively.
+
     The function :func:`~core.ucomplex` creates elementary :class:`~lib.UncertainComplex` objects, 
     for example ::  
     
@@ -100,7 +102,7 @@ Uncertain Complex Numbers
         (1.3330(100)-0.1212(20)j)
 	
     
-    When an :class:`~lib.UncertainComplex` is converted to its Python *representation* (e.g., by :func:`repr()`), a string is returned that shows  the representation of the elements that define the uncertain number. 
+    When an :class:`~lib.UncertainComplex` is converted to its Python *representation* ( e.g., by :func:`repr` ), a string is returned that shows the representation of the elements that define the uncertain number. 
     
     For example, ::
 
@@ -108,15 +110,8 @@ Uncertain Complex Numbers
         >>> repr(z)
         'ucomplex((1.333-0.121212j), u=[0.01,0.002], r=0.0, df=inf)'	
 
-    :class:`~lib.UncertainComplex` objects have attributes ``x``, ``u``, ``v`` and ``df``, 
-    which obtain the value, uncertainty, variance-covariance matrix and degrees-of-freedom, respectively.
-
-    The documentation of :class:`~lib.UncertainComplex` follows.
-
 .. autoclass:: lib.UncertainComplex
-    :members: x, u, v, df, label
-
-    
+   
 .. _core_module:
 
 Core Functions
