@@ -186,8 +186,6 @@ def dof(x):
 
     Returns ``inf`` when the degrees of freedom is greater than 1E6
     
-    Returns ``nan`` when the calculation is invalid   
-    
     **Examples**::
 
         >>> ur = ureal(2.5,0.5,3,label='x')
@@ -220,17 +218,19 @@ def component(y,x):
 
     :rtype: float
     
-    If ``x`` and ``y`` are uncertain real, the magnitude of 
-    :func:`reporting.u_component` is returned. 
+    If ``x`` and ``y`` are uncertain real, the function calls 
+    :func:`reporting.u_component` and returns the magnitude 
+    of the result. 
     
     If either ``x`` or ``y`` is uncertain complex,
     the returned value represents the magnitude 
-    of the component of uncertainty matrix (see also:  
-    :func:`reporting.u_component` and :func:`reporting.u_bar`).
+    of the component of uncertainty matrix (this is 
+    obtained by applying :func:`reporting.u_bar`    
+    to the result obtained from :func:`reporting.u_component`).
 
     If either ``x`` or ``y`` is a number, zero is returned.
     
-    ``component`` can be used in conjunction with :func:`~core.result` 
+    ``component`` can also e used in conjunction with :func:`~core.result` 
     to evaluate a component of uncertainty with respect to an 
     intermediate uncertain number. 
     
@@ -330,11 +330,11 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     
     :rtype: a sequence of :class:`~lib.UncertainReal`
 
-    Defines an set of related uncertain real
-    numbers with the same number of degrees-of-freedom.
+    Defines an set of uncertain real numbers with 
+    the same number of degrees-of-freedom.
     
-    Correlation between any pairs of the uncertain  
-    numbers defined does not invalidate degrees-of-freedom 
+    Correlation between any pairs of this set of uncertain  
+    numbers defined will not invalidate degrees-of-freedom 
     calculations.
     (see: R Willink, *Metrologia* 44 (2007) 340-349, Sec. 4.1)
     
@@ -373,7 +373,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
         )
         
     rtn = [
-        # NB `ureal` will create constant objects when u == 0
+        # NB `ureal` will creates objects when u == 0
         ureal(x_i,u_i,df,label=l_i,independent=False)
             for x_i,u_i,l_i in izip(
                 x_seq,u_seq,label_seq
@@ -424,25 +424,34 @@ def constant(x,label=None):
 #----------------------------------------------------------------------------
 def result(un,label=None):
     """
-    Declare ``un`` as an intermediate uncertain-number 'result'
+    Declare ``un`` to be an uncertain-number 'result'
     
     `un` - an uncertain number
     `label` - a label can be assigned
     
-    The dependence of other uncertain numbers on a
-    result can be stored in an archive.
-
     This function must be called before other
-    uncertain numbers have been derived from the
-    uncertain result.
+    uncertain numbers are derived from the
+    uncertain number.
+    
+    The dependence of other uncertain numbers on a
+    declared intermediate result evaluated. 
+    
+    Decalring intermediate results also enables
+    these results and the dependence of other 
+    uncertain numbers to be stored in an archive.
+
+    :arg un: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
+    :arg label: str
+    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
     
     **Example**::
 
-        # The dependence of `P` on `V`
-        # can be archived 
-
-        V = result( I*R )
-        P = V**2/R  
+        >>> I = ureal(1.3E-3,0.01E-3)
+        >>> R = ureal(995,7)
+        >>> V = result( I*R )
+        >>> P = V**2/R
+        >>> component(P,V)
+        3.505784505642068e-05  
         
     """
     un = +un 
@@ -474,8 +483,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     :arg df: the degrees-of-freedom
     :type df: float
 
-    :arg label: a string label 
-    :type label: string 
+    :type label: str 
     
     :rtype: :class:`~lib.UncertainComplex`
 
@@ -575,18 +583,18 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
 def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     """Return a sequence of uncertain complex numbers
 
-    :arg x_seq: a sequence of complex values (estimates)
+    :arg x_seq: a sequence of complex values
     :arg u_seq: a sequence of standard uncertainties or covariances
     :arg df: the degrees-of-freedom
     :arg label_seq: a sequence of labels for the uncertain numbers
 
     :rtype: a sequence of :class:`~lib.UncertainComplex`
     
-    This function defines an set of related uncertain complex
+    This function defines an set of uncertain complex
     numbers with the same number of degrees-of-freedom.
     
-    Correlation between pairs of these uncertain  
-    numbers does not invalidate degrees-of-freedom calculations.
+    Correlation between any pairs of these uncertain  
+    numbers will not invalidate degrees-of-freedom calculations.
     (see: R Willink, *Metrologia* 44 (2007) 340-349, Sec. 4.1)
     
     **Example**::
@@ -644,29 +652,31 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
 
 #----------------------------------------------------------------------------
 def set_correlation(r,arg1,arg2=None):
-    """Set the correlation between elementary uncertain numbers
+    """Set correlation between elementary uncertain numbers
 
-    The input arguments may be a pair of uncertain numbers
+    The input arguments can be a pair of uncertain numbers
     (the same type, real or complex), or a single
     uncertain complex number.
     
-    Arguments must be elementary uncertain numbers.
+    The uncertain number arguments must be elementary 
+    uncertain numbers.
     
-    If the uncertain number arguments have finite degrees of 
-    freedom they must have been declared using either 
+    If the arguments have finite degrees of 
+    freedom, they must be declared together using either 
     :func:`~core.multiple_ureal` or :func:`~multiple_ucomplex`.
     
     If the uncertain number arguments have infinite degrees of 
-    freedom they may also be declared by setting `independent=False`
-    when calling :func:`~ureal` or :func:`~ucomplex`.
+    freedom they can, alternatively, be declared by setting the 
+    argument `independent=False` when calling 
+    :func:`~ureal` or :func:`~ucomplex`.
         
     :class:`RuntimeError` is raised when illegal arguments are used
 
-    When a pair of uncertain real numbers is used,
-    ``r`` is the correlation between them. 
+    When a pair of uncertain real numbers is provided,
+    ``r`` is the correlation coefficient between them. 
     
-    When a pair of uncertain complex number arguments is used,
-    ``r`` must be a 4-element sequence of correlation
+    When a pair of uncertain complex number arguments is provided,
+    ``r`` must be a 4-element sequence containing correlation
     coefficients between the components of the complex quantities.
     
     **Examples**::
@@ -798,16 +808,16 @@ def set_correlation(r,arg1,arg2=None):
 
 #---------------------------------------------------------------------------
 def get_correlation(arg1,arg2=None):
-    """Return the correlation 
+    """Return correlation 
     
     The input arguments may be a pair of uncertain numbers, 
     or a single uncertain complex number.
     
-    When a pair of uncertain real numbers is used,
-    the a real number is returned that is the correlation between 
-    the two arguments. 
+    When a pair of uncertain real numbers is provided,
+    the correlation between the arguments is returned as 
+    a real number. 
     
-    One or both arguments are uncertain complex numbers,
+    When one, or both, arguments are uncertain complex numbers,
     a ``CorrelationMatrix`` namedtuple is returned, representing
     a 2-by-2 matrix of correlation coefficients.
     
@@ -874,16 +884,16 @@ def get_correlation(arg1,arg2=None):
         
 #---------------------------------------------------------------------------
 def get_covariance(arg1,arg2=None):
-    """Return the covariance 
+    """Evaluate covariance.
     
-    The input arguments may be a pair of uncertain numbers, 
+    The input arguments can be a pair of uncertain numbers, 
     or a single uncertain complex number.
     
-    When a pair of uncertain real numbers is used,
-    the a real number is returned that is the correlation between 
-    the two arguments. 
+    When a pair of uncertain real numbers is supplied,
+    the correlation between the two arguments is returned 
+    as a real number. 
     
-    One or both arguments are uncertain complex numbers,
+    When one, or both, arguments are uncertain complex numbers,
     a ``CovarianceMatrix`` namedtuple is returned, representing
     a 2-by-2 variance-covariance matrix.
     

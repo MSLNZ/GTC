@@ -65,8 +65,8 @@ def _is_uncertain_complex_constant(z):
 class UncertainReal(object):
     
     """
-    An `UncertainReal` holds information about the estimate 
-    of a real-valued quantity
+    An :class:`UncertainReal` holds information about the measured 
+    value of a real-valued quantity
     
     """
     
@@ -571,7 +571,7 @@ class UncertainReal(object):
     # Arithmetic operations
     def __neg__(self):
         """
-        Unary negative
+        Unary negative operator
         
         """
         return UncertainReal(
@@ -584,7 +584,7 @@ class UncertainReal(object):
     #------------------------------------------------------------------------
     def __pos__(self):
         """
-        Unary positive
+        Unary positive operator
 
         """     
         # This is a copy but not a clone,
@@ -2023,7 +2023,8 @@ def z_to_seq( z ):
 class UncertainComplex(object):
     
     """
-    A class representing uncertain complex numbers
+    An :class:`UncertainComplex` holds information about the measured
+    value of a complex-valued quantity
 
     """
     
@@ -2505,470 +2506,6 @@ class UncertainComplex(object):
             return None
 
     #------------------------------------------------------------------------
-    @classmethod
-    def univariate_uc(
-        cls,arg,z,dz_dx
-    ):
-        """
-        Create an uncertain complex number as a function of one argument.
-
-        This is a utility method for implementing mathematical
-        functions of uncertain complex numbers.
-
-        The parameter 'arg' is the UncertainComplex argument to the
-        function, 'z' is the complex value of the function and 'dz_dx'
-        is the Jacobian matrix of function value z with respect
-        to the real and imaginary components of the function argument.
-        
-        Parameters
-        ----------
-        cls : the UncertainComplex class object
-        arg : UncertainComplex
-        z : complex
-        dz_dx : 4-element sequence of float
-        
-        Returns
-        -------
-        UncertainComplex
-        
-        """
-        return cls(
-            UncertainReal(
-                z.real,
-                vector.merge_weighted_vectors(
-                    arg.real._u_components,dz_dx[0],
-                    arg.imag._u_components,dz_dx[1],
-                ),
-                vector.merge_weighted_vectors(
-                    arg.real._d_components,dz_dx[0],
-                    arg.imag._d_components,dz_dx[1],
-                ),
-                vector.merge_weighted_vectors(
-                    arg.real._i_components,dz_dx[0],
-                    arg.imag._i_components,dz_dx[1],
-                ),
-            ),
-            UncertainReal(
-                z.imag,
-                vector.merge_weighted_vectors(
-                    arg.real._u_components,dz_dx[2],
-                    arg.imag._u_components,dz_dx[3],
-                ),
-                vector.merge_weighted_vectors(
-                    arg.real._d_components,dz_dx[2],
-                    arg.imag._d_components,dz_dx[3],
-                ),
-                vector.merge_weighted_vectors(
-                    arg.real._i_components,dz_dx[2],
-                    arg.imag._i_components,dz_dx[3],
-                )
-            )
-        )
-    #------------------------------------------------------------------------
-    @classmethod
-    def bivariate_uc_uc(
-        cls,
-        lhs,rhs,
-        z,
-        dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-    ):
-        """
-        Create an uncertain complex number as a bivariate function
-
-        This is a utility method for implementing mathematical
-        functions of uncertain complex numbers.
-
-        The parameters 'lhs' and 'rhs' are the UncertainComplex
-        arguments to the function, 'z' is the complex value of the
-        function and 'dz_dl' and 'dz_dr' are the Jacobian matrices
-        of the function value z with respect to the real and imaginary
-        components of the function's left and right arguments.
-        
-        Parameters
-        ----------
-        cls : the UncertainComplex class object
-        lhs, rhs : UncertainComplex
-        z : complex
-        dz_dl, dz_dr : 4-element sequence of float
-        
-        Returns
-        -------
-        UncertainComplex
-        
-        """
-        lhs_r = lhs.real
-        lhs_i = lhs.imag
-        rhs_r = rhs.real
-        rhs_i = rhs.imag
-
-        u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._u_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._u_components,(dz_dl[1],dz_dl[3])
-        )
-        u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._u_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._u_components,(dz_dr[1],dz_dr[3])
-        )
-        d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._d_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._d_components,(dz_dl[1],dz_dl[3])
-        )
-        d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._d_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._d_components,(dz_dr[1],dz_dr[3])
-        )
-        i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._i_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._i_components,(dz_dl[1],dz_dl[3])
-        )
-        i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._i_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._i_components,(dz_dr[1],dz_dr[3])
-        )
-        return cls(
-            UncertainReal(
-                z.real,
-                vector.merge_vectors(
-                    u_lhs_real, u_rhs_real
-                ),
-                vector.merge_vectors(
-                    d_lhs_real, d_rhs_real
-                ),
-                vector.merge_vectors(
-                    i_lhs_real, i_rhs_real
-                )
-            ),
-            UncertainReal(
-                z.imag,
-                vector.merge_vectors(
-                    u_lhs_imag,u_rhs_imag
-                ),
-                vector.merge_vectors(
-                    d_lhs_imag,d_rhs_imag
-                ),
-                vector.merge_vectors(
-                    i_lhs_imag, i_rhs_imag
-                )
-            )
-        )
-    #------------------------------------------------------------------------
-    @classmethod
-    def bivariate_uc_ur(
-        cls,
-        lhs,rhs,
-        z,
-        dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-    ):
-        """
-        Create an uncertain complex number as a bivariate function
-
-        This is a utility method for implementing mathematical
-        functions of uncertain complex numbers.
-
-        The parameter 'lhs' is an UncertainComplex argument to the
-        function, 'rhs' is an uncertain real number argument.
-        'z' is the complex value of the function and 'dz_dl' and
-        'dz_dr' are the Jacobian matrices of the function value z
-        with respect to the real and imaginary components of the
-        function's left and right arguments.
-        
-        Parameters
-        ----------
-        cls : the UncertainComplex class object
-        lhs : UncertainComplex
-        rhs : UncertainReal
-        z : complex
-        dz_dl, dz_dr : 4-element sequence of float
-        
-        Returns
-        -------
-        UncertainComplex
-                
-        """
-        lhs_r = lhs.real
-        lhs_i = lhs.imag
-
-        u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._u_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._u_components,(dz_dl[1],dz_dl[3])
-        )
-
-        u_rhs_real, u_rhs_imag = vector.scale_vector_twice(
-            rhs._u_components,(dz_dr[0],dz_dr[2])
-        )
-        
-        d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._d_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._d_components,(dz_dl[1],dz_dl[3])
-        )
-
-        d_rhs_real, d_rhs_imag = vector.scale_vector_twice(
-            rhs._d_components,(dz_dr[0],dz_dr[2])
-        )
-
-        i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._i_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._i_components,(dz_dl[1],dz_dl[3])
-        )
-
-        i_rhs_real, i_rhs_imag = vector.scale_vector_twice(
-            rhs._i_components,(dz_dr[0],dz_dr[2])
-        )
-        
-        return cls(
-            UncertainReal(
-                z.real,
-                vector.merge_vectors(
-                    u_lhs_real,u_rhs_real
-                ),
-                vector.merge_vectors(
-                    d_lhs_real,d_rhs_real
-                ),
-                vector.merge_vectors(
-                    i_lhs_real, i_rhs_real
-                )
-            ),
-            UncertainReal(
-                z.imag,
-                vector.merge_vectors(
-                    u_lhs_imag,u_rhs_imag
-                ),
-                vector.merge_vectors(
-                    d_lhs_imag,d_rhs_imag
-                ),
-                vector.merge_vectors(
-                    i_lhs_imag, i_rhs_imag
-                )
-            )
-        )
-    #------------------------------------------------------------------------
-    @classmethod
-    def bivariate_uc_n(
-        cls,
-        lhs,rhs,
-        z,
-        dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-    ):
-        """
-        Create an uncertain complex number as a bivariate function
-
-        This is a utility method for implementing mathematical
-        functions of uncertain complex numbers.
-
-        The parameter 'lhs' is an UncertainComplex argument to the
-        function, 'rhs' is a real number. 'z' is the complex value
-        of the function and 'dz_dl' and 'dz_dr' are the Jacobian
-        matrices of the function value z with respect to the real
-        and imaginary components of the function's left and right
-        arguments.
-        
-        Parameters
-        ----------
-        cls : the UncertainComplex class object
-        lhs : UncertainComplex
-        rhs : float
-        z : complex
-        dz_dl, dz_dr : 4-element sequence of float
-        
-        Returns
-        -------
-        UncertainComplex
-                
-        """
-        lhs_r = lhs.real
-        lhs_i = lhs.imag
-
-        u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._u_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._u_components,(dz_dl[1],dz_dl[3])
-        )
-
-        d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._d_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._d_components,(dz_dl[1],dz_dl[3])
-        )
-
-        i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
-            lhs_r._i_components,(dz_dl[0],dz_dl[2]),
-            lhs_i._i_components,(dz_dl[1],dz_dl[3])
-        )
-
-        return cls(
-            UncertainReal(
-                z.real,
-                u_lhs_real,
-                d_lhs_real,
-                i_lhs_real
-            ),
-            UncertainReal(
-                z.imag,
-                u_lhs_imag,
-                d_lhs_imag,
-                i_lhs_imag
-            )
-        )
-    #------------------------------------------------------------------------
-    @classmethod
-    def bivariate_ur_uc(
-        cls,
-        lhs,rhs,
-        z,
-        dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-    ):
-        """
-        Create an uncertain complex number as a bivariate function
-
-        This is a utility method for implementing mathematical
-        functions of uncertain complex numbers.
-
-        The parameter 'lhs' is an uncertain real number argument and
-        'rhs' is an uncertain complex number argument.
-        'z' is the complex value of the function and 'dz_dl' and
-        'dz_dr' are the Jacobian matrices of the function value z with
-        respect to the real and imaginary components of the function's
-        left and right arguments.
-        
-        Parameters
-        ----------
-        cls : the UncertainComplex class object
-        lhs : UncertainReal
-        rhs : UncertainComplex 
-        z : complex
-        dz_dl, dz_dr : 4-element sequence of float
-        
-        Returns
-        -------
-        UncertainComplex
-                
-        """
-        rhs_r = rhs.real
-        rhs_i = rhs.imag
-
-        u_lhs_real, u_lhs_imag = vector.scale_vector_twice(
-            lhs._u_components,(dz_dl[0],dz_dl[2])
-        )
-        
-        u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._u_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._u_components,(dz_dr[1],dz_dr[3])
-        )
-
-        d_lhs_real, d_lhs_imag = vector.scale_vector_twice(
-            lhs._d_components,(dz_dl[0],dz_dl[2])
-        )
-        
-        d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._d_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._d_components,(dz_dr[1],dz_dr[3])
-        )
-
-        i_lhs_real, i_lhs_imag = vector.scale_vector_twice(
-            lhs._i_components,(dz_dl[0],dz_dl[2])
-        )
-        
-        i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._i_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._i_components,(dz_dr[1],dz_dr[3])
-        )
-
-        return cls(
-            UncertainReal(
-                z.real,
-                vector.merge_vectors(
-                    u_lhs_real,u_rhs_real
-                ),
-                vector.merge_vectors(
-                    d_lhs_real,d_rhs_real
-                ),
-                vector.merge_vectors(
-                    i_lhs_real, i_rhs_real
-                )
-            ),
-            UncertainReal(
-                z.imag,
-                vector.merge_vectors(
-                    u_lhs_imag,u_rhs_imag
-                ),
-                vector.merge_vectors(
-                    d_lhs_imag,d_rhs_imag
-                ),
-                vector.merge_vectors(
-                    i_lhs_imag, i_rhs_imag
-                )
-            )
-        )
-    #------------------------------------------------------------------------
-    @classmethod
-    def bivariate_n_uc(
-        cls,
-        lhs,rhs,
-        z,
-        dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
-        dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
-    ):
-        """
-        Create an uncertain complex number as a bivariate function 
-
-        This is a utility method for implementing mathematical
-        functions of uncertain complex numbers.
-
-        The parameter 'lhs' is a real number and 'rhs' is an uncertain
-        complex number.
-        'z' is the complex value of the function and 'dz_dl' and
-        'dz_dr' are the Jacobian matrices of the function value z with
-        respect to the real and imaginary components of the function's
-        left and right arguments.
-        
-        Parameters
-        ----------
-        cls : the UncertainComplex class object
-        lhs : float 
-        rhs : UncertainComplex
-        z : complex
-        dz_dl, dz_dr : 4-element sequence of float
-        
-        Returns
-        -------
-        UncertainComplex
-                
-        """
-        rhs_r = rhs.real
-        rhs_i = rhs.imag
-
-        u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._u_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._u_components,(dz_dr[1],dz_dr[3])
-        )
-
-        d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._d_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._d_components,(dz_dr[1],dz_dr[3])
-        )
-
-        i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
-            rhs_r._i_components,(dz_dr[0],dz_dr[2]),
-            rhs_i._i_components,(dz_dr[1],dz_dr[3])
-        )
-        
-        return cls(
-            UncertainReal(
-                z.real,
-                u_rhs_real,
-                d_rhs_real,
-                i_rhs_real
-            ),
-            UncertainReal(
-                z.imag,
-                u_rhs_imag,
-                d_rhs_imag,
-                i_rhs_imag
-            )
-        )
-    #------------------------------------------------------------------------
     def __add__(self,rhs):
         """
         Return the uncertain complex number sum.
@@ -3121,7 +2658,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( r )                
             dz_dr = z_to_seq( l )            
         
-            return UncertainComplex.bivariate_uc_uc(
+            return _bivariate_uc_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3136,7 +2673,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( r )                
             dz_dr = z_to_seq( l )            
 
-            return UncertainComplex.bivariate_uc_ur(
+            return _bivariate_uc_ur(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3154,7 +2691,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( r )                
             dz_dr = z_to_seq( 0.0 )            
             
-            return UncertainComplex.bivariate_uc_n(
+            return _bivariate_uc_n(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3174,7 +2711,7 @@ class UncertainComplex(object):
             dz_dr = z_to_seq( l )                
             dz_dl = z_to_seq( r )            
 
-            return UncertainComplex.bivariate_ur_uc(
+            return _bivariate_ur_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3192,7 +2729,7 @@ class UncertainComplex(object):
             dz_dr = z_to_seq( l )                
             dz_dl = z_to_seq( 0.0 )            
             
-            return UncertainComplex.bivariate_n_uc(
+            return _bivariate_n_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3216,7 +2753,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( 1.0 / r ) 
             dz_dr = z_to_seq( -z / r )            
         
-            return UncertainComplex.bivariate_uc_uc(
+            return _bivariate_uc_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3232,7 +2769,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( 1.0 / r ) 
             dz_dr = z_to_seq( -z / r )            
 
-            return UncertainComplex.bivariate_uc_ur(
+            return _bivariate_uc_ur(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3251,7 +2788,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( 1.0 / r ) 
             dz_dr = z_to_seq( 0.0 )            
             
-            return UncertainComplex.bivariate_uc_n(
+            return _bivariate_uc_n(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3274,7 +2811,7 @@ class UncertainComplex(object):
             dz_dr = z_to_seq( -z / r )                
             dz_dl = z_to_seq( 1.0 / r )     
 
-            return UncertainComplex.bivariate_ur_uc(
+            return _bivariate_ur_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3290,7 +2827,7 @@ class UncertainComplex(object):
             dz_dr = z_to_seq( -z / r )                
             dz_dl = z_to_seq( 0.0 )            
             
-            return UncertainComplex.bivariate_n_uc(
+            return _bivariate_n_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3310,7 +2847,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( zr * z / zl )
             dz_dr = z_to_seq( cmath.log(zl) * z if zl != 0 else 0  )
         
-            return UncertainComplex.bivariate_uc_uc(
+            return _bivariate_uc_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3323,7 +2860,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( zr * z / zl )
             dz_dr = z_to_seq( cmath.log(zl) * z if zl != 0 else 0  )
 
-            return UncertainComplex.bivariate_uc_ur(
+            return _bivariate_uc_ur(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3339,7 +2876,7 @@ class UncertainComplex(object):
                 dz_dl = z_to_seq( zr * z / zl )
                 dz_dr = z_to_seq( 0.0 )
                    
-                return UncertainComplex.bivariate_uc_n(
+                return _bivariate_uc_n(
                     lhs,rhs,
                     z,
                     dz_dl,
@@ -3357,7 +2894,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( zr * z / zl )
             dz_dr = z_to_seq( cmath.log(zl) * z if zl != 0 else 0 )
 
-            return UncertainComplex.bivariate_ur_uc(
+            return _bivariate_ur_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3370,7 +2907,7 @@ class UncertainComplex(object):
             dz_dl = z_to_seq( 0.0 )
             dz_dr = z_to_seq( cmath.log(zl) * z  if zl != 0 else 0 )
             
-            return UncertainComplex.bivariate_n_uc(
+            return _bivariate_n_uc(
                 lhs,rhs,
                 z,
                 dz_dl,
@@ -3387,7 +2924,7 @@ class UncertainComplex(object):
         """
         z = cmath.exp(self.x)
         dz_dx = z_to_seq( z )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3405,7 +2942,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.log(x)
         dz_dx = z_to_seq( 1./x )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3423,7 +2960,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.log10(x)
         dz_dx = z_to_seq( LOG10_E/x )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3440,7 +2977,7 @@ class UncertainComplex(object):
         """
         z = cmath.sqrt(self.x)
         dz_dx = z_to_seq( 1.0/(2.0 * z) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3454,7 +2991,7 @@ class UncertainComplex(object):
         """
         z = cmath.sin(self.x)
         dz_dx = z_to_seq( cmath.cos(self.x) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3468,7 +3005,7 @@ class UncertainComplex(object):
         """
         z = cmath.cos(self.x)
         dz_dx = z_to_seq( -cmath.sin(self.x) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3483,7 +3020,7 @@ class UncertainComplex(object):
         z = cmath.tan(self.x)
         d = cmath.cos(self.x)
         dz_dx = z_to_seq( 1./d**2 )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3503,7 +3040,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.asin(x)
         dz_dx = z_to_seq( 1./cmath.sqrt(1 - x**2) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3523,7 +3060,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.acos(x)
         dz_dx = z_to_seq( -1./cmath.sqrt(1 - x**2) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3543,7 +3080,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.atan(x)
         dz_dx = z_to_seq( 1./(1 + x**2) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3557,7 +3094,7 @@ class UncertainComplex(object):
         """
         z = cmath.sinh(self.x)
         dz_dx = z_to_seq( cmath.cosh(self.x) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3571,7 +3108,7 @@ class UncertainComplex(object):
         """
         z = cmath.cosh(self.x)
         dz_dx = z_to_seq( cmath.sinh(self.x) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3586,7 +3123,7 @@ class UncertainComplex(object):
         z = cmath.tanh(self.x)
         d = cmath.cosh(self.x)
         dz_dx = z_to_seq( 1./d**2 )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3606,7 +3143,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.asinh(x)
         dz_dx = z_to_seq( 1./cmath.sqrt(1 + x**2) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3624,7 +3161,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.acosh(x)
         dz_dx = z_to_seq( 1./cmath.sqrt((x-1)*(x+1)) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3644,7 +3181,7 @@ class UncertainComplex(object):
         x = complex(self.x)
         z = cmath.atanh(x)
         dz_dx = z_to_seq( 1./((1-x)*(1+x)) )
-        return UncertainComplex.univariate_uc(
+        return _univariate_uc(
             self,
             z,
             dz_dx
@@ -3738,6 +3275,451 @@ class UncertainComplex(object):
         
         return im._atan2(re)
 
+#----------------------------------------------------------------------------
+def _univariate_uc(arg,z,dz_dx):
+    """
+    Create an uncertain complex number as a function of one argument.
+
+    This is a utility method for implementing mathematical
+    functions of uncertain complex numbers.
+
+    The parameter 'arg' is the UncertainComplex argument to the
+    function, 'z' is the complex value of the function and 'dz_dx'
+    is the Jacobian matrix of function value z with respect
+    to the real and imaginary components of the function argument.
+    
+    Parameters
+    ----------
+    arg : :class:`UncertainComplex`
+    z : complex
+    dz_dx : 4-element sequence of float
+    
+    Returns
+    -------
+    :class:`UncertainComplex`
+    
+    """
+    return UncertainComplex(
+        UncertainReal(
+            z.real,
+            vector.merge_weighted_vectors(
+                arg.real._u_components,dz_dx[0],
+                arg.imag._u_components,dz_dx[1],
+            ),
+            vector.merge_weighted_vectors(
+                arg.real._d_components,dz_dx[0],
+                arg.imag._d_components,dz_dx[1],
+            ),
+            vector.merge_weighted_vectors(
+                arg.real._i_components,dz_dx[0],
+                arg.imag._i_components,dz_dx[1],
+            ),
+        ),
+        UncertainReal(
+            z.imag,
+            vector.merge_weighted_vectors(
+                arg.real._u_components,dz_dx[2],
+                arg.imag._u_components,dz_dx[3],
+            ),
+            vector.merge_weighted_vectors(
+                arg.real._d_components,dz_dx[2],
+                arg.imag._d_components,dz_dx[3],
+            ),
+            vector.merge_weighted_vectors(
+                arg.real._i_components,dz_dx[2],
+                arg.imag._i_components,dz_dx[3],
+            )
+        )
+    )
+#----------------------------------------------------------------------------
+def _bivariate_uc_uc(
+    lhs,rhs,
+    z,
+    dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
+    dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
+):
+    """
+    Create an uncertain complex number as a bivariate function
+
+    This is a utility method for implementing mathematical
+    functions of uncertain complex numbers.
+
+    The parameters 'lhs' and 'rhs' are the UncertainComplex
+    arguments to the function, 'z' is the complex value of the
+    function and 'dz_dl' and 'dz_dr' are the Jacobian matrices
+    of the function value z with respect to the real and imaginary
+    components of the function's left and right arguments.
+    
+    Parameters
+    ----------
+    lhs, rhs : :class:`UncertainComplex`
+    z : complex
+    dz_dl, dz_dr : 4-element sequence of float
+    
+    Returns
+    -------
+    :class:`UncertainComplex`
+    
+    """
+    lhs_r = lhs.real
+    lhs_i = lhs.imag
+    rhs_r = rhs.real
+    rhs_i = rhs.imag
+
+    u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._u_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._u_components,(dz_dl[1],dz_dl[3])
+    )
+    u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._u_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._u_components,(dz_dr[1],dz_dr[3])
+    )
+    d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._d_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._d_components,(dz_dl[1],dz_dl[3])
+    )
+    d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._d_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._d_components,(dz_dr[1],dz_dr[3])
+    )
+    i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._i_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._i_components,(dz_dl[1],dz_dl[3])
+    )
+    i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._i_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._i_components,(dz_dr[1],dz_dr[3])
+    )
+    return UncertainComplex(
+        UncertainReal(
+            z.real,
+            vector.merge_vectors(
+                u_lhs_real, u_rhs_real
+            ),
+            vector.merge_vectors(
+                d_lhs_real, d_rhs_real
+            ),
+            vector.merge_vectors(
+                i_lhs_real, i_rhs_real
+            )
+        ),
+        UncertainReal(
+            z.imag,
+            vector.merge_vectors(
+                u_lhs_imag,u_rhs_imag
+            ),
+            vector.merge_vectors(
+                d_lhs_imag,d_rhs_imag
+            ),
+            vector.merge_vectors(
+                i_lhs_imag, i_rhs_imag
+            )
+        )
+    )
+#----------------------------------------------------------------------------
+def _bivariate_uc_ur(
+    lhs,rhs,
+    z,
+    dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
+    dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
+):
+    """
+    Create an uncertain complex number as a bivariate function
+
+    This is a utility method for implementing mathematical
+    functions of uncertain complex numbers.
+
+    The parameter 'lhs' is an UncertainComplex argument to the
+    function, 'rhs' is an uncertain real number argument.
+    'z' is the complex value of the function and 'dz_dl' and
+    'dz_dr' are the Jacobian matrices of the function value z
+    with respect to the real and imaginary components of the
+    function's left and right arguments.
+    
+    Parameters
+    ----------
+    lhs : :class:`UncertainComplex`
+    rhs : :class:`UncertainReal`
+    z : complex
+    dz_dl, dz_dr : 4-element sequence of float
+    
+    Returns
+    -------
+    Uncert:class:`UncertainComplex`ainComplex
+            
+    """
+    lhs_r = lhs.real
+    lhs_i = lhs.imag
+
+    u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._u_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._u_components,(dz_dl[1],dz_dl[3])
+    )
+
+    u_rhs_real, u_rhs_imag = vector.scale_vector_twice(
+        rhs._u_components,(dz_dr[0],dz_dr[2])
+    )
+    
+    d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._d_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._d_components,(dz_dl[1],dz_dl[3])
+    )
+
+    d_rhs_real, d_rhs_imag = vector.scale_vector_twice(
+        rhs._d_components,(dz_dr[0],dz_dr[2])
+    )
+
+    i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._i_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._i_components,(dz_dl[1],dz_dl[3])
+    )
+
+    i_rhs_real, i_rhs_imag = vector.scale_vector_twice(
+        rhs._i_components,(dz_dr[0],dz_dr[2])
+    )
+    
+    return UncertainComplex(
+        UncertainReal(
+            z.real,
+            vector.merge_vectors(
+                u_lhs_real,u_rhs_real
+            ),
+            vector.merge_vectors(
+                d_lhs_real,d_rhs_real
+            ),
+            vector.merge_vectors(
+                i_lhs_real, i_rhs_real
+            )
+        ),
+        UncertainReal(
+            z.imag,
+            vector.merge_vectors(
+                u_lhs_imag,u_rhs_imag
+            ),
+            vector.merge_vectors(
+                d_lhs_imag,d_rhs_imag
+            ),
+            vector.merge_vectors(
+                i_lhs_imag, i_rhs_imag
+            )
+        )
+    )
+#----------------------------------------------------------------------------
+def _bivariate_uc_n(
+    lhs,rhs,
+    z,
+    dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
+    dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
+):
+    """
+    Create an uncertain complex number as a bivariate function
+
+    This is a utility method for implementing mathematical
+    functions of uncertain complex numbers.
+
+    The parameter 'lhs' is an UncertainComplex argument to the
+    function, 'rhs' is a real number. 'z' is the complex value
+    of the function and 'dz_dl' and 'dz_dr' are the Jacobian
+    matrices of the function value z with respect to the real
+    and imaginary components of the function's left and right
+    arguments.
+    
+    Parameters
+    ----------
+    lhs : :class:`UncertainComplex`
+    rhs : float
+    z : complex
+    dz_dl, dz_dr : 4-element sequence of float
+    
+    Returns
+    -------
+    :class:`UncertainComplex`
+            
+    """
+    lhs_r = lhs.real
+    lhs_i = lhs.imag
+
+    u_lhs_real, u_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._u_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._u_components,(dz_dl[1],dz_dl[3])
+    )
+
+    d_lhs_real, d_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._d_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._d_components,(dz_dl[1],dz_dl[3])
+    )
+
+    i_lhs_real, i_lhs_imag = vector.merge_weighted_vectors_twice(
+        lhs_r._i_components,(dz_dl[0],dz_dl[2]),
+        lhs_i._i_components,(dz_dl[1],dz_dl[3])
+    )
+
+    return UncertainComplex(
+        UncertainReal(
+            z.real,
+            u_lhs_real,
+            d_lhs_real,
+            i_lhs_real
+        ),
+        UncertainReal(
+            z.imag,
+            u_lhs_imag,
+            d_lhs_imag,
+            i_lhs_imag
+        )
+    )
+#----------------------------------------------------------------------------
+def _bivariate_ur_uc(
+    lhs,rhs,
+    z,
+    dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
+    dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
+):
+    """
+    Create an uncertain complex number as a bivariate function
+
+    This is a utility method for implementing mathematical
+    functions of uncertain complex numbers.
+
+    The parameter 'lhs' is an uncertain real number argument and
+    'rhs' is an uncertain complex number argument.
+    'z' is the complex value of the function and 'dz_dl' and
+    'dz_dr' are the Jacobian matrices of the function value z with
+    respect to the real and imaginary components of the function's
+    left and right arguments.
+    
+    Parameters
+    ----------
+    lhs : :class:`UncertainReal`
+    rhs : :class:`UncertainComplex` 
+    z : complex
+    dz_dl, dz_dr : 4-element sequence of float
+    
+    Returns
+    -------
+    :class:`UncertainComplex`
+            
+    """
+    rhs_r = rhs.real
+    rhs_i = rhs.imag
+
+    u_lhs_real, u_lhs_imag = vector.scale_vector_twice(
+        lhs._u_components,(dz_dl[0],dz_dl[2])
+    )
+    
+    u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._u_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._u_components,(dz_dr[1],dz_dr[3])
+    )
+
+    d_lhs_real, d_lhs_imag = vector.scale_vector_twice(
+        lhs._d_components,(dz_dl[0],dz_dl[2])
+    )
+    
+    d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._d_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._d_components,(dz_dr[1],dz_dr[3])
+    )
+
+    i_lhs_real, i_lhs_imag = vector.scale_vector_twice(
+        lhs._i_components,(dz_dl[0],dz_dl[2])
+    )
+    
+    i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._i_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._i_components,(dz_dr[1],dz_dr[3])
+    )
+
+    return UncertainComplex(
+        UncertainReal(
+            z.real,
+            vector.merge_vectors(
+                u_lhs_real,u_rhs_real
+            ),
+            vector.merge_vectors(
+                d_lhs_real,d_rhs_real
+            ),
+            vector.merge_vectors(
+                i_lhs_real, i_rhs_real
+            )
+        ),
+        UncertainReal(
+            z.imag,
+            vector.merge_vectors(
+                u_lhs_imag,u_rhs_imag
+            ),
+            vector.merge_vectors(
+                d_lhs_imag,d_rhs_imag
+            ),
+            vector.merge_vectors(
+                i_lhs_imag, i_rhs_imag
+            )
+        )
+    )
+#----------------------------------------------------------------------------
+def _bivariate_n_uc(
+    lhs,rhs,
+    z,
+    dz_dl, # (dz_re_dl_re, dz_re_dl_im, dz_im_dl_re, dz_im_dl_im)
+    dz_dr  # (dz_re_dr_re, dz_re_dr_im, dz_im_dr_re, dz_im_dr_im)
+):
+    """
+    Create an uncertain complex number as a bivariate function 
+
+    This is a utility method for implementing mathematical
+    functions of uncertain complex numbers.
+
+    The parameter 'lhs' is a real number and 'rhs' is an uncertain
+    complex number.
+    'z' is the complex value of the function and 'dz_dl' and
+    'dz_dr' are the Jacobian matrices of the function value z with
+    respect to the real and imaginary components of the function's
+    left and right arguments.
+    
+    Parameters
+    ----------
+    lhs : float 
+    rhs : :class:`UncertainComplex`
+    z : complex
+    dz_dl, dz_dr : 4-element sequence of float
+    
+    Returns
+    -------
+    :class:`UncertainComplex`
+            
+    """
+    rhs_r = rhs.real
+    rhs_i = rhs.imag
+
+    u_rhs_real, u_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._u_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._u_components,(dz_dr[1],dz_dr[3])
+    )
+
+    d_rhs_real, d_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._d_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._d_components,(dz_dr[1],dz_dr[3])
+    )
+
+    i_rhs_real, i_rhs_imag = vector.merge_weighted_vectors_twice(
+        rhs_r._i_components,(dz_dr[0],dz_dr[2]),
+        rhs_i._i_components,(dz_dr[1],dz_dr[3])
+    )
+    
+    return UncertainComplex(
+        UncertainReal(
+            z.real,
+            u_rhs_real,
+            d_rhs_real,
+            i_rhs_real
+        ),
+        UncertainReal(
+            z.imag,
+            u_rhs_imag,
+            d_rhs_imag,
+            i_rhs_imag
+        )
+    )
 #---------------------------------------------------------------------------
 def std_variance_covariance_complex(x):
     """Return the variance-covariance matrix
