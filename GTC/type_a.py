@@ -21,13 +21,9 @@ Sample estimates
       
 .. note::
 
-    Many functions in :mod:`type_a` treat the data as pure numbers. 
+    Many functions in :mod:`type_a` treat  data as pure numbers. 
     Sequences of uncertain numbers can be passed to these 
-    functions, but only the values of the uncertain numbers will be used.
-    This allows type-B uncertainty components to be associated with
-    observational data (e.g., the type-B uncertainty due to a systematic
-    error) before a type-A analysis is performed, which is often
-    convenient. 
+    functions, but only the uncertain-number values will be used.
     
 Module contents
 ---------------
@@ -75,20 +71,27 @@ __all__ = (
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     """
-    Return an uncertain number for the mean of a sample of digitized data
+    Return an uncertain number for the mean of digitized data
 
-    :arg seq: a sequence of real numbers or uncertain real numbers
-    :arg delta: a real number for the digitization step size
-    :arg label: a label for the returned uncertain number
-    :arg truncate: if True, truncation is assumed
+    :arg seq: data
+    :type seq: float, :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
+    :arg float delta: digitization step size 
+    :arg str label: label for uncertain number returned
+    :arg bool truncate: if ``True``, truncation, rather than rounding, is assumed
+    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
 
-    When an instrument rounds, or truncates, readings to a 
-    finite resolution ``delta``, the uncertainty in an estimate  
-    of the mean of a sequence of readings depends on the amount  
-    of scatter in the data and on the number of points in the sample.
+    A sequence of data that has been formatted with fixed precision  
+    can completely conceal a small amount of variability in the original
+    values, or merely obscure that variability.  
     
-    The argument ``truncate`` should be set ``True`` 
-    if an instrument truncates readings instead of rounding them.
+    This function recognises the possible interaction between truncation, or rounding,
+    errors and random errors in the underlying data. The function 
+    obtains the mean of the data sequence and evaluates the uncertainty 
+    in this mean as an estimate of the mean of the process generating 
+    the data.   
+        
+    Set the argument ``truncate`` to ``True`` 
+    if data have been truncated, instead of rounded.
     
     See reference: R Willink, *Metrologia*, **44** (2007) 73-81
 
@@ -167,24 +170,25 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     
 #-----------------------------------------------------------------------------------------
 def estimate(seq,label=None,context=_context):
-    """Obtain an uncertain number by type-A evaluation 
+    """Return an uncertain number for the mean of the data 
 
-    :arg seq:   a sequence representing a sample of data
-    :arg label: a label for the returned uncertain number
+    :arg seq:   a sequence of data
+    :arg str label: a label for the returned uncertain number
     
-    :returns:   an uncertain real number, or an uncertain complex number
+    :rtype:   :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
                 
     The elements of ``seq`` may be real numbers, complex numbers, or
-    uncertain real or complex numbers. Note that if uncertain numbers
-    are used, only the value attribute is used.
+    uncertain real or complex numbers. Note that only the value of uncertain 
+    numbers will be used.
 
-    The sample mean is an estimate of the quantity of interest. 
-    The uncertainty in this estimate is the standard deviation of
-    the sample mean (or the sample covariance of the mean, 
-    for the complex case).    
+    In a type-A evaluation, the sample mean provides an estimate of the  
+    quantity of interest. The uncertainty in this estimate 
+    is the standard deviation of the sample mean (or the  
+    sample covariance of the mean, in the complex case).    
     
-    Returns an uncertain real number when the mean of ``seq`` is real, 
-    or an uncertain complex number when the mean is complex.
+    The function returns an :class:`~lib.UncertainReal` when 
+    the mean of the data is real, and an :class:`~lib.UncertainComplex` 
+    when the mean of the data is complex.
 
     **Examples**::
 
@@ -255,18 +259,21 @@ def mean(seq):
 def standard_deviation(seq,mu=None):
     """Return the sample standard deviation
     
-    :arg seq: sequence of numbers
+    :arg seq: sequence of data
     :arg mu: the arithmetic mean of ``seq``
         
+    If ``seq`` contains real or uncertain real numbers, 
+    the sample standard deviation is returned.
+    
     If ``seq`` contains complex or uncertain complex
     numbers, the standard deviation in the real and
     imaginary components is evaluated, as well as
-    the sample correlation coefficient.
+    the correlation coefficient between the components.
+    A :class:`~named_tuples.are returned in a
+    :class:`~named_tuples.StandardDeviation` namedtuple 
+    is returned and the correlation coefficient. 
 
-    Otherwise the sample standard deviation is returned.
-    
-    The calculation only uses the `value` attribute 
-    of uncertain numbers.
+    Only the values of uncertain numbers are used in calculations. 
     
     **Examples**::
 
@@ -330,21 +337,22 @@ def standard_deviation(seq,mu=None):
 def standard_uncertainty(seq,mu=None):
     """Return the standard uncertainty of the sample mean
 
-    :arg seq: sequence of numbers
+    :arg seq: sequence of data
     :arg mu: the arithmetic mean of ``seq``
     
-    :rtype: float
+    :rtype: float or :class:`~named_tuples.StandardUncertainty`
     
+    If ``seq`` contains real or uncertain real numbers,
+    the standard uncertainty of the sample mean 
+    is returned.
+
     If ``seq`` contains complex or uncertain complex
     numbers, the standard uncertainties of the real and
     imaginary components are evaluated, as well as the
-    sample correlation coefficient.
+    sample correlation coefficient are returned in a
+    :class:`~named_tuples.StandardUncertainty` namedtuple
 
-    Otherwise the standard uncertainty of the sample mean 
-    is returned.
-
-    The calculation only uses the `value` attribute 
-    of uncertain numbers. 
+    Only the values of uncertain numbers are used in calculations. 
 
     **Example**::
 
@@ -391,23 +399,21 @@ def standard_uncertainty(seq,mu=None):
 def variance_covariance_complex(seq,mu=None):
     """Return the sample variance-covariance matrix
 
-    :arg seq: sequence of numbers   
+    :arg seq: sequence of data   
     :arg mu: the arithmetic mean of ``seq``
 
     :returns: a 4-element sequence
 
-    If ``mu`` is not provided it will be evaluated
-    (see :func:`~type_a.mean`).
+    If ``mu`` is ``None`` the mean will be evaluated 
+    by :func:`~type_a.mean`.
 
     ``seq`` may contain numbers or uncertain numbers.
-    However, the calculation only uses the `value` 
-    of uncertain numbers.
+    Only the values of uncertain numbers are used in calculations. 
     
-    .. note:
-
-        Variance-covariance matrix elements are returned  
-        in a namedtuple; they can be accessed using the 
-        attributes ``.rr``, ``.ri``, ``,ir`` and ``.ii``.
+    Variance-covariance matrix elements are returned  
+    in a :class:`~named_tuples.VarianceCovariance` namedtuple; 
+    they can be accessed using the 
+    attributes ``.rr``, ``.ri``, ``,ir`` and ``.ii``.
         
     **Example**::
     
@@ -454,22 +460,23 @@ def variance_covariance_complex(seq,mu=None):
     return VarianceCovariance(cv_11,cv_12,cv_12,cv_22)
 
 #-----------------------------------------------------------------------------------------
-def multi_estimate_real(seq_of_seq,labels=None,context=_context):
-    """Return a sequence of related uncertain real numbers 
+def multi_estimate_real(seq_of_seq,labels=None):
+    """Return a sequence of uncertain real numbers 
 
-    :arg seq_of_seq: a sequence of real-valued sequences
-    :arg labels: a sequence of labels 
+    :arg seq_of_seq: a sequence of sequences of data
+    :arg labels: a sequence of `str` labels 
     
-    :returns: a sequence of uncertain real numbers
+    :rtype: seq of :class:`~lib.UncertainReal`
 
     The sequences in ``seq_of_seq`` must all be the same length.
+    Each sequence is associated with a particular quantity and contains 
+    a sample of data. An uncertain number for the quantity will be created  
+    using the sample of data, using sample statistics. The covariance 
+    between different quantities will also be evaluated from the data.
     
-    Defines uncertain numbers using the sample statistics from 
-    the data sequences, including the sample covariance. 
-
-    The uncertain numbers returned are considered related, so that a 
-    degrees-of-freedom calculation can be performed even if there is 
-    correlation between them. 
+    A sequence of elementary uncertain numbers are returned. The uncertain numbers 
+    are considered related, allowing a degrees-of-freedom calculations 
+    to be performed on derived quantities. 
 
     **Example**::
     
@@ -562,21 +569,25 @@ def multi_estimate_real(seq_of_seq,labels=None,context=_context):
 #-----------------------------------------------------------------------------------------
 def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
     """
-    Return a sequence of related uncertain complex numbers
+    Return a sequence of uncertain complex numbers
 
-    :arg seq_of_seq: a sequence of complex number sequences
-    :arg labels: a sequence of labels for the uncertain numbers
+    :arg seq_of_seq: a sequence of sequences of data
+    :arg labels: a sequence of `str` labels
     
-    :returns: a sequence of uncertain complex numbers
+    :rtype: a sequence of :class:`~lib.UncertainComplex`
         
     The sequences in ``seq_of_seq`` must all be the same length.
+    Each sequence contains a sample of data that is associated with 
+    a particular quantity. An uncertain number for the quantity will  
+    be created using this data from sample statistics. The covariance 
+    between different quantities will also be evaluated from the data.
+    
+    A sequence of elementary uncertain complex numbers are returned. These   
+    uncertain numbers are considered related, allowing a degrees-of-freedom  
+    calculations to be performed on derived quantities. 
     
     Defines uncertain numbers using the sample statistics, including
     the sample covariance.  
-
-    The uncertain complex numbers returned are considered related,
-    so they may be used in a degrees-of-freedom calculation even 
-    if there is correlation between them. 
 
     **Example**::
     

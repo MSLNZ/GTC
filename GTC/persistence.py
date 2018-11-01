@@ -2,13 +2,11 @@
 Class
 -----
 
-    An :class:`Archive` object can marshal a set of uncertain numbers 
-    for storage,or restore a set of uncertain numbers from storage. 
+    An :class:`Archive` object can be used to marshal a set of uncertain numbers 
+    for storage, or restore a set of uncertain numbers from storage. 
     
     Python pickle is used for the storage mechanism.
-    However, :class:`Archive` could also be used 
-    as a base class for other storage formats.
-
+    
 Functions
 ---------
 

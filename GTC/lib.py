@@ -2198,8 +2198,6 @@ class UncertainComplex(object):
     #------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
         """
-        Return a `RoundedUncertainComplex` 
-        
         `digits` specifies the number of significant digits of 
         in the least component uncertainty that will be retained. 
         
@@ -2376,9 +2374,7 @@ class UncertainComplex(object):
         An UncertainComplex object is created by negating the imaginary
         component.
 
-        Returns
-        -------
-        UncertainComplex
+        :rtype: :class:`~lib.UncertainComplex`
         
         """
         # NB unary '+' makes a new object with the same uncertainty and value
@@ -2389,7 +2385,7 @@ class UncertainComplex(object):
     def x(self):
         """Return the value 
 
-        :returns: complex
+        :rtype: complex
         
         **Example**::
             >>> uc = ucomplex(1+2j,(.3,.2))
@@ -2406,7 +2402,7 @@ class UncertainComplex(object):
     def u(self):
         """Return standard uncertainties for the real and imaginary components
 
-        :returns: 2-element sequence of float
+        :rtype: 2-element sequence of float
         
         **Example**::
             >>> uc = ucomplex(1+2j,(.5,.5))
@@ -2431,7 +2427,7 @@ class UncertainComplex(object):
         The uncertainty of an uncertain complex number can be associated with
         a 4-element variance-covariance matrix.
 
-        :returns: 4-element sequence of float
+        :rtype: 4-element sequence of float
         
         **Example**::
             >>> uc = ucomplex(1+2j,(.5,.5))
@@ -2470,7 +2466,7 @@ class UncertainComplex(object):
         effective degrees-of-freedom is calculated using the method
         described by Willink and Hall in Metrologia 2002, 39, pp 361-369.
 
-        :returns: float
+        :rtype: float
         
         **Example**::
             >>> uc = ucomplex(1+2j,(.3,.2),3)

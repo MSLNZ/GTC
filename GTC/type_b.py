@@ -2,8 +2,8 @@
 Real-valued problems
 --------------------
     
-    The following functions convert the half-width of  
-    a one-dimensional distribution to a standard 
+    Functions are provided that convert the half-width   
+    of a one-dimensional distribution to a standard 
     uncertainty:
     
     *   :func:`uniform`
@@ -15,7 +15,7 @@ Complex-valued problems
 -----------------------
     
     The following functions convert information
-    about two-dimensional error distributions into
+    about two-dimensional distributions into
     standard uncertainties:
     
     *   :func:`uniform_ring`
@@ -25,8 +25,8 @@ Complex-valued problems
 A table of distributions
 ------------------------
 
-    The mapping :obj:`distribution` allows the
-    functions above to be selected by name. 
+    The mapping :obj:`distribution` is provided so that 
+    the functions above can be selected by name. 
     For example, ::
 
         >>> a = 1.5
@@ -37,7 +37,7 @@ A table of distributions
         >>> ureal( 1, type_b.distribution['arcsine'](a) )
         ureal(1.0,1.0606601717798212,inf)
 
-    The names are (case-sensitive):
+    Keys to :obj:`distribution` are (case-sensitive):
     
     *   'gaussian'
     *   'uniform'
@@ -73,7 +73,7 @@ _root_6 = math.sqrt(6.0)
 def uniform(a):
     """Return the standard uncertainty for a uniform distribution. 
 
-    :arg a: the half-width
+    :arg float a: the half-width
 
     **Example**::
 
@@ -88,7 +88,7 @@ def uniform(a):
 def triangular(a):
     """Return the standard uncertainty for a triangular distribution. 
     
-    :arg a: the half-width 
+    :arg float a: the half-width 
     
     **Example**::
 
@@ -103,11 +103,7 @@ def triangular(a):
 def arcsine(a):
     """Return the standard uncertainty for an arcsine distribution. 
 
-    :arg a: the half-width 
-    
-    .. note::
-
-        :func:`arcsine` and :func:`u_shaped` are equivalent
+    :arg float a: the half-width 
     
     **Example**::
 
@@ -125,10 +121,10 @@ u_shaped = arcsine
 def uniform_ring(a):
     """Return the standard uncertainty for a uniform ring
     
-    :arg a: the radius
+    :arg float a: the radius
     
-    Convert the radius ``a`` of a uniform ring distribution 
-    (in the complex plane) to a standard uncertainty
+    Convert the radius of a uniform ring distribution ``a`` 
+    to a standard uncertainty
 
     See reference: B D Hall, *Metrologia* **48** (2011) 324-332
     
@@ -145,10 +141,10 @@ def uniform_ring(a):
 def uniform_disk(a):
     """Return the standard uncertainty for a uniform disk 
     
-    :arg a: the radius
+    :arg float a: the radius
     
-    Convert the radius ``a`` of a uniform disk distribution 
-    (in the complex plane) to a standard uncertainty.
+    Convert the radius of a uniform disk distribution ``a`` 
+    to a standard uncertainty.
     
     See reference: B D Hall, *Metrologia* **48** (2011) 324-332
 
@@ -161,45 +157,33 @@ def uniform_disk(a):
     """
     return a / 2.0
 
-#---------------------------------------------------------------------------
-# 
-def uncertain_ring(a_u_r):
-    """Return the standard uncertainty for an uncertain ring 
+# #---------------------------------------------------------------------------
+# # 
+# def uncertain_ring(a_u_r):
+    # """Return the standard uncertainty for an uncertain ring 
         
-    :arg a_u_r: a 2-element sequence containing the (estimated) radius 
-                and the standard uncertainty 
+    # :arg a_u_r: the (estimated) radius with a standard uncertainty 
+    # :type a_u_r: pair of float
     
-    Convert a radius estimate ``a``, with a standard
-    uncertainty ``u_r``, into a standard uncertainty.
+    # Convert a radius estimate ``a``, with a standard
+    # uncertainty ``u_r``, into a standard uncertainty.
 
-    See reference: B D Hall, *Metrologia* **48** (2011) 324-332
+    # See reference: B D Hall, *Metrologia* **48** (2011) 324-332
 
-    **Example**::
+    # **Example**::
 
-        >>> estimate = (1,0.1)
-        >>> z = ucomplex( 0, type_b.uncertain_ring( estimate ) )
-        >>> z
-        ucomplex((0+0j), u=[0.714142842854285,0.714142842854285], r=0.0, df=inf)
+        # >>> estimate = (1,0.1)
+        # >>> z = ucomplex( 0, type_b.uncertain_ring( estimate ) )
+        # >>> z
+        # ucomplex((0+0j), u=[0.714142842854285,0.714142842854285], r=0.0, df=inf)
 
-    .. note::
+    # .. note::
     
-        This function is deprecated. 
+        # This function is deprecated. 
         
-    """
-    a, u_r = a_u_r
-    return math.sqrt( (a**2/2.0 + u_r**2))
-
-#---------------------------------------------------------------------------
-distribution = {
-    'gaussian'  : lambda x: x,
-    'uniform'   : uniform,
-    'triangular': triangular,
-    'arcsine'   : arcsine,
-    'u_shaped'  : u_shaped,
-    'uniform_ring'  : uniform_ring,
-    'uniform_disk'  : uniform_disk,
-    'uncertain_ring': uncertain_ring
-}
+    # """
+    # a, u_r = a_u_r
+    # return math.sqrt( a**2/2.0 + u_r**2 )
 
 #---------------------------------------------------------------------------
 def unknown_phase_product(u1,u2):
@@ -225,7 +209,19 @@ def unknown_phase_product(u1,u2):
 
     """
     return _root_2 * u1 * u2
-    
+   
+#---------------------------------------------------------------------------
+distribution = {
+    'gaussian'  : lambda x: x,
+    'uniform'   : uniform,
+    'triangular': triangular,
+    'arcsine'   : arcsine,
+    'u_shaped'  : u_shaped,
+    'uniform_ring'  : uniform_ring,
+    'uniform_disk'  : uniform_disk,
+    # 'uncertain_ring': uncertain_ring
+}
+   
 #============================================================================
 if __name__ == "__main__":
     import doctest

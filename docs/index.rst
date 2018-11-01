@@ -13,6 +13,7 @@ GTC Modules
     Additional functions <API/function>
     Reporting <API/reporting_functions>
     Storage <API/persistence>
+    Named tuples <API/named_tuples>
     License <license>
     Authors <authors>
     Release Notes <changelog>

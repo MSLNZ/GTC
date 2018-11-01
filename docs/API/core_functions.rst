@@ -30,7 +30,7 @@ Uncertain Real Numbers
     
         >>> x = ureal(1.414141,0.01)
         >>> x
-        ureal(1.414141, 0.01, inf)
+        ureal(1.414141,0.01,inf)
 
     All logical comparison operations (e.g., <, >, ==, etc) are applied to the *value* of an uncertain number. For example, ::
     
@@ -89,7 +89,7 @@ Uncertain Complex Numbers
         1.4142135623730951
 
         >>> magnitude(uc)
-        ureal(1.4142135623730951, 0.99999999999999989, inf)
+        ureal(1.4142135623730951,0.9999999999999999,inf)
                    
     When an :class:`~lib.UncertainComplex` is converted to a string (e.g., by the :func:`str` function or by :func:`print`), the precision depends on the uncertainty. 
     

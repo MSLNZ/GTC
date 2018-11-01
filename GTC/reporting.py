@@ -2,9 +2,9 @@
 Reporting functions
 -------------------
 
-    *   The function :func:`budget` generates an uncertainty budget.
+    *   The function :func:`budget` produces an uncertainty budget.
     *   Functions :func:`u_bar` and :func:`v_bar` return summary values 
-        for matrices associated with 2-D uncertainty.
+        for matrix results associated with 2-D uncertainty.
 
 Uncertainty functions
 ---------------------
@@ -137,16 +137,15 @@ def variance_and_dof(x):
 
 #----------------------------------------------------------------------------
 def u_component(y,x):
-    """Return the component of uncertainty in ``y`` due to ``x``.
+    """Return the component of uncertainty in ``y`` due to ``x``
     
-    .. note::
-        * If ``x`` and ``y`` are uncertain real numbers, return a float. 
+    If ``x`` and ``y`` are uncertain real numbers, return a float. 
 
-        * If one of ``y`` or ``x`` is an uncertain complex number, return 
-            a 4-element sequence of float, containing the components of 
-            the uncertainty matrix.
+    If ``y`` or ``x`` is an uncertain complex number, return 
+    a 4-element sequence of float, containing the components of 
+    the uncertainty matrix.
 
-        * Otherwise, return 0.
+    Otherwise, return 0.
 
     **Example**::
 
@@ -292,10 +291,10 @@ def u_bar(ucpt):
     :arg ucpt: a component of uncertainty
     :type ucpt: float or 4-element sequence of float
 
-    If ``ucpt`` is a sequence, return the root sum square 
+    If ``ucpt`` is a sequence, return the root-sum-square 
     of the elements divided by :math:`\sqrt{2}`
 
-    If ``ucpt`` is a number, return the magnitude.
+    If ``ucpt`` is a number, return the absolute value.
 
     **Example**::
 
@@ -332,7 +331,7 @@ def v_bar(cv):
     """Return the trace of ``cv`` divided by 2 
     
     :arg cv: a variance-covariance matrix
-    :type cv: a 4-element sequence of float
+    :type cv: 4-element sequence of float
     
     :returns: float
 
@@ -355,31 +354,29 @@ def v_bar(cv):
     return (cv[0] + cv[3]) / 2.0
 
 #----------------------------------------------------------------------------
-def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
+def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
     """Return a sequence of label-component of uncertainty pairs
 
-    :arg x:  the measurand estimate
-    :type x: :class:`UncertainReal` or :class:`UncertainComplex`
+    :arg y:  an uncertain number
+    :type y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
 
     :arg influences:  a sequence of uncertain numbers
 
     :arg key: the list sorting key
 
     :arg reverse:  determines sorting order (forward or reverse)
-    :type reverse: Boolean
+    :type reverse: bool
 
     :arg trim:  remove components of uncertainty that are
                 less than ``trim`` times the largest component
     
     :arg max_number: return no more than ``max_number`` components
     
-    A sequence of namedtuple pairs is returned, with the attributes
-    ``label`` and ``u``.
+    A sequence of namedtuples is returned, each with the attributes
+    ``label`` and ``u`` for a component of uncertainty 
+    (see :func:`~core.component`). 
 
-    Each element is a pair: a label and the magnitude 
-    of the component of uncertainty (see :func:`~core.component`). 
-
-    The sequence ``influences`` can be used to select the influences
+    The argument ``influences`` can be used to select the influences
     are that reported.
 
     The argument ``key`` can be used to order the sequence
@@ -415,25 +412,25 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         x1: 0.333333
         
     """    
-    if isinstance(x,UncertainReal):
+    if isinstance(y,UncertainReal):
         if influences is None:
-            nodes = x._u_components.keys()
+            nodes = y._u_components.keys()
             labels = [ n_i.label 
                         if n_i.label is not None else "{}".format(n_i.uid) 
                            for n_i in nodes ]
-            values = [ math.fabs( u ) for u in x._u_components.itervalues() ]
+            values = [ math.fabs( u ) for u in y._u_components.itervalues() ]
         else:
             labels = []
             values = []
             for i in influences:
                 if isinstance(i,UncertainReal):
                     labels.append( i.label )
-                    values.append( math.fabs(u_component(x,i)) ) 
+                    values.append( math.fabs(u_component(y,i)) ) 
                 elif isinstance(i,UncertainComplex):
                     labels.append( i.real.label )
-                    values.append( math.fabs(u_component(x,i.real)) ) 
+                    values.append( math.fabs(u_component(y,i.real)) ) 
                     labels.append( i.imag.label )
-                    values.append( math.fabs(u_component(x,i.imag)) ) 
+                    values.append( math.fabs(u_component(y,i.imag)) ) 
                 else:
                     assert False,\
                            "unexpected type: '{}'".format( type(i) )
@@ -445,12 +442,12 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         else:
             this_budget = [ ]
         
-    elif isinstance(x,UncertainComplex):        
+    elif isinstance(y,UncertainComplex):        
         if influences is None:
             
             # Ensure that the influence vectors have the same keys
-            re = extend_vector(x.real._u_components,x.imag._u_components)    
-            im = extend_vector(x.imag._u_components,x.real._u_components)
+            re = extend_vector(y.real._u_components,y.imag._u_components)    
+            im = extend_vector(y.imag._u_components,y.real._u_components)
 
             try:
                 labels = []
@@ -495,7 +492,7 @@ def budget(x,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                 pass
         else:
             labels = [ i.label for i in influences ]
-            values = [ u_bar( u_component(x,i) ) for i in influences ]
+            values = [ u_bar( u_component(y,i) ) for i in influences ]
             
         if len(values):
             cut_off = max(values) * float(trim)

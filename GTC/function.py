@@ -1,8 +1,9 @@
 """
 Utility functions
 -----------------
-The functions :func:`complex_to_seq` and :func:`seq_to_complex` 
-support a matrix representation of complex numbers.
+Functions :func:`complex_to_seq` and :func:`seq_to_complex` 
+are useful to convert between the matrix representation of 
+complex numbers and Python :obj:`complex`.
 
 The function :func:`mean` evaluates the mean of a sequence.
 
@@ -28,11 +29,11 @@ __all__ = (
         
 #---------------------------------------------------------------------------
 def mean(seq):
-    """Return the arithmetic mean of elements in `seq`
+    """Return the arithmetic mean of the elements in `seq`
     
-    `seq` - an iterable
+    :arg seq: a sequence, or iterable, of numbers or uncertain numbers
     
-    If the elements of `seq` are uncertain numbers, 
+    If the elements of ``seq`` are uncertain numbers, 
     an uncertain number is returned.
     
     **Example** ::
@@ -57,7 +58,7 @@ def complex_to_seq(z):
 
     :arg z: a number
 
-    If ``z = x + yj``, then ``matrix([[x,-y],[y,x]])`` 
+    If ``z = x + yj``, then an array of the form ``[[x,-y],[y,x]]`` 
     can be used to represent ``z`` in matrix computations. 
 
     **Examples**::
@@ -66,7 +67,7 @@ def complex_to_seq(z):
         >>> function.complex_to_seq(z)
         (1.0, -2.0, 2.0, 1.0)
         
-        >>> m = numpy.matrix( function.complex_to_seq(z) )
+        >>> m = numpy.array( function.complex_to_seq(z) )
         >>> m.shape = (2,2)
         >>> print( m )
         [[ 1. -2.]
@@ -81,11 +82,10 @@ def seq_to_complex(seq):
     """Transform a 4-element sequence into a complex number 
 
     :arg seq:   a 4-element sequence
-
-    A :obj:`RuntimeError` will be raised if ``seq`` is ill-conditioned.
+    :raises RuntimeError: if ``seq`` is ill-conditioned
     
-    If ``z = x + yj``, then ``matrix([[x,-y],[y,x]])`` can
-    be used to represent ``z`` in matrix computations. 
+    If ``z = x + yj``, then an array of the form ``[[x,-y],[y,x]]`` 
+    can be used to represent ``z`` in matrix computations. 
 
     **Examples**::
 
