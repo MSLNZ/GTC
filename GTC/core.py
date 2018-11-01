@@ -436,7 +436,7 @@ def result(un,label=None):
     The dependence of other uncertain numbers on a
     declared intermediate result evaluated. 
     
-    Decalring intermediate results also enables
+    Declaring intermediate results also enables
     these results and the dependence of other 
     uncertain numbers to be stored in an archive.
 
@@ -486,6 +486,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     :type label: str 
     
     :rtype: :class:`~lib.UncertainComplex`
+    :raises: :exc:`~exceptions.RuntimeError` if ``df`` or ``u`` have illegal values.
 
     ``u`` can be a float, a 2-element or 4-element sequence.
 
@@ -499,9 +500,6 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
 
     If ``u`` is a 4-element sequence, the sequence is 
     interpreted as a variance-covariance matrix.
-
-    A `RuntimeError` is raised if ``df`` or
-    ``u`` have illegal values.
 
     **Examples**::
 
@@ -818,8 +816,8 @@ def get_correlation(arg1,arg2=None):
     a real number. 
     
     When one, or both, arguments are uncertain complex numbers,
-    a ``CorrelationMatrix`` namedtuple is returned, representing
-    a 2-by-2 matrix of correlation coefficients.
+    a :obj:`~named_tuples.CorrelationMatrix` is returned, 
+    representing a 2-by-2 matrix of correlation coefficients.
     
     """
     # Return zero if numerical arguments are given
@@ -894,8 +892,8 @@ def get_covariance(arg1,arg2=None):
     as a real number. 
     
     When one, or both, arguments are uncertain complex numbers,
-    a ``CovarianceMatrix`` namedtuple is returned, representing
-    a 2-by-2 variance-covariance matrix.
+    a :class:`~named_tuples.CovarianceMatrix` is returned, 
+    representing a 2-by-2 variance-covariance matrix.
     
     """
     # If numerical arguments are given then return zero. 

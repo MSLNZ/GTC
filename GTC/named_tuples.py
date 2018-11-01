@@ -1,14 +1,140 @@
 from collections import namedtuple
 
-VarianceAndDof = namedtuple('variance_and_dof','cv, df')
-VarianceCovariance = namedtuple('variance_covariance','rr, ri, ir, ii')
-StandardUncertainty = namedtuple('standard_uncertainty','real,imag')
-StandardDeviation = namedtuple('standard_deviation','real,imag')
-ComponentOfUncertainty = namedtuple('u_components','rr, ri, ir, ii')
-Influence = namedtuple('influence','label, u')
-CorrelationMatrix = namedtuple("correlation_matrix","rr,ri,ir,ii")
-CovarianceMatrix = namedtuple("covariance_matrix","rr,ri,ir,ii")
+VarianceAndDof = namedtuple('VarianceAndDof','cv, df')
+""":obj:`~collections.namedtuple`: Values of the variance and degrees of freedom.
+ 
+.. attribute:: cv
+  
+   Variance.
+  
+.. attribute:: df
+  
+   :class:`float`: Degrees of freedom.
+ 
+"""
+    
+VarianceCovariance = namedtuple('VarianceCovariance','rr, ri, ir, ii')
+""":obj:`~collections.namedtuple`: Values of variance-covariance for a complex quantity
+ 
+.. attribute:: rr
+  
+   :class:`float`: variance in the real component
+  
+.. attribute:: ri
+  
+   :class:`float`: covariance between th real and imaginary components
+ 
+.. attribute:: ir
+  
+   :class:`float`: covariance between th real and imaginary components
+   
+.. attribute:: ii
+  
+   :class:`float`:  variance in the imaginary component
 
+   """
+   
+StandardUncertainty = namedtuple('StandardUncertainty','real,imag')
+""":obj:`~collections.namedtuple`: Standard uncertainty values of a complex quantity
+ 
+.. attribute:: real
+  
+   :class:`float`: standard uncertainty in the real component
+   
+.. attribute:: imag
+  
+   :class:`float`: standard uncertainty in the imaginary component
+   
+"""
+
+StandardDeviation = namedtuple('StandardDeviation','real,imag')
+""":obj:`~collections.namedtuple`: Standard deviation values of a complex quantity
+ 
+.. attribute:: real
+  
+   :class:`float`: standard deviation in the real component
+   
+.. attribute:: imag
+  
+   :class:`float`: standard deviation in the imaginary component
+   
+"""
+
+ComponentOfUncertainty = namedtuple('ComponentOfUncertainty','rr, ri, ir, ii')
+""":obj:`~collections.namedtuple`: Component of uncertainty values for a complex quantity
+ 
+.. attribute:: rr
+  
+   :class:`float`: real component with respect to real component
+  
+.. attribute:: ri
+  
+   :class:`float`: real component with respect to imaginary component
+ 
+.. attribute:: ir
+  
+   :class:`float`: imaginary component with respect to real component
+   
+.. attribute:: ii
+  
+   :class:`float`: imaginary component with respect to imaginary component
+
+   """
+
+Influence = namedtuple('Influence','label, u')
+""":obj:`~collections.namedtuple`: label and component of uncertainty value
+ 
+.. attribute:: label
+  
+   :class:`str`: influence quantity label
+   
+.. attribute:: u
+  
+   :class:`float`: component of uncertainty due to influence quantity
+   
+"""
+CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")
+""":obj:`~collections.namedtuple`: Correlation coefficients for a pair of quantities ``x`` and ``y``
+ 
+.. attribute:: rr
+  
+   :class:`float`: correlation between ``x.real`` and ``y.real``
+  
+.. attribute:: ri
+  
+   :class:`float`: correlation between ``x.real`` and ``y.imag``
+ 
+.. attribute:: ir
+  
+   :class:`float`: correlation between ``x.imag`` and ``y.real``
+   
+.. attribute:: ii
+  
+   :class:`float`: correlation between ``x.imag`` and ``y.imag``
+
+   """
+   
+CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
+""":obj:`~collections.namedtuple`: Values of covariance for a pair of quantities ``x`` and ``y``
+ 
+.. attribute:: rr
+  
+   :class:`float`: covariance between ``x.real`` and ``y.real``
+  
+.. attribute:: ri
+  
+   :class:`float`: covariance between ``x.real`` and ``y.imag``
+ 
+.. attribute:: ir
+  
+   :class:`float`: covariance between ``x.imag`` and ``y.real``
+   
+.. attribute:: ii
+  
+   :class:`float`: covariance between ``x.imag`` and ``y.imag``
+
+   """
+   
 GroomedUncertainReal = namedtuple('ureal','x u df label precision df_decimals u_digits')
 GroomedUncertainComplex = namedtuple(
     'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'

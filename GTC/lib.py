@@ -424,9 +424,7 @@ class UncertainReal(object):
     def conjugate(self):
         """Return the complex conjugate
 
-        Returns
-        -------
-        UncertainReal
+        :rtype: :class:`~lib.UncertainReal`
         
         """
         return self.real
@@ -456,15 +454,15 @@ class UncertainReal(object):
     def x(self):
         """Return the value
 
-        :returns: float
+        :rtype: float
+        
+        Note that ``un.x`` is equivalent to :func:`value(un)<core.value>`
         
         **Example**::
             >>> ur = ureal(2.5,0.5)
             >>> ur.x
             2.5
-
-        .. note:: ``un.x`` is equivalent to ``float(un)`` and to ``value(un)``
-        
+            
         """
         return self._x
 
@@ -473,15 +471,15 @@ class UncertainReal(object):
     def u(self):
         """Return the standard uncertainty 
         
-        :returns: float
+        :rtype: float
+        
+        Note that ``un.u`` is equivalent to :func:`uncertainty(un)<core.uncertainty>`
         
         **Example**::
             >>> ur = ureal(2.5,0.5)
             >>> ur.u
             0.5
-
-        .. note:: ``un.u`` is equivalent to ``uncertainty(un)``
-        
+            
         """
         if hasattr(self,'_u'):
             return self._u
@@ -499,15 +497,15 @@ class UncertainReal(object):
     def v(self):
         """Return the standard variance
         
-        :returns: float
+        :rtype: float
+        
+        Note that ``un.v`` is equivalent to :func:`variance(un)<core.variance>`
         
         **Example**::
             >>> ur = ureal(2.5,0.5)
             >>> ur.v
             0.25
-
-        .. note:: ``un.v`` is equivalent to ``variance(un)``
-        
+            
         """
         if hasattr(self,'_u'):
             u = self.u 
@@ -526,15 +524,15 @@ class UncertainReal(object):
     def df(self):
         """Return the degrees of freedom
         
-        :returns: float
+        :rtype: float
+
+        Note ``un.df`` is equivalent to :func:`dof(un)<core.dof>`
         
         **Example**::
             >>> ur = ureal(2.5,0.5,3)
             >>> ur.df
-            3.0
-
-        .. note:: ``un.df`` is equivalent to ``dof(un)``
-        
+            3.0        
+            
         """
         if self.is_elementary:
             return self._node.df
@@ -548,9 +546,11 @@ class UncertainReal(object):
     #-----------------------------------------------------------------
     @property
     def label(self):
-        """The label attribute
+        """The uncertain-number label
+        
+        :rtype: str
 
-        .. note:: ``un.label`` is equivalent to ``label(un)``
+        Note ``un.label`` is equivalent to :func:`label(un)<core.label>`
         
         **Example**::
             >>> x = ureal(2.5,0.5,label='x')
@@ -1083,6 +1083,7 @@ def _atan2_re_x(lhs,x):
 def _pow(lhs,rhs):
     """
     Raise `lhs` to the power of `rhs`
+    
     """
     if isinstance(rhs,UncertainReal):
         
@@ -2387,13 +2388,13 @@ class UncertainComplex(object):
 
         :rtype: complex
         
+        Note that ``uc.x`` is equivalent to :func:`value(uc)<core.value>`
+        
         **Example**::
             >>> uc = ucomplex(1+2j,(.3,.2))
             >>> uc.x
             (1+2j)
 
-        .. note:: ``uc.x`` is equivalent to ``complex(uc)`` and ``value(uc)``
-        
         """
         return self._value
 
@@ -2404,12 +2405,12 @@ class UncertainComplex(object):
 
         :rtype: 2-element sequence of float
         
+        Note that ``uc.u`` is equivalent to :func:`uncertainty(uc)<core.uncertainty>`
+        
         **Example**::
             >>> uc = ucomplex(1+2j,(.5,.5))
             >>> uc.u
             standard_uncertainty(real=0.5, imag=0.5)
-
-        .. note:: ``uc.u`` is equivalent to ``uncertainty(uc)``
         
         """        
         if not hasattr(self,"_u"):
@@ -2429,13 +2430,13 @@ class UncertainComplex(object):
 
         :rtype: 4-element sequence of float
         
+        Note that ``uc.v`` is equivalent to :func:`variance(uc)<core.variance>`
+        
         **Example**::
             >>> uc = ucomplex(1+2j,(.5,.5))
             >>> uc.v
             variance_covariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
 
-        .. note:: ``uc.v`` is equivalent to ``variance(uc)``
-        
         """
         if not hasattr(self,"_v"):
             self._v = std_variance_covariance_complex(self)
@@ -2468,14 +2469,12 @@ class UncertainComplex(object):
 
         :rtype: float
         
+        Note that ``uc.df`` is equivalent to :func:`dof(uc)<core.dof>`
+        
         **Example**::
             >>> uc = ucomplex(1+2j,(.3,.2),3)
             >>> uc.df
             3.0
-
-        .. note:: 
-        
-            ``uc.df`` is equivalent to ``dof(uc)``
         
         """
         cv_df = willink_hall(self)
@@ -2489,7 +2488,9 @@ class UncertainComplex(object):
     def label(self):
         """The `label` attribute
 
-        .. note:: ``un.label`` is equivalent to ``label(un)``
+        :rtype: str
+        
+        Note that``un.label`` is equivalent to :func:`label(un)<core.label>`
         
         **Example**::
             >>> z = ucomplex(2.5+.3j,(1,1),label='z')
@@ -3724,13 +3725,10 @@ def std_variance_covariance_complex(x):
     The variance-covariance matrix characterises the  uncertainty
     of an uncertain complex number.
     
-    Parameter
-    ---------
-    x : UncertainComplex
+    :arg :class:`~lib.UncertainComplex`
 
-    Returns
-    -------
-    a 4-element sequence of float
+    :returns: a 4-element sequence of float
+    :rtype: :class:`~named_tuples.VarianceCovariance`
     
     """
     re, im = x.real, x.imag

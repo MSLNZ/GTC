@@ -1,7 +1,16 @@
 .. _named_tuples_module:
 
-named_tuples module
-===================
 
-.. automodule:: named_tuples
-    :members: VarianceAndDof, StandardUncertainty, StandardDeviation
+named-tuples
+============
+
+A number of :obj:`~collections.namedtuple` class are used in ``GTC`` to return the results of calculations. 
+
+.. autoclass:: named_tuples.VarianceAndDof
+.. autoclass:: named_tuples.VarianceCovariance
+.. autoclass:: named_tuples.StandardUncertainty
+.. autoclass:: named_tuples.StandardDeviation
+.. autoclass:: named_tuples.ComponentOfUncertainty
+.. autoclass:: named_tuples.Influence
+.. autoclass:: named_tuples.CovarianceMatrix
+.. autoclass:: named_tuples.CorrelationMatrix

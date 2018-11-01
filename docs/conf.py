@@ -238,9 +238,12 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
-# Example configuration for intersphinx: refer to the Python standard library.
+# # Example configuration for intersphinx: refer to the Python standard library.
+# intersphinx_mapping = {
+    # 'python': ('https://docs.python.org/{}'.format(sys.version_info.major), None),
+# }
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/{}'.format(sys.version_info.major), None),
+    'python': ('https://docs.python.org/3', None),
 }
 
 # warn about all broken links

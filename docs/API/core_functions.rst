@@ -7,24 +7,30 @@ Core Functions and Classes
 .. contents::
    :local:
 
-The functions and classes defined in the :mod:`core` module are automatically
-available after performing ``from GTC import *``.
+.. _core_module:
+
+Core Functions
+==============
+
+A set of core mathematical functions, together with functions that create elementary uncertain numbers and functions that can be used to access uncertain number attributes, are defined in the :mod:`core` module. These functions are automatically imported into the ``GTC`` namespace, so they are available after performing ``from GTC import *``. 
+
+
+.. automodule:: core
+	:members: 
+	:inherited-members:
 
 Uncertain Number Types
 ======================
 
-There are two types of uncertain number, one for real quantities and one for complex quantities. 
+There are two types of uncertain number, one to represent real-valued quantities (:class:`~lib.UncertainReal`) and one to represent real-complex quantities (:class:`~lib.UncertainComplex`). 
 
 .. _uncertain_real_number:
 
 Uncertain Real Numbers
 ----------------------
 
-    The :class:`~lib.UncertainReal` class defines uncertain-number objects to represent real-valued quantities.  
-    These objects take into account the uncertainty in measured values.
-    
-    :class:`~lib.UncertainReal` objects have the attributes ``x``, ``u``, ``v`` and ``df``, 
-    which obtain the value, uncertainty, variance and degrees-of-freedom for the uncertain number, respectively. 
+    The :class:`~lib.UncertainReal` class defines an uncertain-number object with the attributes ``x``, ``u``, ``v`` and ``df``, 
+    to obtain the value, uncertainty, variance and degrees-of-freedom for the uncertain number, respectively. 
 
     The function :func:`~core.ureal` creates elementary :class:`~lib.UncertainReal` objects. For example, ::
     
@@ -64,11 +70,8 @@ Uncertain Real Numbers
 Uncertain Complex Numbers
 -------------------------
 	
-    The class :class:`~lib.UncertainComplex` defines uncertain-number objects to represent complex-valued quantities. 
-    These objects take into account the uncertainty in measured values.
-    
-    :class:`~lib.UncertainComplex` objects have attributes ``x``, ``u``, ``v`` and ``df``, 
-    which obtain the value, uncertainty, variance-covariance matrix and degrees-of-freedom, respectively.
+    The class :class:`~lib.UncertainComplex` defines an uncertain-number object with the attributes ``x``, ``u``, ``v`` and ``df``, 
+    to obtain the value, uncertainty, variance-covariance matrix and degrees-of-freedom, respectively.
 
     The function :func:`~core.ucomplex` creates elementary :class:`~lib.UncertainComplex` objects, 
     for example ::  
@@ -93,7 +96,7 @@ Uncertain Complex Numbers
                    
     When an :class:`~lib.UncertainComplex` is converted to a string (e.g., by the :class:`str` function or by :func:`print`), the precision depends on the uncertainty. 
     
-    The lesser of the real and imaginary component uncertainties is used for formatting. The two least significant digits of component values correspond to the two most significant digits of this standard uncertainty. Values of standard uncertainty are appended to the component values in parentheses.
+    The lesser of the uncertainties in the real and imaginary components is used for formatting. The two least significant digits of the formated component values will correspond to the two most significant digits of this standard uncertainty. Values of standard uncertainty are appended to the component values in parentheses.
     
     For example, ::
 	
@@ -113,13 +116,4 @@ Uncertain Complex Numbers
 .. autoclass:: lib.UncertainComplex
     :members: conjugate, df, imag, real, label, u, v, x, r
    
-.. _core_module:
 
-Core Functions
---------------
-
-A set of core mathematical functions, together with functions that create elementary uncertain numbers and functions that can be used to access uncertain number attributes, are defined in the :mod:`core` module.
-
-.. automodule:: core
-	:members: 
-	:inherited-members:
