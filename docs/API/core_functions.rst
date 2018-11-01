@@ -40,7 +40,7 @@ Uncertain Real Numbers
         >>> un == 2.5
         True
     
-    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by :func:`str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
+    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by :class:`str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
     
     For example, ::
 	
@@ -91,7 +91,7 @@ Uncertain Complex Numbers
         >>> magnitude(uc)
         ureal(1.4142135623730951,0.9999999999999999,inf)
                    
-    When an :class:`~lib.UncertainComplex` is converted to a string (e.g., by the :func:`str` function or by :func:`print`), the precision depends on the uncertainty. 
+    When an :class:`~lib.UncertainComplex` is converted to a string (e.g., by the :class:`str` function or by :func:`print`), the precision depends on the uncertainty. 
     
     The lesser of the real and imaginary component uncertainties is used for formatting. The two least significant digits of component values correspond to the two most significant digits of this standard uncertainty. Values of standard uncertainty are appended to the component values in parentheses.
     

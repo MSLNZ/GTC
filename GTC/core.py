@@ -670,7 +670,7 @@ def set_correlation(r,arg1,arg2=None):
     argument `independent=False` when calling 
     :func:`~ureal` or :func:`~ucomplex`.
         
-    :class:`RuntimeError` is raised when illegal arguments are used
+    An :exc:`~exceptions.RuntimeError` is raised when illegal arguments are used
 
     When a pair of uncertain real numbers is provided,
     ``r`` is the correlation coefficient between them. 
@@ -1188,7 +1188,7 @@ def magnitude(x):
     .. note::
 
         If ``x`` is not an uncertain number type,
-        returns :func:`abs(x)`.    
+        returns :func:`abs(x)<abs>`.    
     
     """
     try:

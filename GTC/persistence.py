@@ -96,7 +96,10 @@ class TaggedIntermediateComplex(object):
 
 #----------------------------------------------------------------------------
 class Archive(object):
-
+    """
+    An :class:`Archive` object can be used to marshal a set of uncertain numbers 
+    for storage, or restore a set of uncertain numbers from storage.
+    """
     def __init__(self):
 
         # `self._tagged_reals` contains information about every
