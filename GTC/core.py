@@ -89,6 +89,7 @@ __all__ = (
     ,   'cmath'
     ,   'is_infinity'
     ,   'is_undefined'
+    ,   'uarray'
 )
 
 #----------------------------------------------------------------------------
@@ -1222,7 +1223,40 @@ def mag_squared(x):
         return x._mag_squared()
     except AttributeError:
         return abs(x)**2
-        
+
+#---------------------------------------------------------------------------
+def uarray(array):
+    """Create a numpy array of uncertain numbers.
+
+    .. important::
+
+       This function requires that numpy >= v1.13 is installed.
+
+    :param array: An array-like object that is passed to :class:`numpy.asarray`.
+    :return: A numpy array.
+    :rtype: :class:`numpy.ndarray`.
+    """
+    if UncertainArray is None:
+        raise ImportError('Requires numpy > v1.13 to be installed')
+    return UncertainArray(array)
+
+    # Rather than performing the following checks let the UncertainReal and UncertainComplex
+    # classes complain if they cannot operate on a certain data type during a calculation
+    #
+    # if not is_sequence(array):
+    #     raise TypeError('Invalid uarray input {}'.format(type(array)))
+    # ua = UncertainArray(array)
+    #
+    # # TODO: should all items in the array be type checked?
+    # # should we allow a mixture of ureal/ucomplex with int/float/complex in the array?
+    # if ua.size > 0 and not isinstance(ua.item(0), (UncertainReal, UncertainComplex)):
+    #     raise TypeError('Invalid uarray item {}'.format(type(ua.item(0))))
+    #
+    # return ua
+
+# import here because uncertain_array requires functions from core.py
+from GTC.uncertain_array import UncertainArray
+
 #============================================================================    
 if __name__ == "__main__":
     import doctest       
