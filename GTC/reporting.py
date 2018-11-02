@@ -158,12 +158,12 @@ def u_component(y,x):
         >>> r = ucomplex(3,1)
         >>> z = q * r
         >>> reporting.u_component(z,q)
-        u_components(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
+        ComponentOfUncertainty(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
         
         >>> q = ucomplex(2,1)
         >>> z = magnitude(q)    # uncertain real numbers
         >>> reporting.u_component(z,q)
-        u_components(rr=1.0, ri=0.0, ir=0.0, ii=0.0)
+        ComponentOfUncertainty(rr=1.0, ri=0.0, ir=0.0, ii=0.0)
         
     """
     if isinstance(y,UncertainReal):
@@ -305,7 +305,7 @@ def u_bar(ucpt):
         >>> y = z1 * z2
         >>> dy_dz1 = reporting.u_component(y,z1)
         >>> dy_dz1
-        u_components(rr=0.2, ri=-7.1, ir=7.1, ii=0.2)
+        ComponentOfUncertainty(rr=0.2, ri=-7.1, ir=7.1, ii=0.2)
         >>> reporting.u_bar(dy_dz1)
         7.102816342831905
     
@@ -343,7 +343,7 @@ def v_bar(cv):
         >>> z2 = ucomplex(x2,(.2,1))
         >>> y = z1 * z2
         >>> y.v
-        variance_covariance(rr=2.3464, ri=1.8432, ir=1.8432, ii=51.4216)
+        VarianceCovariance(rr=2.3464, ri=1.8432, ir=1.8432, ii=51.4216)
         >>> reporting.v_bar(y.v)
         26.884
 
