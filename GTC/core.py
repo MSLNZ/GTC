@@ -140,7 +140,7 @@ def uncertainty(x):
         
         >>> uc = ucomplex(1+2j,(.5,.5),3,label='x')
         >>> uncertainty(uc)
-        standard_uncertainty(real=0.5, imag=0.5)
+        StandardUncertainty(real=0.5, imag=0.5)
     
     """
     try:
@@ -172,7 +172,7 @@ def variance(x):
         
         >>> uc = ucomplex(1+2j,(.5,.5),3,label='x')
         >>> variance(uc)
-        variance_covariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
+        VarianceCovariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
     
     """
     try:
@@ -249,7 +249,7 @@ def component(y,x):
         >>> z2 = ucomplex(3-2j,1)
         >>> y = z1 - z2
         >>> reporting.u_component(y,z2)
-        u_components(rr=-1.0, ri=0.0, ir=0.0, ii=-1.0)
+        ComponentOfUncertainty(rr=-1.0, ri=0.0, ir=0.0, ii=-1.0)
         >>> component(y,z2)
         1.0
 
@@ -511,7 +511,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     >>> cv = (1.2,0.7,0.7,2.2)
     >>> uc = ucomplex(0.2-.5j, cv)
     >>> variance(uc)
-    variance_covariance(rr=1.1999999999999997, ri=0.7, ir=0.7, ii=2.2)
+    VarianceCovariance(rr=1.1999999999999997, ri=0.7, ir=0.7, ii=2.2)
     
     """
     if not isinstance(z,numbers.Complex):
@@ -698,7 +698,7 @@ def set_correlation(r,arg1,arg2=None):
         >>> correlation_mat = (0.25,0.5,0.75,0.5)
         >>> set_correlation(correlation_mat,x1,x2)
         >>> get_correlation(x1,x2)
-        correlation_matrix(rr=0.25, ri=0.5, ir=0.75, ii=0.5)
+        CorrelationMatrix(rr=0.25, ri=0.5, ir=0.75, ii=0.5)
     
     """
     # This requires no action, because no correlation 

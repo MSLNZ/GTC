@@ -293,7 +293,7 @@ def standard_deviation(seq,mu=None):
         ... (1.6770229536619197+0.77195994890476838j)]
         >>> sd,r = type_a.standard_deviation(data)
         >>> sd
-        standard_deviation(real=0.913318449990377, imag=0.8397604244242309)
+        StandardDeviation(real=0.913318449990377, imag=0.8397604244242309)
         >>> r
         -0.31374045124595246
         
@@ -372,7 +372,7 @@ def standard_uncertainty(seq,mu=None):
         ... (1.6770229536619197+0.77195994890476838j)]
         >>> u,r = type_a.standard_uncertainty(data)
         >>> u
-        standard_uncertainty(real=0.28881665310241805, imag=0.2655555630050262)
+        StandardUncertainty(real=0.28881665310241805, imag=0.2655555630050262)
         >>> u.real
         0.28881665310241805
         >>> r
@@ -428,7 +428,7 @@ def variance_covariance_complex(seq,mu=None):
         ... (2.0122536479379196-0.23283009302603963j),
         ... (1.6770229536619197+0.77195994890476838j)]
         >>> type_a.variance_covariance_complex(data)
-        variance_covariance(rr=0.8341505910928249, ri=-0.24062910264062262, ir=-0.24062910264062262, ii=0.7051975704291644)
+        VarianceCovariance(rr=0.8341505910928249, ri=-0.24062910264062262, ir=-0.24062910264062262, ii=0.7051975704291644)
 
         >>> v = type_a.variance_covariance_complex(data)
         >>> v[0]
