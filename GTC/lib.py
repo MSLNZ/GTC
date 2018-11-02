@@ -1082,9 +1082,11 @@ def _atan2_re_x(lhs,x):
 #----------------------------------------------------------------------------
 def _pow(lhs,rhs):
     """
-    Raise `lhs` to the power of `rhs`
+    Raise uncertain real `lhs` to the power of `rhs`
     
     """
+    # Called from __pow__, so we know that `lhs` is UncertainReal 
+    # `rhs` will be either float or complex
     if isinstance(rhs,UncertainReal):
         
         r = rhs.x
@@ -1122,11 +1124,13 @@ def _pow(lhs,rhs):
 #----------------------------------------------------------------------------
 def _rpow(lhs,rhs):
     """
-    Raise `lhs` to the power of `rhs`
+    Raise `lhs` to the power of uncertain real `rhs`
     
     """
+    # Called from __rpow__, so we know that `rhs` is UncertainReal 
+    # `lhs` will be either float or complex
     if isinstance(lhs,numbers.Real):    
-        l = lhs.x
+        l = lhs
         r = rhs.x
 
         y = l**r
