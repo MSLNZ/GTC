@@ -269,9 +269,9 @@ def standard_deviation(seq,mu=None):
     numbers, the standard deviation in the real and
     imaginary components is evaluated, as well as
     the correlation coefficient between the components.
-    A :class:`~named_tuples.are returned in a
-    :class:`~named_tuples.StandardDeviation` namedtuple 
-    is returned and the correlation coefficient. 
+    The results are returned in a pair of objects: a
+    :obj:`~named_tuples.StandardDeviation` namedtuple 
+    and a correlation coefficient. 
 
     Only the values of uncertain numbers are used in calculations. 
     
@@ -340,7 +340,7 @@ def standard_uncertainty(seq,mu=None):
     :arg seq: sequence of data
     :arg mu: the arithmetic mean of ``seq``
     
-    :rtype: float or :class:`~named_tuples.StandardUncertainty`
+    :rtype: float or :obj:`~named_tuples.StandardUncertainty`
     
     If ``seq`` contains real or uncertain real numbers,
     the standard uncertainty of the sample mean 
@@ -350,7 +350,7 @@ def standard_uncertainty(seq,mu=None):
     numbers, the standard uncertainties of the real and
     imaginary components are evaluated, as well as the
     sample correlation coefficient are returned in a
-    :class:`~named_tuples.StandardUncertainty` namedtuple
+    :obj:`~named_tuples.StandardUncertainty` namedtuple
 
     Only the values of uncertain numbers are used in calculations. 
 
@@ -411,7 +411,7 @@ def variance_covariance_complex(seq,mu=None):
     Only the values of uncertain numbers are used in calculations. 
     
     Variance-covariance matrix elements are returned  
-    in a :class:`~named_tuples.VarianceCovariance` namedtuple; 
+    in a :obj:`~named_tuples.VarianceCovariance` namedtuple; 
     they can be accessed using the 
     attributes ``.rr``, ``.ri``, ``,ir`` and ``.ii``.
         
