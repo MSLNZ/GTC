@@ -372,9 +372,9 @@ def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
     
     :arg max_number: return no more than ``max_number`` components
     
-    A sequence of namedtuples is returned, each with the attributes
-    ``label`` and ``u`` for a component of uncertainty 
-    (see :func:`~core.component`). 
+    A sequence of :obj:`~named_tuples.Influence` namedtuples is 
+    returned, each with the attributes ``label`` and ``u`` for a 
+    component of uncertainty (see :func:`~core.component`). 
 
     The argument ``influences`` can be used to select the influences
     are that reported.

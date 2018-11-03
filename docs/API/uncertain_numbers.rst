@@ -7,25 +7,27 @@ Introduction
 .. contents::
    :local:
 
-The GUM Tree calculator (``GTC``) is a data processing tool that uses `uncertain numbers` to represent measurements of quantities, and automates the evaluation of uncertainty in calculations of quantities derived from measured data. 
+The GUM Tree calculator (``GTC``) is a data processing tool that uses `uncertain numbers` to represent measured quantities, and automates the evaluation of uncertainty when derived quantities are calculated from measured data. 
 
 
 Measurement error
 =================
 
-Measurement obtains information about physical quantities; but the quantity of interest (the *measurand*) can never be determined exactly, it can only be estimated. There will always be some *measurement error* involved. Writing this as a mathematical equation, where the unknown measurand is :math:`Y` and the measurement result is :math:`y`, we have
+Measurement obtains information about quantities; but the quantity of interest (the *measurand*) is never determined exactly, it can only be estimated. There is always some *measurement error* involved. Writing this as an equation, where the unknown measurand is :math:`Y` and the measurement result is :math:`y`, we have
 
 .. math::
 
     y = Y + E_y\; ,
     
-where :math:`E_y` represents the measurement error. So, when we talk about 'uncertainty', it may be the 'uncertainty of :math:`y` as an estimate of :math:`Y`' that is intended. In other words, the 'uncertainty' of using, in some way, the measured value :math:`y` as an estimate of the target value of the measurand :math:`Y`.
+where :math:`E_y` represents the measurement error. So, the measurement result, :math:`y`, is not quite what is wanted; it only provides an approximate value for :math:`Y`. 
 
-Clearly, the error :math:`E_y` gives rise to the uncertainty; but this value is never known, we may only describe it in statistical terms. So, a related use of the word *uncertainty* is to refer to the extent of a statistical distribution associated with :math:`E_y`. For example, the term 'standard uncertainty' refers to the standard deviation of a distribution associated with the results of an unpredictable quantity.
+This is how 'uncertainty' arises. After any measurement, we are faced with uncertainty about what will happen when we take the measured value :math:`y` and use it for the target value of the measurand, :math:`Y`. For example, suppose the speed of a car is measured by a law enforcement officer. The measurement is made to decide whether, in fact, a car was travelling faster than the legal limit. However, this decision cannot be made perfectly, because the actual speed :math:`Y` remains unknown. It is possible that the measured value :math:`y` will show that the car was speeding when in fact it was not, or the opposite. This difficulty with making the correct decision is inevitable. So, in practice, a decision rule will be used that takes account of the measurement uncertainty. The rule will probably err on the side of caution (a few speeding drivers may escape rather than unfairly accusing good drivers of speeding).
+
+Clearly, the measurement error :math:`E_y` gives rise to the uncertainty; but, like the measurand, the value of this quantity is never known, at best it can be described in statistical terms. Another use of the word 'uncertainty' is to refer to the extent of a statistical distribution associated with :math:`E_y`. For example, the term 'standard uncertainty' refers to the standard deviation of a distribution associated with the results of an unpredictable quantity.
 
 Measurement models
 ------------------
-It is generally possible to enumerate a number of factors that influence the outcome of a measurement process, thereby contributing to the final measurement error. In an analysis of the measurement, these factors must be included in a measurement model, which defines the measurand in terms of all other significant influence quantities. Mathematically, we may write   
+It is generally possible to identify a number of factors that influence the outcome of a measurement process, thereby contributing to the final measurement error. In a formal analysis of the measurement, these factors must be included in a measurement model, which defines the measurand in terms of all other significant influence quantities. In mathematical terms, we write   
 
 .. math::
 
@@ -33,7 +35,7 @@ It is generally possible to enumerate a number of factors that influence the out
  
 where the :math:`X_i` are influence quantities. 
 
-Nevertheless, the actual quantities :math:`X_1, X_2, \cdots` are not known; only estimates :math:`x_1, x_2, \cdots` are available. These estimates are used to calculate a measured value that is approximately equal to the measurand 
+Once again, the actual quantities :math:`X_1, X_2, \cdots` are not known; only estimates :math:`x_1, x_2, \cdots` are available. These are used to calculate a measured value that is approximately equal to the measurand 
 
 .. math::
 
@@ -43,20 +45,26 @@ Nevertheless, the actual quantities :math:`X_1, X_2, \cdots` are not known; only
 Uncertain Numbers
 =================
 
-An uncertain number is a data type designed to represent a quantity that has been measured. It encapsulates information about the measurement: the value obtained and the uncertainty of the measurement process associated with that estimate. There are two different types of uncertain number: one for real-valued quantities and one for complex-valued quantities.
+Uncertain numbers are data-types designed to represent measured quantities. They encapsulate information about the measurement, including the measured value and the uncertainty of the measurement process. 
+
+Uncertain numbers are are intended to be used to process measurement data; that is, to evaluate measurement models. The inputs to a measurement model (like :math:`X_1, X_2, \cdots` above) are defined as uncertain numbers. Calculations then obtain an uncertain number for the measurand (:math:`Y`). 
+
+There are two types of uncertain number: one for real-valued quantities and one for complex-valued quantities.
 
 Uncertain real numbers
 ----------------------
 
 To define an uncertain real number, at least two pieces of information are needed: 
 
-    #. A *value* (an estimate, or approximate value of, the quantity represented) 
-    #. A *standard uncertainty* (the standard deviation of the distribution associated with error in the estimate). 
+    #. A *value* (a measured, or approximate, value of the quantity) 
+    #. An *uncertainty* (usually the standard deviation of the distribution associated with error in the measured value). 
+    
+The function :func:`~core.ureal` is often used to define uncertain real number inputs. 
     
 Example: an electrical circuit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For example, suppose the current flowing in an electrical circuit :math:`I` and the voltage across a circuit element :math:`V` have been measured. 
+Suppose the current flowing in an electrical circuit :math:`I` and the voltage across a circuit element :math:`V` have been measured. 
 
 The measured values are :math:`x_V = 0.1\, \mathrm{V}` and :math:`x_I = 15\,\mathrm{mA}`, with standard uncertainties :math:`u(x_V) = 1\, \mathrm{mV}` and :math:`u(x_I) = 0.5\,\mathrm{mA}`, respectively. 
 
@@ -84,7 +92,7 @@ A measurement model expresses the relationship between the quantities involved: 
 
     H = B \tan\Phi \;.
 
-To calculate the height, we create uncertain numbers representing the measured quantities and use the model to derive the result. ::
+To calculate the height, we create uncertain numbers representing the measured quantities and use the model. ::
 
     >>> B = ureal(15,3E-2)
     >>> Phi = ureal(math.radians(38),math.radians(2))
@@ -92,9 +100,9 @@ To calculate the height, we create uncertain numbers representing the measured q
     >>> print(H)
     11.72(84)
     
-The measured value of 11.7 metres is our best estimate of the height :math:`H`. The standard uncertainty of this value, as an estimate of the actual height, is 0.8 metres. 
+The result 11.7 metres is our best estimate of the height :math:`H`. The standard uncertainty of this value, as an estimate of the actual height, is 0.8 metres. 
     
-It is important to note that these calculations are open ended. We can continue the calculation above and evaluate what the observer angle would be at 20 metres from the pole (the uncertainty in the base distance remains 3 cm) ::
+It is important to note that these calculations are open ended. We can keep going and evaluate what the observer angle would be at 20 metres from the pole (the uncertainty in the base distance remains 3 cm) ::
 
     >>> B_20 = ureal(20,3E-2)
     >>> Phi_20 = atan( H/B_20 ) 
@@ -111,13 +119,15 @@ Uncertain complex numbers
 
 To define an uncertain number for a complex quantity, at least two pieces of information are needed: 
 
-    #. A *value* (an estimate, or approximate value of, the quantity represented) 
-    #. The extent of the distribution associated with error in the estimate. (For complex quantities, there are different ways to characterise the extent of the distribution.) 
+    #. A *value* (a measured, or approximate, value of the quantity) 
+    #. An *uncertainty* (for complex quantities, there are different ways of characterising the extent of the distribution associated with the measurement error). 
+
+    The function :func:`~core.ucomplex` is often used to define uncertain complex number inputs. 
 
 Example: AC electric circuit 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
-For example, suppose measurements have been made of: the alternating current :math:`i` flowing in an electrical circuit, the voltage :math:`v` across a circuit element and the phase :math:`\phi` of the voltage with respect to the current. The measured values are: :math:`x_v \approx 4.999\, \mathrm{V}`, :math:`x_i \approx 19.661\,\mathrm{mA}` and :math:`x_\phi \approx 1.04446\,\mathrm{rad}`, with standard uncertainties :math:`u(x_v) = 0.0032\, \mathrm{V}`, :math:`u(x_i) = 0.0095\,\mathrm{mA}` and :math:`u(x_\phi) = 0.00075\,\mathrm{rad}`. 
+Suppose measurements have been made of: the alternating current :math:`i` flowing in an electrical circuit, the voltage :math:`v` across a circuit element and the phase :math:`\phi` of the voltage with respect to the current. The measured values are: :math:`x_v \approx 4.999\, \mathrm{V}`, :math:`x_i \approx 19.661\,\mathrm{mA}` and :math:`x_\phi \approx 1.04446\,\mathrm{rad}`, with standard uncertainties :math:`u(x_v) = 0.0032\, \mathrm{V}`, :math:`u(x_i) = 0.0095\,\mathrm{mA}` and :math:`u(x_\phi) = 0.00075\,\mathrm{rad}`. 
 
 Uncertain numbers for the quantities :math:`v`, :math:`i` and :math:`\phi` can be defined using :func:`~core.ucomplex`::
 
@@ -125,7 +135,7 @@ Uncertain numbers for the quantities :math:`v`, :math:`i` and :math:`\phi` can b
     >>> i = ucomplex(complex(19.661E-3,0),(0.0095E-3,0))
     >>> phi = ucomplex(complex(0,1.04446),(0,0.00075))
     
-Note, in these definitions, the second argument is a pair of numbers representing the standard uncertainties associated with measured values of the real and imaginary components.
+Note, in these definitions, the uncertainty argument is a pair of numbers. These represent the standard uncertainties associated with measured values of the real and imaginary components.
 
 The complex impedance is ::
 
@@ -133,7 +143,7 @@ The complex impedance is ::
     >>> print(z)
     (127.73(19)+219.85(20)j)
     
-We see that an estimate of the impedance is the complex value :math:`(127.73 +\mathrm{j}219.85) \,\Omega`. The standard uncertainty in the real component is :math:`0.19 \,\Omega` and the standard uncertainty in the imaginary component is :math:`0.20 \,\Omega`. There is also correlation between the real and imaginary components ::
+We see that our best estimate of the impedance is the complex value :math:`(127.73 +\mathrm{j}219.85) \,\Omega`. The standard uncertainty in the real component is :math:`0.19 \,\Omega` and the standard uncertainty in the imaginary component is :math:`0.20 \,\Omega`. There is also some correlation between the real and imaginary components ::
 
     >>> get_correlation(z)
     0.05820381031583993
@@ -145,16 +155,13 @@ If a polar representation of the impedance is preferred, ::
     >>> print(phase(z))
     1.04446(75)
 
-Elementary uncertain numbers
-----------------------------
-We use the term `elementary uncertain number` to describe uncertain numbers associated with problem inputs (e.g., ``B`` and ``Phi`` above). Elementary uncertain numbers are defined by functions like :func:`~core.ureal` and :func:`~core.ucomplex`.    
 
 Uncertain Number Attributes
 ---------------------------
 
-Uncertain numbers use attributes to provide access to the value (the estimate), the uncertainty (of the estimate) and the degrees of freedom (associated with the uncertainty), as well as some other properties (see :class:`~library_real.UncertainReal`).
+Uncertain number objects have attributes that provide access to: the measured value (the estimate), the uncertainty (of the estimate) and the degrees of freedom (associated with the uncertainty) (see :class:`~lib.UncertainReal`).
 
-Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` can be used to see the estimate, the uncertainty and the degrees-of-freedom (which is infinity), respectively ::
+Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` can be used to show the value, the uncertainty and the degrees-of-freedom (which is infinity), respectively ::
 
     >>> H.x
     11.719284397600761
@@ -163,7 +170,7 @@ Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` can be
     >>> H.df
     inf
 
-Alternatively, there are ``GTC`` functions that return the same numbers ::
+Alternatively, there are functions that return the same attributes ::
 
     >>> value(H)
     11.719284397600761
@@ -175,32 +182,33 @@ Alternatively, there are ``GTC`` functions that return the same numbers ::
 Uncertain numbers and measurement errors
 ----------------------------------------
 
-To make the best use of ``GTC`` it is helpful to think in terms of the actual quantities that appear in measurement equations. These quantities are not known exactly and many will be residual errors with estimates of zero or unity. 
+It is often is helpful to to formulate problems by explicitly acknowledging measurement errors. As we have said above, these errors are not known exactly; many will be residual quantities with estimates of zero or unity. However, errors usually have a physical meaning in the model that can be identified and it is often useful to do so. 
 
-In the context of the example above, :math:`B` and :math:`\Phi` are quantities in the measurement equation. When measured, there will be errors, which can be written as :math:`E_b` and :math:`E_\phi`. So the measured values :math:`b=15\,\mathrm{m}` and :math:`\phi=38 \, \mathrm{deg}` are related to the quantities of interest as
+In the context of the example above, the errors associated with measured values of :math:`B` and :math:`\Phi` were not identified. We can introduce these terms as :math:`E_b` and :math:`E_\phi`. Then, the measured values :math:`b=15\,\mathrm{m}` and :math:`\phi=38 \, \mathrm{deg}` are related to the quantities of interest as
 
 .. math :: 
   
-        b = B + E_b 
+        B = b - E_b 
         
-        \phi = \Phi + E_\phi
+        \Phi = \phi - E_\phi
 
 
-Our best estimates of the errors are :math:`E_b \approx 0` and :math:`E_\phi \approx 0`, with uncertainties in these estimates of :math:`u(E_b)=3\times 10^{2}\, \mathrm{m}` and  :math:`u(E_\phi)=2\, \mathrm{deg}`. 
+Our best estimates of these errors :math:`E_b \approx 0` and :math:`E_\phi \approx 0` are trivial, but uncertainties can now be correctly associated with these unpredictable errors :math:`u(E_b)=3\times 10^{2}\, \mathrm{m}` and  :math:`u(E_\phi)=2\, \mathrm{deg}`, not with the invariant quantities :math:`B` and :math:`\Phi`. 
 
-The ``GTC`` calculation now looks like this ::
+The calculation can be carried out simply as ::
 
-    >>> b = 15
-    >>> E_b = ureal(0,3E-2)
-    >>> B = b - E_b
-    >>> phi = math.radians(38)
-    >>> E_phi = ureal(0,math.radians(2))
-    >>> Phi = phi - E_phi
-    >>> H = B * tan(Phi)
-    >>> H
-    ureal(11.719284397600761, 0.843532951107579, inf)
+    >>> B = 15 - ureal(0,3E-2,label='E_b')
+    >>> Phi = math.radians(38) - ureal(0,math.radians(2),label='E_phi')
+    >>> H = B*tan(Phi)
+    >>> print(H)
+    11.72(84)
 
-This way of expressing the calculation reflects our understanding of the problem: :math:`b=15` and :math:`\phi=38` are precisely known numbers, there is nothing 'uncertain' about their values. However, when we use those number as estimates of :math:`B` and :math:`\Phi` the unknown errors :math:`E_b` and :math:`E_\phi` give rise to uncertainty.
+This calculation reflects our understanding of the problem better: the numbers :math:`b=15` and :math:`\phi=38` are known, there is nothing 'uncertain' about their values. What is uncertain, however, is how to correct for the unknown errors :math:`E_b` and :math:`E_\phi`. 
 
-Measurements are usually easier to analyse by making the errors explicit in this way. 
+The use of labels, when defining the uncertain numbers, allows us to display an uncertainty budget (see :func:`~reporting.budget`) ::
 
+    >>> for cpt in rp.budget(H):
+    ...     print "{0.label}: {0.u}".format(cpt)
+    ...
+    E_phi: 0.84320725394
+    E_b: 0.0234385687952
