@@ -476,6 +476,7 @@ class UncertainReal(object):
         Note that ``un.u`` is equivalent to :func:`uncertainty(un)<core.uncertainty>`
         
         **Example**::
+
             >>> ur = ureal(2.5,0.5)
             >>> ur.u
             0.5
@@ -2412,9 +2413,10 @@ class UncertainComplex(object):
         Note that ``uc.u`` is equivalent to :func:`uncertainty(uc)<core.uncertainty>`
         
         **Example**::
+
             >>> uc = ucomplex(1+2j,(.5,.5))
             >>> uc.u
-            standard_uncertainty(real=0.5, imag=0.5)
+            StandardUncertainty(real=0.5, imag=0.5)
         
         """        
         if not hasattr(self,"_u"):
@@ -2437,9 +2439,10 @@ class UncertainComplex(object):
         Note that ``uc.v`` is equivalent to :func:`variance(uc)<core.variance>`
         
         **Example**::
+
             >>> uc = ucomplex(1+2j,(.5,.5))
             >>> uc.v
-            variance_covariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
+            VarianceCovariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
 
         """
         if not hasattr(self,"_v"):
