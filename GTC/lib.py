@@ -761,7 +761,8 @@ class UncertainReal(object):
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
         )
-        
+    sqrt = _sqrt  # used by UncertainArray.std
+
     #------------------------------------------------------------------------
     def _sin(self):
         """
@@ -2987,6 +2988,7 @@ class UncertainComplex(object):
             z,
             dz_dx
         )
+    sqrt = _sqrt  # used by UncertainArray.std
 
     #-----------------------------------------------------------------
     def _sin(self):

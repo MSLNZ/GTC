@@ -7,6 +7,7 @@ This module was written in the following way so that numpy >= 1.13.0
 does not have to be installed in order for someone to use GTC.
 """
 from __future__ import division
+import warnings
 from numbers import Number
 try:
     from itertools import izip  # Python 2
@@ -45,6 +46,10 @@ else:
                         'The {} function has not been implemented'.format(ufunc)
                     )
 
+                if kwargs:
+                    warnings.warn('**kwargs, {}, are not currently not supported'
+                                  .format(kwargs), stacklevel=2)
+
                 case = len(inputs)
                 if case == 1:
                     pass  # Must be an UncertainArray
@@ -72,6 +77,30 @@ else:
                     assert False, 'Should not occur: __array_ufunc__ received {} inputs'.format(case)
 
                 return UncertainArray(attr(*inputs))
+
+            @property
+            def x(self):
+                if self.size == 1:
+                    return self.item(0).x
+                return UncertainArray([item.x for item in self])
+
+            @property
+            def u(self):
+                if self.size == 1:
+                    return self.item(0).u
+                return UncertainArray([item.u for item in self])
+
+            @property
+            def real(self):
+                if self.size == 1:
+                    return self.item(0).real
+                return UncertainArray([item.real for item in self])
+
+            @property
+            def imag(self):
+                if self.size == 1:
+                    return self.item(0).imag
+                return UncertainArray([item.imag for item in self])
 
             def _negative(self, *inputs):
                 return [-val for val in inputs[0]]
@@ -114,14 +143,6 @@ else:
 
             def _absolute(self, *inputs):
                 return [abs(value) for value in inputs[0]]
-
-            @property
-            def real(self):
-                return UncertainArray([item.real for item in self])
-
-            @property
-            def imag(self):
-                return UncertainArray([item.imag for item in self])
 
             def _conjugate(self, *inputs):
                 return [value.conjugate() for value in inputs[0]]
@@ -216,3 +237,21 @@ else:
 
             def _phase(self):
                 return UncertainArray([value._phase() for value in self])
+
+            def sum(self, **kwargs):
+                return UncertainArray(np.asarray(self).sum(**kwargs))
+
+            def mean(self, **kwargs):
+                return UncertainArray(np.asarray(self).mean(**kwargs))
+
+            def std(self, **kwargs):
+                return UncertainArray(np.asarray(self).std(**kwargs))
+
+            def var(self, **kwargs):
+                return UncertainArray(np.asarray(self).var(**kwargs))
+
+            def max(self, **kwargs):
+                return UncertainArray(np.asarray(self).max(**kwargs))
+
+            def min(self, **kwargs):
+                return UncertainArray(np.asarray(self).min(**kwargs))

@@ -401,7 +401,45 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(z[i], za[i]))
             self.assertTrue(equivalent(zc[i], zca[i]))
 
+    def test_x_u(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ureal(1.2, 0.3))
+        self.assertTrue(equivalent(a.x, 1.2))
+        self.assertTrue(equivalent(a.u, 0.3))
+
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
+        self.assertTrue(equivalent_complex(a.x, 1.2+3j))
+        self.assertTrue(equivalent(a.u.real, 0.3))
+        self.assertTrue(equivalent(a.u.imag, 0.1))
+
+        a = uarray([ureal(1.2, 0.3), ureal(2.5, 0.8)])
+        self.assertTrue(equivalent(a[0].x, 1.2))
+        self.assertTrue(equivalent(a[0].u, 0.3))
+        self.assertTrue(equivalent(a[1].x, 2.5))
+        self.assertTrue(equivalent(a[1].u, 0.8))
+
+        a = uarray([[ureal(1.2, 0.3), ureal(2.5, 0.8)], [ureal(-3.1, 1.1), ureal(0.3, 0.05)]])
+        self.assertTrue(equivalent(a[0, 0].x, 1.2))
+        self.assertTrue(equivalent(a[0, 0].u, 0.3))
+        self.assertTrue(equivalent(a[0, 1].x, 2.5))
+        self.assertTrue(equivalent(a[0, 1].u, 0.8))
+        self.assertTrue(equivalent(a[1, 0].x, -3.1))
+        self.assertTrue(equivalent(a[1, 0].u, 1.1))
+        self.assertTrue(equivalent(a[1, 1].x, 0.3))
+        self.assertTrue(equivalent(a[1, 1].u, 0.05))
+
     def test_real(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ureal(1.2, 0.3))
+        self.assertTrue(equivalent(a.real.x, 1.2))
+        self.assertTrue(equivalent(a.real.u, 0.3))
+
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
+        self.assertTrue(equivalent(a.real.x, 1.2))
+        self.assertTrue(equivalent(a.real.u, 0.3))
+
         n = len(self.xc)
         z = [x.real for x in self.x]
         zc = [x.real for x in self.xc]
@@ -425,6 +463,16 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(zc[i].u, zca[i].u))
 
     def test_imag(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ureal(1.2, 0.3))
+        self.assertTrue(equivalent(a.imag.x, 0.0))
+        self.assertTrue(equivalent(a.imag.u, 0.0))
+
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
+        self.assertTrue(equivalent(a.imag.x, 3))
+        self.assertTrue(equivalent(a.imag.u, 0.1))
+
         n = len(self.xc)
         z = [x.imag for x in self.x]
         zc = [x.imag for x in self.xc]
@@ -1196,6 +1244,472 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(z[3].u, m[1, 0].u))
             self.assertTrue(equivalent(z[4].u, m[1, 1].u))
             self.assertTrue(equivalent(z[5].u, m[1, 2].u))
+
+    #
+    # The following tests are for specific numpy ufuncs that
+    # have no direct GTC equivalent function
+    #
+
+    def test_sum(self):
+        # 1D array
+        xlist = [ureal(i, i*0.1) for i in range(100)]
+        xarray = uarray(xlist)
+        self.assertTrue(xarray.shape == (100,))
+
+        a = xarray.sum()
+        b = 0
+        for x in xlist:
+            b += x
+        self.assertTrue(equivalent(a.x, b.x))
+        self.assertTrue(equivalent(a.u, b.u))
+
+        # 3D array
+        xlist = [[[ureal(i*j*k, i*j*k*0.1) for k in range(1, 5)] for j in range(7, 10)] for i in range(3, 9)]
+        xarray = uarray(xlist)
+        self.assertTrue(xarray.shape == (6, 3, 4))
+
+        axis_none = 0.0
+        axis_0 = [[0.0 for i in range(4)] for j in range(3)]
+        axis_1 = [[0.0 for i in range(4)] for j in range(6)]
+        axis_2 = [[0.0 for i in range(3)] for j in range(6)]
+        for i in range(6):
+            for j in range(3):
+                for k in range(4):
+                    value = xlist[i][j][k]
+                    axis_none += value
+                    axis_0[j][k] += value
+                    axis_1[i][k] += value
+                    axis_2[i][j] += value
+
+        # axis=None
+        a = xarray.sum()
+        self.assertTrue(equivalent(a.x, axis_none.x))
+        self.assertTrue(equivalent(a.u, axis_none.u))
+
+        # axis=0
+        a = xarray.sum(axis=0)
+        m, n = len(axis_0), len(axis_0[0])
+        self.assertTrue(a.shape == (m, n))
+        for j in range(m):
+            for k in range(n):
+                self.assertTrue(equivalent(a[j, k].x, axis_0[j][k].x))
+                self.assertTrue(equivalent(a[j, k].u, axis_0[j][k].u))
+
+        # axis=1
+        a = xarray.sum(axis=1)
+        m, n = len(axis_1), len(axis_1[0])
+        self.assertTrue(a.shape == (m, n))
+        for i in range(m):
+            for k in range(n):
+                self.assertTrue(equivalent(a[i, k].x, axis_1[i][k].x))
+                self.assertTrue(equivalent(a[i, k].u, axis_1[i][k].u))
+
+        # axis=2
+        a = xarray.sum(axis=2)
+        m, n = len(axis_2), len(axis_2[0])
+        self.assertTrue(a.shape == (m, n))
+        for i in range(m):
+            for j in range(n):
+                self.assertTrue(equivalent(a[i, j].x, axis_2[i][j].x))
+                self.assertTrue(equivalent(a[i, j].u, axis_2[i][j].u))
+
+    def test_mean(self):
+        for j, (x, xa) in enumerate([(self.x, self.xa), (self.xc, self.xca)]):
+            ave = 0.0
+            for val in x:
+                ave += val
+            ave = ave/float(len(x))
+
+            m = xa.mean()
+            if j == 0:
+                self.assertTrue(equivalent(m.x, ave.x))
+                self.assertTrue(equivalent(m.u, ave.u))
+            else:
+                self.assertTrue(equivalent_complex(m.x, ave.x))
+                self.assertTrue(equivalent(m.u.real, ave.u.real))
+                self.assertTrue(equivalent(m.u.imag, ave.u.imag))
+
+            xa = xa.reshape(2, 3)
+
+            m = xa.mean()
+            if j == 0:
+                self.assertTrue(equivalent(m.x, ave.x))
+                self.assertTrue(equivalent(m.u, ave.u))
+            else:
+                self.assertTrue(equivalent_complex(m.x, ave.x))
+                self.assertTrue(equivalent(m.u.real, ave.u.real))
+                self.assertTrue(equivalent(m.u.imag, ave.u.imag))
+
+            m = xa.mean(axis=0)
+            aves = [(x[0] + x[3])/2.0, (x[1] + x[4])/2.0, (x[2] + x[5])/2.0]
+            for idx in range(3):
+                if j == 0:
+                    self.assertTrue(equivalent(m[idx].x, aves[idx].x))
+                    self.assertTrue(equivalent(m[idx].u, aves[idx].u))
+                else:
+                    self.assertTrue(equivalent_complex(m[idx].x, aves[idx].x))
+                    self.assertTrue(equivalent(m[idx].u.real, aves[idx].u.real))
+                    self.assertTrue(equivalent(m[idx].u.imag, aves[idx].u.imag))
+
+            m = xa.mean(axis=1)
+            aves = [(x[0] + x[1] + x[2])/3.0, (x[3] + x[4] + x[5])/3.0]
+            for idx in range(2):
+                if j == 0:
+                    self.assertTrue(equivalent(m[idx].x, aves[idx].x))
+                    self.assertTrue(equivalent(m[idx].u, aves[idx].u))
+                else:
+                    self.assertTrue(equivalent_complex(m[idx].x, aves[idx].x))
+                    self.assertTrue(equivalent(m[idx].u.real, aves[idx].u.real))
+                    self.assertTrue(equivalent(m[idx].u.imag, aves[idx].u.imag))
+
+    def test_std(self):
+        for j, (x, xa) in enumerate([(self.x, self.xa), (self.xc, self.xca)]):
+            ave = 0.0
+            for item in x:
+                ave += item
+            ave = ave/float(len(x))
+
+            stdev = 0.0
+            for item in [(val - ave)**2 for val in x]:
+                stdev += item
+
+            for ddof in range(5):
+                a = sqrt(stdev/(float(len(x)-ddof)))
+                b = xa.std(ddof=ddof)
+                if j == 0:
+                    self.assertTrue(equivalent(a.x, b.x))
+                    self.assertTrue(equivalent(a.u, b.u))
+                else:
+                    self.assertTrue(equivalent_complex(a.x, b.x))
+                    self.assertTrue(equivalent(a.u.real, b.u.real))
+                    self.assertTrue(equivalent(a.u.imag, b.u.imag))
+
+        x = [[ureal(i*j, i*j*0.05) for j in range(1, 11)] for i in range(5, 11)]
+        xa = uarray(x)
+
+        # axis-0 -> columns
+        aves = [0.0 for _ in range(len(x[0]))]
+        for i in range(len(x)):
+            for j in range(len(x[0])):
+                aves[j] += x[i][j]
+        n = float(len(x))
+        aves = [a/n for a in aves]
+
+        for ddof in range(5):
+            stdevs = [0.0 for _ in range(len(aves))]
+            for idx, ave in enumerate(aves):
+                for i in range(len(x)):
+                    stdevs[idx] += (x[i][idx] - ave) ** 2
+                stdevs[idx] = sqrt(stdevs[idx] / (n - ddof))
+            a = xa.std(axis=0, ddof=ddof)
+            for i in range(len(stdevs)):
+                self.assertTrue(equivalent(a[i].x, stdevs[i].x))
+                self.assertTrue(equivalent(a[i].u, stdevs[i].u))
+
+        # axis-1 -> rows
+        aves = [0.0 for _ in range(len(x))]
+        for i in range(len(x)):
+            for j in range(len(x[0])):
+                aves[i] += x[i][j]
+        n = float(len(x[0]))
+        aves = [a/n for a in aves]
+
+        for ddof in range(5):
+            stdevs = [0.0 for _ in range(len(aves))]
+            for idx, ave in enumerate(aves):
+                for item in [(val - ave) ** 2 for val in x[idx]]:
+                    stdevs[idx] += item
+                stdevs[idx] = sqrt(stdevs[idx] / (n - ddof))
+            a = xa.std(axis=1, ddof=ddof)
+            for i in range(len(stdevs)):
+                self.assertTrue(equivalent(a[i].x, stdevs[i].x))
+                self.assertTrue(equivalent(a[i].u, stdevs[i].u))
+
+    def test_var(self):
+        for j, (x, xa) in enumerate([(self.x, self.xa), (self.xc, self.xca)]):
+            ave = 0.0
+            for item in x:
+                ave += item
+            ave = ave/float(len(x))
+
+            var = 0.0
+            for item in [(val - ave)**2 for val in x]:
+                var += item
+
+            for ddof in range(5):
+                a = var/(float(len(x)-ddof))
+                b = xa.var(ddof=ddof)
+                if j == 0:
+                    self.assertTrue(equivalent(a.x, b.x))
+                    self.assertTrue(equivalent(a.u, b.u))
+                else:
+                    self.assertTrue(equivalent_complex(a.x, b.x))
+                    self.assertTrue(equivalent(a.u.real, b.u.real))
+                    self.assertTrue(equivalent(a.u.imag, b.u.imag))
+
+        x = [[ureal(i*j, i*j*0.05) for j in range(1, 11)] for i in range(5, 11)]
+        xa = uarray(x)
+
+        # axis-0 -> columns
+        aves = [0.0 for _ in range(len(x[0]))]
+        for i in range(len(x)):
+            for j in range(len(x[0])):
+                aves[j] += x[i][j]
+        n = float(len(x))
+        aves = [a/n for a in aves]
+
+        for ddof in range(5):
+            vars = [0.0 for _ in range(len(aves))]
+            for idx, ave in enumerate(aves):
+                for i in range(len(x)):
+                    vars[idx] += (x[i][idx] - ave) ** 2
+                vars[idx] = vars[idx] / (n - ddof)
+            a = xa.var(axis=0, ddof=ddof)
+            for i in range(len(vars)):
+                self.assertTrue(equivalent(a[i].x, vars[i].x))
+                self.assertTrue(equivalent(a[i].u, vars[i].u))
+
+        # axis-1 -> rows
+        aves = [0.0 for _ in range(len(x))]
+        for i in range(len(x)):
+            for j in range(len(x[0])):
+                aves[i] += x[i][j]
+        n = float(len(x[0]))
+        aves = [a/n for a in aves]
+
+        for ddof in range(5):
+            vars = [0.0 for _ in range(len(aves))]
+            for idx, ave in enumerate(aves):
+                for item in [(val - ave) ** 2 for val in x[idx]]:
+                    vars[idx] += item
+                vars[idx] = vars[idx] / (n - ddof)
+            a = xa.var(axis=1, ddof=ddof)
+            for i in range(len(vars)):
+                self.assertTrue(equivalent(a[i].x, vars[i].x))
+                self.assertTrue(equivalent(a[i].u, vars[i].u))
+
+    def test_max(self):
+        a = self.xa.max()
+        b = max(self.x)
+        self.assertTrue(equivalent(a.x, b.x))
+        self.assertTrue(equivalent(a.u, b.u))
+
+        xa = self.xa.reshape(3, 2)
+
+        a = xa.max()
+        self.assertTrue(equivalent(a.x, b.x))
+        self.assertTrue(equivalent(a.u, b.u))
+
+        a = xa.max(axis=0)
+        for i, b in enumerate([self.x[::2], self.x[1::2]]):
+            b = max(b)
+            self.assertTrue(equivalent(a[i].x, b.x))
+            self.assertTrue(equivalent(a[i].u, b.u))
+
+        a = xa.max(axis=1)
+        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+            b = max(b)
+            self.assertTrue(equivalent(a[i].x, b.x))
+            self.assertTrue(equivalent(a[i].u, b.u))
+
+    def test_min(self):
+        a = self.xa.min()
+        b = min(self.x)
+        self.assertTrue(equivalent(a.x, b.x))
+        self.assertTrue(equivalent(a.u, b.u))
+
+        xa = self.xa.reshape(3, 2)
+
+        a = xa.min()
+        self.assertTrue(equivalent(a.x, b.x))
+        self.assertTrue(equivalent(a.u, b.u))
+
+        a = xa.min(axis=0)
+        for i, b in enumerate([self.x[::2], self.x[1::2]]):
+            b = min(b)
+            self.assertTrue(equivalent(a[i].x, b.x))
+            self.assertTrue(equivalent(a[i].u, b.u))
+
+        a = xa.min(axis=1)
+        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+            b = min(b)
+            self.assertTrue(equivalent(a[i].x, b.x))
+            self.assertTrue(equivalent(a[i].u, b.u))
+
+    def test_argmax(self):
+        a = self.xa.argmax()
+        b = self.x.index(max(self.x))
+        self.assertTrue(a == b)
+
+        xa = self.xa.reshape(3, 2)
+
+        a = xa.argmax()
+        self.assertTrue(equivalent(a, b))
+
+        a = xa.argmax(axis=0)
+        for i, b in enumerate([self.x[::2], self.x[1::2]]):
+            self.assertTrue(a[i] == b.index(max(b)))
+
+        a = xa.argmax(axis=1)
+        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+            self.assertTrue(a[i] == b.index(max(b)))
+
+    def test_argmin(self):
+        a = self.xa.argmin()
+        b = self.x.index(min(self.x))
+        self.assertTrue(a == b)
+
+        xa = self.xa.reshape(3, 2)
+
+        a = xa.argmin()
+        self.assertTrue(equivalent(a, b))
+
+        a = xa.argmin(axis=0)
+        for i, b in enumerate([self.x[::2], self.x[1::2]]):
+            self.assertTrue(a[i] == b.index(min(b)))
+
+        a = xa.argmin(axis=1)
+        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+            self.assertTrue(a[i] == b.index(min(b)))
+
+    def test_transpose(self):
+        a = uarray([ureal(i, i*0.1) for i in range(5*7)]).reshape(5, 7)
+        for item in [a.T, a.transpose()]:
+            for i in range(5):
+                for j in range(7):
+                    self.assertTrue(equivalent(a[i, j].x, item[j, i].x))
+                    self.assertTrue(equivalent(a[i, j].u, item[j, i].u))
+
+    def test_argsort(self):
+        b = [self.x.index(a) for a in sorted(self.x)]
+        a = self.xa.argsort()
+        for i in range(len(a)):
+            self.assertTrue(a[i] == b[i])
+
+        xa = self.xa.reshape(2, 3)
+        a = xa.argsort()
+        b = [[item.index(x) for x in sorted(item)] for item in [self.x[:3], self.x[3:]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(a[i, j] == b[i][j])
+
+        a = xa.argsort(axis=0)
+        b = [[item.index(x) for x in sorted(item)] for item in [self.x[::3], self.x[1::3], self.x[2::3]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(a[i, j] == b[j][i])
+
+        a = xa.argsort(axis=1)
+        b = [[item.index(x) for x in sorted(item)] for item in [self.x[:3], self.x[3:]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(a[i, j] == b[i][j])
+
+    def test_where(self):
+        a = self.xa[np.where(self.xa.x > 25)]
+        b = [x for x in self.x if x.x > 25]
+        self.assertTrue(len(a) == len(b))
+        for i in range(len(a)):
+            self.assertTrue(equivalent(a[i].x, b[i].x))
+            self.assertTrue(equivalent(a[i].u, b[i].u))
+
+        a = self.xca[np.where(self.xca.real > 24)]
+        b = [x for x in self.xc if x.real > 24]
+        self.assertTrue(len(a) == len(b))
+        for i in range(len(a)):
+            self.assertTrue(equivalent_complex(a[i].x, b[i].x))
+            self.assertTrue(equivalent(a[i].u.real, b[i].u.real))
+            self.assertTrue(equivalent(a[i].u.imag, b[i].u.imag))
+
+        a = self.xca[np.where(self.xca.imag > 3)]
+        b = [x for x in self.xc if x.imag > 3]
+        self.assertTrue(len(a) == len(b))
+        for i in range(len(a)):
+            self.assertTrue(equivalent_complex(a[i].x, b[i].x))
+            self.assertTrue(equivalent(a[i].u.real, b[i].u.real))
+            self.assertTrue(equivalent(a[i].u.imag, b[i].u.imag))
+
+    def test_shape(self):
+        x = [ureal(i, i*0.1) for i in range(5*9*3)]
+
+        xa = uarray(x)
+        self.assertTrue(xa.shape == (5*9*3,))
+
+        xa = xa.reshape(5, 9, 3)
+        self.assertTrue(xa.shape == (5, 9, 3))
+
+    def test_size(self):
+
+        xa = uarray([])
+        self.assertTrue(xa.size == 0)
+
+        x = [ureal(i, i*0.1) for i in range(5*9*3)]
+
+        xa = uarray(x)
+        self.assertTrue(xa.size == 5*9*3)
+
+        xa = xa.reshape(5, 9, 3)
+        self.assertTrue(xa.size == 5*9*3)
+
+
+    #
+    # The following are attributes/methods of an ndarray
+    # that do not have a test method written yet
+    #
+
+    # def test_all(self):
+    # def test_any(self):
+    # def test_argpartition(self):
+    # def test_astype(self):
+    # def test_base(self):
+    # def test_byteswap(self):
+    # def test_choose(self):
+    # def test_clip(self):
+    # def test_compress(self):
+    # def test_copy(self):
+    # def test_ctypes(self):
+    # def test_cumprod(self):
+    # def test_cumsum(self):
+    # def test_data(self):
+    # def test_diagonal(self):
+    # def test_dot(self):
+    # def test_dtype(self):
+    # def test_dump(self):
+    # def test_dumps(self):
+    # def test_fill(self):
+    # def test_flags(self):
+    # def test_flat(self):
+    # def test_flatten(self):
+    # def test_getfield(self):
+    # def test_item(self):
+    # def test_itemset(self):
+    # def test_itemsize(self):
+    # def test_nbytes(self):
+    # def test_ndim(self):
+    # def test_newbyteorder(self):
+    # def test_nonzero(self):
+    # def test_partition(self):
+    # def test_prod(self):
+    # def test_ptp(self):
+    # def test_put(self):
+    # def test_ravel(self):
+    # def test_repeat(self):
+    # def test_resize(self):
+    # def test_round(self):
+    # def test_searchsorted(self):
+    # def test_setfield(self):
+    # def test_setflags(self):
+    # def test_sort(self):
+    # def test_squeeze(self):
+    # def test_strides(self):
+    # def test_swapaxes(self):
+    # def test_take(self):
+    # def test_tobytes(self):
+    # def test_tofile(self):
+    # def test_tolist(self):
+    # def test_tostring(self):
+    # def test_trace(self):
+    # def test_view(self):
 
 
 if __name__ == '__main__':
