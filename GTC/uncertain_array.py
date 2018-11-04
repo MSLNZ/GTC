@@ -1,6 +1,4 @@
 """
-The are no public methods for an UncertainArray.
-
 The proper way to create an uncertain array is by calling uarray(...)
 
 This module was written in the following way so that numpy >= 1.13.0
@@ -47,7 +45,7 @@ else:
                     )
 
                 if kwargs:
-                    warnings.warn('**kwargs, {}, are not currently not supported'
+                    warnings.warn('**kwargs, {}, are currently not supported'
                                   .format(kwargs), stacklevel=2)
 
                 case = len(inputs)
@@ -80,25 +78,25 @@ else:
 
             @property
             def x(self):
-                if self.size == 1:
+                if self.ndim == 0:
                     return self.item(0).x
                 return UncertainArray([item.x for item in self])
 
             @property
             def u(self):
-                if self.size == 1:
+                if self.ndim == 0:
                     return self.item(0).u
                 return UncertainArray([item.u for item in self])
 
             @property
             def real(self):
-                if self.size == 1:
+                if self.ndim == 0:
                     return self.item(0).real
                 return UncertainArray([item.real for item in self])
 
             @property
             def imag(self):
-                if self.size == 1:
+                if self.ndim == 0:
                     return self.item(0).imag
                 return UncertainArray([item.imag for item in self])
 
