@@ -1,0 +1,60 @@
+# This script is imported by test_uncertain_array.py
+#
+# The np.matmul() function is currently not supported (as of v1.15.0) for dtype=object
+#   TypeError: Object arrays are not currently supported
+# However, from Python 3.5+ the @ symbol can be used for an ndarray with dtype=object
+#
+# If the test_uncertain_array.py module is executed with Python < 3.5 and it contains
+# the @ symbol then a SyntaxError is raised. Therefore, this script is only imported
+# and tested if Python >= 3.5
+#
+# This script is included in the --ignore option in setup.cfg [tool:pytest]
+# Since the name of the file doesn't start with or end with "test" the `unittest discover`
+# command will not attempt to import it.
+from GTC import ureal, uarray
+from testing_tools import equivalent
+
+
+def run():
+    m = [[ureal(5, 1), ureal(-1, 0.3), ureal(3, 1.3)],
+         [ureal(1, 0.1), ureal(2, 0.8), ureal(-3, 1)],
+         [ureal(-1, 0.5), ureal(2, 1.1), ureal(4, 0.3)]]
+    b = [ureal(1, 0.2), ureal(2, 1.1), ureal(3, 0.4)]
+
+    ma = uarray(m)
+    ba = uarray(b)
+
+    z = [m[0][0] * b[0] + m[0][1] * b[1] + m[0][2] * b[2],
+         m[1][0] * b[0] + m[1][1] * b[1] + m[1][2] * b[2],
+         m[2][0] * b[0] + m[2][1] * b[1] + m[2][2] * b[2]]
+    za = ma @ ba
+    for i in range(3):
+        assert equivalent(z[i].x, za[i].x)
+        assert equivalent(z[i].u, za[i].u)
+
+    z = b[0] * 1 + b[1] * 2 + b[2] * 3
+    za = ba @ [1, 2, 3]
+    assert equivalent(z.x, za.x)
+    assert equivalent(z.u, za.u)
+
+    z = [1 * m[0][0] + 2 * m[1][0] + 3 * m[2][0],
+         1 * m[0][1] + 2 * m[1][1] + 3 * m[2][1],
+         1 * m[0][2] + 2 * m[1][2] + 3 * m[2][2]]
+    za = [1, 2, 3] @ ma
+    for i in range(3):
+        assert equivalent(z[i].x, za[i].x)
+        assert equivalent(z[i].u, za[i].u)
+
+    try:
+        ba @ [1, 2]
+    except ValueError:  # Excpect this error -> shapes (3,) and (2,) not aligned: 3 (dim 0) != 2 (dim 0)
+        pass
+    else:
+        raise ValueError('this should not work -> ba @ [1, 2]')
+
+    try:
+        [1, 2] @ ma
+    except ValueError:  # Excpect this error -> shapes (2,) and (3,3) not aligned: 2 (dim 0) != 3 (dim 0)
+        pass
+    else:
+        raise ValueError('this should not work -> [1, 2] @ ma')

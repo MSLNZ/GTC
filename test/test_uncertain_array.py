@@ -1,8 +1,10 @@
 import unittest
 try:
     from itertools import izip  # Python 2
+    PY2 = True
 except ImportError:
     izip = zip
+    PY2 = False
 
 import numpy as np
 
@@ -1638,6 +1640,14 @@ class TestUncertainArray(unittest.TestCase):
         xa = xa.reshape(5, 9, 3)
         self.assertTrue(xa.shape == (5, 9, 3))
 
+    def test_reshape(self):
+        a = uarray([ureal(i, i*0.1) for i in range(100)])
+
+        with self.assertRaises(ValueError):
+            a.reshape(50, 20)
+
+        a.reshape(2, 5, 10)  # should not raise ValueError
+
     def test_size(self):
 
         xa = uarray([])
@@ -1651,6 +1661,208 @@ class TestUncertainArray(unittest.TestCase):
         xa = xa.reshape(5, 9, 3)
         self.assertTrue(xa.size == 5*9*3)
 
+    def test_view(self):
+        v = self.xa.view()
+        for i in range(len(self.x)):
+            self.assertTrue(v[i] is self.xa[i])
+
+    def test_diagonal(self):
+        x = [ucomplex(complex(0, i), i) for i in range(25)]
+        xa = uarray(x)
+
+        with self.assertRaises(ValueError):
+            xa.diagonal()  # diag requires an array of at least two dimensions
+
+        a = xa.reshape(5, 5).diagonal()
+        for i in range(5):
+            idx = i*5+i
+            self.assertTrue(equivalent_complex(a[i].x, x[idx].x))
+            self.assertTrue(equivalent(a[i].u.real, x[idx].u.real))
+            self.assertTrue(equivalent(a[i].u.imag, x[idx].u.imag))
+
+    def test_trace(self):
+        # UncertainArray[ureal]
+        xlist = [ureal(i, i * 0.1) for i in range(9)]
+        xarray = uarray(xlist)
+
+        with self.assertRaises(ValueError):
+            xarray.trace()  # diag requires an array of at least two dimensions
+
+        t = xarray.reshape(3, 3).trace()
+        xt = xlist[0] + xlist[4] + xlist[8]
+        self.assertTrue(equivalent(t.x, xt.x))
+        self.assertTrue(equivalent(t.u, xt.u))
+
+        t = np.trace(xarray.reshape(3, 3))
+        self.assertTrue(equivalent(t.x, xt.x))
+        self.assertTrue(equivalent(t.u, xt.u))
+
+        # UncertainArray[ucomplex]
+        xlist = [ucomplex(complex(i, i*2), (i*0.2, i * 0.1)) for i in range(9)]
+        xarray = uarray(xlist)
+
+        with self.assertRaises(ValueError):
+            xarray.trace()  # diag requires an array of at least two dimensions
+
+        t = xarray.reshape(3, 3).trace()
+        xt = xlist[0] + xlist[4] + xlist[8]
+        self.assertTrue(equivalent_complex(t.x, xt.x))
+        self.assertTrue(equivalent(t.u.real, xt.u.real))
+        self.assertTrue(equivalent(t.u.imag, xt.u.imag))
+
+        t = np.trace(xarray.reshape(3, 3))
+        self.assertTrue(equivalent_complex(t.x, xt.x))
+        self.assertTrue(equivalent(t.u.real, xt.u.real))
+        self.assertTrue(equivalent(t.u.imag, xt.u.imag))
+
+    def test_ndim(self):
+        a = uarray([ureal(1, 1) for _ in range(1000)])
+        self.assertTrue(a.ndim == 1)
+        self.assertTrue(a.reshape(10, 100).ndim == 2)
+        self.assertTrue(a.reshape(10, 10, 10).ndim == 3)
+        self.assertTrue(a.reshape(10, 10, 2, 5).ndim == 4)
+        self.assertTrue(a.reshape(2, 5, 10, 2, 5).ndim == 5)
+        self.assertTrue(a.reshape(2, 5, 2, 5, 2, 5).ndim == 6)
+
+    def test_base(self):
+        for i in range(len(self.x)):
+            self.assertTrue(self.xa.base[i] is self.x[i])
+
+    def test_data(self):
+        if PY2:
+            self.assertTrue(isinstance(self.xa.data, buffer))
+        else:
+            self.assertTrue(isinstance(self.xa.data, memoryview))
+
+    def test_copy(self):
+        c = self.xa.copy()
+        c[:] = ureal(2, 1)
+        self.assertTrue(c.shape == self.xa.shape)
+        for i in range(len(self.xa)):
+            self.assertTrue(c[i].x == 2)
+            self.assertTrue(c[i].u == 1)
+            self.assertTrue(self.xa[i] is self.x[i])
+
+    def test_nbytes(self):
+        self.assertTrue(self.xa.nbytes == self.ya.nbytes)
+        self.assertTrue(self.xca.nbytes == self.yca.nbytes)
+
+    def test_flatten(self):
+        xa = uarray([[ureal(i, j) for i in range(5)] for j in range(5)])
+        self.assertTrue(xa.shape == (5, 5))
+        self.assertTrue(xa.flatten().shape == (25,))
+
+    def test_flat(self):
+        xa = uarray([[ureal(1, 1) for _ in range(5)] for _ in range(5)])
+        self.assertTrue(isinstance(xa.flat, np.flatiter))
+        xa.flat[[1, 4]] = ureal(9, 9)
+        for i in range(5):
+            for j in range(5):
+                if (i == 0 and j == 1) or (i == 0 and j == 4):
+                    self.assertTrue(xa[i, j].x == 9)
+                else:
+                    self.assertTrue(xa[i, j].x == 1)
+
+    def test_fill(self):
+        xa = uarray([ureal(1, 1) for _ in range(10)])
+        self.assertTrue(sum(xa) == 10)
+        xa.fill(ureal(3, 1))
+        self.assertTrue(sum(xa) == 30)
+
+    def test_compress(self):
+        a = uarray([[ureal(1, 1), ureal(2, 2)], [ureal(3, 3), ureal(4, 4)], [ureal(5, 5), ureal(6, 6)]])
+        c = np.compress([0, 1], a, axis=0)
+        self.assertTrue(c[0, 0].x == 3)
+        self.assertTrue(c[0, 0].u == 3)
+        self.assertTrue(c[0, 1].x == 4)
+        self.assertTrue(c[0, 1].u == 4)
+
+    def test_cumprod(self):
+        x = [[ureal(1, 0.1), ureal(2, 0.2), ureal(3, 0.3)], [ureal(4, 0.4), ureal(5, 0.5), ureal(6, 0.6)]]
+        xa = uarray(x)
+
+        # flattened
+        a = np.cumprod(xa)
+        b = [x[0][0], x[0][0]*x[0][1], x[0][0]*x[0][1]*x[0][2], x[0][0]*x[0][1]*x[0][2]*x[1][0],
+             x[0][0]*x[0][1]*x[0][2]*x[1][0]*x[1][1], x[0][0]*x[0][1]*x[0][2]*x[1][0]*x[1][1]*x[1][2]]
+        for i in range(6):
+            self.assertTrue(equivalent(a[i].x, b[i].x))
+            self.assertTrue(equivalent(a[i].u, b[i].u))
+
+        a = np.cumprod(xa, axis=0)
+        b = [[x[0][0], x[0][1], x[0][2]], [x[0][0]*x[1][0], x[0][1]*x[1][1], x[0][2]*x[1][2]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(equivalent(a[i, j].x, b[i][j].x))
+                self.assertTrue(equivalent(a[i, j].u, b[i][j].u))
+
+        a = xa.cumprod(axis=1)
+        b = [[x[0][0], x[0][0]*x[0][1], x[0][0]*x[0][1]*x[0][2]],
+             [x[1][0], x[1][0]*x[1][1], x[1][0]*x[1][1]*x[1][2]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(equivalent(a[i, j].x, b[i][j].x))
+                self.assertTrue(equivalent(a[i, j].u, b[i][j].u))
+
+    def test_cumsum(self):
+        x = [[ureal(1, 0.1), ureal(2, 0.2), ureal(3, 0.3)], [ureal(4, 0.4), ureal(5, 0.5), ureal(6, 0.6)]]
+        xa = uarray(x)
+
+        # flattened
+        a = np.cumsum(xa)
+        b = [x[0][0], x[0][0]+x[0][1], x[0][0]+x[0][1]+x[0][2], x[0][0]+x[0][1]+x[0][2]+x[1][0],
+             x[0][0]+x[0][1]+x[0][2]+x[1][0]+x[1][1], x[0][0]+x[0][1]+x[0][2]+x[1][0]+x[1][1]+x[1][2]]
+        for i in range(6):
+            self.assertTrue(equivalent(a[i].x, b[i].x))
+            self.assertTrue(equivalent(a[i].u, b[i].u))
+
+        a = xa.cumsum(axis=0)
+        b = [[x[0][0], x[0][1], x[0][2]], [x[0][0]+x[1][0], x[0][1]+x[1][1], x[0][2]+x[1][2]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(equivalent(a[i, j].x, b[i][j].x))
+                self.assertTrue(equivalent(a[i, j].u, b[i][j].u))
+
+        a = np.cumsum(xa, axis=1)
+        b = [[x[0][0], x[0][0]+x[0][1], x[0][0]+x[0][1]+x[0][2]],
+             [x[1][0], x[1][0]+x[1][1], x[1][0]+x[1][1]+x[1][2]]]
+        for i in range(2):
+            for j in range(3):
+                self.assertTrue(equivalent(a[i, j].x, b[i][j].x))
+                self.assertTrue(equivalent(a[i, j].u, b[i][j].u))
+
+    def test_dot(self):
+        x = [ucomplex(2j, 0.2), ucomplex(3j, 0.3)]
+        y = [ucomplex(2j, 1.2), ucomplex(3j, 0.9)]
+        xa = uarray(x)
+        ya = uarray(y)
+        z = x[0]*y[0] + x[1]*y[1]
+        za = xa.dot(ya)
+        self.assertTrue(equivalent_complex(z.x, za.x))
+        self.assertTrue(equivalent(z.u.real, za.u.real))
+        self.assertTrue(equivalent(z.u.imag, za.u.imag))
+
+        x = [[ureal(1, 0.1), ureal(2, 0.2)], [ureal(3, 0.3), ureal(4, 0.4)]]
+        y = [[ureal(5, 0.5), ureal(6, 0.6)], [ureal(7, 0.7), ureal(8, 0.8)]]
+        xa = uarray(x)
+        ya = uarray(y)
+        z = [[x[0][0]*y[0][0] + x[0][1]*y[1][0], x[0][0]*y[0][1] + x[0][1]*y[1][1]],
+             [x[1][0]*y[0][0] + x[1][1]*y[1][0], x[1][0]*y[0][1] + x[1][1]*y[1][1]]]
+        za = xa.dot(ya)
+        for i in range(2):
+            for j in range(2):
+                self.assertTrue(equivalent(z[i][j].x, za[i,j].x))
+                self.assertTrue(equivalent(z[i][j].u, za[i,j].u))
+
+    def test_matmul(self):
+        # The np.matmul() function is currently not supported (as of v1.15.0) for dtype=object
+        #   TypeError: Object arrays are not currently supported
+        # However, from Python 3.5+ the @ symbol can be used for an ndarray with dtype=object
+        # NOTE: We can only run this test if Python >= 3.5
+        import sys
+        if sys.version_info >= (3, 5):
+            from uarray_matmul import run
+            run()
 
     #
     # The following are attributes/methods of an ndarray
@@ -1661,31 +1873,18 @@ class TestUncertainArray(unittest.TestCase):
     # def test_any(self):
     # def test_argpartition(self):
     # def test_astype(self):
-    # def test_base(self):
     # def test_byteswap(self):
     # def test_choose(self):
     # def test_clip(self):
-    # def test_compress(self):
-    # def test_copy(self):
     # def test_ctypes(self):
-    # def test_cumprod(self):
-    # def test_cumsum(self):
-    # def test_data(self):
-    # def test_diagonal(self):
-    # def test_dot(self):
     # def test_dtype(self):
     # def test_dump(self):
     # def test_dumps(self):
-    # def test_fill(self):
     # def test_flags(self):
-    # def test_flat(self):
-    # def test_flatten(self):
     # def test_getfield(self):
     # def test_item(self):
     # def test_itemset(self):
     # def test_itemsize(self):
-    # def test_nbytes(self):
-    # def test_ndim(self):
     # def test_newbyteorder(self):
     # def test_nonzero(self):
     # def test_partition(self):
@@ -1708,8 +1907,6 @@ class TestUncertainArray(unittest.TestCase):
     # def test_tofile(self):
     # def test_tolist(self):
     # def test_tostring(self):
-    # def test_trace(self):
-    # def test_view(self):
 
 
 if __name__ == '__main__':

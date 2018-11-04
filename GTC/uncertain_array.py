@@ -255,3 +255,22 @@ else:
 
             def min(self, **kwargs):
                 return UncertainArray(np.asarray(self).min(**kwargs))
+
+            def trace(self, **kwargs):
+                return UncertainArray(np.asarray(self).trace(**kwargs))
+
+            def cumprod(self, **kwargs):
+                return UncertainArray(np.asarray(self).cumprod(**kwargs))
+
+            def cumsum(self, **kwargs):
+                return UncertainArray(np.asarray(self).cumsum(**kwargs))
+
+            def __matmul__(self, other):
+                if not isinstance(other, np.ndarray):
+                    other = np.asarray(other)
+                return self.dot(other)
+
+            def __rmatmul__(self, other):
+                if not isinstance(other, np.ndarray):
+                    other = np.asarray(other)
+                return other.dot(self)
