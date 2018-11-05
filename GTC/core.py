@@ -486,7 +486,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     :type label: str 
     
     :rtype: :class:`~lib.UncertainComplex`
-    :raises: :exc:`~exceptions.RuntimeError` if ``df`` or ``u`` have illegal values.
+    :raises: :exc:`RuntimeError` if ``df`` or ``u`` have illegal values.
 
     ``u`` can be a float, a 2-element or 4-element sequence.
 
@@ -668,7 +668,7 @@ def set_correlation(r,arg1,arg2=None):
     argument `independent=False` when calling 
     :func:`~ureal` or :func:`~ucomplex`.
         
-    An :exc:`~exceptions.RuntimeError` is raised when illegal arguments are used
+    An :exc:`RuntimeError` is raised when illegal arguments are used
 
     When a pair of uncertain real numbers is provided,
     ``r`` is the correlation coefficient between them. 
