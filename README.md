@@ -1,7 +1,9 @@
 # GTC
 
-[![rtd badge][]](https://gtc.readthedocs.io/en/latest/?badge=latest)
+[![rtd badge][]](https://gtc.readthedocs.io/en/latest/)
 [![travis shield][]](https://travis-ci.org/MSLNZ/GTC)
+[![appveyor shield][]](https://ci.appveyor.com/project/jborbely/gtc/branch/develop)
+
 
 The GUM Tree Calculator for Python.
 
@@ -15,3 +17,4 @@ Development road-map
 
 [rtd badge]: https://readthedocs.org/projects/gtc/badge/
 [travis shield]: https://img.shields.io/travis/MSLNZ/GTC/develop.svg?label=Travis-CI
+[appveyor shield]: https://img.shields.io/appveyor/ci/jborbely/gtc/develop.svg?label=AppVeyor
