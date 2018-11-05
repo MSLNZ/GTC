@@ -166,7 +166,7 @@ Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` can be
     >>> H.x
     11.719284397600761
     >>> H.u
-    0.84353295110757898
+    0.843532951107579
     >>> H.df
     inf
 

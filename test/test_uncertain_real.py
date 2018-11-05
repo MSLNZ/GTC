@@ -114,6 +114,8 @@ class SimpleAttributesAndFunctions(unittest.TestCase):
         self.assertTrue( _is_uncertain_real_constant(x) )
         x = ureal(1,1)
         self.assertTrue( _is_uncertain_real_constant(x) is not True )
+        x= 3
+        self.assertRaises( RuntimeError, _is_uncertain_real_constant, x )
         
 #----------------------------------------------------------------------------
 class ArithmeticTestsReal(unittest.TestCase):
