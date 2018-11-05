@@ -166,7 +166,7 @@ Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` can be
     >>> H.x
     11.719284397600761
     >>> H.u
-    0.84353295110757898
+    0.843532951107579
     >>> H.df
     inf
 
@@ -175,7 +175,7 @@ Alternatively, there are functions that return the same attributes ::
     >>> value(H)
     11.719284397600761
     >>> uncertainty(H)
-    0.84353295110757898
+    0.843532951107579
     >>> dof(H)
     inf
 
@@ -208,7 +208,7 @@ This calculation reflects our understanding of the problem better: the numbers :
 The use of labels, when defining the uncertain numbers, allows us to display an uncertainty budget (see :func:`~reporting.budget`) ::
 
     >>> for cpt in rp.budget(H):
-    ...     print "{0.label}: {0.u}".format(cpt)
+    ...     print("{0.label}: {0.u:.3f}".format(cpt))
     ...
-    E_phi: 0.84320725394
-    E_b: 0.0234385687952
+    E_phi: 0.843
+    E_b: 0.023
