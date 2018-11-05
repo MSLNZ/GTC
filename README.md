@@ -1,6 +1,7 @@
 # GTC
 
 [![Documentation Status](https://readthedocs.org/projects/gtc/badge/?version=latest)](https://gtc.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/MSLNZ/GTC.svg?branch=develop)](https://travis-ci.org/MSLNZ/GTC)
 
 The GUM Tree Calculator for Python.
 
