@@ -264,11 +264,34 @@ else:
                 return UncertainArray(np.asarray(self).cumsum(**kwargs))
 
             def __matmul__(self, other):
+                # Implements the protocol used by the '@' operator defined in PEP 465.
                 if not isinstance(other, np.ndarray):
                     other = np.asarray(other)
-                return self.dot(other)
+                return UncertainArray(self._matmul(self, other))
 
             def __rmatmul__(self, other):
+                # Implements the protocol used by the '@' operator defined in PEP 465.
                 if not isinstance(other, np.ndarray):
                     other = np.asarray(other)
-                return other.dot(self)
+                return UncertainArray(self._matmul(other, self))
+
+            def _matmul(self, ap1, ap2):
+                # Must re-implement matrix multiplication because np.matmul
+                # does not currently (as of v1.15.3) support dtype=object arrays.
+                # A fix is planned for v1.16.0
+                try:
+                    # first, see if support for dtype=object was added
+                    return np.matmul(ap1, ap2)
+                except TypeError:
+                    pass
+
+                nd1, nd2 = ap1.ndim, ap2.ndim
+                if nd1 == 0 or nd2 == 0:
+                    raise ValueError("Scalar operands are not allowed, use '*' instead")
+
+                if nd1 > 2 or nd2 > 2:
+                    raise ValueError('matrix multiplication is currently limited to <= 2-D arrays')
+
+                # just use the dot product since the arrays must be <= 2D,
+                # so np.matmul generates the same result as np.dot
+                return ap1.dot(ap2)
