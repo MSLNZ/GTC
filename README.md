@@ -1,5 +1,8 @@
-# GTC2
-The GUM Tree Calculator for Python 2
+# GTC
+
+[![Documentation Status](https://readthedocs.org/projects/gtc/badge/?version=latest)](https://gtc.readthedocs.io/en/latest/?badge=latest)
+
+The GUM Tree Calculator for Python.
 
 This is a revision of the original GUM Tree Calculator Python code. 
 
