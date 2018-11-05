@@ -1,2 +1,2 @@
-# GTC2
-The GUM Tree Calculator for Python 2
+# GTC
+The GUM Tree Calculator for Python 
