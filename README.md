@@ -1,6 +1,9 @@
 # GTC
 
-[![Documentation Status](https://readthedocs.org/projects/gtc/badge/?version=latest)](https://gtc.readthedocs.io/en/latest/?badge=latest)
+[![rtd badge][]](https://gtc.readthedocs.io/en/latest/)
+[![travis shield][]](https://travis-ci.org/MSLNZ/GTC)
+[![appveyor shield][]](https://ci.appveyor.com/project/jborbely/gtc/branch/develop)
+
 
 The GUM Tree Calculator for Python.
 
@@ -12,3 +15,6 @@ Development road-map
     1. Provide the basics: implement uncertain real and uncertain complex numbers; implement support for type-A and type-B uncertainty; implement the core result-reporting functions
     2. Provide support for persistence (archiving)
 
+[rtd badge]: https://readthedocs.org/projects/gtc/badge/
+[travis shield]: https://img.shields.io/travis/MSLNZ/GTC/develop.svg?label=Travis-CI
+[appveyor shield]: https://img.shields.io/appveyor/ci/jborbely/gtc/develop.svg?label=AppVeyor
