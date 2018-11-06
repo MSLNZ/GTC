@@ -3,6 +3,12 @@ Reporting functions
 -------------------
 
     *   The function :func:`budget` produces an uncertainty budget.
+    *   The function :func:`k_factor` returns the coverage factor 
+        used for real-valued problems (based on the Student-t distribution). 
+    *   The function :func:`k_to_dof` returns the degrees of freedom 
+        corresponding to a given coverage factor and coverage probability.
+    *   The function :func:`k2_factor_sq` returns   
+        coverage factor squared for the complex-valued problem. 
     *   Functions :func:`u_bar` and :func:`v_bar` return summary values 
         for matrix results associated with 2-D uncertainty.
 
@@ -29,8 +35,12 @@ from __future__ import division     # True division
 
 import math
 import numbers
+
 from operator import attrgetter as getter
 from functools import reduce
+
+from scipy import special
+
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -51,10 +61,18 @@ from GTC.named_tuples import (
     Influence
 )
 from GTC.vector import extend_vector
-from GTC import is_sequence
+from GTC import (
+    is_sequence,
+    inf,
+    inf_dof,
+    is_infinity,
+)
 
 __all__ = (
     'budget',
+    'k_factor',
+    'k_to_dof',
+    'k2_factor_sq',
     'u_component',
     'is_ureal',
     'is_ucomplex',
@@ -91,6 +109,102 @@ def is_ucomplex(z):
     """
     return isinstance(z,UncertainComplex)
 
+#----------------------------------------------------------------------------
+def k2_factor_sq(df=inf,p=95):
+    """Return the bivariate coverage factor squared for an elliptical region
+
+    :arg df: the degrees-of-freedom (>=2)
+    :arg: p: the coverage probability (%)
+    :type df: float
+
+    Evaluates the square of the coverage factor for an elliptical uncertainty 
+    region with coverage probability ``p``  and ``df`` degrees of freedom
+    based on the F-distribution.
+    
+    **Example**::
+
+        >>> reporting.k2_factor_sq(3)
+            56.99999999999994
+    
+    """
+    p = p / 100.0
+    
+    if df > inf_dof or is_infinity(df):
+        return -2.0 * math.log(1-p)
+        
+    elif(df>1):   
+        # norm = l * (n-1) / (n - l) in the general
+        # 'l'-dimensional case for 'n' observations
+        # here l = 2, df = n-1
+        norm = 2*df / (df-1)
+        
+        # `fdtri` is the inverse of the cumulative F distribution
+        # returning `x` such that `fdtr(dfn, dfd, x) = p`
+        return norm*special.fdtri(2.0,df-1.0,p)
+        
+    else:
+        raise RuntimeError("invalid df={!r}".format( df ) )
+ 
+#----------------------------------------------------------------------------
+def k_factor(df=inf,p=95):
+    """Return the univariate coverage factor
+
+    :arg df: the degrees-of-freedom (>1)
+    :arg p: the coverage probability (%)
+    :type df: float
+    :type p: integer
+
+    Evaluates the coverage factor for an uncertainty interval
+    with coverage probability ``p`` and degrees-of-freedom ``df``
+    based on Student's t-distribution. 
+    
+    **Example**::
+    
+        >>> reporting.k_factor(3)
+        3.182446305284263
+
+    """
+    if p <= 0.0 or p >= 100.0:
+        raise RuntimeError( "invalid p: {}".format( p ) )
+    
+    p = (1.0 + p/100.0)/2.0
+    
+    if df > inf_dof or is_infinity(df):
+        # inverse cumulative Gaussian distribution
+        return special.ndtri(p)
+    elif df >= 1:
+        # inverse cumulative Student-t distribution
+        return special.stdtrit(df,p)
+    else:
+        raise RuntimeError( "invalid df: {}".format( df ) )
+   
+#----------------------------------------------------------------------------
+def k_to_dof(k,p=95):
+    """Return the dof for a univariate coverage factor `k` 
+    
+    :arg k: coverage factor (>0)
+    :arg p: coverage probability (%)
+
+    Evaluates the degrees-of-freedom given a coverage factor for 
+    an uncertainty interval with coverage probability ``p``
+    based on Student's t-distribution.
+    
+    **Example**::
+
+        >>> reporting.k_to_dof(2.0,95)
+        60.43756442698591
+        
+    """
+    if k <= 0:
+        raise RuntimeError( "invalid k:  {}".format( k ) )  
+    if p <= 0 or p >= 100:
+        raise RuntimeError( "invalid p: {}".format( p ) )
+    else:
+        p = (1.0 + p/100.0)/2.0         
+        df = special.stdtridf(p,k) 
+        
+        return df if df < inf_dof else inf 
+    
 #----------------------------------------------------------------------------
 def variance_and_dof(x):
     """Return the variance and degrees-of-freedom.
