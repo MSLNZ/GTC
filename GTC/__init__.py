@@ -28,12 +28,7 @@ inf_dof = 1E5
 inf = float('inf')
 nan = float('nan') 
 
-is_infinity = math.isinf 
-is_undefined = math.isnan
-
-LOG10_E = math.log10(math.e)
-
-# Do not consider strings as sequences
+# Do not consider strings to be sequences
 def is_sequence(obj):
     if isinstance(obj, basestring):
         return False
@@ -88,8 +83,6 @@ __all__ = (
     ,   'persistence',  'pr'
     ,   'math'
     ,   'cmath'
-    ,   'is_infinity'
-    ,   'is_undefined'
     ,   'inf'
     ,   'nan'
 )

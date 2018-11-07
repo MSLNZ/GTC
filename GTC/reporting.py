@@ -61,11 +61,11 @@ from GTC.named_tuples import (
     Influence
 )
 from GTC.vector import extend_vector
+
 from GTC import (
     is_sequence,
     inf,
     inf_dof,
-    is_infinity,
 )
 
 __all__ = (
@@ -129,7 +129,7 @@ def k2_factor_sq(df=inf,p=95):
     """
     p = p / 100.0
     
-    if df > inf_dof or is_infinity(df):
+    if df > inf_dof:
         return -2.0 * math.log(1-p)
         
     elif(df>1):   
@@ -169,7 +169,7 @@ def k_factor(df=inf,p=95):
     
     p = (1.0 + p/100.0)/2.0
     
-    if df > inf_dof or is_infinity(df):
+    if df > inf_dof:
         # inverse cumulative Gaussian distribution
         return special.ndtri(p)
     elif df >= 1:

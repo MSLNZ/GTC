@@ -23,8 +23,8 @@ from GTC.named_tuples import (
 from GTC import (   
     inf,
     nan,
-    is_infinity,
-    is_undefined,
+    # is_infinity,
+    # is_undefined,
     is_sequence,
     copyright,
     version
@@ -87,8 +87,6 @@ __all__ = (
     ,   'persistence',  'pr'
     ,   'math'
     ,   'cmath'
-    ,   'is_infinity'
-    ,   'is_undefined'
 )
 
 #----------------------------------------------------------------------------
@@ -713,8 +711,8 @@ def set_correlation(r,arg1,arg2=None):
     if isinstance(arg1,UncertainReal):
         if isinstance(arg2,UncertainReal):
             if (
-                is_infinity( arg1._node.df ) and
-                is_infinity( arg2._node.df )
+                math.isinf( arg1._node.df ) and
+                math.isinf( arg2._node.df )
             ):
                 lib.set_correlation_real(arg1,arg2,r)
             else:
@@ -768,11 +766,11 @@ def set_correlation(r,arg1,arg2=None):
                 if all( r_i == 0.0 for r_i in r ): return 
                 
                 if (
-                    is_infinity( arg1.real._node.df ) and
+                    math.isinf( arg1.real._node.df ) and
                     # `ucomplex()` prevents these two cases
-                    # is_infinity( arg2.real._node.df ) and
-                    # is_infinity( arg1.imag._node.df ) and
-                    is_infinity( arg2.imag._node.df )
+                    # math.isinf( arg2.real._node.df ) and
+                    # math.isinf( arg1.imag._node.df ) and
+                    math.isinf( arg2.imag._node.df )
                 ):
                     lib.set_correlation_real(arg1.real,arg2.real,r[0])
                     lib.set_correlation_real(arg1.real,arg2.imag,r[1])

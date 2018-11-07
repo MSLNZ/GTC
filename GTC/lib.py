@@ -32,10 +32,9 @@ from GTC import (
     inf, 
     nan, 
     inf_dof, 
-    is_infinity, 
-    is_undefined,
-    LOG10_E,
 )
+
+LOG10_E = math.log10(math.e)
 
 #----------------------------------------------------------------------------
 def _is_uncertain_real_constant(x):
@@ -322,7 +321,7 @@ class UncertainReal(object):
             else:
                 u_digits = "{:.0f}".format(self.u/factor)
 
-            if is_infinity(self.df):
+            if math.isinf(self.df):
                 df = inf
             else:
                 df_factor = 10**(-df_decimals)
@@ -1862,7 +1861,7 @@ def welch_satterthwaite(x):
                     finish_complex =  True
                     
                 # ---------------------------------------------------------
-                nu_i_infinite = is_infinity( df_i ) 
+                nu_i_infinite = math.isinf( df_i ) 
                 
                 # Look at the remaining influences 
                 for j,k_j in enumerate(d_keys[i+1:]):
@@ -1873,7 +1872,7 @@ def welch_satterthwaite(x):
                         covar_ij = 2.0*u_i*r*u_j
                         var += covar_ij    
 
-                        if nu_i_infinite and is_infinity( k_j.df ):
+                        if nu_i_infinite and math.isinf( k_j.df ):
                             # The correlated influences both have  
                             # infinite dof, so it is OK to use WS.
                             # Since infinite DoF are not summed
@@ -1941,13 +1940,13 @@ def welch_satterthwaite(x):
         if var == 0: df = nan
                 
         #--------------------------------------------------------------------        
-        if is_undefined(df):
+        if math.isnan(df):
             return VarianceAndDof(var,nan)
         else:
             # Final calculation of WS 
             den = 0.0
             for v_i,dof_i in izip(cpts_lst,dof_lst):
-                if not is_infinity(dof_i):
+                if not math.isinf(dof_i):
                     u2 = v_i / var
                     den += u2 * u2 / dof_i
                    
@@ -2277,7 +2276,7 @@ class UncertainComplex(object):
             r_factor = 10**(-3)
             r = r_factor*round(r/r_factor)
 
-            if is_infinity(self.df):
+            if math.isinf(self.df):
                 df = inf
             else:
                 df_factor = 10**(-df_decimals)
@@ -3949,7 +3948,7 @@ def willink_hall(x):
             
             nu_i = degrees_of_freedom_u[i_re]
 
-            if not is_infinity( nu_i ):
+            if not math.isinf( nu_i ):
                 # update the sums immediately (does NOT belong to an ensemble)
                 v_11 = re_u[id_re]**2
                 v_22 = im_u[id_re]**2
@@ -3984,7 +3983,7 @@ def willink_hall(x):
                 row_re = id_re.correlation
                 
                 nu_i = degrees_of_freedom_d[i_re]
-                i_re_infinite = is_infinity( nu_i )         
+                i_re_infinite = math.isinf( nu_i )         
 
                 ensemble_i = frozenset(id_re.ensemble)
                 if len(ensemble_i) and ensemble_i not in ensemble_reg:
@@ -4021,7 +4020,7 @@ def willink_hall(x):
                             # Look for the illegal case of correlation between 
                             # influences when at least one has finite dof and 
                             # they are not in an ensemble together.                            
-                            if i_re_infinite and is_infinity( 
+                            if i_re_infinite and math.isinf( 
                                     degrees_of_freedom_d[next_i+j]
                                 ):  
                                     continue
@@ -4062,7 +4061,7 @@ def willink_hall(x):
                         # for j, j_id in enumerate( ids_d[next_i:] ):                        
                             # # Look for the illegal cases
                             # if (
-                                # not is_infinity( 
+                                # not math.isinf( 
                                     # degrees_of_freedom_d[next_i+j]  
                                 # ) 
                                 # and id_re.uid not in ensemble_i

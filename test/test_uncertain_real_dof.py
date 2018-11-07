@@ -50,7 +50,7 @@ class GuideExampleH1(unittest.TestCase):
         df = dof(theta)
         equivalent(v,-0.1,TOL)
         equivalent(u,0.406201920232,TOL)
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         x1 = self.Ls * self.delta_alpha * theta       
         u = uncertainty(x1)
@@ -101,7 +101,7 @@ class GuideExampleH1SIUnits(unittest.TestCase):
         df = dof(theta)
         equivalent(v,-0.1,TOL)
         equivalent(u,0.406201920232,TOL)
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         x1 = self.Ls * self.delta_alpha * theta       
         u = uncertainty(x1)

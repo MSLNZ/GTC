@@ -932,7 +932,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( numpy.matmul(number_to_matrix( cmath.cos(v) ), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(s) ) )
+        self.assertTrue( math.isinf( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -949,7 +949,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( numpy.matmul(number_to_matrix(-cmath.sin(v)), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(c) ) )
+        self.assertTrue( math.isinf( dof(c) ) )
         
         # intermediate
         v3 = value(self.un3)
@@ -966,7 +966,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/( cmath.cos(v))**2), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(c) ) )
+        self.assertTrue( math.isinf( dof(c) ) )
         
         # intermediate
         v3 = value(self.un3)
@@ -992,7 +992,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( numpy.matmul(number_to_matrix(cmath.cosh(v)), mat)),
             TOL)
-        self.assertTrue( is_infinity( dof(s) ) )
+        self.assertTrue( math.isinf( dof(s) ) )
         
         # intermediate
         v3 = value(self.un3)
@@ -1010,7 +1010,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( numpy.matmul(number_to_matrix(cmath.sinh(v)), mat)),
             TOL)
-        self.assertTrue(is_infinity( dof(c) ))
+        self.assertTrue(math.isinf( dof(c) ))
 
         # intermediate
         v3 = value(self.un3)
@@ -1027,7 +1027,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/(cmath.cosh(v))**2), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(t) ) )
+        self.assertTrue( math.isinf( dof(t) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1063,7 +1063,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1/cmath.sqrt(den)), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(s) ) )
+        self.assertTrue( math.isinf( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1082,7 +1082,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( numpy.matmul(number_to_matrix(-1/cmath.sqrt(den)), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(c) ) )
+        self.assertTrue( math.isinf( dof(c) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1101,7 +1101,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/den), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(t) ) )
+        self.assertTrue( math.isinf( dof(t) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1147,7 +1147,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/cmath.sqrt(den)), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(s) ) )
+        self.assertTrue( math.isinf( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1166,7 +1166,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/den), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(c) ) )
+        self.assertTrue( math.isinf( dof(c) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1185,7 +1185,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(t,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/den), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(t) ) )
+        self.assertTrue( math.isinf( dof(t) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1213,7 +1213,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(c,x),
             array_to_sequence( numpy.matmul(numpy.asarray([[1,0],[0,-1]]), mat) ),
             TOL)
-        self.assertTrue( is_infinity( dof(c) ) )
+        self.assertTrue( math.isinf( dof(c) ) )
         
         # intermediate
         s3 = self.un3.conjugate()
@@ -1229,7 +1229,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(re,x),
             array_to_sequence( numpy.matmul(numpy.asarray([[1,0],[0,0]]), mat) ),
             TOL)
-        self.assertTrue( is_infinity( dof(re) ) )
+        self.assertTrue( math.isinf( dof(re) ) )
 
         # intermediate
         s3 = self.un3.real
@@ -1245,7 +1245,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(im,x),
             array_to_sequence( numpy.matmul(numpy.asarray([[0,1],[0,0]]), mat) ),
             TOL)
-        self.assertTrue( is_infinity( dof(im) ) )
+        self.assertTrue( math.isinf( dof(im) ) )
 
         # intermediate
         s3 = self.un3.imag
@@ -1276,7 +1276,7 @@ class ComplexFunctionTest(unittest.TestCase):
         ,   array_to_sequence( numpy.matmul(number_to_matrix(LOG10_E/v), mat ))
         ,   TOL
         )
-        self.assertTrue( is_infinity(dof(l10)) )
+        self.assertTrue( math.isinf(dof(l10)) )
         
         # exp --------------------------------------------------------
         equivalent_complex(value(e),cmath.exp(v),TOL)
@@ -1284,7 +1284,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(e,x),
             array_to_sequence( numpy.matmul(number_to_matrix(cmath.exp(v)), mat)),
             TOL)
-        self.assertTrue( is_infinity(dof(e)) )
+        self.assertTrue( math.isinf(dof(e)) )
         
         # intermediate
         v3 = value(self.un3)
@@ -1301,7 +1301,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(l,x),
             array_to_sequence( numpy.matmul(number_to_matrix(1.0/v), mat )),
             TOL)
-        self.assertTrue( is_infinity(dof(l)) )
+        self.assertTrue( math.isinf(dof(l)) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1318,7 +1318,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(s,x),
             array_to_sequence( numpy.matmul(number_to_matrix(0.5/cmath.sqrt(v)), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(s) ) )
+        self.assertTrue( math.isinf( dof(s) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1335,7 +1335,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(n,x),
             array_to_sequence( numpy.matmul(numpy.asarray([ [2*v.real,2*v.imag],[0,0] ]), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(n) ) )
+        self.assertTrue( math.isinf( dof(n) ) )
 
         # intermediate
         v3 = value(self.un3)
@@ -1364,7 +1364,7 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(a,x),
             array_to_sequence( numpy.matmul(numpy.asarray([ [v.real/abs(v),v.imag/abs(v)],[0,0] ]), mat )),
             TOL)
-        self.assertTrue( is_infinity( dof(a) ) )
+        self.assertTrue( math.isinf( dof(a) ) )
 
         # intermediate
         v3 = value(self.un3)

@@ -83,7 +83,7 @@ class TestWillinkHall(unittest.TestCase):
 
         theta = theta_1 + theta_2 
         df = dof(theta)
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         x1 = Ls * delta_alpha * theta       
         x2 = Ls * alpha_s * delta_theta        
@@ -106,7 +106,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF5(self):
         # Correlations should cause the calculation to abort
@@ -120,7 +120,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF6(self):
         # Correlations should cause the calculation to abort
@@ -134,7 +134,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF7(self):
         # Correlations should cause the calculation to abort
@@ -148,7 +148,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF8(self):
         # Look at the numerical stability of the dof calculation
@@ -232,7 +232,7 @@ class TestWillinkHall(unittest.TestCase):
         x3 = ucomplex( 1, (0.45,0.28,0.28,1.65) )
         x = x1 + x2 + x3
         set_correlation(0.5,x2.imag,x3.imag)
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
  
     def test_correlated_ensemble(self):
         # test when non-consecutive influences 
@@ -262,7 +262,7 @@ class TestWillinkHall(unittest.TestCase):
 
         equivalent( get_correlation(z),-0.591484610819,TOL)
 
-        self.assertTrue( not is_undefined(dof(z)) )
+        self.assertTrue( not math.isnan(dof(z)) )
         equivalent( dof(z),5,TOL)
 
     def test_illegal_complex_ensemble(self):
