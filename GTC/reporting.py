@@ -9,6 +9,9 @@ Reporting functions
         corresponding to a given coverage factor and coverage probability.
     *   The function :func:`k2_factor_sq` returns   
         coverage factor squared for the complex-valued problem. 
+    *   The function :func:`k2_to_dof` returns the degrees of freedom 
+        corresponding to a given coverage factor and coverage probability
+        in complex-valued problems.
     *   Functions :func:`u_bar` and :func:`v_bar` return summary values 
         for matrix results associated with 2-D uncertainty.
 
@@ -39,7 +42,7 @@ import numbers
 from operator import attrgetter as getter
 from functools import reduce
 
-from scipy import special
+from scipy import special, optimize
 
 try:
     from itertools import izip  # Python 2
@@ -73,6 +76,7 @@ __all__ = (
     'k_factor',
     'k_to_dof',
     'k2_factor_sq',
+    'k2_to_dof',
     'u_component',
     'is_ureal',
     'is_ucomplex',
@@ -109,13 +113,83 @@ def is_ucomplex(z):
     """
     return isinstance(z,UncertainComplex)
 
+#------------------------------------------------------------
+def _df_k2(k2,p,nu1,TOL):
+    """
+    Return `nu2` such that the integral of 
+    F(nu1,nu2) from -infty to `x` is `p`
+    
+    `x` is k2**2 * nu2/ ( nu1*(nu2+1) )
+    
+    """
+    # We have `k2` the integral limit, so `pf` gives us `p`
+    # we must vary the `nu2` argument until the
+    # returned value equals `p`.
+    # `fdtr` returns the integral of F probability density from -infty to `x`
+    def fn(nu2):
+        x = k2**2 * nu2/ ( nu1*(nu2+1) )  
+        # return pf(x,nu1,nu2) - p 
+        return special.fdtr(nu1,nu2,x) - p 
+    
+    # dof here is nu2-1 and cannot be less than 2
+    # This setting of `lo` is not a strict bound, because
+    # the calculation will succeed, we just don't want to 
+    # go there.
+    
+    lo = 1 - 1E-3   
+    fn_lo = fn(lo)
+    if fn_lo > 0.0:
+        raise RuntimeError(
+            "dof < 2 cannot be calculated"
+        )
+        
+    upper_limit = (20,50,1E2,1E3,inf_dof)
+    for hi in upper_limit:
+        if fn(hi) > 0.0: 
+            if fn_lo * fn(hi) > 0.0:
+                # fn(lo) and fn(hi) must be of opposite sign
+                raise RuntimeError("ill-conditioned problem")
+            return optimize.ridder(fn,lo,hi)
+        else:    
+            lo = hi
+        
+    return inf       
+#----------------------------------------------------------------------------
+def k2_to_dof(k2,p=95):
+    """Return the dof corresponding to a bivariate coverage factor `k2`  
+    
+    :arg k2: coverage factor (>0)
+    :arg p: coverage probability (%)
+    :type k2: float
+    :type p: int or float
+
+    Evaluates a number of degrees-of-freedom given a coverage 
+    factor for an elliptical uncertainty region with coverage 
+    probability ``p`` based on the F-distribution.
+    
+    **Example**::
+
+        >>> reporting.k2_to_dof(2.6,95)
+        34.35788424389927
+        
+    """
+    if k2 <= 0:
+        raise RuntimeError( "invalid k:  {}".format(k2) ) 
+    if p <= 0 or p >= 100:
+        raise RuntimeError( "invalid p: {}".format(p) )
+    else:
+        p = p / 100.0     
+
+    return _df_k2(k2,p,2,1E-7) + 1
+
 #----------------------------------------------------------------------------
 def k2_factor_sq(df=inf,p=95):
-    """Return the bivariate coverage factor squared for an elliptical region
+    """Return a squared coverage factor for an elliptical uncertainty region
 
     :arg df: the degrees-of-freedom (>=2)
-    :arg: p: the coverage probability (%)
+    :arg p: the coverage probability (%)
     :type df: float
+    :type p: int or float
 
     Evaluates the square of the coverage factor for an elliptical uncertainty 
     region with coverage probability ``p``  and ``df`` degrees of freedom
@@ -147,16 +221,16 @@ def k2_factor_sq(df=inf,p=95):
  
 #----------------------------------------------------------------------------
 def k_factor(df=inf,p=95):
-    """Return the univariate coverage factor
+    """Return the a coverage factor for an uncertainty interval
 
     :arg df: the degrees-of-freedom (>1)
     :arg p: the coverage probability (%)
     :type df: float
-    :type p: integer
+    :type p: int or float
 
     Evaluates the coverage factor for an uncertainty interval
     with coverage probability ``p`` and degrees-of-freedom ``df``
-    based on Student's t-distribution. 
+    based on the Student t-distribution. 
     
     **Example**::
     
@@ -180,14 +254,16 @@ def k_factor(df=inf,p=95):
    
 #----------------------------------------------------------------------------
 def k_to_dof(k,p=95):
-    """Return the dof for a univariate coverage factor `k` 
+    """Return the dof corresponding to a univariate coverage factor `k` 
     
     :arg k: coverage factor (>0)
     :arg p: coverage probability (%)
+    :type k: float
+    :type p: int or float
 
     Evaluates the degrees-of-freedom given a coverage factor for 
     an uncertainty interval with coverage probability ``p``
-    based on Student's t-distribution.
+    based on the Student t-distribution.
     
     **Example**::
 

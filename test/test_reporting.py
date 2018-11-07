@@ -7,6 +7,49 @@ from testing_tools import *
 TOL = 1E-13 
  
 #-----------------------------------------------------
+class TestInCoverage(unittest.TestCase):
+    """
+    Functions that take a coverage factor and refurn dof
+    """
+    
+    def test_k_to_dof(self):
+        """
+        1-D cases
+        """
+        for p in (90,95,99):
+            for df in (1,5,10,25,55,1001):
+                k = rp.k_factor(df,p)
+                dof = rp.k_to_dof(k,p)
+                self.assert_( equivalent(df,dof,1E10) )
+            
+
+        # Illegal cases
+        k = -16.58005817 
+        self.assertRaises(RuntimeError,rp.k_to_dof,k)
+        
+        k = rp.k_factor(1.9)
+        self.assertRaises(RuntimeError,rp.k_to_dof,k,p=100)
+        self.assertRaises(RuntimeError,rp.k_to_dof,-k)
+   
+    def test_k2_to_dof(self):
+        """
+        2-D cases
+        """
+        for p in (90,95,99):
+            for df in (2,5,10,25,55,1001):
+                k = math.sqrt( rp.k2_factor_sq(df,p) )
+                dof = rp.k2_to_dof(k,p)
+                self.assert_( equivalent(df,dof,1E10) )
+ 
+        # Illegal cases
+        k = math.sqrt( rp.k2_factor_sq(2) ) + 0.1
+        self.assertRaises(RuntimeError,rp.k2_to_dof,k)
+        
+        k = math.sqrt( rp.k2_factor_sq(2) )
+        self.assertRaises(RuntimeError,rp.k2_to_dof,k,p=100)
+        self.assertRaises(RuntimeError,rp.k2_to_dof,-k)
+  
+#-----------------------------------------------------
 class TestCoverage(unittest.TestCase):
     
     """
