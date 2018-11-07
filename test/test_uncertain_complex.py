@@ -156,6 +156,9 @@ class ArithmeticTestsComplex(unittest.TestCase):
         self.u1 = (.5,0,0,.2)
         self.un1 = ucomplex(self.x1,self.u1)
         
+        # Added to extend coverage to _d_components
+        self.un1b = ucomplex(self.x1,self.u1,independent=False)
+        
         self.x2 = 2+2j
         self.u2 = (1.5,.7)
         self.un2 = ucomplex(self.x2,self.u2)
@@ -167,13 +170,21 @@ class ArithmeticTestsComplex(unittest.TestCase):
         self.x4 = 16
         self.u4 = 4.5
         self.un4 = ureal(self.x4,self.u4)
-
+        
+        # Added to extend coverage to _d_components 
+        self.un4b = ureal(self.x4,self.u4,independent=False)
+ 
         # Use these as arguments for intermediate testing
         self.un5 = result( (self.un1 + self.un2) * self.un3 )
         self.u5 = uncertainty(self.un5)
 
+        # Added to extend coverage to _d_components 
+        self.un5b = result( (self.un1b + self.un2) * self.un3 )
+
         self.un6 = result( self.un4 * ureal(-45,4) )
         self.u6 = uncertainty(self.un6)
+ 
+        self.un6b = result( self.un4b * ureal(-45,4) )
         
     def testAddition(self):
         # Cases to consider: uc-uc, uc-numb, numb-uc, uc-ur, ur-uc
@@ -201,6 +212,28 @@ class ArithmeticTestsComplex(unittest.TestCase):
         )
         equivalent_sequence(u_component(y,self.un2),[self.u2[0],0.,0.,self.u2[1]],TOL)
         equivalent_sequence(u_component(y,self.un3),[self.u3[0],0.,0.,self.u3[1]],TOL)
+
+        # Test _d_components
+        # uc-uc
+        y = self.un1b + self.un2
+        equivalent_complex(value(y),self.x1+self.x2,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1b)
+        ,   [ math.sqrt(self.u1[0]),0.,0.,math.sqrt(self.u1[3])]
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un2),
+            [self.u2[0],0.,0.,self.u2[1]],
+            TOL)
+        
+        y += self.un3
+        equivalent_complex(value(y),self.x1+self.x2+self.x3,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1b)
+        ,   [math.sqrt(self.u1[0]),0.,0.,math.sqrt(self.u1[3])]
+        ,   TOL
+        )
 
         # Intermediate u_component test
         y = self.un2 + self.un5        
@@ -314,6 +347,44 @@ class ArithmeticTestsComplex(unittest.TestCase):
         ,   TOL
         )
 
+        # Extra tests with _d_components
+        # uc-ur and ur-uc
+        y = self.un1 + self.un4
+        y = self.un4b + self.un1 
+        equivalent_complex(value(y),self.x1+self.x4,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1)
+        ,   [ math.sqrt(self.u1[0]),0.,0.,math.sqrt(self.u1[3])]
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            [self.u4,0.,0.,0.0],
+            TOL)
+        
+        # Intermediate u_component test
+        y = self.un6b + self.un5        
+        equivalent_sequence(
+            u_component(y,self.un5)
+        ,   [self.u5[0],0,0,self.u5[1]]
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un6b)
+        ,   [self.u6,0,0,0]
+        ,   TOL
+        )
+        y = self.un5 + self.un6b         
+        equivalent_sequence(
+            u_component(y,self.un5)
+        ,   [self.u5[0],0,0,self.u5[1]]
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un6b)
+        ,   [self.u6,0,0,0]
+        ,   TOL
+        )        
     def testSubtraction(self):
         # Cases to consider: uc-uc, uc-numb, numb-uc, uc-ur, ur-uc
         # Need to check u_component in each case.
@@ -337,6 +408,24 @@ class ArithmeticTestsComplex(unittest.TestCase):
         equivalent_sequence(u_component(y,self.un2),[-self.u2[0],0.,0.,-self.u2[1]],TOL)
         equivalent_sequence(u_component(y,self.un3),[-self.u3[0],0.,0.,-self.u3[1]],TOL)
 
+        # Test _d_components 
+        y = self.un1b - self.un2
+        equivalent_complex(value(y),self.x1-self.x2,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1b)
+        ,   [math.sqrt(self.u1[0]),0.,0.,math.sqrt(self.u1[3])]
+        ,   TOL
+        )
+        equivalent_sequence(u_component(y,self.un2),[-self.u2[0],0.,0.,-self.u2[1]],TOL)
+        
+        y -= self.un3
+        equivalent_complex(value(y),self.x1-self.x2-self.x3,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1b)
+        ,   [math.sqrt(self.u1[0]),0.,0.,math.sqrt(self.u1[3])]
+        ,   TOL
+        )
+        
         # Intermediate u_component test
         y = self.un2 - self.un5        
         equivalent_sequence(
@@ -434,6 +523,32 @@ class ArithmeticTestsComplex(unittest.TestCase):
             [self.u4,0.,0.,0.0],
             TOL)
 
+        # Extra tests with _d_component 
+        # uc-ur and ur-uc
+        y = self.un1 - self.un4b
+        equivalent_complex(value(y),self.x1-self.x4,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1)
+        ,   [ math.sqrt(self.u1[0]),0.,0.,math.sqrt(self.u1[3])]
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            [-self.u4,0.,0.,0.0],
+            TOL)
+
+        y = self.un4b - self.un1 
+        equivalent_complex(value(y),self.x4-self.x1,TOL)
+        equivalent_sequence(
+            u_component(y,self.un1)
+        ,   [ -math.sqrt(self.u1[0]),0.,0.,-math.sqrt(self.u1[3])]
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            [self.u4,0.,0.,0.0],
+            TOL)   
+            
         # Intermediate u_component test
         y = self.un6 - self.un5        
         equivalent_sequence(
@@ -515,6 +630,36 @@ class ArithmeticTestsComplex(unittest.TestCase):
             array_to_sequence( numpy.matmul(number_to_matrix(self.x2*self.x1), u3)),
             TOL)
 
+        # Test _d_components
+        y = self.un1b * self.un2
+        equivalent_complex(value(y),self.x1*self.x2,TOL)
+        u1,r = to_std_uncertainty(self.u1)
+        equivalent_sequence(
+            u_component(y,self.un1b),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x2), u1)),
+            TOL)
+        u2,r = to_std_uncertainty(self.u2)
+        equivalent_sequence(
+            u_component(y,self.un2),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u2)),
+            TOL)
+        
+        y *= self.un3
+        equivalent_complex(value(y),self.x1*self.x2*self.x3,TOL)
+        u3,r = to_std_uncertainty(self.u3)
+        equivalent_sequence(
+            u_component(y,self.un1b),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x2*self.x3), u1)),
+            TOL)
+        equivalent_sequence(
+            u_component(y,self.un2),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1*self.x3), u2)),
+            TOL)
+        equivalent_sequence(
+            u_component(y,self.un3),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x2*self.x1), u3)),
+            TOL)
+            
         # Intermediate u_component test
         y = self.un2 * self.un5
         u5,r = to_std_uncertainty(self.u5)
@@ -611,7 +756,38 @@ class ArithmeticTestsComplex(unittest.TestCase):
             array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u4)),
             TOL
         )
+        
+        # Additional test with _d_components
+        # uc-ur and ur-uc
+        y = self.un1 *self.un4b
+        equivalent_complex(value(y),self.x1*self.x4,TOL)
+        u1,r = to_std_uncertainty(self.u1)
+        equivalent_sequence(
+            u_component(y,self.un1),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x4), u1))
+        ,   TOL
+        )
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u4)),
+            TOL)
 
+        y = self.un4b * self.un1 
+        equivalent_complex(value(y),self.x4*self.x1,TOL)
+        u1,r = to_std_uncertainty(self.u1)
+        equivalent_sequence(
+            u_component(y,self.un1),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x4), u1)),
+            TOL
+        )
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            array_to_sequence( numpy.matmul(number_to_matrix(self.x1), u4)),
+            TOL
+        )
+        
         # Intermediate u_component test
         y = self.un6 * self.un5
         u6 = self.u6
@@ -668,6 +844,31 @@ class ArithmeticTestsComplex(unittest.TestCase):
 
         self.assertRaises(ZeroDivisionError,div,y,0)
  
+        # Test for _d_component 
+        y = self.un1b / self.un2
+        equivalent_complex(value(y),self.x1/self.x2,TOL)
+        u1,r = to_std_uncertainty(self.u1)
+        u2,r = to_std_uncertainty(self.u2)
+        equivalent_sequence(
+            u_component(y,self.un1b) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x1 ), u1 ))
+        ,   TOL
+        )
+        equivalent_sequence(
+            u_component(y,self.un2) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x2 ), u2 ))
+        ,   TOL
+        )
+
+        y /= self.un3        
+        u3,r = to_std_uncertainty(self.u3)
+        equivalent_complex(value(y),self.x1/self.x2/self.x3,TOL)
+        equivalent_sequence(
+            u_component(y,self.un3) 
+        ,   array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x3 ), u3 ))
+        ,   TOL
+        )
+        
         # Intermediate u_component test
         y = self.un2 / self.un5
         u5,r = to_std_uncertainty(self.u5)
@@ -762,6 +963,36 @@ class ArithmeticTestsComplex(unittest.TestCase):
             TOL
         )
 
+        # Additional tests with _d_components 
+        # uc-ur and ur-uc
+        y = self.un1 / self.un4b
+        equivalent_complex(value(y),self.x1/self.x4,TOL)
+        u1,r = to_std_uncertainty(self.u1)
+        equivalent_sequence(
+            u_component(y,self.un1),
+            array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x1 ), u1))
+        ,   TOL
+        )
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            array_to_sequence( numpy.matmul(number_to_matrix(-value(y) / self.x4), u4)),
+            TOL)
+
+        y = self.un4b / self.un1 
+        equivalent_complex(value(y),self.x4/self.x1,TOL)
+        u1,r = to_std_uncertainty(self.u1)
+        equivalent_sequence(
+            u_component(y,self.un1),
+            array_to_sequence( numpy.matmul(number_to_matrix( -value(y) / self.x1 ), u1)),
+            TOL
+        )
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
+        equivalent_sequence(
+            u_component(y,self.un4b),
+            array_to_sequence( numpy.matmul(number_to_matrix( value(y) / self.x4), u4)),
+            TOL
+        )
         # Intermediate u_component test
         y = self.un6 / self.un5
         u6 = self.u6

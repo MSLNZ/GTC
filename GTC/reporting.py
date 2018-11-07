@@ -57,7 +57,8 @@ from GTC.lib import (
     UncertainComplex,
     welch_satterthwaite,
     willink_hall,
-
+    _is_uncertain_real_constant,
+    _is_uncertain_complex_constant
 )
 from GTC.named_tuples import (
     ComponentOfUncertainty, 
@@ -386,33 +387,29 @@ def u_component(y,x):
                 elif x_i.is_intermediate:
                     u_i = y._i_components.get(x_i._node,0.0)
                 else:
-                    u_i = 0
-                    # raise RuntimeError(
-                        # "The {!i}th component of `x` "
-                        # + "is not an elementary or intermediate " 
-                        # + "uncertain number: {!r}".format(i,x)
-                    # )
+                    # u_i = 0 would not alert to a programming problem
+                    raise RuntimeError(
+                        "An elementary or intermediate " 
+                        + "uncertain number is expected: {!r}".format(x)
+                    )
                 result[i] = u_i
             
             return ComponentOfUncertainty(*result)
         
-        elif isinstance(x,complex):
-            return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
-
         elif isinstance(x,numbers.Real):
             return 0.0
+            
+        elif isinstance(x,numbers.Complex):
+            return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
         
     elif isinstance(y,UncertainComplex):
         if isinstance(x,UncertainComplex):
             x_re, x_im  = x.real, x.imag
             y_re, y_im = y.real, y.imag
             
-            # TODO: is there a flaw here? Is the assumption that 
-            # either none or both components will be elementary?
-            
             # require 4 partial derivatives:
             #   dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im
-            if x.real.is_elementary or x.imag.is_elementary:
+            if x.real.is_elementary and x.imag.is_elementary:
                 if x.real._node.independent:
                     dy_re_dx_re = y_re._u_components.get(x_re._node,0.0)
                     dy_re_dx_im = y_re._u_components.get(x_im._node,0.0)
@@ -426,21 +423,20 @@ def u_component(y,x):
                 
                 return ComponentOfUncertainty(dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im)
                 
-            elif x.real.is_intermediate or x.imag.is_intermediate:
+            elif x.real.is_intermediate and x.imag.is_intermediate:
                 dy_re_dx_re = y_re._i_components.get(x_re._node,0.0)
                 dy_re_dx_im = y_re._i_components.get(x_im._node,0.0)
                 dy_im_dx_re = y_im._i_components.get(x_re._node,0.0)
                 dy_im_dx_im = y_im._i_components.get(x_im._node,0.0) 
             
                 return ComponentOfUncertainty(dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im)
-                
-            else:
+            elif _is_uncertain_complex_constant(x):
                 return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
-                # raise RuntimeError(
-                    # "The a component of `x` "
-                    # + "is not an elementary or intermediate " 
-                    # + "uncertain number: {!r}".format(x)
-                # )
+            else:
+                raise RuntimeError(
+                    "An elementary or intermediate " 
+                    + "uncertain number was expected: {!r}".format(x)
+                )
                 
         elif isinstance(x,UncertainReal):
             y_re, y_im = y.real, y.imag
@@ -460,19 +456,21 @@ def u_component(y,x):
                 dy_im_dx_re = y_im._i_components.get(x._node,0.0)
 
                 return ComponentOfUncertainty(dy_re_dx_re, 0.0, dy_im_dx_re, 0.0)
-                
-            else:
+ 
+            elif _is_uncertain_real_constant(x):
                 return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
-                # raise RuntimeError(
-                    # "The a component of `x` "
-                    # + "is not an elementary or intermediate " 
-                    # + "uncertain number: {!r}".format(x)
-                # )
+            else:
+                raise RuntimeError(
+                    "An elementary or intermediate " 
+                    + "uncertain number is expected: {!r}".format(x)
+                )
             
         elif isinstance(x,(int,long,float,complex)):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
     else:
-        return 0.0
+        raise RuntimeError(
+            "An uncertain number is expected: {!r}".format(y)
+        )
 
 #----------------------------------------------------------------------------
 def u_bar(ucpt):

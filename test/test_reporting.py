@@ -7,6 +7,31 @@ from testing_tools import *
 TOL = 1E-13 
  
 #-----------------------------------------------------
+class TestMisc(unittest.TestCase):
+
+    def test_illegal_u_component_cases(self):
+        # Cannot ask for a component 
+        x1 = ucomplex(10,1)
+        x2 = x1**2 
+        y = magnitude(x1*3j + x2) 
+        self.assertRaises(RuntimeError,rp.u_component,y,x2)
+        
+        y = x1*3j + x2
+        self.assertRaises(RuntimeError,rp.u_component,y,x2)
+ 
+        self.assertRaises(RuntimeError,rp.u_component,10.0,x2)
+ 
+    def test_simple_cases(self):
+        # Return zero 
+        x1 = ureal(10,1)
+        x2 = 1+5j 
+        self.assert_( equivalent_sequence( 
+            rp.u_component(x1,x2),
+            (0.,0.,0.,0.),
+            TOL
+        ))
+        
+#-----------------------------------------------------
 class TestInCoverage(unittest.TestCase):
     """
     Functions that take a coverage factor and refurn dof
@@ -172,6 +197,17 @@ class TestBudget(unittest.TestCase):
         seq = rp.budget(x)
         self.assertEqual(len(seq),0)
 
+    def test_limited_budget(self):
+        x1 = ureal(0,1)
+        x2 = ureal(0,1)
+        x3 = ureal(0,1)
+        y = x1 + x2 + x3 
+        
+        seq = rp.budget(y)
+        self.assertEqual( len(seq), 3 )
+        seq = rp.budget(y,max_number=2)
+        self.assertEqual( len(seq), 2 )
+        
     def test_real(self):
         """
         The budget of a real quantity will consist of a
