@@ -117,8 +117,8 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     setup_requires=sphinx + pytest_runner,
-    tests_require=['pytest-cov', 'pytest>=3.0', 'numpy>=1.10'],
-    install_requires=[],
+    tests_require=['pytest-cov', 'pytest>=3.0'],
+    install_requires=['numpy>=1.13', 'scipy'],
     cmdclass={'docs': BuildDocs, 'apidocs': ApiDocs},
     packages=find_packages(include=('GTC*',)),
 )
