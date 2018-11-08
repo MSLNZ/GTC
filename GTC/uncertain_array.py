@@ -424,4 +424,4 @@ else:
                 i1 = np.hstack((i1, slices))
                 i2 = np.hstack((i2, slices))
                 out = np.array([self._matmul(lhs[tuple(a)], rhs[tuple(b)]) for a, b in zip(i1, i2)])
-                return out.reshape(*broadcast.shape, lhs.shape[-2], rhs.shape[-1])
+                return out.reshape(list(broadcast.shape) + [lhs.shape[-2], rhs.shape[-1]])
