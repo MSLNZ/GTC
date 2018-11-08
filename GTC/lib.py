@@ -599,58 +599,58 @@ class UncertainReal(object):
     
     #------------------------------------------------------------------------
     def __add__(self,rhs):
-        if isinstance(rhs,UncertainReal):
+        if isinstance( rhs,(UncertainReal,numbers.Complex) ):
             return _add(self,rhs)
-        elif isinstance(rhs,numbers.Real):
-            return _add(self,float(rhs))      
-        elif isinstance(rhs,complex):
-            return _add_re_z(self,complex(rhs))        
+        # elif isinstance(rhs,numbers.Real):
+            # return _add(self,float(rhs))      
+        # elif isinstance(rhs,numbers.Complex):
+            # return _add_re_z(self,complex(rhs))        
         else:
             return NotImplemented
         
     def __radd__(self,lhs):
-        if isinstance(lhs,numbers.Real):
-            return _radd(float(lhs),self)
-        elif isinstance(lhs,complex):
-            return _add_z_re(complex(lhs),self)
+        if isinstance(lhs,numbers.Complex):
+            return _radd(lhs,self)
+        # elif isinstance(lhs,numbers.Complex):
+            # return _add_z_re(complex(lhs),self)
         else:
             return NotImplemented
 
     #------------------------------------------------------------------------
     def __sub__(self,rhs):
-        if isinstance(rhs,UncertainReal):
+        if isinstance(rhs,(UncertainReal,numbers.Complex)):
             return _sub(self,rhs)
-        elif isinstance(rhs,numbers.Real):
-            return _sub(self,float(rhs))
-        elif isinstance(rhs,complex):
-            return _sub_re_z(self,complex(rhs))
+        # elif isinstance(rhs,numbers.Real):
+            # return _sub(self,float(rhs))
+        # elif isinstance(rhs,numbers.Complex):
+            # return _sub_re_z(self,complex(rhs))
         else:
             return NotImplemented
         
     def __rsub__(self,lhs):
-        if isinstance(lhs,numbers.Real):
-            return _rsub(float(lhs),self)
-        elif isinstance(lhs,complex):
-            return _sub_z_re(complex(lhs),self)
+        if isinstance(lhs,numbers.Complex):
+            return _rsub(lhs,self)
+        # elif isinstance(lhs,numbers.Complex):
+            # return _sub_z_re(complex(lhs),self)
         else:
             return NotImplemented
 
     #------------------------------------------------------------------------
     def __mul__(self,rhs):
-        if isinstance(rhs,UncertainReal):
+        if isinstance(rhs,(UncertainReal,numbers.Complex)):
             return _mul(self,rhs)
-        elif isinstance(rhs,numbers.Real):
-            return _mul(self,float(rhs))
-        elif isinstance(rhs,complex):
-            return _mul_re_z(self,complex(rhs))
+        # elif isinstance(rhs,numbers.Real):
+            # return _mul(self,float(rhs))
+        # elif isinstance(rhs,numbers.Complex):
+            # return _mul_re_z(self,complex(rhs))
         else:
             return NotImplemented
         
     def __rmul__(self,lhs):
-        if isinstance(lhs,numbers.Real):
-            return _rmul(float(lhs),self)
-        elif isinstance(lhs,complex):
-            return _mul_z_re(complex(lhs),self)
+        if isinstance(lhs,numbers.Complex):
+            return _rmul(lhs,self)
+        # elif isinstance(lhs,numbers.Complex):
+            # return _mul_z_re(complex(lhs),self)
         else:
             return NotImplemented
 
@@ -659,12 +659,12 @@ class UncertainReal(object):
         return self.__div__(rhs)
         
     def __div__(self,rhs):
-        if isinstance(rhs,UncertainReal):
+        if isinstance(rhs,(UncertainReal,numbers.Complex)):
             return _div(self,rhs)
-        elif isinstance(rhs,numbers.Real):
-            return _div(self,float(rhs))
-        elif isinstance(rhs,complex):
-            return _div_re_z(self,complex(rhs))
+        # elif isinstance(rhs,numbers.Real):
+            # return _div(self,float(rhs))
+        # elif isinstance(rhs,numbers.Complex):
+            # return _div_re_z(self,complex(rhs))
         else:
             return NotImplemented
 
@@ -672,29 +672,29 @@ class UncertainReal(object):
         return self.__rdiv__(lhs)
         
     def __rdiv__(self,lhs):
-        if isinstance(lhs,numbers.Real):
-            return _rdiv(float(lhs),self)
-        elif isinstance(lhs,numbers.Complex):
-            return _div_z_re(complex(lhs),self)
+        if isinstance(lhs,numbers.Complex):
+            return _rdiv(lhs,self)
+        # elif isinstance(lhs,numbers.Complex):
+            # return _div_z_re(complex(lhs),self)
         else:
             return NotImplemented
 
     #------------------------------------------------------------------------
     def __pow__(self,rhs):
-        if isinstance(rhs,UncertainReal):
+        if isinstance(rhs,(UncertainReal,numbers.Complex)):
             return _pow(self,rhs)
-        elif isinstance(rhs,numbers.Real):
-            return _pow(self,float(rhs))
-        elif isinstance(rhs,numbers.Complex):
-            return _pow_re_z(self,complex(rhs))
+        # elif isinstance(rhs,numbers.Real):
+            # return _pow(self,float(rhs))
+        # elif isinstance(rhs,numbers.Complex):
+            # return _pow_re_z(self,complex(rhs))
         else:
             return NotImplemented
 
     def __rpow__(self,lhs):
-        if isinstance(lhs,numbers.Real):
-            return _rpow(float(lhs),self)
-        elif isinstance(lhs,numbers.Complex):
-            return _pow_z_re(complex(lhs),self)
+        if isinstance(lhs,numbers.Complex):
+            return _rpow(lhs,self)
+        # elif isinstance(lhs,numbers.Complex):
+            # return _pow_z_re(complex(lhs),self)
         else:
             return NotImplemented
 
@@ -1083,6 +1083,8 @@ def _atan2_re_x(lhs,x):
 def _pow(lhs,rhs):
     """
     Raise uncertain real `lhs` to the power of `rhs`
+    `lhs` is guaranteed UncertainReal, `rhs` is a number 
+    or an UncertainReal
     
     """
     # Called from __pow__, so we know that `lhs` is UncertainReal 
@@ -1092,16 +1094,30 @@ def _pow(lhs,rhs):
         r = rhs.x
         l = lhs.x
 
-        y = l**r
-        dy_dl = r * l**(r-1)
-        dy_dr = math.log(abs(l))*y if l != 0 else 0
-        
-        return UncertainReal(
-                y
-            ,   vector.merge_weighted_vectors(lhs._u_components,dy_dl,rhs._u_components,dy_dr)
-            ,   vector.merge_weighted_vectors(lhs._d_components,dy_dl,rhs._d_components,dy_dr)
-            ,   vector.merge_weighted_vectors(lhs._i_components,dy_dl,rhs._i_components,dy_dr)
-            )
+        try:
+            y = l**r
+        except ValueError:
+            # py 2.7 does not handle fractional powers of negative numbers 
+            # but py3 does by returning a complex. 
+            # We patch the py2 case by casting `lhs` to a ucomplex
+            return (lhs + 0j)**rhs 
+
+        if isinstance(y,numbers.Real):
+            
+            dy_dl = r * l**(r-1)
+            dy_dr = math.log(abs(l))*y if l != 0 else 0
+            
+            return UncertainReal(
+                    y
+                ,   vector.merge_weighted_vectors(lhs._u_components,dy_dl,rhs._u_components,dy_dr)
+                ,   vector.merge_weighted_vectors(lhs._d_components,dy_dl,rhs._d_components,dy_dr)
+                ,   vector.merge_weighted_vectors(lhs._i_components,dy_dl,rhs._i_components,dy_dr)
+                )
+        elif isinstance(y,numbers.Complex):
+            # If `y` is complex, do this as a ucomplex problem 
+            return (lhs + 0j)**rhs
+        else:
+            assert False,'unexpected'
  
     elif isinstance(rhs,numbers.Real): 
         if rhs == 0:
@@ -1112,15 +1128,54 @@ def _pow(lhs,rhs):
             l = lhs.x
             r = rhs 
             
-            y = l**r
-            dy_dl = r * l**(r-1)
-            return UncertainReal(
-                    y
-                ,   vector.scale_vector(lhs._u_components,dy_dl)
-                ,   vector.scale_vector(lhs._d_components,dy_dl)
-                ,   vector.scale_vector(lhs._i_components,dy_dl)
-                )
+            try:
+                y = l**r
+            except ValueError:
+                # py 2.7 does not handle fractional powers of negative numbers 
+                # but py3 does by returning a complex. 
+                # We patch the py2 case by casting `lhs` to a ucomplex
+                return (lhs + 0j)**rhs 
+                
+            if isinstance(y,numbers.Real):
+                dy_dl = r * l**(r-1)
+                return UncertainReal(
+                        y
+                    ,   vector.scale_vector(lhs._u_components,dy_dl)
+                    ,   vector.scale_vector(lhs._d_components,dy_dl)
+                    ,   vector.scale_vector(lhs._i_components,dy_dl)
+                    )
+            elif isinstance(y,numbers.Complex):
+                # If `y` is complex, do this as a ucomplex problem 
+                return (lhs + 0j)**rhs
+            else:
+                assert False,'unexpected'
  
+    elif isinstance(rhs,numbers.Complex): 
+        return (lhs + 0j)**rhs
+        # l = lhs.x
+        # r = rhs
+        # y = l**r
+        
+        # dy_dl = r * l**(r-1)
+
+        # r = UncertainReal(
+                # y.real,
+                # vector.scale_vector(lhs._u_components,dy_dl.real),
+                # vector.scale_vector(lhs._d_components,dy_dl.real),
+                # vector.scale_vector(lhs._i_components,dy_dl.real)
+            # )        
+        # i = UncertainReal(
+                # y.imag,
+                # vector.scale_vector(lhs._u_components,dy_dl.imag),
+                # vector.scale_vector(lhs._d_components,dy_dl.imag),
+                # vector.scale_vector(lhs._i_components,dy_dl.imag)
+            # )        
+        
+        # return UncertainComplex(r,i)
+    else:
+        assert False, 'unexpected'
+
+
 #----------------------------------------------------------------------------
 def _rpow(lhs,rhs):
     """
@@ -1133,73 +1188,107 @@ def _rpow(lhs,rhs):
         l = lhs
         r = rhs.x
 
-        y = l**r
-        dy_dr = math.log(abs(l))*y if l != 0 else 0
-        
-        return UncertainReal(
-                y
-            ,   vector.scale_vector(rhs._u_components,dy_dr)
-            ,   vector.scale_vector(rhs._d_components,dy_dr)
-            ,   vector.scale_vector(rhs._i_components,dy_dr)
-            )
-    elif isinstance(lhs,numbers.Complex):
-        return _pow_z_re(lhs,rhs)  
-    else:
-        raise NotImplemented
-
-#----------------------------------------------------------------------------
-def _pow_z_re(lhs,rhs):
-    """
-    Raise a complex (lhs) to the power of an uncertain real number (rhs)
-    
-    """
-    l = lhs
-    r = rhs.x
-    y = l**r
-    
-    dy_dr = y * cmath.log(l) if l != 0 else 0
+        try:
+            y = l**r
+        except ValueError:
+            # py 2.7 does not handle fractional powers of negative numbers 
+            # but py3 does by returning a complex. 
+            # We patch the py2 case by casting `lhs` to a ucomplex
+            return lhs**(rhs + 0j) 
+                
+        if isinstance(y,numbers.Real):
+            dy_dr = math.log(abs(l))*y if l != 0 else 0
             
-    r = UncertainReal(
-            y.real,
-            vector.scale_vector(rhs._u_components,dy_dr.real),
-            vector.scale_vector(rhs._d_components,dy_dr.real),
-            vector.scale_vector(rhs._i_components,dy_dr.real)
-        )        
-    i = UncertainReal(
-            y.imag,
-            vector.scale_vector(rhs._u_components,dy_dr.imag),
-            vector.scale_vector(rhs._d_components,dy_dr.imag),
-            vector.scale_vector(rhs._i_components,dy_dr.imag)
-        )        
-    
-    return UncertainComplex(r,i)
+            return UncertainReal(
+                    y
+                ,   vector.scale_vector(rhs._u_components,dy_dr)
+                ,   vector.scale_vector(rhs._d_components,dy_dr)
+                ,   vector.scale_vector(rhs._i_components,dy_dr)
+                )
+        elif isinstance(y,numbers.Complex):
+            # If `y` is complex, do this as a ucomplex problem 
+            return lhs**(rhs + 0j)
+        else:
+            assert False,'unexpected'     
+            
+    elif isinstance(lhs,numbers.Complex):
+        return lhs**(rhs + 0j)
+        # l = lhs
+        # r = rhs.x
+        # y = l**r
+        
+        # dy_dr = y * cmath.log(l) if l != 0 else 0
+                
+        # r = UncertainReal(
+                # y.real,
+                # vector.scale_vector(rhs._u_components,dy_dr.real),
+                # vector.scale_vector(rhs._d_components,dy_dr.real),
+                # vector.scale_vector(rhs._i_components,dy_dr.real)
+            # )        
+        # i = UncertainReal(
+                # y.imag,
+                # vector.scale_vector(rhs._u_components,dy_dr.imag),
+                # vector.scale_vector(rhs._d_components,dy_dr.imag),
+                # vector.scale_vector(rhs._i_components,dy_dr.imag)
+            # )        
+        
+        # return UncertainComplex(r,i)    
+    else:
+        assert False, 'unexpected'
 
-#----------------------------------------------------------------------------
-def _pow_re_z(lhs,rhs):
-    """
-    Raise an uncertain real number (lhs) to the power of a complex (rhs) 
+# #----------------------------------------------------------------------------
+# def _pow_z_re(lhs,rhs):
+    # """
+    # Raise a complex (lhs) to the power of an uncertain real number (rhs)
     
-    """    
-    l = lhs.x
-    r = rhs
-    y = l**r
+    # """
+    # l = lhs
+    # r = rhs.x
+    # y = l**r
     
-    dy_dl = r * l**(r-1)
+    # dy_dr = y * cmath.log(l) if l != 0 else 0
+            
+    # r = UncertainReal(
+            # y.real,
+            # vector.scale_vector(rhs._u_components,dy_dr.real),
+            # vector.scale_vector(rhs._d_components,dy_dr.real),
+            # vector.scale_vector(rhs._i_components,dy_dr.real)
+        # )        
+    # i = UncertainReal(
+            # y.imag,
+            # vector.scale_vector(rhs._u_components,dy_dr.imag),
+            # vector.scale_vector(rhs._d_components,dy_dr.imag),
+            # vector.scale_vector(rhs._i_components,dy_dr.imag)
+        # )        
+    
+    # return UncertainComplex(r,i)
 
-    r = UncertainReal(
-            y.real,
-            vector.scale_vector(lhs._u_components,dy_dl.real),
-            vector.scale_vector(lhs._d_components,dy_dl.real),
-            vector.scale_vector(lhs._i_components,dy_dl.real)
-        )        
-    i = UncertainReal(
-            y.imag,
-            vector.scale_vector(lhs._u_components,dy_dl.imag),
-            vector.scale_vector(lhs._d_components,dy_dl.imag),
-            vector.scale_vector(lhs._i_components,dy_dl.imag)
-        )        
+# #----------------------------------------------------------------------------
+# def _pow_re_z(lhs,rhs):
+    # """
+    # Raise an uncertain real number (lhs) to the power of a complex (rhs) 
     
-    return UncertainComplex(r,i)
+    # """    
+    # l = lhs.x
+    # r = rhs
+    # y = l**r
+    
+    # dy_dl = r * l**(r-1)
+
+    # r = UncertainReal(
+            # y.real,
+            # vector.scale_vector(lhs._u_components,dy_dl.real),
+            # vector.scale_vector(lhs._d_components,dy_dl.real),
+            # vector.scale_vector(lhs._i_components,dy_dl.real)
+        # )        
+    # i = UncertainReal(
+            # y.imag,
+            # vector.scale_vector(lhs._u_components,dy_dl.imag),
+            # vector.scale_vector(lhs._d_components,dy_dl.imag),
+            # vector.scale_vector(lhs._i_components,dy_dl.imag)
+        # )        
+    
+    # return UncertainComplex(r,i)
  
 #----------------------------------------------------------------------------
 def _div(lhs,rhs):
@@ -1246,12 +1335,16 @@ def _div(lhs,rhs):
                 )
     elif isinstance(rhs,numbers.Complex):
         if rhs == 1.0:
-            return lhs
+            r = +lhs
+            i = UncertainReal._constant(0.0)
         else:
-            return _div_re_z(lhs,rhs)
-   
+            norm = abs(rhs)**2
+            r = lhs * rhs.real/norm
+            i = lhs * -rhs.imag/norm
+            
+        return UncertainComplex(r,i)   
     else:
-        raise NotImplemented
+        assert False, 'unexpected'
 
 #----------------------------------------------------------------------------
 def _rdiv(lhs,rhs):
@@ -1271,31 +1364,34 @@ def _rdiv(lhs,rhs):
             ,   vector.scale_vector(rhs._i_components,dy_dr)
             )
     elif isinstance(lhs,numbers.Complex):
-        return _div_z_re(lhs,rhs)  
+        r = lhs.real / rhs 
+        i = lhs.imag / rhs 
+        
+        return UncertainComplex(r,i)
     else:
-        raise NotImplemented
+        assert False, 'unexpected'
 
-#----------------------------------------------------------------------------
-def _div_z_re(lhs,rhs):
-    """
-    Divide a complex (lhs) by an uncertain real number (rhs)
+# #----------------------------------------------------------------------------
+# def _div_z_re(lhs,rhs):
+    # """
+    # Divide a complex (lhs) by an uncertain real number (rhs)
     
-    """
-    r = lhs.real / rhs 
-    i = lhs.imag / rhs 
+    # """
+    # r = lhs.real / rhs 
+    # i = lhs.imag / rhs 
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
 
-def _div_re_z(lhs,rhs):
-    """
-    Divide an uncertain real number (lhs) and a complex (rhs) 
+# def _div_re_z(lhs,rhs):
+    # """
+    # Divide an uncertain real number (lhs) and a complex (rhs) 
     
-    """
-    norm = abs(rhs)**2
-    r = lhs * rhs.real/norm
-    i = lhs * -rhs.imag/norm
+    # """
+    # norm = abs(rhs)**2
+    # r = lhs * rhs.real/norm
+    # i = lhs * -rhs.imag/norm
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
 
 #----------------------------------------------------------------------------
 def _mul(lhs,rhs):
@@ -1333,12 +1429,16 @@ def _mul(lhs,rhs):
                 
     elif isinstance(rhs,numbers.Complex):
         if rhs == 1.0:
-            return lhs
+            r = +lhs 
+            i = UncertainReal._constant(0.0)
         else:
-            return _mul_re_z(lhs,rhs)
+            r = lhs * rhs.real
+            i = lhs * rhs.imag
+
+        return UncertainComplex(r,i)
    
     else:
-        raise NotImplemented
+        assert False, 'unexpected'
 
 #----------------------------------------------------------------------------
 def _rmul(lhs,rhs):
@@ -1358,33 +1458,37 @@ def _rmul(lhs,rhs):
                 )
     elif isinstance(lhs,numbers.Complex):
         if lhs == 1.0:
-            return rhs
+            r = +rhs 
+            i = UncertainReal._constant(0.0)
         else:
-            return _mul_z_re(lhs,rhs)  
+            r = lhs.real * rhs 
+            i = lhs.imag * rhs 
+    
+        return UncertainComplex(r,i)
     else:
-        raise NotImplemented
+        assert false, 'unexpected'
 
-#----------------------------------------------------------------------------
-def _mul_z_re(lhs,rhs):
-    """
-    Multiply a complex number (lhs) and an uncertain real number (rhs)
+# #----------------------------------------------------------------------------
+# def _mul_z_re(lhs,rhs):
+    # """
+    # Multiply a complex number (lhs) and an uncertain real number (rhs)
     
-    """
-    r = lhs.real * rhs 
-    i = lhs.imag * rhs 
+    # """
+    # r = lhs.real * rhs 
+    # i = lhs.imag * rhs 
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
     
-#----------------------------------------------------------------------------
-def _mul_re_z(lhs,rhs):
-    """
-    Multiply a complex number (rhs) and an uncertain real number (lhs)
+# #----------------------------------------------------------------------------
+# def _mul_re_z(lhs,rhs):
+    # """
+    # Multiply a complex number (rhs) and an uncertain real number (lhs)
 
-    """
-    r = lhs * rhs.real
-    i = lhs * rhs.imag
+    # """
+    # r = lhs * rhs.real
+    # i = lhs * rhs.imag
 
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
 
 #----------------------------------------------------------------------------
 def _sub(lhs,rhs):
@@ -1405,6 +1509,7 @@ def _sub(lhs,rhs):
                     lhs._i_components,1.0,rhs._i_components,-1.0
                 )
             )
+            
     elif isinstance(rhs,numbers.Real):
         if rhs == 0.0:
             return lhs
@@ -1415,14 +1520,19 @@ def _sub(lhs,rhs):
                 ,   vector.scale_vector(lhs._d_components,1.0)
                 ,   vector.scale_vector(lhs._i_components,1.0)
                 )
+                
     elif isinstance(rhs,numbers.Complex):
         if rhs == 0.0:
-            return lhs
+            r = +lhs 
+            i = UncertainReal._constant( -rhs.imag )
         else:
-            return _sub_re_z(lhs,rhs)
+            r = lhs - rhs.real
+            i = UncertainReal._constant( -rhs.imag )
+            
+        return UncertainComplex(r,i)
    
     else:
-        raise NotImplementedError()
+        assert False, 'unexpected'
   
 #----------------------------------------------------------------------------
 def _rsub(lhs,rhs):  
@@ -1443,36 +1553,44 @@ def _rsub(lhs,rhs):
                 
     elif isinstance(lhs,numbers.Complex):
         if lhs == 0.0:
-            return -rhs
+            r = -rhs 
+            i = UncertainReal._constant(0.0)
         else:
-            return _sub_z_re(lhs,rhs)  
+            r = lhs.real - rhs 
+            i = UncertainReal._constant(lhs.imag)
+        
+        return UncertainComplex(r,i)
+
     else:
         raise NotImplementedError()
 
-#----------------------------------------------------------------------------
-def _sub_z_re(lhs,rhs):
-    """
-    Subtract an uncertain real number `rhs` from a complex `lhs`
-    """
-    r = lhs.real - rhs 
-    i = UncertainReal._constant(lhs.imag)
+# #----------------------------------------------------------------------------
+# def _sub_z_re(lhs,rhs):
+    # """
+    # Subtract an uncertain real number `rhs` from a complex `lhs`
+    # """
+    # r = lhs.real - rhs 
+    # i = UncertainReal._constant(lhs.imag)
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
  
-#----------------------------------------------------------------------------
-def _sub_re_z(lhs,rhs):
-    """
-    Subtract a complex `rhs` from an uncertain real number `lhs` 
-    """
-    r = lhs - rhs.real
-    i = UncertainReal._constant( -rhs.imag )
+# #----------------------------------------------------------------------------
+# def _sub_re_z(lhs,rhs):
+    # """
+    # Subtract a complex `rhs` from an uncertain real number `lhs` 
+    # """
+    # r = lhs - rhs.real
+    # i = UncertainReal._constant( -rhs.imag )
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
  
 #----------------------------------------------------------------------------
 def _add(lhs,rhs):
     """
     Add the uncertain real number `lhs` to `rhs`
+    
+    `lhs` is guaranteed UncertainReal
+    `rhs` can be UncertainReal or a number
     
     """
     if isinstance(rhs,UncertainReal):
@@ -1496,17 +1614,22 @@ def _add(lhs,rhs):
                 )
     elif isinstance(rhs,numbers.Complex):
         if rhs == 0.0:
-            return lhs
+            r = +lhs 
+            i = UncertainReal._constant(0.0)
         else:
-            return _add_re_z(lhs,rhs)
+            r = lhs + rhs.real 
+            i = UncertainReal._constant(rhs.imag)
+            
+        return UncertainComplex(r,i)
    
     else:
-        raise NotImplemented
+        assert False, 'unexpected'
         
 #----------------------------------------------------------------------------
 def _radd(lhs,rhs):
     """
-    Add `lhs` to the uncertain real number `rhs` 
+    Add `lhs` to the uncertain real number `rhs`
+    `rhs` is guaranteed UncertainReal
     
     """
     if isinstance(lhs,numbers.Real):    
@@ -1522,33 +1645,39 @@ def _radd(lhs,rhs):
                 
     elif isinstance(lhs,numbers.Complex):
         if lhs == 0.0:
-            return rhs
+            r = +rhs
+            i = UncertainReal._constant(0.0)
         else:
-            return _add_z_re(lhs,rhs)  
+            r = lhs.real + rhs 
+            i = UncertainReal._constant(lhs.imag)
+            
+        # Addition of a complex changes the type
+        return UncertainComplex(r,i)
+        
     else:
-        raise NotImplemented
+        assert False, 'unexpected'
 
-#----------------------------------------------------------------------------
-def _add_re_z(lhs,rhs):
-    """
-    Add a complex number `rhs` to an uncertain real number `lhs`
+# #----------------------------------------------------------------------------
+# def _add_re_z(lhs,rhs):
+    # """
+    # Add a complex number `rhs` to an uncertain real number `lhs`
     
-    """
-    r = lhs + rhs.real 
-    i = UncertainReal._constant(rhs.imag)
+    # """
+    # r = lhs + rhs.real 
+    # i = UncertainReal._constant(rhs.imag)
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
 
-#----------------------------------------------------------------------------
-def _add_z_re(lhs,rhs):
-    """
-    Add a complex number `lhs` to an uncertain real number `rhs`
+# #----------------------------------------------------------------------------
+# def _add_z_re(lhs,rhs):
+    # """
+    # Add a complex number `lhs` to an uncertain real number `rhs`
     
-    """
-    r = lhs.real + rhs
-    i = UncertainReal._constant(lhs.imag)
+    # """
+    # r = lhs.real + rhs
+    # i = UncertainReal._constant(lhs.imag)
     
-    return UncertainComplex(r,i)
+    # return UncertainComplex(r,i)
 
 #----------------------------------------------------------------------------
 def set_correlation_real(x1,x2,r):

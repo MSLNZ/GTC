@@ -1655,7 +1655,6 @@ class ComplexFunctionTest(unittest.TestCase):
             array_to_sequence( numpy.matmul(number_to_matrix(dp_dv3), mat3 )),
             TOL)
 
-
         # numb-uc ---------------------------------------------------        
         # x ** n, where x is a number
         vz = 2.5

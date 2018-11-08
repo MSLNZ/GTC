@@ -960,8 +960,6 @@ class TestFunctionsReal(unittest.TestCase):
         equivalent( u1, u_component(y,self.un1), TOL )
         equivalent( u2, u_component(y,self.un2), TOL )
 
-        self.assertRaises(ValueError,UncertainReal.__pow__,self.un3,self.un2)
-
         # 0 ** 1 is a tricky one
         y = self.un4 ** self.un5
         v = value(y)
