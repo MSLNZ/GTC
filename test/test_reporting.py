@@ -81,7 +81,7 @@ class TestInCoverage(unittest.TestCase):
             for df in (1,5,10,25,55,1001):
                 k = rp.k_factor(df,p)
                 dof = rp.k_to_dof(k,p)
-                self.assert_( equivalent(df,dof,1E10) )
+                self.assertTrue( equivalent(df,dof,1E10) )
             
 
         # Illegal cases
@@ -100,7 +100,7 @@ class TestInCoverage(unittest.TestCase):
             for df in (2,5,10,25,55,1001):
                 k = math.sqrt( rp.k2_factor_sq(df,p) )
                 dof = rp.k2_to_dof(k,p)
-                self.assert_( equivalent(df,dof,1E10) )
+                self.assertTrue( equivalent(df,dof,1E10) )
  
         # Illegal cases
         k = math.sqrt( rp.k2_factor_sq(2) ) + 0.1
@@ -124,27 +124,27 @@ class TestCoverage(unittest.TestCase):
         data_95 = (
             (2,4.302652730),(3,3.182446305),(5,2.570581836), (10,2.228138852), (50,2.008559112), (inf,1.959963985)
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_95[0][1],rp.k_factor(data_95[0][0],95),1E-2 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_95[1][1],rp.k_factor(data_95[1][0],95),1E-3 ) 
         )
             
         for df,k in data_95:
-            self.assert_( equivalent(k,rp.k_factor(df),TOL) )
+            self.assertTrue( equivalent(k,rp.k_factor(df),TOL) )
 
         data_99 = (
             (2,9.924843201),(3,5.84090931),(5,4.032142984), (10,3.169272673), (50,2.677793271), (inf,2.575829304)
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_99[0][1],rp.k_factor(data_99[0][0],99),0.2 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_99[1][1],rp.k_factor(data_99[1][0],99),0.02 ) 
         )
         for df,k in data_99:
-            self.assert_( equivalent(k,rp.k_factor(df,99),TOL ) )
+            self.assertTrue( equivalent(k,rp.k_factor(df,99),TOL ) )
             
         # illegal `df`
         self.assertRaises(RuntimeError,rp.k_factor,0.5)
@@ -159,21 +159,21 @@ class TestCoverage(unittest.TestCase):
         # illegal `df`
         self.assertRaises(RuntimeError,rp.k2_factor_sq,1)
         
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_95[1][1]**2,rp.k2_factor_sq(data_95[1][0],95),0.2 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_95[2][1]**2,rp.k2_factor_sq(data_95[2][0],95),0.1 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_95[3][1]**2,rp.k2_factor_sq(data_95[3][0],95),0.1 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_95[4][1]**2,rp.k2_factor_sq(data_95[4][0],95),0.01 ) 
         )
 
         for df,k in data_95:
-            self.assert_( 
+            self.assertTrue(
                 equivalent(
                     k,
                     math.sqrt( 
@@ -186,18 +186,18 @@ class TestCoverage(unittest.TestCase):
            (2,141.414284993), (5,6.708203932), (10,4.222036715), (50,3.215529821), (inf,3.034854259)               
         )
         
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_99[1][1]**2,rp.k2_factor_sq(data_99[1][0],99),1.2 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_99[2][1]**2,rp.k2_factor_sq(data_99[2][0],99),0.6 ) 
         )
-        self.assert_( 
+        self.assertTrue(
             equivalent(data_99[3][1]**2,rp.k2_factor_sq(data_99[3][0],99),0.4 ) 
         )
 
         for df,k in data_99:
-            self.assert_( 
+            self.assertTrue(
                 equivalent(
                     k,
                     math.sqrt( 
