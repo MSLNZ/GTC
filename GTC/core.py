@@ -29,7 +29,9 @@ from GTC import (
     copyright,
     version
 )
-    
+
+from GTC.uncertain_array import UncertainArray
+
 # aliases 
 rp = reporting
 tb = type_b
@@ -1245,22 +1247,6 @@ def uarray(array, label=None):
         raise ImportError('Requires numpy > v1.13 to be installed')
     return UncertainArray(array, label=label)
 
-    # Rather than performing the following checks let the UncertainReal and UncertainComplex
-    # classes complain if they cannot operate on a certain data type during a calculation
-    #
-    # if not is_sequence(array):
-    #     raise TypeError('Invalid uarray input {}'.format(type(array)))
-    # ua = UncertainArray(array)
-    #
-    # # TODO: should all items in the array be type checked?
-    # # should we allow a mixture of ureal/ucomplex with int/float/complex in the array?
-    # if ua.size > 0 and not isinstance(ua.item(0), (UncertainReal, UncertainComplex)):
-    #     raise TypeError('Invalid uarray item {}'.format(type(ua.item(0))))
-    #
-    # return ua
-
-# import here because uncertain_array requires functions from core.py
-from GTC.uncertain_array import UncertainArray
 
 #============================================================================    
 if __name__ == "__main__":
