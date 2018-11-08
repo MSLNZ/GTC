@@ -29,13 +29,13 @@ else:
         UncertainArray = None
     else:
 
-        def nan(number):
+        def _isnan(number):
             try:
                 return isnan(number.x)
             except AttributeError:
                 return isnan(number)
 
-        def inf(number):
+        def _isinf(number):
             try:
                 return isinf(number.x)
             except AttributeError:
@@ -121,6 +121,18 @@ else:
                     return self.item(0).imag
                 return UncertainArray([item.imag for item in self], self.label)
 
+            @property
+            def v(self):
+                if self.ndim == 0:
+                    return self.item(0).v
+                return UncertainArray([item.v for item in self], self.label)
+
+            @property
+            def df(self):
+                if self.ndim == 0:
+                    return self.item(0).df
+                return UncertainArray([item.df for item in self], self.label)
+
             def _positive(self, *inputs):
                 return UncertainArray([+val for val in inputs[0]])
 
@@ -169,9 +181,9 @@ else:
                 out_set, i0, i1 = out.itemset, inputs[0].item, inputs[1].item
                 for i in xrange(self.size):
                     a, b = i0(i), i1(i)
-                    if nan(a):
+                    if _isnan(a):
                         out_set(i, a)
-                    elif nan(b):
+                    elif _isnan(b):
                         out_set(i, b)
                     elif a > b:
                         out_set(i, a)
@@ -185,9 +197,9 @@ else:
                 out_set, i0, i1 = out.itemset, inputs[0].item, inputs[1].item
                 for i in xrange(self.size):
                     a, b = i0(i), i1(i)
-                    if nan(a):
+                    if _isnan(a):
                         out_set(i, a)
-                    elif nan(b):
+                    elif _isnan(b):
                         out_set(i, b)
                     elif a < b:
                         out_set(i, a)
@@ -217,17 +229,17 @@ else:
 
             def _isinf(self, *inputs):
                 item = inputs[0].item
-                out = np.asarray([inf(item(i)) for i in xrange(self.size)])
+                out = np.asarray([_isinf(item(i)) for i in xrange(self.size)])
                 return out.reshape(self.shape)
 
             def _isnan(self, *inputs):
                 item = inputs[0].item
-                out = np.asarray([nan(item(i)) for i in xrange(self.size)])
+                out = np.asarray([_isnan(item(i)) for i in xrange(self.size)])
                 return out.reshape(self.shape)
 
             def _isfinite(self, *inputs):
                 item = inputs[0].item
-                out = np.asarray([not (nan(item(i)) or inf(item(i))) for i in xrange(self.size)])
+                out = np.asarray([not (_isnan(item(i)) or _isinf(item(i))) for i in xrange(self.size)])
                 return out.reshape(self.shape)
 
             def _reciprocal(self, *inputs):

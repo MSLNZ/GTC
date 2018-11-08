@@ -68,7 +68,6 @@ class TestUncertainArray(unittest.TestCase):
             ua = uarray(item)
             self.assertTrue(isinstance(ua, UncertainArray))
             self.assertTrue(len(ua) == 0)
-            # the following also checks that the shape and size attributes are available for an UncertainArray
             self.assertTrue(ua.shape == (0,))
             self.assertTrue(ua.size == 0)
 
@@ -138,32 +137,16 @@ class TestUncertainArray(unittest.TestCase):
         a2.label = 'a squared'
         self.assertTrue(a2.label == 'a squared')
 
-    # # TODO: ignore these test for now. Must decide if they should pass of fail
-    # def test_not_array_like(self):
-    #     self.assertRaises(TypeError, uarray, None)
-    #     self.assertRaises(TypeError, uarray, True)
-    #     self.assertRaises(TypeError, uarray, -7)
-    #     self.assertRaises(TypeError, uarray, 1.)
-    #     self.assertRaises(TypeError, uarray, 6j)
-    #     self.assertRaises(TypeError, uarray, 1-3j)
-    #     self.assertRaises(TypeError, uarray, 'Hi!')
-    #     self.assertRaises(TypeError, uarray, dict())
-    #     self.assertRaises(TypeError, uarray, set())
-    #     self.assertRaises(TypeError, uarray, ureal(23, 2))
-    #     self.assertRaises(TypeError, uarray, ucomplex(1+2j, 0.1))
+    def test_not_number_like(self):
+        a = uarray(['hi'])
+        b = uarray([ureal(1, 1)])
+        with self.assertRaises(TypeError):
+            _ = a + b  # can only concatenate str (not "UncertainReal") to str
 
-    # def test_not_filled_with_uncertain_numbers(self):
-    #     self.assertRaises(TypeError, uarray, [None])
-    #     self.assertRaises(TypeError, uarray, [True])
-    #     self.assertRaises(TypeError, uarray, [-7])
-    #     self.assertRaises(TypeError, uarray, [1.])
-    #     self.assertRaises(TypeError, uarray, [6j])
-    #     self.assertRaises(TypeError, uarray, [1-3j])
-    #     self.assertRaises(TypeError, uarray, ['Hi!'])
-    #     self.assertRaises(TypeError, uarray, [dict()])
-    #     self.assertRaises(TypeError, uarray, [set()])
-    #     self.assertRaises(TypeError, uarray, [[None]])
-    #     self.assertRaises(TypeError, uarray, [[[1,2,3]]])
+        a = uarray([None])
+        b = uarray([ureal(1, 1)])
+        with self.assertRaises(TypeError):
+            _ = a + b  # unsupported operand type(s) for +: 'NoneType' and 'UncertainReal'
 
     def test_positive_unary(self):
         pos = +self.xa
@@ -231,7 +214,7 @@ class TestUncertainArray(unittest.TestCase):
         zc = [[self.xc[0]+self.yc[0], self.xc[1]+self.yc[1]],
               [self.xc[2]+self.yc[2], self.xc[3]+self.yc[3]],
               [self.xc[4]+self.yc[4], self.xc[5]+self.yc[5]]]
-        xa = self.xa.reshape(3, 2)  # also checks that the reshape() method is available for an UncertainArray
+        xa = self.xa.reshape(3, 2)
         ya = self.ya.reshape(3, 2)
         xca = self.xca.reshape(3, 2)
         yca = self.yca.reshape(3, 2)
@@ -369,6 +352,13 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
             self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
 
+        a = uarray([nan])
+        b = uarray([ureal(1, 1)])
+        c = a + b
+        self.assertTrue(math.isnan(c.x))
+        self.assertTrue(equivalent(c.u, 1))
+        self.assertTrue(math.isinf(c.df))
+
     def test_shape_mismatch(self):
         with self.assertRaises(ValueError):
             _ = self.xa + self.ya[3:]
@@ -483,33 +473,42 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(z[i], za[i]))
             self.assertTrue(equivalent(zc[i], zca[i]))
 
-    def test_x_u(self):
+    def test_x_u_v(self):
         # make sure that a uarray of size==1 is okay
         a = uarray(ureal(1.2, 0.3))
         self.assertTrue(equivalent(a.x, 1.2))
         self.assertTrue(equivalent(a.u, 0.3))
+        self.assertTrue(equivalent(a.v, 0.09))
 
         # make sure that a uarray of size==1 is okay
         a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
         self.assertTrue(equivalent_complex(a.x, 1.2+3j))
         self.assertTrue(equivalent(a.u.real, 0.3))
         self.assertTrue(equivalent(a.u.imag, 0.1))
+        self.assertTrue(equivalent(a.v.rr, 0.09))
+        self.assertTrue(equivalent(a.v.ii, 0.01))
 
         a = uarray([ureal(1.2, 0.3), ureal(2.5, 0.8)])
         self.assertTrue(equivalent(a[0].x, 1.2))
         self.assertTrue(equivalent(a[0].u, 0.3))
+        self.assertTrue(equivalent(a[0].v, 0.09))
         self.assertTrue(equivalent(a[1].x, 2.5))
         self.assertTrue(equivalent(a[1].u, 0.8))
+        self.assertTrue(equivalent(a[1].v, 0.64))
 
         a = uarray([[ureal(1.2, 0.3), ureal(2.5, 0.8)], [ureal(-3.1, 1.1), ureal(0.3, 0.05)]])
         self.assertTrue(equivalent(a[0, 0].x, 1.2))
         self.assertTrue(equivalent(a[0, 0].u, 0.3))
+        self.assertTrue(equivalent(a[0, 0].v, 0.09))
         self.assertTrue(equivalent(a[0, 1].x, 2.5))
         self.assertTrue(equivalent(a[0, 1].u, 0.8))
+        self.assertTrue(equivalent(a[0, 1].v, 0.64))
         self.assertTrue(equivalent(a[1, 0].x, -3.1))
         self.assertTrue(equivalent(a[1, 0].u, 1.1))
+        self.assertTrue(equivalent(a[1, 0].v, 1.21))
         self.assertTrue(equivalent(a[1, 1].x, 0.3))
         self.assertTrue(equivalent(a[1, 1].u, 0.05))
+        self.assertTrue(equivalent(a[1, 1].v, 0.0025))
 
     def test_real(self):
         # make sure that a uarray of size==1 is okay
