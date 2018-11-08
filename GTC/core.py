@@ -1225,20 +1225,25 @@ def mag_squared(x):
         return abs(x)**2
 
 #---------------------------------------------------------------------------
-def uarray(array):
+def uarray(array, label=None):
     """Create a numpy array of uncertain numbers.
 
     .. important::
 
        This function requires that numpy >= v1.13 is installed.
 
-    :param array: An array-like object that is passed to :class:`numpy.asarray`.
+    :param array: An array-like object that conains :class:`~lib.UncertainReal` and
+    :class:`~lib.UncertainComplex` elements.
+    :param label: A label to designate with this array (the `label` does not change the
+    label that was previously assigned to the :class:`~lib.UncertainReal` and
+    :class:`~lib.UncertainComplex` elements).
+
     :return: A numpy array.
     :rtype: :class:`numpy.ndarray`.
     """
     if UncertainArray is None:
         raise ImportError('Requires numpy > v1.13 to be installed')
-    return UncertainArray(array)
+    return UncertainArray(array, label=label)
 
     # Rather than performing the following checks let the UncertainReal and UncertainComplex
     # classes complain if they cannot operate on a certain data type during a calculation

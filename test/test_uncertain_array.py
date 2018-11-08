@@ -86,6 +86,58 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(ua[0, 0].size == 0)
         self.assertTrue(ua[0][0].size == 0)
 
+    def test_label(self):
+        a = uarray(np.arange(5) * ureal(1, 1))
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(a.label is None)
+
+        a = uarray(np.arange(5) * ureal(1, 1), label='my array')
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(a.label == 'my array')
+
+        sub = a[1:]
+        self.assertTrue(isinstance(sub, UncertainArray))
+        self.assertTrue(sub.label == 'my array')
+
+        v = a.view()
+        self.assertTrue(isinstance(v, UncertainArray))
+        self.assertTrue(v.label == 'my array')
+
+        c = a.copy()
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c.label == 'my array')
+
+        t = np.take(a, [1, 2])
+        self.assertTrue(isinstance(t, UncertainArray))
+        self.assertTrue(t.label == 'my array')
+
+        r = np.ravel(a)
+        self.assertTrue(isinstance(r, UncertainArray))
+        self.assertTrue(r.label == 'my array')
+
+        x = a.x
+        self.assertTrue(isinstance(x, UncertainArray))
+        self.assertTrue(x.label == 'my array')
+
+        real = a.real
+        self.assertTrue(isinstance(real, UncertainArray))
+        self.assertTrue(real.label == 'my array')
+
+        pos = +self.xa
+        self.assertTrue(isinstance(pos, UncertainArray))
+        self.assertTrue(pos.label is None)
+
+        neg = +self.xa
+        self.assertTrue(isinstance(pos, UncertainArray))
+        self.assertTrue(neg.label is None)
+
+        a2 = a * a
+        self.assertTrue(isinstance(a2, UncertainArray))
+        self.assertTrue(a2.label is None)
+
+        a2.label = 'a squared'
+        self.assertTrue(a2.label == 'a squared')
+
     # # TODO: ignore these test for now. Must decide if they should pass of fail
     # def test_not_array_like(self):
     #     self.assertRaises(TypeError, uarray, None)
@@ -121,8 +173,22 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(self.x[i].u, pos[i].u))
             self.assertTrue(equivalent(self.x[i].df, pos[i].df))
 
+        pos = np.positive(self.xa)
+        self.assertTrue(pos is not self.xa)
+        for i in range(len(self.xa)):
+            self.assertTrue(equivalent(self.x[i].x, pos[i].x))
+            self.assertTrue(equivalent(self.x[i].u, pos[i].u))
+            self.assertTrue(equivalent(self.x[i].df, pos[i].df))
+
     def test_negative_unary(self):
         neg = -self.xa
+        self.assertTrue(neg is not self.xa)
+        for i in range(len(self.xa)):
+            self.assertTrue(equivalent(-self.x[i].x, neg[i].x))
+            self.assertTrue(equivalent(self.x[i].u, neg[i].u))
+            self.assertTrue(equivalent(self.x[i].df, neg[i].df))
+
+        neg = np.negative(self.xa)
         self.assertTrue(neg is not self.xa)
         for i in range(len(self.xa)):
             self.assertTrue(equivalent(-self.x[i].x, neg[i].x))
@@ -343,6 +409,12 @@ class TestUncertainArray(unittest.TestCase):
         # x / y
         z = [x / y for x, y in izip(self.x, self.y)]
         za = self.xa / self.ya
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # true_divide
+        np.true_divide(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
             self.assertTrue(equivalent(z[i].u, za[i].u))
@@ -2358,6 +2430,7 @@ class TestUncertainArray(unittest.TestCase):
         a = uarray([ureal(2, 6), ureal(3, 1), ureal(4, 5)])
         b = uarray([ureal(1, 0.05), ureal(5, 2), ureal(2, 9)])
         out = np.minimum(a, b)
+        self.assertTrue(isinstance(out, UncertainArray))
         self.assertTrue(equivalent(out[0].x, 1))
         self.assertTrue(equivalent(out[1].x, 3))
         self.assertTrue(equivalent(out[2].x, 2))
@@ -2383,6 +2456,7 @@ class TestUncertainArray(unittest.TestCase):
         a = uarray([ureal(2, 6), ureal(3, 1), ureal(4, 5)])
         b = uarray([ureal(1, 0.05), ureal(5, 2), ureal(2, 9)])
         out = np.maximum(a, b)
+        self.assertTrue(isinstance(out, UncertainArray))
         self.assertTrue(equivalent(out[0].x, 2))
         self.assertTrue(equivalent(out[1].x, 5))
         self.assertTrue(equivalent(out[2].x, 4))
@@ -2410,14 +2484,14 @@ class TestUncertainArray(unittest.TestCase):
         a = uarray([ureal(0, 1), ureal(0, 1), ureal(0, 1), ureal(0, 1)])
         b = uarray([ureal(0, 1), ureal(1, 1), ureal(0, 1), ureal(0, 1)])
         c = np.logical_or(a, b)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(not c[0])
         self.assertTrue(c[1])
         self.assertTrue(not c[2])
         self.assertTrue(not c[3])
 
         c = np.logical_or(a.reshape(2, 2), b.reshape(2, 2))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(not c[0, 0])
         self.assertTrue(c[0, 1])
         self.assertTrue(not c[1, 0])
@@ -2425,7 +2499,7 @@ class TestUncertainArray(unittest.TestCase):
 
         x = uarray(np.arange(5) * ureal(1, 1))
         out = np.logical_or(x < 1, x > 3)
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(out[0])
         self.assertTrue(not out[1])
         self.assertTrue(not out[2])
@@ -2438,14 +2512,14 @@ class TestUncertainArray(unittest.TestCase):
         a = uarray([ureal(0, 1), ureal(0, 1), ureal(1, 1), ureal(1, 1)])
         b = uarray([ureal(0, 1), ureal(1, 1), ureal(0, 1), ureal(1, 1)])
         c = np.logical_and(a, b)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(not c[0])
         self.assertTrue(not c[1])
         self.assertTrue(not c[2])
         self.assertTrue(c[3])
 
         c = np.logical_and(a.reshape(2, 2), b.reshape(2, 2))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(not c[0, 0])
         self.assertTrue(not c[0, 1])
         self.assertTrue(not c[1, 0])
@@ -2453,7 +2527,7 @@ class TestUncertainArray(unittest.TestCase):
 
         x = uarray(np.arange(5) * ureal(1, 1))
         out = np.logical_and(x > 1, x < 4)
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0])
         self.assertTrue(not out[1])
         self.assertTrue(out[2])
@@ -2465,14 +2539,14 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([ureal(0, 1), ureal(0, 1), ureal(1, 1), ureal(1, 1)])
         c = np.logical_not(a)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c[0])
         self.assertTrue(c[1])
         self.assertTrue(not c[2])
         self.assertTrue(not c[3])
 
         c = np.logical_not(a.reshape(2, 2))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c[0, 0])
         self.assertTrue(c[0, 1])
         self.assertTrue(not c[1, 0])
@@ -2480,7 +2554,7 @@ class TestUncertainArray(unittest.TestCase):
 
         x = uarray(np.arange(5) * ureal(1, 1))
         out = np.logical_not(x < 3)
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0])
         self.assertTrue(not out[1])
         self.assertTrue(not out[2])
@@ -2489,13 +2563,13 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_logical_xor(self):
         c = np.logical_xor(uarray(ureal(1, 0)), uarray(ureal(0, 1)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
 
         a = uarray([ucomplex(1, 0), ucomplex(2, 0), ucomplex(0, 1), ucomplex(0, 2)])
         b = uarray([ucomplex(1, 0), ucomplex(0, 0), ucomplex(1, 1), ucomplex(0, 2)])
         c = np.logical_xor(a, b)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(not c[0])
         self.assertTrue(c[1])
         self.assertTrue(c[2])
@@ -2504,7 +2578,7 @@ class TestUncertainArray(unittest.TestCase):
         a = uarray(np.eye(5) * ureal(1, 1))
         b = uarray(np.zeros((5, 5)) * ureal(1, 1))
         c = np.logical_xor(a, b)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         for i in range(5):
             for j in range(5):
                 if i == j:
@@ -2520,23 +2594,23 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([[ureal(1, 0), ureal(0, 0)], [ureal(0, 7), ureal(0, 1)]])
         c = np.any(a, axis=0)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c[0])
         self.assertTrue(not c[1])
 
         c = np.any(uarray([ucomplex(-1j, 1), ucomplex(0, 0), ucomplex(5 + 2j, 1)]))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
 
         # NaN, +INF, -INF evaluate to True because these are not equal to zero.
         c = np.any(uarray(ureal(np.nan, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
         c = np.any(uarray(ureal(np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
         c = np.any(uarray(ureal(-np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
 
     def test_all(self):
@@ -2547,23 +2621,23 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([[ureal(1, 0), ureal(0, 0)], [ureal(-10, 7), ureal(9, 1)]])
         c = np.all(a, axis=0)
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c[0])
         self.assertTrue(not c[1])
 
         c = np.all(uarray([ucomplex(-1j, 1), ucomplex(2.1-3.2j, 0.004), ucomplex(5 + 2j, 2.3)]))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
 
         # NaN, +INF, -INF evaluate to True because these are not equal to zero.
         c = np.all(uarray([ureal(np.nan, 0), ureal(2, 1)]))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
         c = np.all(uarray(ureal(np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
         c = np.all(uarray(ureal(-np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not isinstance(c, UncertainArray))
         self.assertTrue(c)
 
     def test_isnan(self):
@@ -2571,14 +2645,14 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([ureal(nan, nan), ureal(nan, 0), ureal(7, 7), ureal(inf, 0)])
         out = np.isnan(a)
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(out[0])
         self.assertTrue(out[1])
         self.assertTrue(not out[2])
         self.assertTrue(not out[3])
 
         out = np.isnan(a.reshape(2, 2))
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(out[0, 0])
         self.assertTrue(out[0, 1])
         self.assertTrue(not out[1, 0])
@@ -2589,14 +2663,14 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([ureal(nan, nan), ureal(-inf, 0), ureal(7, 7), ureal(inf, 0)])
         out = np.isinf(a)
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0])
         self.assertTrue(out[1])
         self.assertTrue(not out[2])
         self.assertTrue(out[3])
 
         out = np.isinf(a.reshape(2, 2))
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0, 0])
         self.assertTrue(out[0, 1])
         self.assertTrue(not out[1, 0])
@@ -2607,14 +2681,14 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([ureal(nan, nan), ureal(-inf, 0), ureal(7, 7), ureal(inf, 0)])
         out = np.isfinite(a)
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0])
         self.assertTrue(not out[1])
         self.assertTrue(out[2])
         self.assertTrue(not out[3])
 
         out = np.isfinite(a.reshape(2, 2))
-        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0, 0])
         self.assertTrue(not out[0, 1])
         self.assertTrue(out[1, 0])
@@ -2651,7 +2725,7 @@ class TestUncertainArray(unittest.TestCase):
     # divide - tested
     # logaddexp
     # logaddexp2
-    # true_divide
+    # true_divide - tested (with divide)
     # floor_divide
     # negative - tested
     # positive - tested

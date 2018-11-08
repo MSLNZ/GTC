@@ -43,8 +43,14 @@ else:
 
         class UncertainArray(np.ndarray):
 
-            def __new__(cls, input_array):
-                return np.asarray(input_array).view(cls)
+            def __new__(cls, input_array, label=None):
+                obj = np.asarray(input_array).view(cls)
+                obj.label = label
+                return obj
+
+            def __array_finalize__(self, obj):
+                if obj is None: return
+                self.label = getattr(obj, 'label', None)
 
             def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
                 try:
@@ -89,70 +95,73 @@ else:
                 else:
                     assert False, 'Should not occur: __array_ufunc__ received {} inputs'.format(case)
 
-                return UncertainArray(attr(*inputs))
+                return attr(*inputs)
 
             @property
             def x(self):
                 if self.ndim == 0:
                     return self.item(0).x
-                return UncertainArray([item.x for item in self])
+                return UncertainArray([item.x for item in self], self.label)
 
             @property
             def u(self):
                 if self.ndim == 0:
                     return self.item(0).u
-                return UncertainArray([item.u for item in self])
+                return UncertainArray([item.u for item in self], self.label)
 
             @property
             def real(self):
                 if self.ndim == 0:
                     return self.item(0).real
-                return UncertainArray([item.real for item in self])
+                return UncertainArray([item.real for item in self], self.label)
 
             @property
             def imag(self):
                 if self.ndim == 0:
                     return self.item(0).imag
-                return UncertainArray([item.imag for item in self])
+                return UncertainArray([item.imag for item in self], self.label)
+
+            def _positive(self, *inputs):
+                return UncertainArray([+val for val in inputs[0]])
 
             def _negative(self, *inputs):
-                return [-val for val in inputs[0]]
+                return UncertainArray([-val for val in inputs[0]])
 
             def _add(self, *inputs):
-                return [lhs + rhs for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs + rhs for lhs, rhs in izip(*inputs)])
 
             def _subtract(self, *inputs):
-                return [lhs - rhs for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs - rhs for lhs, rhs in izip(*inputs)])
 
             def _multiply(self, *inputs):
-                return [lhs * rhs for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs * rhs for lhs, rhs in izip(*inputs)])
 
             def _divide(self, *inputs):
-                return [lhs / rhs for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs / rhs for lhs, rhs in izip(*inputs)])
 
             def _true_divide(self, *inputs):
-                return [lhs / rhs for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs / rhs for lhs, rhs in izip(*inputs)])
 
             def _power(self, *inputs):
-                return [lhs ** rhs for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs ** rhs for lhs, rhs in izip(*inputs)])
 
             def _equal(self, *inputs):
-                return [lhs == rhs for lhs, rhs in izip(*inputs)]
+                return np.asarray([lhs == rhs for lhs, rhs in izip(*inputs)])
 
             def _not_equal(self, *inputs):
-                return [lhs != rhs for lhs, rhs in izip(*inputs)]
+                return np.asarray([lhs != rhs for lhs, rhs in izip(*inputs)])
 
             def _less(self, *inputs):
-                return [lhs < rhs for lhs, rhs in izip(*inputs)]
+                return np.asarray([lhs < rhs for lhs, rhs in izip(*inputs)])
 
             def _less_equal(self, *inputs):
-                return [lhs <= rhs for lhs, rhs in izip(*inputs)]
+                return np.asarray([lhs <= rhs for lhs, rhs in izip(*inputs)])
 
             def _greater(self, *inputs):
-                return [lhs > rhs for lhs, rhs in izip(*inputs)]
+                return np.asarray([lhs > rhs for lhs, rhs in izip(*inputs)])
 
             def _greater_equal(self, *inputs):
-                return [lhs >= rhs for lhs, rhs in izip(*inputs)]
+                return np.asarray([lhs >= rhs for lhs, rhs in izip(*inputs)])
 
             def _maximum(self, *inputs):
                 out = self.copy()
@@ -224,92 +233,92 @@ else:
             def _reciprocal(self, *inputs):
                 item = inputs[0].item
                 out = np.asarray([1.0/item(i) for i in xrange(self.size)])
-                return out.reshape(self.shape)
+                return UncertainArray(out.reshape(self.shape))
 
             def _absolute(self, *inputs):
-                return [abs(value) for value in inputs[0]]
+                return UncertainArray([abs(value) for value in inputs[0]])
 
             def _conjugate(self, *inputs):
-                return [value.conjugate() for value in inputs[0]]
+                return UncertainArray([value.conjugate() for value in inputs[0]])
 
             def _cos(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.cos(x)
-                return [value._cos() for value in self]
+                return UncertainArray([value._cos() for value in self])
 
             def _sin(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.sin(x)
-                return [value._sin() for value in self]
+                return UncertainArray([value._sin() for value in self])
 
             def _tan(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.tan(x)
-                return [value._tan() for value in self]
+                return UncertainArray([value._tan() for value in self])
 
             def _arccos(self, *inputs):
-                return [value._acos() for value in inputs[0]]
+                return UncertainArray([value._acos() for value in inputs[0]])
 
             def _acos(self):
                 return UncertainArray([value._acos() for value in self])
 
             def _arcsin(self, *inputs):
-                return [value._asin() for value in inputs[0]]
+                return UncertainArray([value._asin() for value in inputs[0]])
 
             def _asin(self):
                 return UncertainArray([value._asin() for value in self])
 
             def _arctan(self, *inputs):
-                return [value._atan() for value in inputs[0]]
+                return UncertainArray([value._atan() for value in inputs[0]])
 
             def _atan(self):
                 return UncertainArray([value._atan() for value in self])
 
             def _arctan2(self, *inputs):
-                return [lhs._atan2(rhs) for lhs, rhs in izip(*inputs)]
+                return UncertainArray([lhs._atan2(rhs) for lhs, rhs in izip(*inputs)])
 
             def _atan2(self, *inputs):
                 return UncertainArray([lhs._atan2(rhs) for lhs, rhs in izip(self, inputs[0])])
 
             def _exp(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.exp(x)
-                return [value._exp() for value in self]
+                return UncertainArray([value._exp() for value in self])
 
             def _log(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.log(x)
-                return [value._log() for value in self]
+                return UncertainArray([value._log() for value in self])
 
             def _log10(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.log10(x)
-                return [value._log10() for value in self]
+                return UncertainArray([value._log10() for value in self])
 
             def _sqrt(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.sqrt(x)
-                return [value._sqrt() for value in self]
+                return UncertainArray([value._sqrt() for value in self])
 
             def _sinh(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.sinh(x)
-                return [value._sinh() for value in self]
+                return UncertainArray([value._sinh() for value in self])
 
             def _cosh(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.cosh(x)
-                return [value._cosh() for value in self]
+                return UncertainArray([value._cosh() for value in self])
 
             def _tanh(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.tanh(x)
-                return [value._tanh() for value in self]
+                return UncertainArray([value._tanh() for value in self])
 
             def _arccosh(self, *inputs):
-                return [value._acosh() for value in inputs[0]]
+                return UncertainArray([value._acosh() for value in inputs[0]])
 
             def _acosh(self):
                 return UncertainArray([value._acosh() for value in self])
 
             def _arcsinh(self, *inputs):
-                return [value._asinh() for value in inputs[0]]
+                return UncertainArray([value._asinh() for value in inputs[0]])
 
             def _asinh(self):
                 return UncertainArray([value._asinh() for value in self])
 
             def _arctanh(self, *inputs):
-                return [value._atanh() for value in inputs[0]]
+                return UncertainArray([value._atanh() for value in inputs[0]])
 
             def _atanh(self):
                 return UncertainArray([value._atanh() for value in self])
@@ -318,7 +327,7 @@ else:
                 return UncertainArray([value._mag_squared() for value in self])
 
             def _square(self, *inputs):
-                return [value._mag_squared() for value in inputs[0]]
+                return UncertainArray([value._mag_squared() for value in inputs[0]])
 
             def _magnitude(self):
                 return UncertainArray([value._magnitude() for value in self])
@@ -360,10 +369,10 @@ else:
                 return UncertainArray(np.asarray(self).ptp(**kwargs))
 
             def any(self, **kwargs):
-                return UncertainArray(np.asarray(self, dtype=np.bool).any(**kwargs))
+                return np.asarray(self, dtype=np.bool).any(**kwargs)
 
             def all(self, **kwargs):
-                return UncertainArray(np.asarray(self, dtype=np.bool).all(**kwargs))
+                return np.asarray(self, dtype=np.bool).all(**kwargs)
 
             def round(self, decimals=0, **kwargs):
                 digits = kwargs.get('digits', decimals)
