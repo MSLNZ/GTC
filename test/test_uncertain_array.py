@@ -42,7 +42,7 @@ from GTC.core import (
 
 from GTC import inf, nan
 from GTC.uncertain_array import UncertainArray
-from GTC.named_tuples import GroomedUncertainReal
+from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal
 
 from testing_tools import *
@@ -85,42 +85,324 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(ua[0, 0].size == 0)
         self.assertTrue(ua[0][0].size == 0)
 
-    def test_label(self):
-        a = uarray(np.arange(5) * ureal(1, 1))
-        self.assertTrue(isinstance(a, UncertainArray))
-        self.assertTrue(a.label is None)
+    def test_x_u_v_df_ureal(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ureal(1.2, 0.3, df=4.2))
+        self.assertTrue(equivalent(a.x, 1.2))
+        self.assertTrue(equivalent(a.u, 0.3))
+        self.assertTrue(equivalent(a.v, 0.09))
+        self.assertTrue(equivalent(a.df, 4.2))
 
-        a = uarray(np.arange(5) * ureal(1, 1), label='my array')
+        a = uarray([ureal(1.2, 0.3, df=3.3), ureal(2.5, 0.8, df=7)])
+        self.assertTrue(equivalent(a[0].x, 1.2))
+        self.assertTrue(equivalent(a[0].u, 0.3))
+        self.assertTrue(equivalent(a[0].v, 0.09))
+        self.assertTrue(equivalent(a[0].df, 3.3))
+        self.assertTrue(equivalent(a[1].x, 2.5))
+        self.assertTrue(equivalent(a[1].u, 0.8))
+        self.assertTrue(equivalent(a[1].v, 0.64))
+        self.assertTrue(equivalent(a[1].df, 7.0))
+
+        x = a.x
+        self.assertTrue(x.dtype == np.float64)
+        self.assertTrue(equivalent(x[0], 1.2))
+        self.assertTrue(equivalent(x[1], 2.5))
+
+        u = a.u
+        self.assertTrue(u.dtype == np.float64)
+        self.assertTrue(equivalent(u[0], 0.3))
+        self.assertTrue(equivalent(u[1], 0.8))
+
+        v = a.v
+        self.assertTrue(v.dtype == np.float64)
+        self.assertTrue(equivalent(v[0], 0.09))
+        self.assertTrue(equivalent(v[1], 0.64))
+
+        df = a.df
+        self.assertTrue(df.dtype == np.float64)
+        self.assertTrue(equivalent(df[0], 3.3))
+        self.assertTrue(equivalent(df[1], 7.0))
+
+        a = uarray([[ureal(1.2, 0.3, df=1), ureal(2.5, 0.8, df=2)],
+                    [ureal(-3.1, 1.1, df=3), ureal(0.3, 0.05, df=4)]])
+        self.assertTrue(equivalent(a[0, 0].x, 1.2))
+        self.assertTrue(equivalent(a[0, 0].u, 0.3))
+        self.assertTrue(equivalent(a[0, 0].v, 0.09))
+        self.assertTrue(equivalent(a[0, 0].df, 1.0))
+        self.assertTrue(equivalent(a[0, 1].x, 2.5))
+        self.assertTrue(equivalent(a[0, 1].u, 0.8))
+        self.assertTrue(equivalent(a[0, 1].v, 0.64))
+        self.assertTrue(equivalent(a[0, 1].df, 2.0))
+        self.assertTrue(equivalent(a[1, 0].x, -3.1))
+        self.assertTrue(equivalent(a[1, 0].u, 1.1))
+        self.assertTrue(equivalent(a[1, 0].v, 1.21))
+        self.assertTrue(equivalent(a[1, 0].df, 3.0))
+        self.assertTrue(equivalent(a[1, 1].x, 0.3))
+        self.assertTrue(equivalent(a[1, 1].u, 0.05))
+        self.assertTrue(equivalent(a[1, 1].v, 0.0025))
+        self.assertTrue(equivalent(a[1, 1].df, 4.0))
+
+        x = a.x
+        self.assertTrue(x.dtype == np.float64)
+        self.assertTrue(equivalent(x[0, 0], 1.2))
+        self.assertTrue(equivalent(x[0, 1], 2.5))
+        self.assertTrue(equivalent(x[1, 0], -3.1))
+        self.assertTrue(equivalent(x[1, 1], 0.3))
+
+        u = a.u
+        self.assertTrue(u.dtype == np.float64)
+        self.assertTrue(equivalent(u[0, 0], 0.3))
+        self.assertTrue(equivalent(u[0, 1], 0.8))
+        self.assertTrue(equivalent(u[1, 0], 1.1))
+        self.assertTrue(equivalent(u[1, 1], 0.05))
+
+        v = a.v
+        self.assertTrue(v.dtype == np.float64)
+        self.assertTrue(equivalent(v[0, 0], 0.09))
+        self.assertTrue(equivalent(v[0, 1], 0.64))
+        self.assertTrue(equivalent(v[1, 0], 1.21))
+        self.assertTrue(equivalent(v[1, 1], 0.0025))
+
+        df = a.df
+        self.assertTrue(df.dtype == np.float64)
+        self.assertTrue(equivalent(df[0, 0], 1.0))
+        self.assertTrue(equivalent(df[0, 1], 2.0))
+        self.assertTrue(equivalent(df[1, 0], 3.0))
+        self.assertTrue(equivalent(df[1, 1], 4.0))
+
+        # the ucomplex class has a `r` property, but ureal does not
+        with self.assertRaises(AttributeError) as err:
+            _ = a.r
+        self.assertTrue(str(err.exception) == "'UncertainReal' object has no attribute 'r'")
+
+    def test_x_u_v_r_df_ucomplex(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2))
+        self.assertTrue(equivalent_complex(a.x, 1.2-0.5j))
+        self.assertTrue(isinstance(a.u, StandardUncertainty))
+        self.assertTrue(equivalent(a.u.real, 1.0954451150103321))
+        self.assertTrue(equivalent(a.u.imag, 1.4832396974191326))
+        self.assertTrue(isinstance(a.v, VarianceCovariance))
+        self.assertTrue(equivalent(a.v.rr, 1.2))
+        self.assertTrue(equivalent(a.v.ri, 0.7))
+        self.assertTrue(equivalent(a.v.ir, 0.7))
+        self.assertTrue(equivalent(a.v.ii, 2.2))
+        self.assertTrue(equivalent(a.r, 0.2651515151515152))
+        self.assertTrue(equivalent(a.df, 4.2))
+
+        a = uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2),
+                    ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5), df=2.6)])
+        self.assertTrue(equivalent_complex(a[0].x, 1.2-0.5j))
+        self.assertTrue(isinstance(a[0].u, StandardUncertainty))
+        self.assertTrue(equivalent(a[0].u.real, 1.0954451150103321))
+        self.assertTrue(equivalent(a[0].u.imag, 1.4832396974191326))
+        self.assertTrue(isinstance(a[0].v, VarianceCovariance))
+        self.assertTrue(equivalent(a[0].v.rr, 1.2))
+        self.assertTrue(equivalent(a[0].v.ri, 0.7))
+        self.assertTrue(equivalent(a[0].v.ir, 0.7))
+        self.assertTrue(equivalent(a[0].v.ii, 2.2))
+        self.assertTrue(equivalent(a[0].r, 0.2651515151515152))
+        self.assertTrue(equivalent(a[0].df, 4.2))
+        self.assertTrue(equivalent_complex(a[1].x, -0.2+1.2j))
+        self.assertTrue(isinstance(a[1].u, StandardUncertainty))
+        self.assertTrue(equivalent(a[1].u.real, 0.9486832980505138))
+        self.assertTrue(equivalent(a[1].u.imag, 1.224744871391589))
+        self.assertTrue(isinstance(a[1].v, VarianceCovariance))
+        self.assertTrue(equivalent(a[1].v.rr, 0.9))
+        self.assertTrue(equivalent(a[1].v.ri, 0.4))
+        self.assertTrue(equivalent(a[1].v.ir, 0.4))
+        self.assertTrue(equivalent(a[1].v.ii, 1.5))
+        self.assertTrue(equivalent(a[1].r, 0.29629629629629634))
+        self.assertTrue(equivalent(a[1].df, 2.6))
+
+        x = a.x
+        self.assertTrue(x.dtype == np.complex128)
+        self.assertTrue(equivalent_complex(x[0], 1.2-0.5j))
+        self.assertTrue(equivalent_complex(x[1], -0.2+1.2j))
+
+        u = a.u
+        self.assertTrue(u.dtype == np.object)
+        self.assertTrue(isinstance(u[0], StandardUncertainty))
+        self.assertTrue(equivalent(u[0].real, 1.0954451150103321))
+        self.assertTrue(equivalent(u[0].imag, 1.4832396974191326))
+        self.assertTrue(isinstance(u[1], StandardUncertainty))
+        self.assertTrue(equivalent(u[1].real, 0.9486832980505138))
+        self.assertTrue(equivalent(u[1].imag, 1.224744871391589))
+
+        v = a.v
+        self.assertTrue(v.dtype == np.object)
+        self.assertTrue(isinstance(v[0], VarianceCovariance))
+        self.assertTrue(equivalent(v[0].rr, 1.2))
+        self.assertTrue(equivalent(v[0].ri, 0.7))
+        self.assertTrue(equivalent(v[0].ir, 0.7))
+        self.assertTrue(equivalent(v[0].ii, 2.2))
+        self.assertTrue(isinstance(v[1], VarianceCovariance))
+        self.assertTrue(equivalent(v[1].rr, 0.9))
+        self.assertTrue(equivalent(v[1].ri, 0.4))
+        self.assertTrue(equivalent(v[1].ir, 0.4))
+        self.assertTrue(equivalent(v[1].ii, 1.5))
+
+        df = a.df
+        self.assertTrue(df.dtype == np.float64)
+        self.assertTrue(equivalent(df[0], 4.2))
+        self.assertTrue(equivalent(df[1], 2.6))
+
+        r = a.r
+        self.assertTrue(r.dtype == np.float64)
+        self.assertTrue(equivalent(r[0], 0.2651515151515152))
+        self.assertTrue(equivalent(r[1], 0.29629629629629634))
+
+        a = uarray([[ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2),
+                     ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5), df=2.6)],
+                    [ucomplex(6.3-1.5j, (3.4, 0.21, 0.21, 2.3), df=10.3),
+                     ucomplex(8.7j, (1.4, 0.85, 0.85, 1.8), df=8.8)]])
+
+        self.assertTrue(equivalent_complex(a[0, 0].x, 1.2-0.5j))
+        self.assertTrue(isinstance(a[0, 0].u, StandardUncertainty))
+        self.assertTrue(equivalent(a[0, 0].u.real, 1.0954451150103321))
+        self.assertTrue(equivalent(a[0, 0].u.imag, 1.4832396974191326))
+        self.assertTrue(isinstance(a[0, 0].v, VarianceCovariance))
+        self.assertTrue(equivalent(a[0, 0].v.rr, 1.2))
+        self.assertTrue(equivalent(a[0, 0].v.ri, 0.7))
+        self.assertTrue(equivalent(a[0, 0].v.ir, 0.7))
+        self.assertTrue(equivalent(a[0, 0].v.ii, 2.2))
+        self.assertTrue(equivalent(a[0, 0].r, 0.2651515151515152))
+        self.assertTrue(equivalent(a[0, 0].df, 4.2))
+        self.assertTrue(equivalent_complex(a[0, 1].x, -0.2+1.2j))
+        self.assertTrue(isinstance(a[0, 1].u, StandardUncertainty))
+        self.assertTrue(equivalent(a[0, 1].u.real, 0.9486832980505138))
+        self.assertTrue(equivalent(a[0, 1].u.imag, 1.224744871391589))
+        self.assertTrue(isinstance(a[0, 1].v, VarianceCovariance))
+        self.assertTrue(equivalent(a[0, 1].v.rr, 0.9))
+        self.assertTrue(equivalent(a[0, 1].v.ri, 0.4))
+        self.assertTrue(equivalent(a[0, 1].v.ir, 0.4))
+        self.assertTrue(equivalent(a[0, 1].v.ii, 1.5))
+        self.assertTrue(equivalent(a[0, 1].r, 0.29629629629629634))
+        self.assertTrue(equivalent(a[0, 1].df, 2.6))
+        self.assertTrue(equivalent_complex(a[1, 0].x, 6.3-1.5j))
+        self.assertTrue(isinstance(a[1, 0].u, StandardUncertainty))
+        self.assertTrue(equivalent(a[1, 0].u.real, 1.8439088914585775))
+        self.assertTrue(equivalent(a[1, 0].u.imag, 1.51657508881031))
+        self.assertTrue(isinstance(a[1, 0].v, VarianceCovariance))
+        self.assertTrue(equivalent(a[1, 0].v.rr, 3.4))
+        self.assertTrue(equivalent(a[1, 0].v.ri, 0.21))
+        self.assertTrue(equivalent(a[1, 0].v.ir, 0.21))
+        self.assertTrue(equivalent(a[1, 0].v.ii, 2.3))
+        self.assertTrue(equivalent(a[1, 0].r, 0.026854219948849102))
+        self.assertTrue(equivalent(a[1, 0].df, 10.3))
+        self.assertTrue(equivalent_complex(a[1, 1].x, 8.7j))
+        self.assertTrue(isinstance(a[1, 1].u, StandardUncertainty))
+        self.assertTrue(equivalent(a[1, 1].u.real, 1.1832159566199232))
+        self.assertTrue(equivalent(a[1, 1].u.imag, 1.3416407864998738))
+        self.assertTrue(isinstance(a[1, 1].v, VarianceCovariance))
+        self.assertTrue(equivalent(a[1, 1].v.rr, 1.4))
+        self.assertTrue(equivalent(a[1, 1].v.ri, 0.85))
+        self.assertTrue(equivalent(a[1, 1].v.ir, 0.85))
+        self.assertTrue(equivalent(a[1, 1].v.ii, 1.8))
+        self.assertTrue(equivalent(a[1, 1].r, 0.33730158730158727))
+        self.assertTrue(equivalent(a[1, 1].df, 8.8))
+
+        x = a.x
+        self.assertTrue(x.dtype == np.complex128)
+        self.assertTrue(equivalent_complex(x[0, 0], 1.2-0.5j))
+        self.assertTrue(equivalent_complex(x[0, 1], -0.2+1.2j))
+        self.assertTrue(equivalent_complex(x[1, 0], 6.3-1.5j))
+        self.assertTrue(equivalent_complex(x[1, 1], 8.7j))
+
+        u = a.u
+        self.assertTrue(u.dtype == np.object)
+        self.assertTrue(isinstance(u[0, 0], StandardUncertainty))
+        self.assertTrue(equivalent(u[0, 0].real, 1.0954451150103321))
+        self.assertTrue(equivalent(u[0, 0].imag, 1.4832396974191326))
+        self.assertTrue(isinstance(u[0, 1], StandardUncertainty))
+        self.assertTrue(equivalent(u[0, 1].real, 0.9486832980505138))
+        self.assertTrue(equivalent(u[0, 1].imag, 1.224744871391589))
+        self.assertTrue(isinstance(u[1, 0], StandardUncertainty))
+        self.assertTrue(equivalent(u[1, 0].real, 1.8439088914585775))
+        self.assertTrue(equivalent(u[1, 0].imag, 1.51657508881031))
+        self.assertTrue(isinstance(u[1, 1], StandardUncertainty))
+        self.assertTrue(equivalent(u[1, 1].real, 1.1832159566199232))
+        self.assertTrue(equivalent(u[1, 1].imag, 1.3416407864998738))
+
+        v = a.v
+        self.assertTrue(v.dtype == np.object)
+        self.assertTrue(isinstance(v[0, 0], VarianceCovariance))
+        self.assertTrue(equivalent(v[0, 0].rr, 1.2))
+        self.assertTrue(equivalent(v[0, 0].ri, 0.7))
+        self.assertTrue(equivalent(v[0, 0].ir, 0.7))
+        self.assertTrue(equivalent(v[0, 0].ii, 2.2))
+        self.assertTrue(isinstance(v[0, 1], VarianceCovariance))
+        self.assertTrue(equivalent(v[0, 1].rr, 0.9))
+        self.assertTrue(equivalent(v[0, 1].ri, 0.4))
+        self.assertTrue(equivalent(v[0, 1].ir, 0.4))
+        self.assertTrue(equivalent(v[0, 1].ii, 1.5))
+        self.assertTrue(isinstance(v[1, 0], VarianceCovariance))
+        self.assertTrue(equivalent(v[1, 0].rr, 3.4))
+        self.assertTrue(equivalent(v[1, 0].ri, 0.21))
+        self.assertTrue(equivalent(v[1, 0].ir, 0.21))
+        self.assertTrue(equivalent(v[1, 0].ii, 2.3))
+        self.assertTrue(isinstance(v[1, 1], VarianceCovariance))
+        self.assertTrue(equivalent(v[1, 1].rr, 1.4))
+        self.assertTrue(equivalent(v[1, 1].ri, 0.85))
+        self.assertTrue(equivalent(v[1, 1].ir, 0.85))
+        self.assertTrue(equivalent(v[1, 1].ii, 1.8))
+
+        df = a.df
+        self.assertTrue(df.dtype == np.float64)
+        self.assertTrue(equivalent(df[0, 0], 4.2))
+        self.assertTrue(equivalent(df[0, 1], 2.6))
+        self.assertTrue(equivalent(df[1, 0], 10.3))
+        self.assertTrue(equivalent(df[1, 1], 8.8))
+
+        r = a.r
+        self.assertTrue(r.dtype == np.float64)
+        self.assertTrue(equivalent(r[0, 0], 0.2651515151515152))
+        self.assertTrue(equivalent(r[0, 1], 0.29629629629629634))
+        self.assertTrue(equivalent(r[1, 0], 0.026854219948849102))
+        self.assertTrue(equivalent(r[1, 1], 0.33730158730158727))
+
+    def test_label(self):
+        # no label
+        ur = uarray(np.arange(5) * ureal(1, 1))
+        self.assertTrue(isinstance(ur, UncertainArray))
+        self.assertTrue(ur.label is None)
+
+        uc = uarray(np.arange(5) * ucomplex(1j, 1))
+        self.assertTrue(isinstance(uc, UncertainArray))
+        self.assertTrue(uc.label is None)
+
+        # ureal elements -> the label gets passed along with copies, views, slices, ...
+        a = uarray(np.arange(5) * ureal(1, 1), label='ureal')
         self.assertTrue(isinstance(a, UncertainArray))
-        self.assertTrue(a.label == 'my array')
+        self.assertTrue(a.label == 'ureal')
 
         sub = a[1:]
         self.assertTrue(isinstance(sub, UncertainArray))
-        self.assertTrue(sub.label == 'my array')
+        self.assertTrue(sub.label == 'ureal')
 
         v = a.view()
         self.assertTrue(isinstance(v, UncertainArray))
-        self.assertTrue(v.label == 'my array')
+        self.assertTrue(v.label == 'ureal')
 
         c = a.copy()
         self.assertTrue(isinstance(c, UncertainArray))
-        self.assertTrue(c.label == 'my array')
+        self.assertTrue(c.label == 'ureal')
 
         t = np.take(a, [1, 2])
         self.assertTrue(isinstance(t, UncertainArray))
-        self.assertTrue(t.label == 'my array')
+        self.assertTrue(t.label == 'ureal')
 
         r = np.ravel(a)
         self.assertTrue(isinstance(r, UncertainArray))
-        self.assertTrue(r.label == 'my array')
-
-        x = a.x
-        self.assertTrue(isinstance(x, UncertainArray))
-        self.assertTrue(x.label == 'my array')
+        self.assertTrue(r.label == 'ureal')
 
         real = a.real
         self.assertTrue(isinstance(real, UncertainArray))
-        self.assertTrue(real.label == 'my array')
+        self.assertTrue(real.label is None)
+
+        imag = a.imag
+        self.assertTrue(isinstance(imag, UncertainArray))
+        self.assertTrue(imag.label is None)
 
         pos = +self.xa
         self.assertTrue(isinstance(pos, UncertainArray))
@@ -134,19 +416,147 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(isinstance(a2, UncertainArray))
         self.assertTrue(a2.label is None)
 
-        a2.label = 'a squared'
-        self.assertTrue(a2.label == 'a squared')
+        with self.assertRaises(AttributeError):
+            a2.label = 'a squared'  # AttributeError: can't set attribute
+
+        # ucomplex elements -> the label gets passed along with copies, views, slices, ...
+        a = uarray(np.arange(5) * ucomplex(1+1j, 1), label='ucomplex')
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(a.label == 'ucomplex')
+
+        sub = a[1:]
+        self.assertTrue(isinstance(sub, UncertainArray))
+        self.assertTrue(sub.label == 'ucomplex')
+
+        v = a.view()
+        self.assertTrue(isinstance(v, UncertainArray))
+        self.assertTrue(v.label == 'ucomplex')
+
+        c = a.copy()
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c.label == 'ucomplex')
+
+        t = np.take(a, [1, 2])
+        self.assertTrue(isinstance(t, UncertainArray))
+        self.assertTrue(t.label == 'ucomplex')
+
+        r = np.ravel(a)
+        self.assertTrue(isinstance(r, UncertainArray))
+        self.assertTrue(r.label == 'ucomplex')
+
+        real = a.real
+        self.assertTrue(isinstance(real, UncertainArray))
+        self.assertTrue(real.label is None)
+
+        imag = a.imag
+        self.assertTrue(isinstance(imag, UncertainArray))
+        self.assertTrue(imag.label is None)
+
+        pos = +self.xa
+        self.assertTrue(isinstance(pos, UncertainArray))
+        self.assertTrue(pos.label is None)
+
+        neg = +self.xa
+        self.assertTrue(isinstance(pos, UncertainArray))
+        self.assertTrue(neg.label is None)
+
+        a2 = a * a
+        self.assertTrue(isinstance(a2, UncertainArray))
+        self.assertTrue(a2.label is None)
+
+        with self.assertRaises(AttributeError):
+            a2.label = 'a squared'  # AttributeError: can't set attribute
+
+    def test_real(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ureal(1.2, 0.3))
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(equivalent(a.real.x, 1.2))
+        self.assertTrue(equivalent(a.real.u, 0.3))
+
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(equivalent(a.real.x, 1.2))
+        self.assertTrue(equivalent(a.real.u, 0.3))
+
+        n = len(self.xc)
+        z = [x.real for x in self.x]
+        zc = [x.real for x in self.xc]
+
+        # call np.real
+        za = np.real(self.xa)
+        self.assertTrue(isinstance(za, UncertainArray))
+        zca = np.real(self.xca)
+        self.assertTrue(isinstance(zca, UncertainArray))
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+            self.assertTrue(equivalent(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u, zca[i].u))
+
+        # call UncertainArray.real
+        za = self.xa.real
+        self.assertTrue(isinstance(za, UncertainArray))
+        zca = self.xca.real
+        self.assertTrue(isinstance(zca, UncertainArray))
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+            self.assertTrue(equivalent(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u, zca[i].u))
+
+    def test_imag(self):
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ureal(1.2, 0.3))
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(equivalent(a.imag.x, 0.0))
+        self.assertTrue(equivalent(a.imag.u, 0.0))
+
+        # make sure that a uarray of size==1 is okay
+        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(equivalent(a.imag.x, 3))
+        self.assertTrue(equivalent(a.imag.u, 0.1))
+
+        n = len(self.xc)
+        z = [x.imag for x in self.x]
+        zc = [x.imag for x in self.xc]
+
+        # call np.imag
+        za = np.imag(self.xa)
+        self.assertTrue(isinstance(za, UncertainArray))
+        zca = np.imag(self.xca)
+        self.assertTrue(isinstance(zca, UncertainArray))
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+            self.assertTrue(equivalent(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u, zca[i].u))
+
+        # call UncertainArray.imag
+        za = self.xa.imag
+        self.assertTrue(isinstance(za, UncertainArray))
+        zca = self.xca.imag
+        self.assertTrue(isinstance(zca, UncertainArray))
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+            self.assertTrue(equivalent(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u, zca[i].u))
 
     def test_not_number_like(self):
-        a = uarray(['hi'])
-        b = uarray([ureal(1, 1)])
-        with self.assertRaises(TypeError):
-            _ = a + b  # can only concatenate str (not "UncertainReal") to str
+        # don't initially care that these are not a number type
+        # an error will eventually be raised
 
-        a = uarray([None])
-        b = uarray([ureal(1, 1)])
+        bad1 = uarray(['hi'])
+        bad2 = uarray([None])
+        a = uarray([ureal(1, 1)])
         with self.assertRaises(TypeError):
-            _ = a + b  # unsupported operand type(s) for +: 'NoneType' and 'UncertainReal'
+            _ = a + bad1  # can only concatenate str (not "UncertainReal") to str
+
+        with self.assertRaises(TypeError):
+            _ = a + bad2  # unsupported operand type(s) for +: 'NoneType' and 'UncertainReal'
 
     def test_positive_unary(self):
         pos = +self.xa
@@ -472,109 +882,6 @@ class TestUncertainArray(unittest.TestCase):
         for i in range(n):
             self.assertTrue(equivalent(z[i], za[i]))
             self.assertTrue(equivalent(zc[i], zca[i]))
-
-    def test_x_u_v(self):
-        # make sure that a uarray of size==1 is okay
-        a = uarray(ureal(1.2, 0.3))
-        self.assertTrue(equivalent(a.x, 1.2))
-        self.assertTrue(equivalent(a.u, 0.3))
-        self.assertTrue(equivalent(a.v, 0.09))
-
-        # make sure that a uarray of size==1 is okay
-        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
-        self.assertTrue(equivalent_complex(a.x, 1.2+3j))
-        self.assertTrue(equivalent(a.u.real, 0.3))
-        self.assertTrue(equivalent(a.u.imag, 0.1))
-        self.assertTrue(equivalent(a.v.rr, 0.09))
-        self.assertTrue(equivalent(a.v.ii, 0.01))
-
-        a = uarray([ureal(1.2, 0.3), ureal(2.5, 0.8)])
-        self.assertTrue(equivalent(a[0].x, 1.2))
-        self.assertTrue(equivalent(a[0].u, 0.3))
-        self.assertTrue(equivalent(a[0].v, 0.09))
-        self.assertTrue(equivalent(a[1].x, 2.5))
-        self.assertTrue(equivalent(a[1].u, 0.8))
-        self.assertTrue(equivalent(a[1].v, 0.64))
-
-        a = uarray([[ureal(1.2, 0.3), ureal(2.5, 0.8)], [ureal(-3.1, 1.1), ureal(0.3, 0.05)]])
-        self.assertTrue(equivalent(a[0, 0].x, 1.2))
-        self.assertTrue(equivalent(a[0, 0].u, 0.3))
-        self.assertTrue(equivalent(a[0, 0].v, 0.09))
-        self.assertTrue(equivalent(a[0, 1].x, 2.5))
-        self.assertTrue(equivalent(a[0, 1].u, 0.8))
-        self.assertTrue(equivalent(a[0, 1].v, 0.64))
-        self.assertTrue(equivalent(a[1, 0].x, -3.1))
-        self.assertTrue(equivalent(a[1, 0].u, 1.1))
-        self.assertTrue(equivalent(a[1, 0].v, 1.21))
-        self.assertTrue(equivalent(a[1, 1].x, 0.3))
-        self.assertTrue(equivalent(a[1, 1].u, 0.05))
-        self.assertTrue(equivalent(a[1, 1].v, 0.0025))
-
-    def test_real(self):
-        # make sure that a uarray of size==1 is okay
-        a = uarray(ureal(1.2, 0.3))
-        self.assertTrue(equivalent(a.real.x, 1.2))
-        self.assertTrue(equivalent(a.real.u, 0.3))
-
-        # make sure that a uarray of size==1 is okay
-        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
-        self.assertTrue(equivalent(a.real.x, 1.2))
-        self.assertTrue(equivalent(a.real.u, 0.3))
-
-        n = len(self.xc)
-        z = [x.real for x in self.x]
-        zc = [x.real for x in self.xc]
-
-        # call np.real
-        za = np.real(self.xa)
-        zca = np.real(self.xca)
-        for i in range(n):
-            self.assertTrue(equivalent(z[i].x, za[i].x))
-            self.assertTrue(equivalent(z[i].u, za[i].u))
-            self.assertTrue(equivalent(zc[i].x, zca[i].x))
-            self.assertTrue(equivalent(zc[i].u, zca[i].u))
-
-        # call UncertainArray.real
-        za = self.xa.real
-        zca = self.xca.real
-        for i in range(n):
-            self.assertTrue(equivalent(z[i].x, za[i].x))
-            self.assertTrue(equivalent(z[i].u, za[i].u))
-            self.assertTrue(equivalent(zc[i].x, zca[i].x))
-            self.assertTrue(equivalent(zc[i].u, zca[i].u))
-
-    def test_imag(self):
-        # make sure that a uarray of size==1 is okay
-        a = uarray(ureal(1.2, 0.3))
-        self.assertTrue(equivalent(a.imag.x, 0.0))
-        self.assertTrue(equivalent(a.imag.u, 0.0))
-
-        # make sure that a uarray of size==1 is okay
-        a = uarray(ucomplex(1.2+3j, (0.3, 0.1)))
-        self.assertTrue(equivalent(a.imag.x, 3))
-        self.assertTrue(equivalent(a.imag.u, 0.1))
-
-        n = len(self.xc)
-        z = [x.imag for x in self.x]
-        zc = [x.imag for x in self.xc]
-
-        # call np.imag
-        za = np.imag(self.xa)
-        zca = np.imag(self.xca)
-        for i in range(n):
-            self.assertTrue(equivalent(z[i].x, za[i].x))
-            self.assertTrue(equivalent(z[i].u, za[i].u))
-            self.assertTrue(equivalent(zc[i].x, zca[i].x))
-            self.assertTrue(equivalent(zc[i].u, zca[i].u))
-
-        # call UncertainArray.imag
-        za = self.xa.imag
-        zca = self.xca.imag
-        for i in range(n):
-            self.assertTrue(equivalent(z[i].x, za[i].x))
-            self.assertTrue(equivalent(z[i].u, za[i].u))
-            self.assertTrue(equivalent(zc[i].x, zca[i].x))
-            self.assertTrue(equivalent(zc[i].u, zca[i].u))
 
     def test_conjugate(self):
         n = len(self.xc)

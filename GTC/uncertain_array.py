@@ -45,12 +45,12 @@ else:
 
             def __new__(cls, input_array, label=None):
                 obj = np.asarray(input_array).view(cls)
-                obj.label = label
+                obj._label = label
                 return obj
 
             def __array_finalize__(self, obj):
                 if obj is None: return
-                self.label = getattr(obj, 'label', None)
+                self._label = getattr(obj, 'label', None)
 
             def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
                 try:
@@ -98,40 +98,74 @@ else:
                 return attr(*inputs)
 
             @property
+            def label(self):
+                return self._label
+
+            @property
             def x(self):
                 if self.ndim == 0:
                     return self.item(0).x
-                return UncertainArray([item.x for item in self], self.label)
+                return np.asarray([item.x for item in self])
 
             @property
             def u(self):
                 if self.ndim == 0:
                     return self.item(0).u
-                return UncertainArray([item.u for item in self], self.label)
+                if isinstance(self.item(0), UncertainComplex):
+                    # for an UncertainArray with ucomplex elements the .u attribute
+                    # returns a StandardUncertainty namedtuple and therefore we cannot
+                    # use list comprehension to create the returned array because we
+                    # want the StandardUncertainty to be returned as a namedtuple
+                    # "object" and not as a tuple of floats
+                    out = np.empty(self.shape, dtype=object)
+                    item_set = out.itemset
+                    item_get = self.item
+                    for i in xrange(self.size):
+                        item_set(i, item_get(i).u)
+                    return out
+                return np.asarray([item.u for item in self])
 
             @property
             def real(self):
                 if self.ndim == 0:
                     return self.item(0).real
-                return UncertainArray([item.real for item in self], self.label)
+                return UncertainArray([item.real for item in self])
 
             @property
             def imag(self):
                 if self.ndim == 0:
                     return self.item(0).imag
-                return UncertainArray([item.imag for item in self], self.label)
+                return UncertainArray([item.imag for item in self])
 
             @property
             def v(self):
                 if self.ndim == 0:
                     return self.item(0).v
-                return UncertainArray([item.v for item in self], self.label)
+                if isinstance(self.item(0), UncertainComplex):
+                    # for an UncertainArray with ucomplex elements the .v attribute
+                    # returns a VarianceCovariance namedtuple and therefore we cannot
+                    # use list comprehension to create the returned array because we
+                    # want the VarianceCovariance to be returned as a namedtuple
+                    # "object" and not as a tuple of floats
+                    out = np.empty(self.shape, dtype=object)
+                    item_set = out.itemset
+                    item_get = self.item
+                    for i in xrange(self.size):
+                        item_set(i, item_get(i).v)
+                    return out
+                return np.asarray([item.v for item in self])
 
             @property
             def df(self):
                 if self.ndim == 0:
                     return self.item(0).df
-                return UncertainArray([item.df for item in self], self.label)
+                return np.asarray([item.df for item in self])
+
+            @property
+            def r(self):
+                if self.ndim == 0:
+                    return self.item(0).r
+                return np.asarray([item.r for item in self])
 
             def _positive(self, *inputs):
                 return UncertainArray([+val for val in inputs[0]])
