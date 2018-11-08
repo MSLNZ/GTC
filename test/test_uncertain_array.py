@@ -1,9 +1,14 @@
 import unittest
+import os
+import math
+import tempfile
 try:
     from itertools import izip  # Python 2
+    import cPickle as pickle
     PY2 = True
 except ImportError:
     izip = zip
+    import pickle
     PY2 = False
 
 import numpy as np
@@ -35,7 +40,10 @@ from GTC.core import (
     phase
 )
 
+from GTC import inf, nan
 from GTC.uncertain_array import UncertainArray
+from GTC.named_tuples import GroomedUncertainReal
+from GTC.lib import UncertainReal
 
 from testing_tools import *
 
@@ -1174,28 +1182,36 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_mag_squared(self):
         for item1, item2 in [(self.x, self.xa), (self.xc, self.xca)]:
-            n = len(item1)
-            z = [mag_squared(x) for x in item1]
-            za = mag_squared(item2)
-            for i in range(n):
-                self.assertTrue(equivalent(z[i].x, za[i].x))
-                self.assertTrue(equivalent(z[i].u, za[i].u))
+            for func in (mag_squared, np.square):
+                n = len(item1)
+                z = [mag_squared(x) for x in item1]
+                za = func(item2)
+                for i in range(n):
+                    self.assertTrue(equivalent(z[i].x, za[i].x))
+                    self.assertTrue(equivalent(z[i].u, za[i].u))
 
-            # reshape the array and make sure we get the same shape back
-            m = mag_squared(item2.reshape(2, 3))
-            self.assertTrue(m.shape == (2, 3))
-            self.assertTrue(equivalent(z[0].x, m[0, 0].x))
-            self.assertTrue(equivalent(z[1].x, m[0, 1].x))
-            self.assertTrue(equivalent(z[2].x, m[0, 2].x))
-            self.assertTrue(equivalent(z[3].x, m[1, 0].x))
-            self.assertTrue(equivalent(z[4].x, m[1, 1].x))
-            self.assertTrue(equivalent(z[5].x, m[1, 2].x))
-            self.assertTrue(equivalent(z[0].u, m[0, 0].u))
-            self.assertTrue(equivalent(z[1].u, m[0, 1].u))
-            self.assertTrue(equivalent(z[2].u, m[0, 2].u))
-            self.assertTrue(equivalent(z[3].u, m[1, 0].u))
-            self.assertTrue(equivalent(z[4].u, m[1, 1].u))
-            self.assertTrue(equivalent(z[5].u, m[1, 2].u))
+                # reshape the array and make sure we get the same shape back
+                m = func(item2.reshape(2, 3))
+                self.assertTrue(m.shape == (2, 3))
+                self.assertTrue(equivalent(z[0].x, m[0, 0].x))
+                self.assertTrue(equivalent(z[1].x, m[0, 1].x))
+                self.assertTrue(equivalent(z[2].x, m[0, 2].x))
+                self.assertTrue(equivalent(z[3].x, m[1, 0].x))
+                self.assertTrue(equivalent(z[4].x, m[1, 1].x))
+                self.assertTrue(equivalent(z[5].x, m[1, 2].x))
+                self.assertTrue(equivalent(z[0].u, m[0, 0].u))
+                self.assertTrue(equivalent(z[1].u, m[0, 1].u))
+                self.assertTrue(equivalent(z[2].u, m[0, 2].u))
+                self.assertTrue(equivalent(z[3].u, m[1, 0].u))
+                self.assertTrue(equivalent(z[4].u, m[1, 1].u))
+                self.assertTrue(equivalent(z[5].u, m[1, 2].u))
+
+        z = [mag_squared(ucomplex(-1j, 0.21)), mag_squared(ucomplex(1, 0.5))]
+        za = uarray([ucomplex(-1j, 0.21), ucomplex(1, 0.5)])
+        out = np.square(za)
+        for i in range(2):
+            self.assertTrue(equivalent(z[i].x, out[i].x))
+            self.assertTrue(equivalent(z[i].u, out[i].u))
 
     def test_magnitude(self):
         for item1, item2 in [(self.x, self.xa), (self.xc, self.xca)]:
@@ -1864,49 +1880,863 @@ class TestUncertainArray(unittest.TestCase):
             from uarray_matmul import run
             run()
 
-    #
-    # The following are attributes/methods of an ndarray
-    # that do not have a test method written yet
-    #
+    def test_astype(self):
+        # make sure that the following is not allowed
 
-    # def test_all(self):
-    # def test_any(self):
-    # def test_argpartition(self):
-    # def test_astype(self):
-    # def test_byteswap(self):
-    # def test_choose(self):
-    # def test_clip(self):
-    # def test_ctypes(self):
-    # def test_dtype(self):
-    # def test_dump(self):
-    # def test_dumps(self):
-    # def test_flags(self):
-    # def test_getfield(self):
-    # def test_item(self):
-    # def test_itemset(self):
-    # def test_itemsize(self):
-    # def test_newbyteorder(self):
-    # def test_nonzero(self):
+        # TypeError: float() argument must be a string or a number, not 'UncertainReal'
+        with self.assertRaises(TypeError):
+            _ = self.xa.astype(np.float32)
+
+        # TypeError: float() argument must be a string or a number, not 'UncertainComplex'
+        with self.assertRaises(TypeError):
+            _ = self.xca.astype(np.float32)
+
+    def test_prod(self):
+        # 1D array
+        xlist = [ureal(i, i * 0.1) for i in range(100)]
+        xarray = uarray(xlist)
+        self.assertTrue(xarray.shape == (100,))
+
+        a = xarray.prod()
+        b = 1.0
+        for x in xlist:
+            b *= x
+        self.assertTrue(equivalent(a.x, b.x))
+        self.assertTrue(equivalent(a.u, b.u))
+
+        # 3D array
+        xlist = [[[ureal(i * j * k, i * j * k * 0.1) for k in range(1, 5)] for j in range(7, 10)] for i in range(3, 9)]
+        xarray = uarray(xlist)
+        self.assertTrue(xarray.shape == (6, 3, 4))
+
+        axis_none = 1.0
+        axis_0 = [[1.0 for i in range(4)] for j in range(3)]
+        axis_1 = [[1.0 for i in range(4)] for j in range(6)]
+        axis_2 = [[1.0 for i in range(3)] for j in range(6)]
+        for i in range(6):
+            for j in range(3):
+                for k in range(4):
+                    value = xlist[i][j][k]
+                    axis_none *= value
+                    axis_0[j][k] *= value
+                    axis_1[i][k] *= value
+                    axis_2[i][j] *= value
+
+        # axis=None
+        a = xarray.prod()
+        self.assertTrue(equivalent(a.x, axis_none.x))
+        self.assertTrue(equivalent(a.u, axis_none.u))
+
+        # axis=0
+        a = xarray.prod(axis=0)
+        m, n = len(axis_0), len(axis_0[0])
+        self.assertTrue(a.shape == (m, n))
+        for j in range(m):
+            for k in range(n):
+                self.assertTrue(equivalent(a[j, k].x, axis_0[j][k].x))
+                self.assertTrue(equivalent(a[j, k].u, axis_0[j][k].u))
+
+        # axis=1
+        a = xarray.prod(axis=1)
+        m, n = len(axis_1), len(axis_1[0])
+        self.assertTrue(a.shape == (m, n))
+        for i in range(m):
+            for k in range(n):
+                self.assertTrue(equivalent(a[i, k].x, axis_1[i][k].x))
+                self.assertTrue(equivalent(a[i, k].u, axis_1[i][k].u))
+
+        # axis=2
+        a = xarray.prod(axis=2)
+        m, n = len(axis_2), len(axis_2[0])
+        self.assertTrue(a.shape == (m, n))
+        for i in range(m):
+            for j in range(n):
+                self.assertTrue(equivalent(a[i, j].x, axis_2[i][j].x))
+                self.assertTrue(equivalent(a[i, j].u, axis_2[i][j].u))
+
+    def test_dtype(self):
+        self.assertTrue(isinstance(self.xa.dtype, object))
+        self.assertTrue(isinstance(self.xca.dtype, object))
+
+    def test_item(self):
+        for i in range(len(self.x)):
+            self.assertTrue(equivalent(self.xa.item(i).x, self.x[i]))
+            self.assertTrue(equivalent(self.xa.item(i).x, self.xa[i].x))
+            self.assertTrue(equivalent(self.xa.item(i).u, self.xa[i].u))
+
+        x = np.arange(2*6*4).reshape(2, 6, 4) * ureal(1, 1)
+        xa = uarray(x)
+        idx = 0
+        for i in range(2):
+            for j in range(6):
+                for k in range(4):
+                    self.assertTrue(equivalent(xa.item(idx).x, x[i, j, k]))
+                    self.assertTrue(xa.item(idx).x is xa[i, j, k].x)
+                    self.assertTrue(xa.item(idx).u is xa[i, j, k].u)
+                    idx += 1
+
+    def test_itemset(self):
+        xa = uarray(np.ones(9).reshape(3, 3) * ureal(1, 0.1))
+        self.assertTrue(xa.item(4).x == 1)
+        self.assertTrue(xa.item(4).u == 0.1)
+        self.assertTrue(xa[1, 1].x == 1)
+        self.assertTrue(xa[1, 1].u == 0.1)
+
+        xa.itemset(4, ureal(99, .9))
+        self.assertTrue(xa.item(4).x == 99.)
+        self.assertTrue(xa.item(4).u == 0.9)
+        self.assertTrue(xa[1, 1].x == 99.)
+        self.assertTrue(xa[1, 1].u == 0.9)
+
+        xa.itemset((2, 2), ureal(-99, 9.9))
+        self.assertTrue(xa.item(xa.size-1).x == -99.)
+        self.assertTrue(xa.item(xa.size-1).u == 9.9)
+        self.assertTrue(xa[2, 2].x == -99.)
+        self.assertTrue(xa[2, 2].u == 9.9)
+
+    def test_itemsize(self):
+        self.assertTrue(self.xa.itemsize == 8)
+
+    def test_get_set_field(self):
+        # TypeError: Cannot get/set field of an object array
+        with self.assertRaises(TypeError):
+            _ = self.xa.getfield(np.float64)
+
+        with self.assertRaises(TypeError):
+            _ = self.xa.setfield(3, np.int32)
+
+    def test_put(self):
+        xa = uarray(np.arange(5) * ureal(1, 1))
+        xa.put([0, 2], [ureal(-44, 4), ureal(-55, 5)])
+        self.assertTrue(xa[0].x == -44)
+        self.assertTrue(xa[0].u == 4)
+        self.assertTrue(xa[1].x == 1)
+        self.assertTrue(xa[1].u == 1)
+        self.assertTrue(xa[2].x == -55)
+        self.assertTrue(xa[2].u == 5)
+        self.assertTrue(xa[3].x == 3)
+        self.assertTrue(xa[3].u == 3)
+        self.assertTrue(xa[4].x == 4)
+        self.assertTrue(xa[4].u == 4)
+
+    def test_take(self):
+        xa = uarray([ureal(4, 1), ureal(3, 1), ureal(5, 1), ureal(7, 1), ureal(6, 1), ureal(8, 1)])
+        indices = [0, 1, 4]
+        out = np.take(xa, indices)
+        self.assertTrue(out[0].x == 4)
+        self.assertTrue(out[1].x == 3)
+        self.assertTrue(out[2].x == 6)
+
+    def test_repeat(self):
+        xa = uarray([[ureal(1, .1), ureal(2, .2)], [ureal(3, .3), ureal(4, .4)]])
+        xa = np.repeat(xa, 2)
+        self.assertTrue(xa[0].x == 1)
+        self.assertTrue(xa[1].x == 1)
+        self.assertTrue(xa[2].x == 2)
+        self.assertTrue(xa[3].x == 2)
+        self.assertTrue(xa[4].x == 3)
+        self.assertTrue(xa[5].x == 3)
+        self.assertTrue(xa[6].x == 4)
+        self.assertTrue(xa[7].x == 4)
+
+    def test_resize(self):
+        xa = uarray([ureal(i, 0.1*i) for i in range(1000)])
+        self.assertTrue(isinstance(xa, UncertainArray))
+        self.assertTrue(xa.shape == (1000,))
+        xa.resize(100, 2, 5)
+        self.assertTrue(xa.shape == (100, 2, 5))
+        self.assertTrue(isinstance(xa, UncertainArray))
+
+    def test_ravel(self):
+        xa = uarray([[[ureal(1, 1) for _ in range(10)] for _ in range(5)] for _ in range(8)])
+        self.assertTrue(isinstance(xa, UncertainArray))
+        self.assertTrue(xa.shape == (8, 5, 10))
+        xa = xa.ravel()
+        self.assertTrue(xa.shape == (8*5*10,))
+        self.assertTrue(isinstance(xa, UncertainArray))
+
+    def test_tostring_tobytes(self):
+        # this just tests that one could call these attributes
+        self.assertTrue(self.xca.tostring() == self.xca.tobytes())
+
+    def test_tolist(self):
+        xlist = self.xa.tolist()
+        self.assertTrue(isinstance(xlist, list))
+        self.assertTrue(isinstance(self.xa, UncertainArray))
+        for i in range(len(self.x)):
+            self.assertTrue(self.x[i].x == xlist[i])
+
+    def test_swapaxes(self):
+        xa = uarray([[[ureal(1, 1) for _ in range(10)] for _ in range(5)] for _ in range(8)])
+        self.assertTrue(xa.shape == (8, 5, 10))
+        xa = np.swapaxes(xa, 0, 1)
+        self.assertTrue(isinstance(xa, UncertainArray))
+        self.assertTrue(xa.shape == (5, 8, 10))
+
+    def test_strides(self):
+        i, j, k = 7, 3, 5
+        xa = uarray([[[ureal(1, 1) for _ in range(k)] for _ in range(j)] for _ in range(i)])
+        self.assertTrue(xa.strides == (xa.itemsize*j*k, xa.itemsize*k, xa.itemsize))
+
+    def test_squeeze(self):
+        xa = uarray([[[ureal(0, 0)], [ureal(1, 1)], [ureal(2, 2)]]])
+        self.assertTrue(xa.shape == (1, 3, 1))
+        a = xa.squeeze()
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(a.shape == (3,))
+        a = xa.squeeze(axis=0)
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(a.shape == (3, 1))
+        with self.assertRaises(ValueError):
+            _ = xa.squeeze(axis=1)
+        a = xa.squeeze(axis=2)
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(a.shape == (1, 3))
+
+    def test_sort(self):
+        a = uarray([[ureal(1, 0), ureal(4, 0)], [ureal(3, 0), ureal(1, 0)]])
+
+        a.sort(axis=1)
+        self.assertTrue(a[0, 0].x == 1)
+        self.assertTrue(a[0, 1].x == 4)
+        self.assertTrue(a[1, 0].x == 1)
+        self.assertTrue(a[1, 1].x == 3)
+
+        a.sort(axis=0)
+        self.assertTrue(a[0, 0].x == 1)
+        self.assertTrue(a[0, 1].x == 3)
+        self.assertTrue(a[1, 0].x == 1)
+        self.assertTrue(a[1, 1].x == 4)
+
+    def test_flags_setflags(self):
+        xa = uarray([ureal(i, 0.1 * i) for i in range(10)])
+        self.assertTrue(xa.flags.aligned)
+        self.assertTrue(xa.flags.writeable)
+        self.assertTrue(isinstance(xa, UncertainArray))
+
+        xa.setflags(write=False, align=False)
+        self.assertTrue(not xa.flags.aligned)
+        self.assertTrue(not xa.flags.writeable)
+        self.assertTrue(isinstance(xa, UncertainArray))
+
+    def test_searchsorted(self):
+        # sorting should be independent of the value of UN.u
+        a = uarray([ureal(1,5), ureal(2,4), ureal(3,3), ureal(4,2), ureal(5,1)])
+
+        self.assertTrue(a.searchsorted(3) == 2)
+        self.assertTrue(a.searchsorted(3, side='right') == 3)
+
+        out = a.searchsorted([ureal(-10, 88), ureal(10, 53), ureal(2, 61), ureal(3, 0.5)])
+        self.assertTrue(out[0] == 0)
+        self.assertTrue(out[1] == 5)
+        self.assertTrue(out[2] == 1)
+        self.assertTrue(out[3] == 2)
+
+    def test_ptp(self):
+        xa = uarray([[[ureal(i*j*k, 0.8) for k in range(2)] for j in range(3)] for i in range(4)])
+
+        ptp = xa.ptp()
+        self.assertTrue(ptp.x == 6)
+
+        ptp = xa.ptp(axis=0)
+        self.assertTrue(ptp[:, 0].sum().x == 0)
+        self.assertTrue(ptp[0, :].sum().x == 0)
+        self.assertTrue(ptp[:, 1].sum().x == 9)
+        self.assertTrue(ptp[1, :].sum().x == 3)
+        self.assertTrue(ptp[2, :].sum().x == 6)
+
+        ptp = xa.ptp(axis=1)
+        self.assertTrue(ptp[:, 0].sum().x == 0)
+        self.assertTrue(ptp[0, :].sum().x == 0)
+        self.assertTrue(ptp[:, 1].sum().x == 12)
+        self.assertTrue(ptp[1, :].sum().x == 2)
+        self.assertTrue(ptp[2, :].sum().x == 4)
+        self.assertTrue(ptp[3, :].sum().x == 6)
+
+        ptp = xa.ptp(axis=2)
+        self.assertTrue(ptp[:, 0].sum().x == 0)
+        self.assertTrue(ptp[0, :].sum().x == 0)
+        self.assertTrue(ptp[:, 1].sum().x == 6)
+        self.assertTrue(ptp[:, 2].sum().x == 12)
+        self.assertTrue(ptp[1, :].sum().x == 3)
+        self.assertTrue(ptp[2, :].sum().x == 6)
+        self.assertTrue(ptp[3, :].sum().x == 9)
+
+    def test_round(self):
+        a = uarray([[ureal(0.378384871, 0.1831984, df=12.44649822), ureal(1.649863876, 1.28794362876, df=9.2184761424)],
+                    [ureal(64.17441638, 2.4987163, df=inf), ureal(-472.974793166, 7.812474106, df=87.1683249)]])
+
+        self.assertTrue(isinstance(a, UncertainArray))
+        self.assertTrue(isinstance(a[0], UncertainArray))
+        self.assertTrue(isinstance(a[0,0], UncertainReal))
+
+        # `decimals` parameter for np.round is really the `digits` parameter of UncertainReal._round
+        for i in range(3):
+            if i == 0:
+                out = np.round(a, decimals=2)
+            elif i == 1:
+                out = a.round(decimals=2)
+            else:
+                out = a.round(digits=2)
+            self.assertTrue(out is not a)
+            self.assertTrue(out[0] is not a[0])
+            self.assertTrue(out[0][0] is not a[0][0])
+            self.assertTrue(isinstance(out[0], UncertainArray))
+            self.assertTrue(isinstance(out[0, 0], GroomedUncertainReal))
+            self.assertTrue(equivalent(out[0, 0].x, 0.38))
+            self.assertTrue(equivalent(out[0, 0].u, 0.18))
+            self.assertTrue(equivalent(out[0, 0].df, 12.44))
+            self.assertTrue(equivalent(out[0, 1].x, 1.6))
+            self.assertTrue(equivalent(out[0, 1].u, 1.3))
+            self.assertTrue(equivalent(out[0, 1].df, 9.21))
+            self.assertTrue(equivalent(out[1, 0].x, 64.2))
+            self.assertTrue(equivalent(out[1, 0].u, 2.5))
+            self.assertTrue(math.isinf(out[1, 0].df))
+            self.assertTrue(equivalent(out[1, 1].x, -473.0))
+            self.assertTrue(equivalent(out[1, 1].u, 7.8))
+            self.assertTrue(equivalent(out[1, 1].df, 87.16))
+
+        out = a.round(digits=4, df_decimals=0)
+        self.assertTrue(equivalent(out[0, 0].x, 0.3784))
+        self.assertTrue(equivalent(out[0, 0].u, 0.1832))
+        self.assertTrue(equivalent(out[0, 0].df, 12))
+        self.assertTrue(equivalent(out[0, 1].x, 1.650))
+        self.assertTrue(equivalent(out[0, 1].u, 1.2880))
+        self.assertTrue(equivalent(out[0, 1].df, 9))
+        self.assertTrue(equivalent(out[1, 0].x, 64.174))
+        self.assertTrue(equivalent(out[1, 0].u, 2.499))
+        self.assertTrue(math.isinf(out[1, 0].df))
+        self.assertTrue(equivalent(out[1, 1].x, -472.975))
+        self.assertTrue(equivalent(out[1, 1].u, 7.812))
+        self.assertTrue(equivalent(out[1, 1].df, 87))
+
+    # # TODO the partition and argpartition tests do not produce the expected results
+    # # https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.ndarray.partition.html?highlight=partition#numpy.ndarray.partition
     # def test_partition(self):
-    # def test_prod(self):
-    # def test_ptp(self):
-    # def test_put(self):
-    # def test_ravel(self):
-    # def test_repeat(self):
-    # def test_resize(self):
-    # def test_round(self):
-    # def test_searchsorted(self):
-    # def test_setfield(self):
-    # def test_setflags(self):
-    # def test_sort(self):
-    # def test_squeeze(self):
-    # def test_strides(self):
-    # def test_swapaxes(self):
-    # def test_take(self):
-    # def test_tobytes(self):
-    # def test_tofile(self):
-    # def test_tolist(self):
-    # def test_tostring(self):
+    #     a = uarray([ureal(3, 33), ureal(4, 44), ureal(2, 22), ureal(1, 11)])
+    #     a.partition(3)
+    #     self.assertTrue(equivalent(a[0].x, 2.0))
+    #     self.assertTrue(equivalent(a[0].u, 22.0))
+    #     self.assertTrue(equivalent(a[1].x, 1.0))
+    #     self.assertTrue(equivalent(a[1].u, 11.0))
+    #     self.assertTrue(equivalent(a[2].x, 3.0))
+    #     self.assertTrue(equivalent(a[2].u, 33.0))
+    #     self.assertTrue(equivalent(a[3].x, 4.0))
+    #     self.assertTrue(equivalent(a[3].u, 44.0))
+    #
+    # https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.argpartition.html#numpy.argpartition
+    # def test_argpartition(self):
+    #     a = uarray([ureal(3, 33), ureal(4, 44), ureal(2, 22), ureal(1, 11)])
+    #     print(a[np.argpartition(a, 3)])  -> expect array([2, 1, 3, 4])
+
+    def test_nonzero(self):
+        x = uarray([[ureal(1, 1), ureal(0, 1), ureal(0, 1)],
+                    [ureal(0, 1), ureal(2, 1), ureal(0, 1)],
+                    [ureal(1, 1), ureal(1, 1), ureal(0, 1)]])
+
+        indices = x.nonzero()
+        self.assertTrue(np.array_equal(indices[0], [0, 1, 2, 2]))
+        self.assertTrue(np.array_equal(indices[1], [0, 1, 0, 1]))
+
+        indices = np.nonzero(x)
+        self.assertTrue(np.array_equal(indices[0], [0, 1, 2, 2]))
+        self.assertTrue(np.array_equal(indices[1], [0, 1, 0, 1]))
+
+    def test_newbyteorder(self):
+        # just testing that calling newbyteorder does not raise an exception
+        # calling this method doesn't do anything to the uarray
+        self.assertTrue(isinstance(self.xa.newbyteorder(), UncertainArray))
+        self.assertTrue(np.array_equal(self.xa.newbyteorder('S'), self.xa))
+        self.assertTrue(np.array_equal(self.xa.newbyteorder('L'), self.xa))
+        self.assertTrue(np.array_equal(self.xa.newbyteorder('N'), self.xa))
+
+    def test_ctypes(self):
+        # just testing that calling ctypes does not raise an exception
+        self.assertTrue(isinstance(self.xa.ctypes, object))
+
+    def test_dump_dumps(self):
+        d = self.xa.dumps()
+        xa = pickle.loads(d)
+        self.assertTrue(np.array_equal(self.xa, xa))
+
+        path = os.path.join(tempfile.gettempdir(), 'uarray-dump.dat')
+        with open(path, 'wb') as fp:
+            self.xa.dump(fp)
+        with open(path, 'rb') as fp:
+            xa = pickle.load(fp)
+        self.assertTrue(np.array_equal(self.xa, xa))
+        os.remove(path)
+
+    def test_tofile(self):
+        path = os.path.join(tempfile.gettempdir(), 'uarray-tofile.txt')
+        self.xa.tofile(path, sep=' ')
+        with open(path, 'rt') as fp:
+            text = fp.read()
+        self.assertTrue(text.startswith('ureal('))
+        os.remove(path)
+
+    def test_byteswap(self):
+        # just testing that calling byteswap does not raise an exception
+        # calling this method doesn't do anything to the uarray
+        a = uarray([ureal(1, 1), ureal(2, 2)])
+        bs = a.byteswap()
+        self.assertTrue(isinstance(bs, UncertainArray))
+        self.assertTrue(np.array_equal(bs, a))
+
+    def test_choose(self):
+        choices = uarray([[ureal(0, 0), ureal(1, 1), ureal(2, 2), ureal(3, 3)],
+                          [ureal(10, 10), ureal(11, 11), ureal(12, 12), ureal(13, 13)],
+                          [ureal(20, 20), ureal(21, 21), ureal(22, 22), ureal(23, 23)],
+                          [ureal(30, 30), ureal(31, 31), ureal(32, 32), ureal(33, 33)]])
+
+        chosen = np.choose([2, 3, 1, 0], choices)
+        self.assertTrue(equivalent(chosen[0].x, 20))
+        self.assertTrue(equivalent(chosen[1].x, 31))
+        self.assertTrue(equivalent(chosen[2].x, 12))
+        self.assertTrue(equivalent(chosen[3].x, 3))
+
+        chosen = np.choose([2, 4, 1, 0], choices, mode='clip')
+        self.assertTrue(equivalent(chosen[0].x, 20))
+        self.assertTrue(equivalent(chosen[1].x, 31))
+        self.assertTrue(equivalent(chosen[2].x, 12))
+        self.assertTrue(equivalent(chosen[3].x, 3))
+
+        chosen = np.choose([2, 4, 1, 0], choices, mode='wrap')
+        self.assertTrue(equivalent(chosen[0].x, 20))
+        self.assertTrue(equivalent(chosen[1].x, 1))
+        self.assertTrue(equivalent(chosen[2].x, 12))
+        self.assertTrue(equivalent(chosen[3].x, 3))
+
+        choices = uarray([ureal(-10, 1), ureal(10, 2)])
+        a = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+        chosen = a.choose(choices)  # access the ndarray choose() method, just to try something different
+        self.assertTrue(equivalent(chosen[0, 0].x, 10))
+        self.assertTrue(equivalent(chosen[0, 1].x, -10))
+        self.assertTrue(equivalent(chosen[0, 2].x, 10))
+        self.assertTrue(equivalent(chosen[1, 0].x, -10))
+        self.assertTrue(equivalent(chosen[1, 1].x, 10))
+        self.assertTrue(equivalent(chosen[1, 2].x, -10))
+        self.assertTrue(equivalent(chosen[2, 0].x, 10))
+        self.assertTrue(equivalent(chosen[2, 1].x, -10))
+        self.assertTrue(equivalent(chosen[2, 2].x, 10))
+
+    def test_clip(self):
+        a = uarray([ureal(i, 0.1*i) for i in range(10)])
+        for i in range(10):
+            self.assertTrue(equivalent(a[i].x, i))
+            self.assertTrue(equivalent(a[i].u, i*0.1))
+
+        out = np.clip(a, a_min=ureal(1, 1), a_max=ureal(8, 8))
+        self.assertTrue(equivalent(out[0].x, 1))
+        self.assertTrue(equivalent(out[0].u, 1))
+        for i in range(1, 9):
+            self.assertTrue(equivalent(a[i].x, i))
+            self.assertTrue(equivalent(a[i].u, i*0.1))
+        self.assertTrue(equivalent(out[9].x, 8))
+        self.assertTrue(equivalent(out[9].u, 8))
+
+        a = uarray([[ureal(i*j, 0.1*i*j) for j in range(1, 5)] for i in range(2,4)])
+        self.assertTrue(equivalent(a[0, 0].x, 2))
+        self.assertTrue(equivalent(a[0, 1].x, 4))
+        self.assertTrue(equivalent(a[0, 2].x, 6))
+        self.assertTrue(equivalent(a[0, 3].x, 8))
+        self.assertTrue(equivalent(a[1, 0].x, 3))
+        self.assertTrue(equivalent(a[1, 1].x, 6))
+        self.assertTrue(equivalent(a[1, 2].x, 9))
+        self.assertTrue(equivalent(a[1, 3].x, 12))
+        out = np.clip(a, a_min=ureal(5, 5), a_max=ureal(7, 7))
+        self.assertTrue(equivalent(out[0, 0].x, 5))
+        self.assertTrue(equivalent(out[0, 1].x, 5))
+        self.assertTrue(equivalent(out[0, 2].x, 6))
+        self.assertTrue(equivalent(out[0, 3].x, 7))
+        self.assertTrue(equivalent(out[1, 0].x, 5))
+        self.assertTrue(equivalent(out[1, 1].x, 6))
+        self.assertTrue(equivalent(out[1, 2].x, 7))
+        self.assertTrue(equivalent(out[1, 3].x, 7))
+
+    def test_minimum(self):
+        a = uarray([ureal(2, 6), ureal(3, 1), ureal(4, 5)])
+        b = uarray([ureal(1, 0.05), ureal(5, 2), ureal(2, 9)])
+        out = np.minimum(a, b)
+        self.assertTrue(equivalent(out[0].x, 1))
+        self.assertTrue(equivalent(out[1].x, 3))
+        self.assertTrue(equivalent(out[2].x, 2))
+
+        # comparisons with NaN and INF
+        a = uarray([ureal(nan, nan), ureal(-inf, 0), ureal(7, 0.7), ureal(-inf, inf)])
+        b = uarray([ureal(7, 2), ureal(nan, nan), 10, ureal(inf, inf)])
+        out = np.minimum(a, b)
+        self.assertTrue(math.isnan(out[0].x))
+        self.assertTrue(math.isnan(out[1].x))
+        self.assertTrue(equivalent(out[2].x, 7))
+        self.assertTrue(out[3].x == -inf)
+
+        a = a.reshape(2, 2)
+        b = b.reshape(2, 2)
+        out = np.minimum(a, b)
+        self.assertTrue(math.isnan(out[0, 0].x))
+        self.assertTrue(math.isnan(out[0, 1].x))
+        self.assertTrue(equivalent(out[1, 0].x, 7))
+        self.assertTrue(out[1, 1].x == -inf)
+
+    def test_maximum(self):
+        a = uarray([ureal(2, 6), ureal(3, 1), ureal(4, 5)])
+        b = uarray([ureal(1, 0.05), ureal(5, 2), ureal(2, 9)])
+        out = np.maximum(a, b)
+        self.assertTrue(equivalent(out[0].x, 2))
+        self.assertTrue(equivalent(out[1].x, 5))
+        self.assertTrue(equivalent(out[2].x, 4))
+
+        # comparisons with NaN and INF
+        a = uarray([ureal(nan, nan), ureal(-inf, 0), ureal(7, 0.7), ureal(-inf, inf)])
+        b = uarray([ureal(7, 2), ureal(nan, nan), 10, ureal(inf, inf)])
+        out = np.maximum(a, b)
+        self.assertTrue(math.isnan(out[0].x))
+        self.assertTrue(math.isnan(out[1].x))
+        self.assertTrue(equivalent(out[2], 10))
+        self.assertTrue(out[3].x == inf)
+
+        a = a.reshape(2, 2)
+        b = b.reshape(2, 2)
+        out = np.maximum(a, b)
+        self.assertTrue(math.isnan(out[0, 0].x))
+        self.assertTrue(math.isnan(out[0, 1].x))
+        self.assertTrue(equivalent(out[1, 0], 10))
+        self.assertTrue(out[1, 1].x == inf)
+
+    def test_logical_or(self):
+        self.assertTrue(all(np.logical_or(self.xa, self.ya)))
+
+        a = uarray([ureal(0, 1), ureal(0, 1), ureal(0, 1), ureal(0, 1)])
+        b = uarray([ureal(0, 1), ureal(1, 1), ureal(0, 1), ureal(0, 1)])
+        c = np.logical_or(a, b)
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not c[0])
+        self.assertTrue(c[1])
+        self.assertTrue(not c[2])
+        self.assertTrue(not c[3])
+
+        c = np.logical_or(a.reshape(2, 2), b.reshape(2, 2))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not c[0, 0])
+        self.assertTrue(c[0, 1])
+        self.assertTrue(not c[1, 0])
+        self.assertTrue(not c[1, 1])
+
+        x = uarray(np.arange(5) * ureal(1, 1))
+        out = np.logical_or(x < 1, x > 3)
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(out[0])
+        self.assertTrue(not out[1])
+        self.assertTrue(not out[2])
+        self.assertTrue(not out[3])
+        self.assertTrue(out[4])
+
+    def test_logical_and(self):
+        self.assertTrue(all(np.logical_and(self.xa, self.ya)))
+
+        a = uarray([ureal(0, 1), ureal(0, 1), ureal(1, 1), ureal(1, 1)])
+        b = uarray([ureal(0, 1), ureal(1, 1), ureal(0, 1), ureal(1, 1)])
+        c = np.logical_and(a, b)
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not c[0])
+        self.assertTrue(not c[1])
+        self.assertTrue(not c[2])
+        self.assertTrue(c[3])
+
+        c = np.logical_and(a.reshape(2, 2), b.reshape(2, 2))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not c[0, 0])
+        self.assertTrue(not c[0, 1])
+        self.assertTrue(not c[1, 0])
+        self.assertTrue(c[1, 1])
+
+        x = uarray(np.arange(5) * ureal(1, 1))
+        out = np.logical_and(x > 1, x < 4)
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not out[0])
+        self.assertTrue(not out[1])
+        self.assertTrue(out[2])
+        self.assertTrue(out[3])
+        self.assertTrue(not out[4])
+
+    def test_logical_not(self):
+        self.assertTrue(not all(np.logical_not(self.xa)))
+
+        a = uarray([ureal(0, 1), ureal(0, 1), ureal(1, 1), ureal(1, 1)])
+        c = np.logical_not(a)
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c[0])
+        self.assertTrue(c[1])
+        self.assertTrue(not c[2])
+        self.assertTrue(not c[3])
+
+        c = np.logical_not(a.reshape(2, 2))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c[0, 0])
+        self.assertTrue(c[0, 1])
+        self.assertTrue(not c[1, 0])
+        self.assertTrue(not c[1, 1])
+
+        x = uarray(np.arange(5) * ureal(1, 1))
+        out = np.logical_not(x < 3)
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not out[0])
+        self.assertTrue(not out[1])
+        self.assertTrue(not out[2])
+        self.assertTrue(out[3])
+        self.assertTrue(out[4])
+
+    def test_logical_xor(self):
+        c = np.logical_xor(uarray(ureal(1, 0)), uarray(ureal(0, 1)))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+
+        a = uarray([ucomplex(1, 0), ucomplex(2, 0), ucomplex(0, 1), ucomplex(0, 2)])
+        b = uarray([ucomplex(1, 0), ucomplex(0, 0), ucomplex(1, 1), ucomplex(0, 2)])
+        c = np.logical_xor(a, b)
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(not c[0])
+        self.assertTrue(c[1])
+        self.assertTrue(c[2])
+        self.assertTrue(not c[3])
+
+        a = uarray(np.eye(5) * ureal(1, 1))
+        b = uarray(np.zeros((5, 5)) * ureal(1, 1))
+        c = np.logical_xor(a, b)
+        self.assertTrue(isinstance(c, UncertainArray))
+        for i in range(5):
+            for j in range(5):
+                if i == j:
+                    self.assertTrue(c[i, j])
+                else:
+                    self.assertTrue(not c[i, j])
+
+    def test_any(self):
+        self.assertTrue(self.xa.any())
+
+        a = uarray([[ureal(1, 0), ureal(0, 0)], [ureal(-121, 7), ureal(3, 1)]])
+        self.assertTrue(np.any(a))
+
+        a = uarray([[ureal(1, 0), ureal(0, 0)], [ureal(0, 7), ureal(0, 1)]])
+        c = np.any(a, axis=0)
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c[0])
+        self.assertTrue(not c[1])
+
+        c = np.any(uarray([ucomplex(-1j, 1), ucomplex(0, 0), ucomplex(5 + 2j, 1)]))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+
+        # NaN, +INF, -INF evaluate to True because these are not equal to zero.
+        c = np.any(uarray(ureal(np.nan, 0)))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+        c = np.any(uarray(ureal(np.inf, 0)))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+        c = np.any(uarray(ureal(-np.inf, 0)))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+
+    def test_all(self):
+        self.assertTrue(self.xa.all())
+
+        a = uarray([[ureal(1, 0), ureal(0, 0)], [ureal(-121, 7), ureal(3, 1)]])
+        self.assertTrue(not a.all())
+
+        a = uarray([[ureal(1, 0), ureal(0, 0)], [ureal(-10, 7), ureal(9, 1)]])
+        c = np.all(a, axis=0)
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c[0])
+        self.assertTrue(not c[1])
+
+        c = np.all(uarray([ucomplex(-1j, 1), ucomplex(2.1-3.2j, 0.004), ucomplex(5 + 2j, 2.3)]))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+
+        # NaN, +INF, -INF evaluate to True because these are not equal to zero.
+        c = np.all(uarray([ureal(np.nan, 0), ureal(2, 1)]))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+        c = np.all(uarray(ureal(np.inf, 0)))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+        c = np.all(uarray(ureal(-np.inf, 0)))
+        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(c)
+
+    def test_isnan(self):
+        self.assertTrue(not all(np.isnan(self.xa)))
+
+        a = uarray([ureal(nan, nan), ureal(nan, 0), ureal(7, 7), ureal(inf, 0)])
+        out = np.isnan(a)
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(out[0])
+        self.assertTrue(out[1])
+        self.assertTrue(not out[2])
+        self.assertTrue(not out[3])
+
+        out = np.isnan(a.reshape(2, 2))
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(out[0, 0])
+        self.assertTrue(out[0, 1])
+        self.assertTrue(not out[1, 0])
+        self.assertTrue(not out[1, 1])
+
+    def test_isinf(self):
+        self.assertTrue(not all(np.isinf(self.xa)))
+
+        a = uarray([ureal(nan, nan), ureal(-inf, 0), ureal(7, 7), ureal(inf, 0)])
+        out = np.isinf(a)
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not out[0])
+        self.assertTrue(out[1])
+        self.assertTrue(not out[2])
+        self.assertTrue(out[3])
+
+        out = np.isinf(a.reshape(2, 2))
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not out[0, 0])
+        self.assertTrue(out[0, 1])
+        self.assertTrue(not out[1, 0])
+        self.assertTrue(out[1, 1])
+
+    def test_isfinite(self):
+        self.assertTrue(all(np.isfinite(self.xa)))
+
+        a = uarray([ureal(nan, nan), ureal(-inf, 0), ureal(7, 7), ureal(inf, 0)])
+        out = np.isfinite(a)
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not out[0])
+        self.assertTrue(not out[1])
+        self.assertTrue(out[2])
+        self.assertTrue(not out[3])
+
+        out = np.isfinite(a.reshape(2, 2))
+        self.assertTrue(isinstance(out, UncertainArray))
+        self.assertTrue(not out[0, 0])
+        self.assertTrue(not out[0, 1])
+        self.assertTrue(out[1, 0])
+        self.assertTrue(not out[1, 1])
+
+    def test_reciprocal(self):
+        z = [1./val for val in self.x]
+        za = np.reciprocal(self.xa)
+        for i in range(len(z)):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        za = np.reciprocal(self.xa.reshape(2, 3))
+        self.assertTrue(equivalent(z[0].x, za[0, 0].x))
+        self.assertTrue(equivalent(z[0].u, za[0, 0].u))
+        self.assertTrue(equivalent(z[1].x, za[0, 1].x))
+        self.assertTrue(equivalent(z[1].u, za[0, 1].u))
+        self.assertTrue(equivalent(z[2].x, za[0, 2].x))
+        self.assertTrue(equivalent(z[2].u, za[0, 2].u))
+        self.assertTrue(equivalent(z[3].x, za[1, 0].x))
+        self.assertTrue(equivalent(z[3].u, za[1, 0].u))
+        self.assertTrue(equivalent(z[4].x, za[1, 1].x))
+        self.assertTrue(equivalent(z[4].u, za[1, 1].u))
+        self.assertTrue(equivalent(z[5].x, za[1, 2].x))
+        self.assertTrue(equivalent(z[5].u, za[1, 2].u))
+
+    #
+    # The following is a list of all ufuncs
+    #
+    # <Math operations>
+    # add - tested
+    # subtract - tested
+    # multiply - tested
+    # divide - tested
+    # logaddexp
+    # logaddexp2
+    # true_divide
+    # floor_divide
+    # negative - tested
+    # positive - tested
+    # power - tested
+    # remainder
+    # mod
+    # fmod
+    # divmod
+    # absolute - tested
+    # fabs
+    # rint
+    # sign
+    # heaviside
+    # conj - tested (as conjugate)
+    # exp - tested
+    # exp2
+    # log - tested
+    # log2
+    # log10 - tested
+    # expm1
+    # log1p
+    # sqrt - tested
+    # square - tested (with mag_squared)
+    # cbrt
+    # reciprocal - tested
+    #
+    # <Trigonometric functions>
+    # sin - tested
+    # cos -tested
+    # tan - tested
+    # arcsin - tested
+    # arccos - tested
+    # arctan - tested
+    # arctan2 - tested
+    # hypot
+    # sinh - tested
+    # cosh - tested
+    # tanh - tested
+    # arcsinh - tested
+    # arccosh - tested
+    # arctanh - tested
+    # deg2rad
+    # rad2deg
+    #
+    # <Bit-twiddling functions>
+    # bitwise_and
+    # bitwise_or
+    # bitwise_xor
+    # invert
+    # left_shift
+    # right_shift
+    #
+    # <Comparison functions>
+    # greater - tested
+    # greater_equal - tested
+    # less - tested
+    # less_equal - tested
+    # not_equal - tested
+    # equal - tested
+    # logical_and - tested
+    # logical_or - tested
+    # logical_xor - tested
+    # logical_not - tested
+    # maximum - tested
+    # minimum - tested
+    # fmax
+    # fmin
+    #
+    # <Floating functions>
+    # isfinite - tested
+    # isinf - tested
+    # isnan - tested
+    # isnat
+    # fabs
+    # signbit
+    # copysign
+    # nextafter
+    # spacing
+    # modf
+    # ldexp
+    # frexp
+    # fmod
+    # floor
+    # ceil
+    # trunc
 
 
 if __name__ == '__main__':

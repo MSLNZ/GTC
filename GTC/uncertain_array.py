@@ -7,10 +7,12 @@ does not have to be installed in order for someone to use GTC.
 from __future__ import division
 import warnings
 from numbers import Number
+from math import isnan, isinf
 try:
     from itertools import izip  # Python 2
 except ImportError:
     izip = zip
+    xrange = range
 
 from GTC.lib import (
     UncertainReal,
@@ -26,6 +28,19 @@ else:
         # The __array_ufunc__ method was not introduced until v1.13.0
         UncertainArray = None
     else:
+
+        def nan(number):
+            try:
+                return isnan(number.x)
+            except AttributeError:
+                return isnan(number)
+
+        def inf(number):
+            try:
+                return isinf(number.x)
+            except AttributeError:
+                return isinf(number)
+
         class UncertainArray(np.ndarray):
 
             def __new__(cls, input_array):
@@ -139,6 +154,78 @@ else:
             def _greater_equal(self, *inputs):
                 return [lhs >= rhs for lhs, rhs in izip(*inputs)]
 
+            def _maximum(self, *inputs):
+                out = self.copy()
+                # create references outside of the loop to avoid multiple attrib lookups
+                out_set, i0, i1 = out.itemset, inputs[0].item, inputs[1].item
+                for i in xrange(self.size):
+                    a, b = i0(i), i1(i)
+                    if nan(a):
+                        out_set(i, a)
+                    elif nan(b):
+                        out_set(i, b)
+                    elif a > b:
+                        out_set(i, a)
+                    else:
+                        out_set(i, b)
+                return out
+
+            def _minimum(self, *inputs):
+                out = self.copy()
+                # create references outside of the loop to avoid multiple attrib lookups
+                out_set, i0, i1 = out.itemset, inputs[0].item, inputs[1].item
+                for i in xrange(self.size):
+                    a, b = i0(i), i1(i)
+                    if nan(a):
+                        out_set(i, a)
+                    elif nan(b):
+                        out_set(i, b)
+                    elif a < b:
+                        out_set(i, a)
+                    else:
+                        out_set(i, b)
+                return out
+
+            def _logical_and(self, *inputs):
+                a, b = inputs[0].item, inputs[1].item
+                out = np.asarray([bool(a(i)) and bool(b(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _logical_or(self, *inputs):
+                a, b = inputs[0].item, inputs[1].item
+                out = np.asarray([bool(a(i)) or bool(b(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _logical_xor(self, *inputs):
+                a, b = inputs[0].item, inputs[1].item
+                out = np.asarray([bool(a(i)) ^ bool(b(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _logical_not(self, *inputs):
+                a = inputs[0].item
+                out = np.asarray([not bool(a(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _isinf(self, *inputs):
+                item = inputs[0].item
+                out = np.asarray([inf(item(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _isnan(self, *inputs):
+                item = inputs[0].item
+                out = np.asarray([nan(item(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _isfinite(self, *inputs):
+                item = inputs[0].item
+                out = np.asarray([not (nan(item(i)) or inf(item(i))) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
+            def _reciprocal(self, *inputs):
+                item = inputs[0].item
+                out = np.asarray([1.0/item(i) for i in xrange(self.size)])
+                return out.reshape(self.shape)
+
             def _absolute(self, *inputs):
                 return [abs(value) for value in inputs[0]]
 
@@ -230,6 +317,9 @@ else:
             def _mag_squared(self):
                 return UncertainArray([value._mag_squared() for value in self])
 
+            def _square(self, *inputs):
+                return [value._mag_squared() for value in inputs[0]]
+
             def _magnitude(self):
                 return UncertainArray([value._magnitude() for value in self])
 
@@ -263,35 +353,75 @@ else:
             def cumsum(self, **kwargs):
                 return UncertainArray(np.asarray(self).cumsum(**kwargs))
 
+            def prod(self, **kwargs):
+                return UncertainArray(np.asarray(self).prod(**kwargs))
+
+            def ptp(self, **kwargs):
+                return UncertainArray(np.asarray(self).ptp(**kwargs))
+
+            def any(self, **kwargs):
+                return UncertainArray(np.asarray(self, dtype=np.bool).any(**kwargs))
+
+            def all(self, **kwargs):
+                return UncertainArray(np.asarray(self, dtype=np.bool).all(**kwargs))
+
+            def round(self, decimals=0, **kwargs):
+                digits = kwargs.get('digits', decimals)
+                df_decimals = kwargs.get('df_decimals', digits)
+                out = self.copy()
+                item_set = out.itemset
+                item_get = self.item
+                # do not use list comprehension because the returned value from
+                # _round is a tuple (it's actually a namedtuple)
+                for i in xrange(self.size):
+                    item_set(i, item_get(i)._round(digits, df_decimals))
+                return out
+
             def __matmul__(self, other):
                 # Implements the protocol used by the '@' operator defined in PEP 465.
                 if not isinstance(other, np.ndarray):
                     other = np.asarray(other)
-                return UncertainArray(self._matmul(self, other))
+                try:
+                    # first, see if support for dtype=object was added
+                    return UncertainArray(np.matmul(self, other))
+                except TypeError:
+                    return UncertainArray(self._matmul(self, other))
 
             def __rmatmul__(self, other):
                 # Implements the protocol used by the '@' operator defined in PEP 465.
                 if not isinstance(other, np.ndarray):
                     other = np.asarray(other)
-                return UncertainArray(self._matmul(other, self))
+                try:
+                    # first, see if support for dtype=object was added
+                    return UncertainArray(np.matmul(other, self))
+                except TypeError:
+                    return UncertainArray(self._matmul(other, self))
 
-            def _matmul(self, ap1, ap2):
+            def _matmul(self, lhs, rhs):
                 # Must re-implement matrix multiplication because np.matmul
                 # does not currently (as of v1.15.3) support dtype=object arrays.
                 # A fix is planned for v1.16.0
-                try:
-                    # first, see if support for dtype=object was added
-                    return np.matmul(ap1, ap2)
-                except TypeError:
-                    pass
 
-                nd1, nd2 = ap1.ndim, ap2.ndim
+                nd1, nd2 = lhs.ndim, rhs.ndim
                 if nd1 == 0 or nd2 == 0:
                     raise ValueError("Scalar operands are not allowed, use '*' instead")
 
-                if nd1 > 2 or nd2 > 2:
-                    raise ValueError('matrix multiplication is currently limited to <= 2-D arrays')
+                if nd1 <= 2 and nd2 <= 2:
+                    return lhs.dot(rhs)
 
-                # just use the dot product since the arrays must be <= 2D,
-                # so np.matmul generates the same result as np.dot
-                return ap1.dot(ap2)
+                broadcast = np.broadcast(np.empty(lhs.shape[:-2]), np.empty(rhs.shape[:-2]))
+                ranges = [np.arange(s) for s in broadcast.shape]
+                grid = np.meshgrid(*ranges, sparse=False, indexing='ij')
+                indices = np.array([item.ravel() for item in grid]).transpose()
+
+                i1 = indices.copy()
+                i2 = indices.copy()
+                for i in range(len(indices[0])):
+                    i1[:, i] = indices[:, i].clip(max=lhs.shape[i]-1)
+                    i2[:, i] = indices[:, i].clip(max=rhs.shape[i]-1)
+
+                slices = np.array([[slice(None), slice(None)]]).repeat(len(indices), axis=0)
+                i1 = np.hstack((i1, slices))
+                i2 = np.hstack((i2, slices))
+                out = np.array([self._matmul(lhs[tuple(a)], rhs[tuple(b)]) for a, b in zip(i1, i2)])
+                return out.reshape(*broadcast.shape, lhs.shape[-2], rhs.shape[-1])
