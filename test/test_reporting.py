@@ -10,26 +10,62 @@ TOL = 1E-13
 class TestMisc(unittest.TestCase):
 
     def test_illegal_u_component_cases(self):
-        # Cannot ask for a component 
+        # Cannot ask for ...
+        
+        # non-intermediate real component
+        x1 = ureal(1,1) 
+        x2 = x1 + ureal(2,1)
+        y = x1**x2
+        self.assertRaises(RuntimeError,rp.u_component,y,x2)
+        
+        # non-intermediate complex component
         x1 = ucomplex(10,1)
         x2 = x1**2 
         y = magnitude(x1*3j + x2) 
         self.assertRaises(RuntimeError,rp.u_component,y,x2)
         
+        # non-intermediate complex component
         y = x1*3j + x2
         self.assertRaises(RuntimeError,rp.u_component,y,x2)
  
+        # non-intermediate real component 
+        x1 = ureal(10,1)
+        x2 = x1**2 
+        y = x1*3j + x2 
+        self.assertRaises(RuntimeError,rp.u_component,y,x2)
+        
+        # y must be an uncertain type
         self.assertRaises(RuntimeError,rp.u_component,10.0,x2)
  
     def test_simple_cases(self):
-        # Return zero 
+        # Return zero when ...
+        
+        # real y, uncertain complex constant 
         x1 = ureal(10,1)
-        x2 = 1+5j 
+        x2 = constant(1+5j) 
         self.assert_( equivalent_sequence( 
             rp.u_component(x1,x2),
             (0.,0.,0.,0.),
             TOL
         ))
+        
+        # real y, complex-valued x 
+        y = ureal(1,1) 
+        self.assert_( equivalent_sequence( 
+            rp.u_component(y,1+7j),
+            (0.,0.,0.,0.),
+            TOL
+        ))
+        
+        # complex y, uncertain complex constant 
+        x1 = ucomplex(10,1)
+        x2 = constant(1+5j) 
+        self.assert_( equivalent_sequence( 
+            rp.u_component(x1,x2),
+            (0.,0.,0.,0.),
+            TOL
+        ))
+        
         
 #-----------------------------------------------------
 class TestInCoverage(unittest.TestCase):

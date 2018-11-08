@@ -674,7 +674,7 @@ class UncertainReal(object):
     def __rdiv__(self,lhs):
         if isinstance(lhs,numbers.Real):
             return _rdiv(float(lhs),self)
-        elif isinstance(lhs,complex):
+        elif isinstance(lhs,numbers.Complex):
             return _div_z_re(complex(lhs),self)
         else:
             return NotImplemented
@@ -685,7 +685,7 @@ class UncertainReal(object):
             return _pow(self,rhs)
         elif isinstance(rhs,numbers.Real):
             return _pow(self,float(rhs))
-        elif isinstance(rhs,complex):
+        elif isinstance(rhs,numbers.Complex):
             return _pow_re_z(self,complex(rhs))
         else:
             return NotImplemented
@@ -693,7 +693,7 @@ class UncertainReal(object):
     def __rpow__(self,lhs):
         if isinstance(lhs,numbers.Real):
             return _rpow(float(lhs),self)
-        elif isinstance(lhs,complex):
+        elif isinstance(lhs,numbers.Complex):
             return _pow_z_re(complex(lhs),self)
         else:
             return NotImplemented
@@ -863,17 +863,17 @@ class UncertainReal(object):
         """
         if isinstance(rhs,UncertainReal):
             return _atan2_re_re(self,rhs)
-        elif isinstance(rhs,(float,int,long)):
+        elif isinstance(rhs,numbers.Real):
             return _atan2_re_x(self,float(rhs))
-        elif isinstance(rhs,complex):
+        elif isinstance(rhs,numbers.Complex):
             raise TypeError('atan2 is undefined with a complex argument')
         else:
             return NotImplemented
 
     def _ratan2(self,lhs):
-        if isinstance(lhs,(float,int,long)):
+        if isinstance(lhs,numbers.Real):
             return _atan2_x_re(float(lhs),self)
-        elif isinstance(lhs,complex):
+        elif isinstance(lhs,numbers.Complex):
             raise TypeError('atan2 is undefined with a complex argument')
         else:
             return NotImplemented
@@ -1974,20 +1974,19 @@ def real_ensemble(seq,df):
     a multivariate distribution. 
     
     """
-    if len(seq):
-        # TODO: assertions not required in release version
-        # have been declared independent=False 
-        assert all( s_i._node.independent == False for s_i in seq )
+    # TODO: assertions not required in release version
+    # have been declared independent=False 
+    assert all( s_i._node.independent == False for s_i in seq )
 
-        # ensemble members must have the same degrees of freedom
-        assert all( s_i.df == df for s_i in seq )
+    # ensemble members must have the same degrees of freedom
+    assert all( s_i.df == df for s_i in seq )
 
-        # ensemble members must be elementary
-        assert all( s_i.is_elementary for s_i in seq )
-                
-        ensemble = set( x._node.uid for x in seq )
-        for s_i in seq:
-            s_i._node.ensemble = ensemble     
+    # ensemble members must be elementary
+    assert all( s_i.is_elementary for s_i in seq )
+            
+    ensemble = set( x._node.uid for x in seq )
+    for s_i in seq:
+        s_i._node.ensemble = ensemble     
                 
 #----------------------------------------------------------------------------
 def append_real_ensemble(member,x):
@@ -2575,15 +2574,6 @@ class UncertainComplex(object):
             i = +self.imag
             return UncertainComplex(r,i)
             
-        elif isinstance(lhs,complex):
-            if lhs == 0.0:
-                return self
-            else:
-                # Force addition between uncertain numbers
-                r = UncertainReal._constant( lhs.real ) + self.real
-                i = UncertainReal._constant( lhs.imag ) + self.imag
-                return UncertainComplex(r,i)
-                
         elif isinstance(lhs,numbers.Real):
             if lhs == 0.0:
                 return self
@@ -2592,6 +2582,15 @@ class UncertainComplex(object):
                 # Force `i` to be an intermediate uncertain number,
                 # which `self.imag + 0` will not do.
                 i = +self.imag
+                return UncertainComplex(r,i)
+                
+        elif isinstance(lhs,numbers.Complex):
+            if lhs == 0.0:
+                return self
+            else:
+                # Force addition between uncertain numbers
+                r = UncertainReal._constant( lhs.real ) + self.real
+                i = UncertainReal._constant( lhs.imag ) + self.imag
                 return UncertainComplex(r,i)
                 
         else:
@@ -2617,7 +2616,7 @@ class UncertainComplex(object):
                 i = +self.imag
                 return UncertainComplex(r,i)
                 
-        elif isinstance(rhs,complex):
+        elif isinstance(rhs,numbers.Complex):
             if rhs == 0.0:
                 return self
             else:
@@ -2640,7 +2639,7 @@ class UncertainComplex(object):
                 r = lhs - self.real
                 return UncertainComplex(r,-self.imag)
                 
-        elif isinstance(lhs,complex):
+        elif isinstance(lhs,numbers.Complex):
             if lhs == 0.0:
                 return -self
             else:
@@ -2870,7 +2869,7 @@ class UncertainComplex(object):
                 dz_dl,
                 dz_dr
             )
-        elif isinstance(rhs,(complex,float,int,long)):
+        elif isinstance(rhs,numbers.Complex):
             if rhs == 1.0:
                 return self
             else:
@@ -2904,7 +2903,7 @@ class UncertainComplex(object):
                 dz_dl,
                 dz_dr
             )
-        elif isinstance(lhs,(complex,float,int,long)):
+        elif isinstance(lhs,numbers.Complex):
             zl = lhs
             zr = rhs._value
             z = zl ** zr

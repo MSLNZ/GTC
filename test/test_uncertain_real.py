@@ -895,9 +895,7 @@ class TestComparisons(unittest.TestCase):
         self.assertTrue( equivalent(abs(x_value),abs(x)) )
 
 #----------------------------------------------------------------------------
-class FunctionTestsReal(unittest.TestCase):
-
-    # 
+class TestFunctionsReal(unittest.TestCase):
     
     def setUp(self):
         self.x1 = 1.7
@@ -950,7 +948,7 @@ class FunctionTestsReal(unittest.TestCase):
                 # TOL
         # ))
  
-    def testPwr(self):
+    def test_Pwr(self):
         vv = self.x1 ** self.x2
         # The two components of uncertainty are:
         u1 = self.x2 * vv / self.x1 * self.u1
@@ -1463,6 +1461,26 @@ class ArcTrigTests(unittest.TestCase):
             uncertainty(y_cpt)* xv/den,
             TOL)
 
+        # illegal 
+        self.assertRaises(TypeError,atan2,y_cpt,1+5j) 
+        self.assertRaises(TypeError,atan2,1+5j,x_cpt,) 
+        
+        # trivial 
+        y = atan2(ureal(0,1),ureal(0,1))
+        self.assertEqual( value(y), 0 )
+        self.assertEqual( uncertainty(y), 0 )
+        self.assertEqual( dof(y), inf )   
+ 
+        y = atan2(0,ureal(0,1))
+        self.assertEqual( value(y), math.atan2(0,0) )
+        self.assertEqual( uncertainty(y), 0 )
+        self.assertEqual( dof(y), inf )   
+ 
+        y = atan2(ureal(0,1),0)
+        self.assertEqual( value(y), math.atan2(0,0) )
+        self.assertEqual( uncertainty(y), 0 )
+        self.assertEqual( dof(y), inf ) 
+        
         # ----------------------        
         x_cpt = result( cos(x2) )
         y_cpt = result( sin(x2) )
