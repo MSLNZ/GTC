@@ -13,7 +13,7 @@ The GUM Tree calculator (``GTC``) is a data processing tool that uses `uncertain
 Measurement error
 =================
 
-Measurement obtains information about quantities; but the quantity of interest (the *measurand*) is never determined exactly, it can only be estimated. There is always some *measurement error* involved. Writing this as an equation, where the unknown measurand is :math:`Y` and the measurement result is :math:`y`, we have
+A measurement obtains information about a quantity; but the quantity itself (the *measurand*) is never determined exactly, it can only be estimated. There is always some *measurement error* involved. Writing this as an equation, where the unknown measurand is :math:`Y` and the measurement result is :math:`y`, we have
 
 .. math::
 
@@ -21,13 +21,15 @@ Measurement obtains information about quantities; but the quantity of interest (
     
 where :math:`E_y` represents the measurement error. So, the measurement result, :math:`y`, is not quite what is wanted; it only provides an approximate value for :math:`Y`. 
 
-This is how 'uncertainty' arises. After any measurement, we are faced with uncertainty about what will happen when we take the measured value :math:`y` and use it for the target value of the measurand, :math:`Y`. For example, suppose the speed of a car is measured by a law enforcement officer. The measurement is made to decide whether, in fact, a car was travelling faster than the legal limit. However, this decision cannot be made perfectly, because the actual speed :math:`Y` remains unknown. It is possible that the measured value :math:`y` will show that the car was speeding when in fact it was not, or the opposite. This difficulty with making the correct decision is inevitable. So, in practice, a decision rule will be used that takes account of the measurement uncertainty. The rule will probably err on the side of caution (a few speeding drivers may escape rather than unfairly accusing good drivers of speeding).
+This is how 'uncertainty' arises. After any measurement, we are faced with uncertainty about what will happen if we take the measured value :math:`y` and use it instead of the (unknown) value of the measurand, :math:`Y`. 
 
-Clearly, the measurement error :math:`E_y` gives rise to the uncertainty; but, like the measurand, the value of this quantity is never known, at best it can be described in statistical terms. Another use of the word 'uncertainty' is to refer to the extent of a statistical distribution associated with :math:`E_y`. For example, the term 'standard uncertainty' refers to the standard deviation of a distribution associated with the results of an unpredictable quantity.
+For example, suppose the speed of a car is measured by a law enforcement officer. The measurement is made to decide whether, in fact, a car was travelling faster than the legal limit. However, this simple fact cannot be determined perfectly, because the actual speed :math:`Y` remains unknown. It is possible that the measured value :math:`y` will indicate that the car was speeding when in fact it was not, or that it was not speeding when in fact it was. The difficulty in making the correct decision is inevitable. So, in practice, a decision rule must be used that takes account of the measurement uncertainty. In this example, the rule will probably err on the side of caution (a few speeding drivers will escape rather than unfairly accusing good drivers of speeding).
+
+Like the measurand, the measurement error :math:`E_y` is not known. At best its behaviour can be described in statistical terms. This leads to more technical uses of the word 'uncertainty'. For instance, the term 'standard uncertainty' refers to the standard deviation of a distribution associated with an unpredictable quantity.
 
 Measurement models
 ------------------
-It is generally possible to identify a number of factors that influence the outcome of a measurement process, thereby contributing to the final measurement error. In a formal analysis of the measurement, these factors must be included in a measurement model, which defines the measurand in terms of all other significant influence quantities. In mathematical terms, we write   
+It is generally possible to identify the most important factors that influence the outcome of a measurement process, thereby contributing to the final measurement error. In a formal analysis, these factors must be included in a measurement model, which defines the measurand in terms of all other significant influence quantities. In mathematical terms, we write   
 
 .. math::
 
@@ -49,15 +51,10 @@ Uncertain numbers are data-types designed to represent measured quantities. They
 
 Uncertain numbers are are intended to be used to process measurement data; that is, to evaluate measurement models. The inputs to a measurement model (like :math:`X_1, X_2, \cdots` above) are defined as uncertain numbers. Calculations then obtain an uncertain number for the measurand (:math:`Y`). 
 
-There are two types of uncertain number: one for real-valued quantities and one for complex-valued quantities.
+There are two types of uncertain number: one for real-valued quantities and one for complex-valued quantities. At the very least, two pieces of information are needed to define an uncertain number: a value (that is a measured, or approximate, value of the quantity) and an uncertainty that describes the extent of a distribution associated with error in the measured value.
 
 Uncertain real numbers
 ----------------------
-
-To define an uncertain real number, at least two pieces of information are needed: 
-
-    #. A *value* (a measured, or approximate, value of the quantity) 
-    #. An *uncertainty* (usually the standard deviation of the distribution associated with error in the measured value). 
     
 The function :func:`~core.ureal` is often used to define uncertain real number inputs. 
     
@@ -102,7 +99,7 @@ To calculate the height, we create uncertain numbers representing the measured q
     
 The result 11.7 metres is our best estimate of the height :math:`H`. The standard uncertainty of this value, as an estimate of the actual height, is 0.8 metres. 
     
-It is important to note that these calculations are open ended. We can keep going and evaluate what the observer angle would be at 20 metres from the pole (the uncertainty in the base distance remains 3 cm) ::
+It is important to note that uncertain-number calculations are open ended. In this case, for example, we can keep going and evaluate what the observer angle would be at 20 metres from the pole (the uncertainty in the base distance remains 3 cm) ::
 
     >>> B_20 = ureal(20,3E-2)
     >>> Phi_20 = atan( H/B_20 ) 
@@ -112,17 +109,12 @@ It is important to note that these calculations are open ended. We can keep goin
     >>> print(Phi_20_deg)
     30.4(1.8)
 
-The value of 30.4 degrees for the angle at 20 metres from the pole has a standard uncertainty of 1.8 degrees.
+The value of 30.4 degrees obtained for the angle, at 20 metres from the pole, has a standard uncertainty of 1.8 degrees.
 
 Uncertain complex numbers
 -------------------------
 
-To define an uncertain number for a complex quantity, at least two pieces of information are needed: 
-
-    #. A *value* (a measured, or approximate, value of the quantity) 
-    #. An *uncertainty* (for complex quantities, there are different ways of characterising the extent of the distribution associated with the measurement error). 
-
-    The function :func:`~core.ucomplex` is often used to define uncertain complex number inputs. 
+The function :func:`~core.ucomplex` is often used to define uncertain complex number inputs. 
 
 Example: AC electric circuit 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
