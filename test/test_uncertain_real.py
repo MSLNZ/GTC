@@ -216,6 +216,20 @@ class ArithmeticTestsReal(unittest.TestCase):
         self.assertTrue(oldy is y)
         y = 0 + y
         self.assertTrue(oldy is y)
+        
+        newy = y + 0j
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = 0j + y 
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
 
         #---------------------------------------------------------
         # Adding a complex constant on the left
@@ -367,6 +381,20 @@ class ArithmeticTestsReal(unittest.TestCase):
         self.assertTrue(oldy is not y)
         equivalent(value(y),-value(oldy))
 
+        newy = y - 0j
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = 0j - y 
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),-value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+        
         #---------------------------------------------------------
         # Subtracting a complex constant on the left
         x = self.x 
@@ -524,6 +552,20 @@ class ArithmeticTestsReal(unittest.TestCase):
         y = 1.0 * y
         self.assertTrue(oldy is y)
 
+        newy = y*(1.0+0j)
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = (1.0+0j)*y
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+        
         #---------------------------------------------------------
         # Multiplying a complex constant on the left
         x = self.x 
@@ -670,6 +712,26 @@ class ArithmeticTestsReal(unittest.TestCase):
         self.assertTrue( y is not self.w )
         
         self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
+
+        newy = y/(1.0+0j)
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = (1.0+0j)/y
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),1./value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( 
+            equivalent(
+                uncertainty(newy)[0]/value(newy.real),
+                uncertainty(y)/value(y),TOL
+            ) 
+        )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+        
 
         #---------------------------------------------------------
         # Dividing a complex constant on the left
@@ -949,11 +1011,11 @@ class TestFunctionsReal(unittest.TestCase):
         # ))
  
     def test_Pwr(self):
+        # ur-ur
         vv = self.x1 ** self.x2
         # The two components of uncertainty are:
         u1 = self.x2 * vv / self.x1 * self.u1
         u2 = vv * math.log( abs( self.x1) ) * self.u2
-        
         y = self.un1 ** self.un2
         v = value(y)
         equivalent( v,  vv, TOL  )
@@ -1366,6 +1428,12 @@ class TestGetCovariance(unittest.TestCase):
         self.assertRaises(
             RuntimeError,
             set_correlation_real,x1,x2,.1
+        )
+
+        # self correlation must be unity
+        self.assertRaises(
+            RuntimeError,
+            set_correlation_real,x1,x1,.1
         )
 
         x1 = ureal(0,1,5,None,independent=False)

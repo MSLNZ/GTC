@@ -1083,6 +1083,20 @@ class ArithmeticTestsComplex(unittest.TestCase):
             equivalent_sequence(u_component(q,x), [dq_dx.real,-dq_dx.imag,0,0] ) 
         )
 
+        # c-uc
+        y = self.x1 / self.un4
+        equivalent_complex(value(y),self.x1/self.x4,TOL)
+        equivalent_sequence(
+            u_component(y,self.x1),
+            (0.,0.,0.,0.)
+        ,   TOL
+        )
+        u4 = numpy.asarray( [ [self.u4,0], [0,0] ])
+        equivalent_sequence(
+            u_component(y,self.un4),
+            array_to_sequence( numpy.matmul(number_to_matrix(-value(y) / self.x4), u4)),
+            TOL)
+
 #-----------------------------------------------------
 class GuideExampleH2Complex(unittest.TestCase):
 
@@ -1499,6 +1513,9 @@ class ComplexFunctionTest(unittest.TestCase):
         s = sqrt(x)
         n = mag_squared(x)
         a = magnitude(x)
+        
+        z = ucomplex(0, (mat[0,0], mat[1,1]) )
+        self.assertRaises(ZeroDivisionError,magnitude,z)
 
         # log10 -----------------------------------------------------------        
         equivalent_complex(value(l10),cmath.log10(v),TOL)
@@ -1823,6 +1840,86 @@ class ComplexFunctionTest(unittest.TestCase):
             u_component(p,x),
             array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
             TOL)
+
+        # negative real to fractional power ---------------------------------
+        # ur-r 
+        vx = -1.8
+        vy = 0.5
+        ux = 4.1
+        
+        x = ureal( vx,ux )
+        y = vy
+
+        p = x**y
+        vp = complex(vx,0.)**vy
+        equivalent_complex(value(p),vp,TOL)
+        
+        dp_dx = vp*vy/vx
+        equivalent_sequence(
+            u_component(p,x),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), numpy.asarray( [[ux,0],[0,0]] ) )),
+            TOL)
+        dp_dy = cmath.log(vx)*vp
+        equivalent_sequence(
+            u_component(p,y),
+            (0.,0.,0.,0.),
+            TOL)
+
+        # r-ur 
+        vx = -1.8
+        vy = 0.5
+        uy = 4.1
+        maty = numpy.array( (uy,0,0,0) )
+        maty.shape = (2,2)
+        
+        x = vx
+        y = ureal( vy,uy )
+
+        p = x**y
+        vp = complex(vx,0.)**vy
+        equivalent_complex(value(p),vp,TOL)
+        
+        dp_dx = vp*vy/vx
+        equivalent_sequence(
+            u_component(p,x),
+            (0.,0.,0.,0.),
+            TOL)
+            
+        dp_dy = cmath.log(vx)*vp
+        equivalent_sequence(
+            u_component(p,y),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dy), maty )),
+            TOL)
+
+        # ur-ur 
+        vx = -1.8
+        vy = 0.5
+        ux = 4.1
+        uy = 0.4
+        
+        matx = numpy.array( (ux,0,0,0) )
+        matx.shape = (2,2)
+        maty = numpy.array( (uy,0,0,0) )
+        maty.shape = (2,2)
+
+        x = ureal(vx, ux )
+        y = ureal(vy, uy )
+
+        p = x**y
+        vp = complex(vx,0)**vy
+        equivalent_complex(value(p),vp,TOL)
+        
+        dp_dx = vp*vy/vx
+        equivalent_sequence(
+            u_component(p,x),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dx), matx )),
+            TOL)
+        dp_dy = cmath.log(vx)*vp
+        equivalent_sequence(
+            u_component(p,y),
+            array_to_sequence( numpy.matmul(number_to_matrix(dp_dy), maty )),
+            TOL)
+
 
 #-----------------------------------------------------
 class TestMultipleUNsWithComplexConstants(unittest.TestCase):
