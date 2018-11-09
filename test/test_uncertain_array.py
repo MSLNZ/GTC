@@ -3021,6 +3021,97 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(z[5].x, za[1, 2].x))
         self.assertTrue(equivalent(z[5].u, za[1, 2].u))
 
+    def test_names(self):
+        # the elements in array are not tuples
+        with self.assertRaises(TypeError):
+            _ = uarray([], names=['a', 'b', 'c'])
+        with self.assertRaises(TypeError):
+            _ = uarray(ureal(1, 1), names=['a', 'b', 'c'])
+        with self.assertRaises(TypeError):
+            _ = uarray([ureal(1, 1), ureal(2, 2), ureal(3, 3)], names=['a', 'b', 'c'])
+
+        # len(array[0]) != len(names)
+        with self.assertRaises(ValueError):
+            _ = uarray((), names=['a', 'b', 'c'])
+        with self.assertRaises(ValueError):
+            _ = uarray((ureal(1, 1),), names=['a', 'b', 'c'])
+        with self.assertRaises(ValueError):
+            _ = uarray((ureal(1, 1), 2, 3, 4), names=['a', 'b', 'c'])
+
+        # all items are of type UncertainReal
+        a = [(ureal(1, 1), ureal(2, 2), ureal(3, 3)),
+             (ureal(4, 4), ureal(5, 5), ureal(6, 6))]
+        ua = uarray(a, names=['x', 'y', 'z'])
+
+        self.assertTrue(ua.dtype.names == ('x', 'y', 'z'))
+        for field in sorted(ua.dtype.fields):
+            self.assertTrue(ua.dtype.fields[field][0].str == '|O')
+
+        x = ua['x']
+        self.assertTrue(x[0] is a[0][0])
+        self.assertTrue(x[1] is a[1][0])
+
+        y = ua['y']
+        self.assertTrue(y[0] is a[0][1])
+        self.assertTrue(y[1] is a[1][1])
+
+        z = ua['z']
+        self.assertTrue(z[0] is a[0][2])
+        self.assertTrue(z[1] is a[1][2])
+
+        # mix of UncertainReal, float, int and complex
+        a = [(4j, ureal(1, 1), 7.0, ureal(2, 2), 8, ureal(3, 3)),
+             (1-0.2j, ureal(4, 4), 9.0, ureal(5, 5), 10, ureal(6, 6))]
+        ua = uarray(a, names=['u', 'v', 'w', 'x', 'y', 'z'], label='apple')
+
+        self.assertTrue(ua.dtype.names == ('u', 'v', 'w', 'x', 'y', 'z'))
+        for i, field in enumerate(sorted(ua.dtype.fields)):
+            typ = ua.dtype.fields[field][0].str
+            if i == 0:
+                self.assertTrue(typ == '<c16')
+            elif i == 2:
+                self.assertTrue(typ == '<f8')
+            elif i == 4:
+                self.assertTrue(typ == '<i4')
+            else:
+                self.assertTrue(typ == '|O')
+
+        u = ua['u']
+        self.assertTrue(u[0] == a[0][0])
+        self.assertTrue(u[1] == a[1][0])
+        self.assertTrue(u.label == 'apple')
+
+        v = ua['v']
+        self.assertTrue(v[0] is a[0][1])
+        self.assertTrue(v[1] is a[1][1])
+        self.assertTrue(v.label == 'apple')
+
+        w = ua['w']
+        self.assertTrue(w[0] == a[0][2])
+        self.assertTrue(w[1] == a[1][2])
+        self.assertTrue(w.label == 'apple')
+
+        x = ua['x']
+        self.assertTrue(x[0] is a[0][3])
+        self.assertTrue(x[1] is a[1][3])
+        self.assertTrue(x.label == 'apple')
+
+        y = ua['y']
+        self.assertTrue(y[0] == a[0][4])
+        self.assertTrue(y[1] == a[1][4])
+        self.assertTrue(y.label == 'apple')
+
+        z = ua['z']
+        self.assertTrue(z[0] is a[0][5])
+        self.assertTrue(z[1] is a[1][5])
+        self.assertTrue(z.label == 'apple')
+
+        # dtype gets precedence over names
+        ua = uarray([(ureal(1, 1), ureal(2, 2))],
+                    names=['a', 'b'],
+                    dtype=([('x', np.object), ('y', np.object)]))
+        self.assertTrue(ua.dtype.names == ('x', 'y'))
+
     #
     # The following is a list of all ufuncs
     #

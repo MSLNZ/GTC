@@ -50,8 +50,11 @@ else:
             Do not instantiate this class directly. Use :func:`~.core.uarray` instead.
 
             """
-            def __new__(cls, array, label=None):
-                obj = np.asarray(array).view(cls)
+            def __new__(cls, array, dtype=None, label=None):
+                if dtype is None:
+                    obj = np.asarray(array).view(cls)
+                else:
+                    obj = np.asarray(array, dtype=dtype).view(cls)
                 obj._label = label
                 return obj
 
