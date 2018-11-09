@@ -297,11 +297,13 @@ def ureal(x,u,df=inf,label=None,independent=True):
         ureal(2.5,0.5,3.0, label='x')
     
     """    
-    if not isinstance(x,numbers.Real):
+    if not isinstance(x,numbers.Real) or math.isnan(x) or math.isinf(x):
         raise RuntimeError("invalid value: '{!r}'".format(x) )
-    if not isinstance(u,numbers.Real) or u < 0:
+        
+    if not isinstance(u,numbers.Real) or u < 0 or math.isinf(u) or math.isnan(u):
         raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
-    if not isinstance(df,numbers.Real) or df < 1:
+        
+    if not isinstance(df,numbers.Real) or df < 1 or math.isnan(df):
         raise RuntimeError("invalid dof: '{!r}'".format(df) )
     
     if u == 0:
@@ -371,7 +373,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
         )
         
     rtn = [
-        # NB `ureal` will creates objects when u == 0
+        # NB `ureal` creates constant objects when u == 0
         ureal(x_i,u_i,df,label=l_i,independent=False)
             for x_i,u_i,l_i in izip(
                 x_seq,u_seq,label_seq
@@ -511,31 +513,39 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     VarianceCovariance(rr=1.1999999999999997, ri=0.7, ir=0.7, ii=2.2)
     
     """
-    if not isinstance(z,numbers.Complex):
+    if (not isinstance(z,numbers.Complex) 
+    or math.isnan(z.real) or math.isinf(z.real) 
+    or math.isnan(z.imag) or math.isinf(z.imag)
+    ):
         raise RuntimeError("invalid value: '{!r}'".format(z) )
         
-    if not isinstance(df,numbers.Real) or df < 1:
+    if not isinstance(df,numbers.Real) or df < 1 or math.isnan(df):
         raise RuntimeError("invalid dof: '{!r}'".format(df) )
         
     if is_sequence(u):
     
         case = len(u)
         
-        if case == 2:
+        if case == 2:                
             u_r = float(u[0])
             u_i = float(u[1])
             r = None
-            
+                
         elif case == 4:
             u_r,cv1,cv2,u_i = u
             if not isinstance(cv1,numbers.Real) or cv1 != cv2:
                 raise RuntimeError(
                     "covariance elements not equal: {!r} and {!r}".format(cv1,cv2) 
-                )
-            
+                )            
             u_r = math.sqrt(u_r)
             u_i = math.sqrt(u_i)
             r = cv1 / (u_r*u_i) if cv1 != 0 else None
+            
+            # Allow a little tolerance for numerical imprecision
+            if r is not None and abs(r) > 1 + 1E-10:
+                raise RuntimeError(
+                    "invalid correlation: {!r}, cv={}".format(r,u)
+                )
             if r is not None:
                 # This overrides an initial assignment
                 independent = False
@@ -545,23 +555,24 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 "invalid uncertainty sequence: '{!r}'".format(u)
             )
         
-        if not isinstance(u_r,numbers.Real) or u_r < 0:
-            raise RuntimeError("invalid real uncertainty: '{!r}'".format(u_r) )
-            
-        if not isinstance(u_i,numbers.Real) or u_i < 0:
-            raise RuntimeError("invalid imag uncertainty: '{!r}'".format(u_i) )
-        
-        # Allow a little tolerance for numerical imprecision
-        if r is not None and abs(r) > 1 + 1E-10:
-            raise RuntimeError(
-                "invalid correlation: {!r}, cv={}".format(r,u)
-            )
-
     elif isinstance(u,numbers.Real):
         u_r = u_i = float(u)
         r = None
     else:
         raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
+
+    # Checking of valid uncertainty values
+    if not isinstance(u_r,numbers.Real) or u_r < 0:
+        raise RuntimeError("invalid real uncertainty: '{!r}'".format(u_r) )
+        
+    if not isinstance(u_i,numbers.Real) or u_i < 0:
+        raise RuntimeError("invalid imag uncertainty: '{!r}'".format(u_i) )
+
+    if (math.isinf(u_r) or math.isnan(u_r) 
+        or math.isinf(u_i) or math.isnan(u_i)
+        or r is not None and math.isnan(r)
+    ):
+        raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )            
         
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
