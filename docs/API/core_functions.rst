@@ -19,6 +19,8 @@ A set of core mathematical functions, together with functions that create elemen
 	:members: 
 	:inherited-members:
 
+.. _uncertain_number_types:
+
 Uncertain Number Types
 ======================
 
@@ -117,3 +119,8 @@ Uncertain Complex Numbers
     :members: conjugate, df, imag, real, label, u, v, x, r
    
 
+Uncertain Arrays
+----------------
+
+.. autoclass:: uncertain_array.UncertainArray
+   :members: x, u, v, df, label, real, imag, r, conjugate
