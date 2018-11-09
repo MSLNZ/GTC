@@ -119,7 +119,7 @@ else:
 
             @property
             def x(self):
-                """The values of :attr:`UncertainReal.x <.lib.UncertainReal.x>` or
+                """The result of :attr:`UncertainReal.x <.lib.UncertainReal.x>` or
                 :attr:`UncertainComplex.x <.lib.UncertainComplex.x>` for each element
                 in the array.
 
@@ -136,7 +136,7 @@ else:
 
             @property
             def u(self):
-                """The values of :attr:`UncertainReal.u <.lib.UncertainReal.u>` or
+                """The result of :attr:`UncertainReal.u <.lib.UncertainReal.u>` or
                 :attr:`UncertainComplex.u <.lib.UncertainComplex.u>` for each element
                 in the array.
 
@@ -145,11 +145,11 @@ else:
                     >>> r = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
                     >>> r.u
                     array([0.18, 0.12, 0.19])
-                    >>> c = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> c = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> c.u
-                    array([StandardUncertainty(real=1.2, imag=1.2),
-                           StandardUncertainty(real=0.9, imag=0.9),
-                           StandardUncertainty(real=3.4, imag=0.2)], dtype=object)
+                    array([StandardUncertainty(real=0.6, imag=0.6),
+                           StandardUncertainty(real=1.4, imag=0.2),
+                           StandardUncertainty(real=0.9, imag=0.9)], dtype=object)
 
                 """
                 if self.ndim == 0:
@@ -170,16 +170,16 @@ else:
 
             @property
             def real(self):
-                """The values of :attr:`UncertainReal.real <.lib.UncertainReal.real>` or
+                """The result of :attr:`UncertainReal.real <.lib.UncertainReal.real>` or
                 :attr:`UncertainComplex.real <.lib.UncertainComplex.real>` for each
                 element in the array.
 
                 **Example**::
 
-                    >>> a = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> a = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> a.real
-                    UncertainArray([ureal(1.2,1.2,inf), ureal(0.2,0.9,inf),
-                                    ureal(0.0,3.4,inf)], dtype=object)
+                    UncertainArray([ureal(1.2,0.6,inf), ureal(3.2,1.4,inf),
+                                    ureal(0.0,0.9,inf)], dtype=object)
 
                 """
                 if self.ndim == 0:
@@ -188,16 +188,16 @@ else:
 
             @property
             def imag(self):
-                """The values of :attr:`UncertainReal.imag <.lib.UncertainReal.imag>` or
+                """The result of :attr:`UncertainReal.imag <.lib.UncertainReal.imag>` or
                 :attr:`UncertainComplex.imag <.lib.UncertainComplex.imag>` for each
                 element in the array.
 
                 **Example**::
 
-                    >>> a = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> a = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> a.imag
-                    UncertainArray([ureal(-0.5,1.2,inf), ureal(1.2,0.9,inf),
-                                    ureal(1.5,0.2,inf)], dtype=object)
+                    UncertainArray([ureal(-0.5,0.6,inf), ureal(1.2,0.2,inf),
+                                    ureal(1.5,0.9,inf)], dtype=object)
 
                 """
                 if self.ndim == 0:
@@ -206,7 +206,7 @@ else:
 
             @property
             def v(self):
-                """The values of :attr:`UncertainReal.v <.lib.UncertainReal.v>` or
+                """The result of :attr:`UncertainReal.v <.lib.UncertainReal.v>` or
                 :attr:`UncertainComplex.v <.lib.UncertainComplex.v>` for each element
                 in the array.
 
@@ -215,12 +215,11 @@ else:
                     >>> r = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
                     >>> r.v
                     array([0.0324, 0.0144, 0.0361])
-                    >>> c = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> c = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.5, 0.5)), ucomplex(1.5j, 0.9)])
                     >>> c.v
-                    array([VarianceCovariance(rr=1.44, ri=0.0, ir=0.0, ii=1.44),
-                           VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81),
-                           VarianceCovariance(rr=11.559999999999999, ri=0.0, ir=0.0, ii=0.04000000000000001)],
-                          dtype=object)
+                    array([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
+                           VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
+                           VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)], dtype=object)
 
                 """
                 if self.ndim == 0:
@@ -241,15 +240,15 @@ else:
 
             @property
             def df(self):
-                """The values of :attr:`UncertainReal.df <.lib.UncertainReal.df>` or
+                """The result of :attr:`UncertainReal.df <.lib.UncertainReal.df>` or
                 :attr:`UncertainComplex.df <.lib.UncertainComplex.df>` for each element
                 in the array.
 
                 **Example**::
 
-                    >>> a = uarray([ureal(0.6, 0.2, df=2.3), ureal(0.4, 0.1, df=4.2), ureal(0.5, 0.5, df=7.1)])
+                    >>> a = uarray([ureal(0.6, 0.2, df=3), ureal(0.4, 0.1, df=4), ureal(0.5, 0.5, df=7)])
                     >>> a.df
-                    array([2.3, 4.2, 7.1])
+                    array([3., 4., 7.])
 
                 """
                 if self.ndim == 0:
@@ -258,7 +257,7 @@ else:
 
             @property
             def r(self):
-                """The values of :attr:`UncertainComplex.r <.lib.UncertainComplex.r>`
+                """The result of :attr:`UncertainComplex.r <.lib.UncertainComplex.r>`
                 for each element in the array.
 
                 **Example**::
@@ -391,7 +390,27 @@ else:
                 return UncertainArray([abs(value) for value in inputs[0]])
 
             def _conjugate(self, *inputs):
-                return UncertainArray([value.conjugate() for value in inputs[0]])
+                # use self instead of inputs[0] because I wanted to create
+                # a custom __doc__ for this method
+                return UncertainArray([value.conjugate() for value in self])
+
+            def conjugate(self):
+                """The result of :meth:`UncertainReal.conjugate() <.lib.UncertainReal.conjugate>`
+                or :meth:`UncertainComplex.conjugate() <.lib.UncertainComplex.conjugate>`
+                for each element in the array.
+
+                **Example**::
+
+                    >>> a = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
+                    >>> a.conjugate()
+                    UncertainArray([ucomplex((1.2+0.5j), u=[0.6,0.6], r=0.0, df=inf),
+                                    ucomplex((3.2-1.2j), u=[1.4,0.2], r=0.0, df=inf),
+                                    ucomplex((0-1.5j), u=[0.9,0.9], r=0.0, df=inf)],
+                                   dtype=object)
+
+                """
+                # override this method because I wanted to create a custom __doc__
+                return self._conjugate()
 
             def _cos(self, *inputs):
                 # use self instead of inputs[0] for compatibility with GTC.core.cos(x)
