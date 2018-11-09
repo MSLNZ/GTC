@@ -42,9 +42,16 @@ else:
                 return isinf(number)
 
         class UncertainArray(np.ndarray):
+            """Base: :class:`numpy.ndarray`
 
-            def __new__(cls, input_array, label=None):
-                obj = np.asarray(input_array).view(cls)
+            An :class:`UncertainArray` contains elements that are of type
+            :class:`.UncertainReal` or :class:`.UncertainComplex`.
+
+            Do not instantiate this class directly. Use :func:`~.core.uarray` instead.
+
+            """
+            def __new__(cls, array, label=None):
+                obj = np.asarray(array).view(cls)
                 obj._label = label
                 return obj
 
@@ -99,16 +106,52 @@ else:
 
             @property
             def label(self):
+                """:class:`str` - The label that was assigned to the array when it was created.
+
+                **Example**::
+
+                    >>> current = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)], label='amps')
+                    >>> current.label
+                    'amps'
+
+                """
                 return self._label
 
             @property
             def x(self):
+                """The values of :attr:`UncertainReal.x <.lib.UncertainReal.x>` or
+                :attr:`UncertainComplex.x <.lib.UncertainComplex.x>` for each element
+                in the array.
+
+                **Example**::
+
+                    >>> a = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
+                    >>> a.x
+                    array([0.57, 0.45, 0.68])
+
+                """
                 if self.ndim == 0:
                     return self.item(0).x
                 return np.asarray([item.x for item in self])
 
             @property
             def u(self):
+                """The values of :attr:`UncertainReal.u <.lib.UncertainReal.u>` or
+                :attr:`UncertainComplex.u <.lib.UncertainComplex.u>` for each element
+                in the array.
+
+                **Example**::
+
+                    >>> r = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
+                    >>> r.u
+                    array([0.18, 0.12, 0.19])
+                    >>> c = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> c.u
+                    array([StandardUncertainty(real=1.2, imag=1.2),
+                           StandardUncertainty(real=0.9, imag=0.9),
+                           StandardUncertainty(real=3.4, imag=0.2)], dtype=object)
+
+                """
                 if self.ndim == 0:
                     return self.item(0).u
                 if isinstance(self.item(0), UncertainComplex):
@@ -127,18 +170,59 @@ else:
 
             @property
             def real(self):
+                """The values of :attr:`UncertainReal.real <.lib.UncertainReal.real>` or
+                :attr:`UncertainComplex.real <.lib.UncertainComplex.real>` for each
+                element in the array.
+
+                **Example**::
+
+                    >>> a = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> a.real
+                    UncertainArray([ureal(1.2,1.2,inf), ureal(0.2,0.9,inf),
+                                    ureal(0.0,3.4,inf)], dtype=object)
+
+                """
                 if self.ndim == 0:
                     return self.item(0).real
                 return UncertainArray([item.real for item in self])
 
             @property
             def imag(self):
+                """The values of :attr:`UncertainReal.imag <.lib.UncertainReal.imag>` or
+                :attr:`UncertainComplex.imag <.lib.UncertainComplex.imag>` for each
+                element in the array.
+
+                **Example**::
+
+                    >>> a = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> a.imag
+                    UncertainArray([ureal(-0.5,1.2,inf), ureal(1.2,0.9,inf),
+                                    ureal(1.5,0.2,inf)], dtype=object)
+
+                """
                 if self.ndim == 0:
                     return self.item(0).imag
                 return UncertainArray([item.imag for item in self])
 
             @property
             def v(self):
+                """The values of :attr:`UncertainReal.v <.lib.UncertainReal.v>` or
+                :attr:`UncertainComplex.v <.lib.UncertainComplex.v>` for each element
+                in the array.
+
+                **Example**::
+
+                    >>> r = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
+                    >>> r.v
+                    array([0.0324, 0.0144, 0.0361])
+                    >>> c = uarray([ucomplex(1.2-0.5j, 1.2), ucomplex(0.2+1.2j, 0.9), ucomplex(1.5j, (3.4, 0.2))])
+                    >>> c.v
+                    array([VarianceCovariance(rr=1.44, ri=0.0, ir=0.0, ii=1.44),
+                           VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81),
+                           VarianceCovariance(rr=11.559999999999999, ri=0.0, ir=0.0, ii=0.04000000000000001)],
+                          dtype=object)
+
+                """
                 if self.ndim == 0:
                     return self.item(0).v
                 if isinstance(self.item(0), UncertainComplex):
@@ -157,12 +241,34 @@ else:
 
             @property
             def df(self):
+                """The values of :attr:`UncertainReal.df <.lib.UncertainReal.df>` or
+                :attr:`UncertainComplex.df <.lib.UncertainComplex.df>` for each element
+                in the array.
+
+                **Example**::
+
+                    >>> a = uarray([ureal(0.6, 0.2, df=2.3), ureal(0.4, 0.1, df=4.2), ureal(0.5, 0.5, df=7.1)])
+                    >>> a.df
+                    array([2.3, 4.2, 7.1])
+
+                """
                 if self.ndim == 0:
                     return self.item(0).df
                 return np.asarray([item.df for item in self])
 
             @property
             def r(self):
+                """The values of :attr:`UncertainComplex.r <.lib.UncertainComplex.r>`
+                for each element in the array.
+
+                **Example**::
+
+                    >>> a = uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2)),
+                    ...             ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5))])
+                    >>> a.r
+                    array([0.26515152, 0.2962963 ])
+
+                """
                 if self.ndim == 0:
                     return self.item(0).r
                 return np.asarray([item.r for item in self])

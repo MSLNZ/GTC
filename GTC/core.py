@@ -1228,23 +1228,39 @@ def mag_squared(x):
 
 #---------------------------------------------------------------------------
 def uarray(array, label=None):
-    """Create a numpy array of uncertain numbers.
+    """Create an array of uncertain numbers.
+
+    For an overview on how to use an :class:`.UncertainArray` see :ref:`numpy-uarray`.
 
     .. important::
 
-       This function requires that numpy >= v1.13 is installed.
+       This function requires that numpy :math:`\geq` v1.13.0 is installed.
 
-    :param array: An array-like object that conains :class:`~lib.UncertainReal` and
-    :class:`~lib.UncertainComplex` elements.
-    :param label: A label to designate with this array (the `label` does not change the
-    label that was previously assigned to the :class:`~lib.UncertainReal` and
-    :class:`~lib.UncertainComplex` elements).
+    :param array: Array-like object containing :class:`~lib.UncertainReal`
+                  or :class:`~lib.UncertainComplex` elements.
+    :param label: A label to assign to the `array`. This `label` does not
+                  change the labels that were previously assigned to each array
+                  element when they were created using :func:`ureal` or
+                  :func:`ucomplex`.
+    :type label: str
 
-    :return: A numpy array.
-    :rtype: :class:`numpy.ndarray`.
+    :return: An :class:`.UncertainArray`.
+
+    **Example**::
+
+        >>> amps = uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
+        >>> volts = uarray([ureal(10.3, 1.3), ureal(9.5, 0.8), ureal(12.6, 1.9)])
+        >>> resistance = volts/amps
+        >>> resistance
+        UncertainArray([ureal(18.070175438596493,6.145264246839438,inf),
+                        ureal(21.11111111111111,5.903661880050747,inf),
+                        ureal(18.52941176470588,5.883187720636909,inf)], dtype=object)
+        >>> resistance[1:]
+        UncertainArray([ureal(21.11111111111111,5.903661880050747,inf),
+                        ureal(18.52941176470588,5.883187720636909,inf)], dtype=object)
     """
     if UncertainArray is None:
-        raise ImportError('Requires numpy > v1.13 to be installed')
+        raise ImportError('Requires numpy >= v1.13.0 to be installed')
     return UncertainArray(array, label=label)
 
 

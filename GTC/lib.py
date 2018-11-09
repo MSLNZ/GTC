@@ -2077,8 +2077,8 @@ class UncertainComplex(object):
             
         assert i.is_intermediate == r.is_intermediate
         
-        self.real = r
-        self.imag = i
+        self.real = r  #: :class:`UncertainReal`: The real component.
+        self.imag = i  #: :class:`UncertainReal`: The imaginary component.
         self._value = complex(r.x,i.x)
         
         self.is_elementary = r.is_elementary or i.is_elementary
@@ -2378,7 +2378,7 @@ class UncertainComplex(object):
     def conjugate(self):
         """Return the complex conjugate
 
-        An UncertainComplex object is created by negating the imaginary
+        An :class:`~lib.UncertainComplex` object is created by negating the imaginary
         component.
 
         :rtype: :class:`~lib.UncertainComplex`
