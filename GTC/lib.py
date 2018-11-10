@@ -1318,7 +1318,7 @@ def _rmul(lhs,rhs):
     
         return UncertainComplex(r,i)
     else:
-        assert false, 'unexpected'
+        assert False, 'unexpected'
 
 #----------------------------------------------------------------------------
 def _sub(lhs,rhs):
