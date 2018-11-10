@@ -3,7 +3,8 @@ import unittest
 from GTC import *
 from GTC.lib import (
     real_ensemble,
-    welch_satterthwaite
+    welch_satterthwaite,
+    UncertainReal
 )
 
 from testing_tools import *
@@ -11,12 +12,33 @@ from testing_tools import *
 TOL = 1E-13 
 
 #----------------------------------------------------------------------------
-class SimpleComplexMagnitude(unittest.TestCase):
-    # TODO: take the problem of mismatch as a simple ensemble test
-    def setUp(self):
-        self.r = ureal(1,1,5)
-        self.i = ureal(2,1,5)
+class SimpleWSCases(unittest.TestCase):
+    def test(self):
+        x = ureal(1,1,4)
+        self.assertEqual(4,x.df)
+        self.assertEqual(4,welch_satterthwaite(x)[1] )
+        
+        # product with zero values 
+        x1 = ureal(0,1,4)
+        x2 = ureal(0,1,3)
+        y = x1 * x2
+        self.assertEqual(0,y.u)
+        self.assertTrue(nan is y.df)
+        
+        # Pathological case - not sure it can be created in practice
+        x1 = ureal(1,1)
+        x2 = UncertainReal._elementary(1,0,4,label=None,independent=True)
+        x3 = UncertainReal._elementary(1,0,3,label=None,independent=True)
+        y = x1 + x2 + x3
+        self.assertEqual( len(y._u_components), 3 )
+        self.assertTrue(inf is y.df)
 
+#----------------------------------------------------------------------------
+class SimpleComplexMagnitude(unittest.TestCase):
+    def test(self):
+        mag = magnitude( ucomplex(1+1j,[.5,.1,.1,.5],4) )
+        self.assertEqual(4,mag.df)
+        
 #----------------------------------------------------------------------------
 class GuideExampleH1(unittest.TestCase):
 
@@ -50,7 +72,7 @@ class GuideExampleH1(unittest.TestCase):
         df = dof(theta)
         equivalent(v,-0.1,TOL)
         equivalent(u,0.406201920232,TOL)
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         x1 = self.Ls * self.delta_alpha * theta       
         u = uncertainty(x1)
@@ -101,7 +123,7 @@ class GuideExampleH1SIUnits(unittest.TestCase):
         df = dof(theta)
         equivalent(v,-0.1,TOL)
         equivalent(u,0.406201920232,TOL)
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         x1 = self.Ls * self.delta_alpha * theta       
         u = uncertainty(x1)

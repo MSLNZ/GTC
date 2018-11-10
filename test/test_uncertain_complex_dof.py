@@ -10,16 +10,33 @@ from testing_tools import *
 
 TOL = 1E-13 
 
-#----------------------------------------------------------------------------
-class SimpleComplexMagnitude(unittest.TestCase):
-    # TODO: take the problem of mismatch as a simple ensemble test
-    def setUp(self):
-        self.r = ureal(1,1,5)
-        self.i = ureal(2,1,5)
-
 #-----------------------------------------------------
 class TestWillinkHall(unittest.TestCase):
 
+    def test_pathological_cases(self):
+        x1 = ucomplex( 0, (0.96,-0.34,-0.34,0.27), 5 )
+        x2 = ucomplex( 0, (0.51,0.33,0.33,0.31), 3 )
+        x3 = ucomplex( 1, (0.45,0.28,0.28,1.65), 6 )
+
+        # The measurement equation
+        x = x1*x2*x3
+
+        equivalent( dof(x1), 5, 1E-15)
+        equivalent( dof(x2), 3, 1E-15)
+        equivalent( dof(x3), 6, 1E-15)
+        # The components of uncertainty will all be zero
+        self.assertTrue( dof(x) is nan )
+        
+        # Illegal correlation
+        v,i = multiple_ucomplex(
+            [4.999+0j,0.019661+0j],
+            [(0.0032,0.0),(0.0000095,0.0)],
+            5
+        )
+        phi = ucomplex(1.04446j,(0.0,0.00075),5,independent=False)
+
+        self.assertRaises(RuntimeError,set_correlation,0.86,v.real,phi.imag)
+        
     def testDoF1(self):
         # Test case from Metrologia 2002,39,365
         # Here define variables with covariance matrices
@@ -83,7 +100,7 @@ class TestWillinkHall(unittest.TestCase):
 
         theta = theta_1 + theta_2 
         df = dof(theta)
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         x1 = Ls * delta_alpha * theta       
         x2 = Ls * alpha_s * delta_theta        
@@ -106,7 +123,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF5(self):
         # Correlations should cause the calculation to abort
@@ -120,7 +137,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF6(self):
         # Correlations should cause the calculation to abort
@@ -134,7 +151,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF7(self):
         # Correlations should cause the calculation to abort
@@ -148,7 +165,7 @@ class TestWillinkHall(unittest.TestCase):
 
         # If we declare that they are in an ensemble then its OK
         complex_ensemble( (x1,x2,x3), 5 )
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( not math.isnan(dof(x)) )
 
     def testDoF8(self):
         # Look at the numerical stability of the dof calculation
@@ -232,7 +249,7 @@ class TestWillinkHall(unittest.TestCase):
         x3 = ucomplex( 1, (0.45,0.28,0.28,1.65) )
         x = x1 + x2 + x3
         set_correlation(0.5,x2.imag,x3.imag)
-        self.assertTrue( not is_undefined(dof(x)) )
+        self.assertTrue( dof(x) is not nan )
  
     def test_correlated_ensemble(self):
         # test when non-consecutive influences 
@@ -262,7 +279,7 @@ class TestWillinkHall(unittest.TestCase):
 
         equivalent( get_correlation(z),-0.591484610819,TOL)
 
-        self.assertTrue( not is_undefined(dof(z)) )
+        self.assertTrue( nan is not dof(z) )
         equivalent( dof(z),5,TOL)
 
     def test_illegal_complex_ensemble(self):
@@ -278,7 +295,29 @@ class TestWillinkHall(unittest.TestCase):
         self.assertRaises(
             AssertionError,complex_ensemble,[x1,y2],5
         )        
-                
+              
+    def testDoFMixedTypes(self):
+        TOL = 1E-5
+        
+        # i = ucomplex(0.019661+0j,(0.0000095,0.0),5,independent=False)
+        # phi = ucomplex(1.04446j,(0.0,0.00075),5,independent=False)
+        
+        i,phi = multiple_ucomplex(
+            [0.019661+0j,1.04446j],
+            [(0.0000095,0.0),(0.0,0.00075)],
+            5
+        )
+        v = ureal(4.999,0.0032,5,independent=False)
+
+        z = v * exp(phi)/ i
+        
+        # These are the values when correlation is ignored
+        equivalent( uncertainty(z.real),0.194117890168,TOL)
+        equivalent( uncertainty(z.imag),0.200665630894,TOL)
+
+        equivalent( get_correlation(z),0.05820381031584,TOL)
+
+        equivalent( dof(z),8.23564845495,TOL)              
 #-----------------------------------------------------
 class WelchSatterthwaiteExtensions(unittest.TestCase):
  

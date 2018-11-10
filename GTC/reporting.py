@@ -3,6 +3,15 @@ Reporting functions
 -------------------
 
     *   The function :func:`budget` produces an uncertainty budget.
+    *   The function :func:`k_factor` returns the coverage factor 
+        used for real-valued problems (based on the Student-t distribution). 
+    *   The function :func:`k_to_dof` returns the degrees of freedom 
+        corresponding to a given coverage factor and coverage probability.
+    *   The function :func:`k2_factor_sq` returns   
+        coverage factor squared for the complex-valued problem. 
+    *   The function :func:`k2_to_dof` returns the degrees of freedom 
+        corresponding to a given coverage factor and coverage probability
+        in complex-valued problems.
     *   Functions :func:`u_bar` and :func:`v_bar` return summary values 
         for matrix results associated with 2-D uncertainty.
 
@@ -29,8 +38,12 @@ from __future__ import division     # True division
 
 import math
 import numbers
+
 from operator import attrgetter as getter
 from functools import reduce
+
+from scipy import special, optimize
+
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -44,17 +57,27 @@ from GTC.lib import (
     UncertainComplex,
     welch_satterthwaite,
     willink_hall,
-
+    _is_uncertain_real_constant,
+    _is_uncertain_complex_constant
 )
 from GTC.named_tuples import (
     ComponentOfUncertainty, 
     Influence
 )
 from GTC.vector import extend_vector
-from GTC import is_sequence
+
+from GTC import (
+    is_sequence,
+    inf,
+    inf_dof,
+)
 
 __all__ = (
     'budget',
+    'k_factor',
+    'k_to_dof',
+    'k2_factor_sq',
+    'k2_to_dof',
     'u_component',
     'is_ureal',
     'is_ucomplex',
@@ -91,49 +114,170 @@ def is_ucomplex(z):
     """
     return isinstance(z,UncertainComplex)
 
+#------------------------------------------------------------
+def _df_k2(k2,p,nu1,TOL):
+    """
+    Return `nu2` such that the integral of 
+    F(nu1,nu2) from -infty to `x` is `p`
+    
+    `x` is k2**2 * nu2/ ( nu1*(nu2+1) )
+    
+    """
+    # We have `k2` the integral limit, so `pf` gives us `p`
+    # we must vary the `nu2` argument until the
+    # returned value equals `p`.
+    # `fdtr` returns the integral of F probability density from -infty to `x`
+    def fn(nu2):
+        x = k2**2 * nu2/ ( nu1*(nu2+1) )  
+        # return pf(x,nu1,nu2) - p 
+        return special.fdtr(nu1,nu2,x) - p 
+    
+    # dof here is nu2-1 and cannot be less than 2
+    # This setting of `lo` is not a strict bound, because
+    # the calculation will succeed, we just don't want to 
+    # go there.
+    
+    lo = 1 - 1E-3   
+    fn_lo = fn(lo)
+    if fn_lo > 0.0:
+        raise RuntimeError(
+            "dof < 2 cannot be calculated"
+        )
+        
+    upper_limit = (20,50,1E2,1E3,inf_dof)
+    for hi in upper_limit:
+        if fn(hi) > 0.0: 
+            return optimize.ridder(fn,lo,hi)
+        else:    
+            lo = hi
+        
+    return inf       
 #----------------------------------------------------------------------------
-def variance_and_dof(x):
-    """Return the variance and degrees-of-freedom.
+def k2_to_dof(k2,p=95):
+    """Return the dof corresponding to a bivariate coverage factor `k2`  
+    
+    :arg k2: coverage factor (>0)
+    :arg p: coverage probability (%)
+    :type k2: float
+    :type p: int or float
 
-    If ``x`` is an uncertain real number, a pair of real numbers 
-    is returned ``(v,df)``, where ``v`` is the standard variance and
-    ``df`` is the degrees-of-freedom calculated using the
-    Welch-Satterthwaite formula.
-
-    If ``x`` is an uncertain complex number, a sequence and
-    a float is returned ``(cv,df)``, where ``cv`` is a 4-element
-    sequence representing the variance-covariance matrix
-    and ``df`` is the degrees-of-freedom, calculated 
-    using the Willink-Hall total-variance method.
-
-    Otherwise, returns ``(0.0,inf)``.    
-
+    Evaluates a number of degrees-of-freedom given a coverage 
+    factor for an elliptical uncertainty region with coverage 
+    probability ``p`` based on the F-distribution.
+    
     **Example**::
 
-        >>> x1 = ureal(1.1,1,5)
-        >>> x2 = ureal(2.3,1,15)
-        >>> x3 = ureal(-3.5,1,50)
-        >>> y = (x1 + x2) / x3
-        >>> v,df = reporting.variance_and_dof(y)
-        >>> v
-        0.24029987505206163
-        >>> df
-        30.460148613530492
-            
+        >>> reporting.k2_to_dof(2.6,95)
+        34.35788424389927
+        
     """
-    if isinstance(x,UncertainReal):
-        if x.is_elementary:
-            return (std_variance_real(x),x.df)
-        else:
-            return welch_satterthwaite(x)
-    elif isinstance(x,UncertainComplex):
-        if x.real.is_elementary:
-            assert x.imag.is_elementary
-            return (std_variance_covariance_complex(x),x.real.df)
-        else:
-            return willink_hall(x)
+    if k2 <= 0:
+        raise RuntimeError( "invalid k:  {}".format(k2) ) 
+    if p <= 0 or p >= 100:
+        raise RuntimeError( "invalid p: {}".format(p) )
     else:
-        return (0.0,inf)
+        p = p / 100.0     
+
+    return _df_k2(k2,p,2,1E-7) + 1
+
+#----------------------------------------------------------------------------
+def k2_factor_sq(df=inf,p=95):
+    """Return a squared coverage factor for an elliptical uncertainty region
+
+    :arg df: the degrees-of-freedom (>=2)
+    :arg p: the coverage probability (%)
+    :type df: float
+    :type p: int or float
+
+    Evaluates the square of the coverage factor for an elliptical uncertainty 
+    region with coverage probability ``p``  and ``df`` degrees of freedom
+    based on the F-distribution.
+    
+    **Example**::
+
+        >>> reporting.k2_factor_sq(3)
+            56.99999999999994
+    
+    """
+    p = p / 100.0
+    
+    if df > inf_dof:
+        return -2.0 * math.log(1-p)
+        
+    elif(df>1):   
+        # norm = l * (n-1) / (n - l) in the general
+        # 'l'-dimensional case for 'n' observations
+        # here l = 2, df = n-1
+        norm = 2*df / (df-1)
+        
+        # `fdtri` is the inverse of the cumulative F distribution
+        # returning `x` such that `fdtr(dfn, dfd, x) = p`
+        return norm*special.fdtri(2.0,df-1.0,p)
+        
+    else:
+        raise RuntimeError("invalid df={!r}".format( df ) )
+ 
+#----------------------------------------------------------------------------
+def k_factor(df=inf,p=95):
+    """Return the a coverage factor for an uncertainty interval
+
+    :arg df: the degrees-of-freedom (>1)
+    :arg p: the coverage probability (%)
+    :type df: float
+    :type p: int or float
+
+    Evaluates the coverage factor for an uncertainty interval
+    with coverage probability ``p`` and degrees-of-freedom ``df``
+    based on the Student t-distribution. 
+    
+    **Example**::
+    
+        >>> reporting.k_factor(3)
+        3.182446305284263
+
+    """
+    if p <= 0.0 or p >= 100.0:
+        raise RuntimeError( "invalid p: {}".format( p ) )
+    
+    p = (1.0 + p/100.0)/2.0
+    
+    if df > inf_dof:
+        # inverse cumulative Gaussian distribution
+        return special.ndtri(p)
+    elif df >= 1:
+        # inverse cumulative Student-t distribution
+        return special.stdtrit(df,p)
+    else:
+        raise RuntimeError( "invalid df: {}".format( df ) )
+   
+#----------------------------------------------------------------------------
+def k_to_dof(k,p=95):
+    """Return the dof corresponding to a univariate coverage factor `k` 
+    
+    :arg k: coverage factor (>0)
+    :arg p: coverage probability (%)
+    :type k: float
+    :type p: int or float
+
+    Evaluates the degrees-of-freedom given a coverage factor for 
+    an uncertainty interval with coverage probability ``p``
+    based on the Student t-distribution.
+    
+    **Example**::
+
+        >>> reporting.k_to_dof(2.0,95)
+        60.43756442698591
+        
+    """
+    if k <= 0:
+        raise RuntimeError( "invalid k:  {}".format( k ) )  
+    if p <= 0 or p >= 100:
+        raise RuntimeError( "invalid p: {}".format( p ) )
+    else:
+        p = (1.0 + p/100.0)/2.0         
+        df = special.stdtridf(p,k) 
+        
+        return df if df < inf_dof else inf 
 
 #----------------------------------------------------------------------------
 def u_component(y,x):
@@ -178,11 +322,14 @@ def u_component(y,x):
                 # Because `x` is an intermediate, if `y` depends on it at all
                 # there will be an entry in `_i_components` 
                 return y._i_components.get(x._node,0.0)
-            else:
+                
+            elif _is_uncertain_real_constant(x):
                 return 0
-                # raise RuntimeError(
-                    # "`x` is not an elementary or intermediate uncertain number"
-                # )
+                
+            else:
+                raise RuntimeError(
+                    "`x` is not an elementary or intermediate uncertain number"
+                )
             
         elif isinstance(x,UncertainComplex):
             result = [0.0,0.0,0.0,0.0]
@@ -195,34 +342,36 @@ def u_component(y,x):
                         
                 elif x_i.is_intermediate:
                     u_i = y._i_components.get(x_i._node,0.0)
+
+                elif _is_uncertain_complex_constant(x):
+                    u_i = 0 
+                    
                 else:
-                    u_i = 0
-                    # raise RuntimeError(
-                        # "The {!i}th component of `x` "
-                        # + "is not an elementary or intermediate " 
-                        # + "uncertain number: {!r}".format(i,x)
-                    # )
+                    raise RuntimeError(
+                        "An elementary or intermediate " 
+                        + "uncertain number is expected: {!r}".format(x)
+                    )
                 result[i] = u_i
             
             return ComponentOfUncertainty(*result)
-        
-        elif isinstance(x,complex):
-            return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
-
+                    
         elif isinstance(x,numbers.Real):
             return 0.0
+            
+        elif isinstance(x,numbers.Complex):
+            return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+            
+        else:
+            assert False, 'unexpected'
         
     elif isinstance(y,UncertainComplex):
         if isinstance(x,UncertainComplex):
             x_re, x_im  = x.real, x.imag
             y_re, y_im = y.real, y.imag
             
-            # TODO: is there a flaw here? Is the assumption that 
-            # either none or both components will be elementary?
-            
             # require 4 partial derivatives:
             #   dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im
-            if x.real.is_elementary or x.imag.is_elementary:
+            if x.real.is_elementary and x.imag.is_elementary:
                 if x.real._node.independent:
                     dy_re_dx_re = y_re._u_components.get(x_re._node,0.0)
                     dy_re_dx_im = y_re._u_components.get(x_im._node,0.0)
@@ -236,7 +385,7 @@ def u_component(y,x):
                 
                 return ComponentOfUncertainty(dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im)
                 
-            elif x.real.is_intermediate or x.imag.is_intermediate:
+            elif x.real.is_intermediate and x.imag.is_intermediate:
                 dy_re_dx_re = y_re._i_components.get(x_re._node,0.0)
                 dy_re_dx_im = y_re._i_components.get(x_im._node,0.0)
                 dy_im_dx_re = y_im._i_components.get(x_re._node,0.0)
@@ -244,13 +393,14 @@ def u_component(y,x):
             
                 return ComponentOfUncertainty(dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im)
                 
-            else:
+            elif _is_uncertain_complex_constant(x):
                 return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
-                # raise RuntimeError(
-                    # "The a component of `x` "
-                    # + "is not an elementary or intermediate " 
-                    # + "uncertain number: {!r}".format(x)
-                # )
+                
+            else:
+                raise RuntimeError(
+                    "An elementary or intermediate " 
+                    + "uncertain number was expected: {!r}".format(x)
+                )
                 
         elif isinstance(x,UncertainReal):
             y_re, y_im = y.real, y.imag
@@ -270,19 +420,22 @@ def u_component(y,x):
                 dy_im_dx_re = y_im._i_components.get(x._node,0.0)
 
                 return ComponentOfUncertainty(dy_re_dx_re, 0.0, dy_im_dx_re, 0.0)
+ 
+            elif _is_uncertain_real_constant(x):
+                return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
                 
             else:
-                return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
-                # raise RuntimeError(
-                    # "The a component of `x` "
-                    # + "is not an elementary or intermediate " 
-                    # + "uncertain number: {!r}".format(x)
-                # )
+                raise RuntimeError(
+                    "An elementary or intermediate " 
+                    + "uncertain number is expected: {!r}".format(x)
+                )
             
-        elif isinstance(x,(int,long,float,complex)):
+        elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
     else:
-        return 0.0
+        raise RuntimeError(
+            "An uncertain number is expected: {!r}".format(y)
+        )
 
 #----------------------------------------------------------------------------
 def u_bar(ucpt):
@@ -372,9 +525,9 @@ def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
     
     :arg max_number: return no more than ``max_number`` components
     
-    A sequence of namedtuples is returned, each with the attributes
-    ``label`` and ``u`` for a component of uncertainty 
-    (see :func:`~core.component`). 
+    A sequence of :obj:`~named_tuples.Influence` namedtuples is 
+    returned, each with the attributes ``label`` and ``u`` for a 
+    component of uncertainty (see :func:`~core.component`). 
 
     The argument ``influences`` can be used to select the influences
     are that reported.

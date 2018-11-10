@@ -2,6 +2,13 @@
 GUM Tree Calculator
 ===================
 
+Measurement and uncertainty
+---------------------------
+.. toctree::
+   :maxdepth: 1
+
+    Introduction <API/uncertain_numbers>
+
 GTC Modules
 -----------
 .. toctree::

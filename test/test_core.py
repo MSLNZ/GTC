@@ -42,19 +42,19 @@ class TestAPIFunctions(unittest.TestCase):
         x = "s"
         u = 0.1
         nu = 6.5
-        self.assertRaises(RuntimeError,ureal,x,u,nu)
+        self.assertRaises(TypeError,ureal,x,u,nu)
         x = ureal(1,1)
-        self.assertRaises(RuntimeError,ureal,x,u,nu)
+        self.assertRaises(TypeError,ureal,x,u,nu)
         x = 1
         u = 'd'
-        self.assertRaises(RuntimeError,ureal,x,u,nu)
+        self.assertRaises(TypeError,ureal,x,u,nu)
         u = ureal(1,1)
-        self.assertRaises(RuntimeError,ureal,x,u,nu)
+        self.assertRaises(TypeError,ureal,x,u,nu)
         u = 1
         nu = 'd'
-        self.assertRaises(RuntimeError,ureal,x,u,nu)
+        self.assertRaises(TypeError,ureal,x,u,nu)
         nu = ureal(1,1)
-        self.assertRaises(RuntimeError,ureal,x,u,nu)
+        self.assertRaises(TypeError,ureal,x,u,nu)
         
     def test_ucomplex_arg_typs(self):
         """
@@ -65,19 +65,19 @@ class TestAPIFunctions(unittest.TestCase):
         x = "s"
         u = (0.1,0.2)
         nu = 6.5
-        self.assertRaises(RuntimeError,ucomplex,x,u,nu)
+        self.assertRaises(TypeError,ucomplex,x,u,nu)
         x = ucomplex(1,1)
-        self.assertRaises(RuntimeError,ucomplex,x,u,nu)
+        self.assertRaises(TypeError,ucomplex,x,u,nu)
         x = 1
         u = 'd'
-        self.assertRaises(RuntimeError,ucomplex,x,u,nu)
+        self.assertRaises(TypeError,ucomplex,x,u,nu)
         u = ucomplex(1,1)
-        self.assertRaises(RuntimeError,ucomplex,x,u,nu)
+        self.assertRaises(TypeError,ucomplex,x,u,nu)
         u = 1
         nu = 'd'
-        self.assertRaises(RuntimeError,ucomplex,x,u,nu)
+        self.assertRaises(TypeError,ucomplex,x,u,nu)
         nu = ucomplex(1,1)
-        self.assertRaises(RuntimeError,ucomplex,x,u,nu)
+        self.assertRaises(TypeError,ucomplex,x,u,nu)
         
     def test_component(self):
         """
@@ -257,8 +257,8 @@ class TestGetSetCorrelation(unittest.TestCase):
         check_r = get_correlation(z2,z1)
         self.assertTrue( equivalent_sequence(r_t,check_r) )
 
-        self.assertRaises(RuntimeError,set_correlation,r,z1,x1)
-        self.assertRaises(RuntimeError,set_correlation,r,x1,z1)
+        self.assertRaises(TypeError,set_correlation,r,z1,x1)
+        self.assertRaises(TypeError,set_correlation,r,x1,z1)
 
     def test_illegal_set_correlation(self):
         x1 = ureal(1,2,3,independent=False)

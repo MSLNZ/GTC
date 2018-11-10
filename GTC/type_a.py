@@ -35,6 +35,7 @@ import sys
 import math
 import numbers
 from functools import reduce
+
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -68,6 +69,13 @@ __all__ = (
     'variance_covariance_complex',
 )
 
+#-----------------------------------------------------------------------------------------
+def _as_value(x):
+    try:
+        return x.x 
+    except AttributeError:
+        return x 
+        
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     """
@@ -247,11 +255,11 @@ def mean(seq):
     """
     mu = sum(seq) / len(seq)
     if isinstance(mu,(numbers.Real,UncertainReal) ):
-        return float(mu)
+        return _as_value(mu)
     elif isinstance(mu,(numbers.Complex,UncertainComplex)):
-        return complex(mu)
+        return _as_value(mu)
     else:
-        raise RuntimeError(
+        raise TypeError(
             "Unexpected type: '%s'" % repr(mu)
         )
 
@@ -269,9 +277,9 @@ def standard_deviation(seq,mu=None):
     numbers, the standard deviation in the real and
     imaginary components is evaluated, as well as
     the correlation coefficient between the components.
-    A :class:`~named_tuples.are returned in a
-    :class:`~named_tuples.StandardDeviation` namedtuple 
-    is returned and the correlation coefficient. 
+    The results are returned in a pair of objects: a
+    :obj:`~named_tuples.StandardDeviation` namedtuple 
+    and a correlation coefficient. 
 
     Only the values of uncertain numbers are used in calculations. 
     
@@ -305,7 +313,7 @@ def standard_deviation(seq,mu=None):
 
     # `mean` returns either a real or complex
     if isinstance(mu,numbers.Real):
-        accum = lambda psum,x: psum + (float(x)-mu)**2
+        accum = lambda psum,x: psum + (_as_value(x)-mu)**2
         variance = reduce(accum, seq, 0.0) / (N - 1)
         
         return math.sqrt( variance )
@@ -340,7 +348,7 @@ def standard_uncertainty(seq,mu=None):
     :arg seq: sequence of data
     :arg mu: the arithmetic mean of ``seq``
     
-    :rtype: float or :class:`~named_tuples.StandardUncertainty`
+    :rtype: float or :obj:`~named_tuples.StandardUncertainty`
     
     If ``seq`` contains real or uncertain real numbers,
     the standard uncertainty of the sample mean 
@@ -350,7 +358,7 @@ def standard_uncertainty(seq,mu=None):
     numbers, the standard uncertainties of the real and
     imaginary components are evaluated, as well as the
     sample correlation coefficient are returned in a
-    :class:`~named_tuples.StandardUncertainty` namedtuple
+    :obj:`~named_tuples.StandardUncertainty` namedtuple
 
     Only the values of uncertain numbers are used in calculations. 
 
@@ -411,7 +419,7 @@ def variance_covariance_complex(seq,mu=None):
     Only the values of uncertain numbers are used in calculations. 
     
     Variance-covariance matrix elements are returned  
-    in a :class:`~named_tuples.VarianceCovariance` namedtuple; 
+    in a :obj:`~named_tuples.VarianceCovariance` namedtuple; 
     they can be accessed using the 
     attributes ``.rr``, ``.ri``, ``,ir`` and ``.ii``.
         
@@ -441,7 +449,7 @@ def variance_covariance_complex(seq,mu=None):
     """
     N = len(seq)
     
-    zseq = [ complex(x) for x in seq ]
+    zseq = [ _as_value(x) for x in seq ]
     
     if mu is None:
         mu = mean(zseq)        

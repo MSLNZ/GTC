@@ -28,15 +28,15 @@ class TestContext(unittest.TestCase):
 
         # illegal dof is checked when the object is created
         self.assertRaises(
-            RuntimeError,
+            ValueError,
             UncertainReal._elementary,x_value,x_u,0,None,False
         )
 
     def test_invalid_ucomplex_creation(self):
         # RuntimeError: covariance elements not equal: None and 1
-        self.assertRaises(RuntimeError,ucomplex,1 + 0j, (1, None, 1, 1))
+        self.assertRaises(TypeError,ucomplex,1 + 0j, (1, None, 1, 1))
         # RuntimeError: covariance elements not equal: 999999j and 1
-        self.assertRaises(RuntimeError,ucomplex,1 + 0j, (1, 999999j, 1, 1))
+        self.assertRaises(TypeError,ucomplex,1 + 0j, (1, 999999j, 1, 1))
 
         
 #============================================================================

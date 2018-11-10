@@ -5,4 +5,3 @@ persistence module
 
 .. automodule:: persistence
 	:members:
-	:inherited-members:

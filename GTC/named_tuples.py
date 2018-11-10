@@ -82,7 +82,7 @@ ComponentOfUncertainty = namedtuple('ComponentOfUncertainty','rr, ri, ir, ii')
    """
 
 Influence = namedtuple('Influence','label, u')
-""":obj:`~collections.namedtuple`: label and component of uncertainty value
+""":obj:`~collections.namedtuple`: label and value of a component of uncertainty
  
 .. attribute:: label
   

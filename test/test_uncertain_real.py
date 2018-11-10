@@ -74,7 +74,7 @@ class SimpleAttributesAndFunctions(unittest.TestCase):
         self.assertTrue( equivalent(inf,dof(self.const) ) )
         self.assertTrue( equivalent(self.df,self.un.df ) )
         self.assertTrue( equivalent(inf,self.const.df ) )
-        self.assertTrue( is_infinity( self.const.df ) )
+        self.assertTrue( math.isinf( self.const.df ) )
  
     def test_conjugate(self):
         self.assertTrue( self.un.conjugate() is self.un )
@@ -114,6 +114,8 @@ class SimpleAttributesAndFunctions(unittest.TestCase):
         self.assertTrue( _is_uncertain_real_constant(x) )
         x = ureal(1,1)
         self.assertTrue( _is_uncertain_real_constant(x) is not True )
+        x= 3
+        self.assertRaises( TypeError, _is_uncertain_real_constant, x )
         
 #----------------------------------------------------------------------------
 class ArithmeticTestsReal(unittest.TestCase):
@@ -143,7 +145,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         ,   math.sqrt( uncertainty(self.x)**2 + uncertainty(self.z)**2 )
         ,   TOL
         )
-        self.assertTrue( is_infinity( dof(x) ) )
+        self.assertTrue( math.isinf( dof(x) ) )
 
         #---------------------------------------------------------
         # Adding a constant on the right
@@ -192,7 +194,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         equivalent(value(y),3.0,TOL)
         
         equivalent(uncertainty(y),2.0 * math.sqrt(2.0),TOL)
-        self.assertTrue( is_infinity( dof(y) ) )
+        self.assertTrue( math.isinf( dof(y) ) )
 
         # component of uncertainty
         x1 = result( y )
@@ -214,6 +216,20 @@ class ArithmeticTestsReal(unittest.TestCase):
         self.assertTrue(oldy is y)
         y = 0 + y
         self.assertTrue(oldy is y)
+        
+        newy = y + 0j
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = 0j + y 
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
 
         #---------------------------------------------------------
         # Adding a complex constant on the left
@@ -297,7 +313,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         ,   math.sqrt(uncertainty(self.x)**2+uncertainty(self.z)**2)
         ,   TOL
         )
-        self.assertTrue( is_infinity( dof(x) ) )
+        self.assertTrue( math.isinf( dof(x) ) )
 
         #---------------------------------------------------------
         # Subtracting a constant
@@ -365,6 +381,20 @@ class ArithmeticTestsReal(unittest.TestCase):
         self.assertTrue(oldy is not y)
         equivalent(value(y),-value(oldy))
 
+        newy = y - 0j
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = 0j - y 
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),-value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+        
         #---------------------------------------------------------
         # Subtracting a complex constant on the left
         x = self.x 
@@ -450,7 +480,7 @@ class ArithmeticTestsReal(unittest.TestCase):
             )
         ,   TOL
         )
-        self.assertTrue( is_infinity( dof(x) ) )
+        self.assertTrue( math.isinf( dof(x) ) )
 
         #---------------------------------------------------------
         # multiplying by a constant
@@ -522,6 +552,20 @@ class ArithmeticTestsReal(unittest.TestCase):
         y = 1.0 * y
         self.assertTrue(oldy is y)
 
+        newy = y*(1.0+0j)
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = (1.0+0j)*y
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+        
         #---------------------------------------------------------
         # Multiplying a complex constant on the left
         x = self.x 
@@ -602,7 +646,7 @@ class ArithmeticTestsReal(unittest.TestCase):
             )
         ,   TOL
         )
-        self.assertTrue( is_infinity(dof(x)) )
+        self.assertTrue( math.isinf(dof(x)) )
 
         #---------------------------------------------------------
         # regular division
@@ -668,6 +712,26 @@ class ArithmeticTestsReal(unittest.TestCase):
         self.assertTrue( y is not self.w )
         
         self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
+
+        newy = y/(1.0+0j)
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[0],uncertainty(y),TOL) )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+
+        newy = (1.0+0j)/y
+        self.assertFalse( newy is y )
+        self.assertTrue( equivalent(value(newy.real),1./value(y),TOL) )
+        self.assertTrue( equivalent(value(newy.imag),0.0,TOL) )
+        self.assertTrue( 
+            equivalent(
+                uncertainty(newy)[0]/value(newy.real),
+                uncertainty(y)/value(y),TOL
+            ) 
+        )
+        self.assertTrue( equivalent(uncertainty(newy)[1],0.0,TOL) )
+        
 
         #---------------------------------------------------------
         # Dividing a complex constant on the left
@@ -852,6 +916,47 @@ class TestUncertainReal(unittest.TestCase):
         z1 = ucomplex(1+3j,1)
         self.assertTrue( reporting.is_ureal( z1.real ) )
         
+    def test_strange_rounding_cases(self):
+        """
+        The __str__ method 
+        
+        """
+        x = UncertainReal._elementary(
+            inf,inf,inf,
+            None,True
+        )
+        self.assertEqual( str(x), 'inf(inf)')
+        self.assertEqual( repr(x), 'ureal(inf,inf,inf)')
+
+        x = UncertainReal._elementary(
+            inf,inf,nan,
+            None,True
+        )
+        self.assertEqual( str(x), 'inf(inf)')
+        self.assertEqual( repr(x), 'ureal(inf,inf,nan)')
+        
+        x = UncertainReal._elementary(
+            inf,nan,nan,
+            None,True
+        )
+        self.assertEqual( str(x), 'inf(nan)')
+        self.assertEqual( repr(x), 'ureal(inf,nan,nan)')
+        
+        x = UncertainReal._elementary(
+            nan,nan,nan,
+            None,True
+        )
+        self.assertEqual( str(x), 'nan(nan)')
+        self.assertEqual( repr(x), 'ureal(nan,nan,nan)')
+
+        x = UncertainReal._elementary(
+            1,0.1,nan,
+            None,True
+        )
+        self.assertEqual( str(x), '1.00(10)')
+        self.assertEqual( repr(x), 'ureal(1.0,0.1,nan)')
+
+        
 #----------------------------------------------------------------------------
 class TestComparisons(unittest.TestCase):
 
@@ -893,9 +998,7 @@ class TestComparisons(unittest.TestCase):
         self.assertTrue( equivalent(abs(x_value),abs(x)) )
 
 #----------------------------------------------------------------------------
-class FunctionTestsReal(unittest.TestCase):
-
-    # 
+class TestFunctionsReal(unittest.TestCase):
     
     def setUp(self):
         self.x1 = 1.7
@@ -948,19 +1051,17 @@ class FunctionTestsReal(unittest.TestCase):
                 # TOL
         # ))
  
-    def testPwr(self):
+    def test_Pwr(self):
+        # ur-ur
         vv = self.x1 ** self.x2
         # The two components of uncertainty are:
         u1 = self.x2 * vv / self.x1 * self.u1
         u2 = vv * math.log( abs( self.x1) ) * self.u2
-        
         y = self.un1 ** self.un2
         v = value(y)
         equivalent( v,  vv, TOL  )
         equivalent( u1, u_component(y,self.un1), TOL )
         equivalent( u2, u_component(y,self.un2), TOL )
-
-        self.assertRaises(ValueError,UncertainReal.__pow__,self.un3,self.un2)
 
         # 0 ** 1 is a tricky one
         y = self.un4 ** self.un5
@@ -1104,7 +1205,7 @@ class TrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.sin( self.x ), TOL )
         equivalent( u, math.cos( self.x ) * self.u, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.sin(self.x2)
@@ -1123,7 +1224,7 @@ class TrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.cos( self.x ),TOL )
         equivalent( u, math.sin( self.x) * self.u, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
         
         # This will test an intermediate component of uncertainty
         vv = math.cos(self.x2)
@@ -1143,7 +1244,7 @@ class TrigTestsReal(unittest.TestCase):
         equivalent( v, math.tan( self.x ), TOL )
         uu = self.u/(math.cos( self.x )**2)
         equivalent( u, uu, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.tan(self.x2)
@@ -1370,6 +1471,12 @@ class TestGetCovariance(unittest.TestCase):
             set_correlation_real,x1,x2,.1
         )
 
+        # self correlation must be unity
+        self.assertRaises(
+            RuntimeError,
+            set_correlation_real,x1,x1,.1
+        )
+
         x1 = ureal(0,1,5,None,independent=False)
         x2 = ureal(0,1,5,None,independent=False)
         
@@ -1461,6 +1568,26 @@ class ArcTrigTests(unittest.TestCase):
             uncertainty(y_cpt)* xv/den,
             TOL)
 
+        # illegal 
+        self.assertRaises(TypeError,atan2,y_cpt,1+5j) 
+        self.assertRaises(TypeError,atan2,1+5j,x_cpt,) 
+        
+        # trivial 
+        y = atan2(ureal(0,1),ureal(0,1))
+        self.assertEqual( value(y), 0 )
+        self.assertEqual( uncertainty(y), 0 )
+        self.assertEqual( dof(y), inf )   
+ 
+        y = atan2(0,ureal(0,1))
+        self.assertEqual( value(y), math.atan2(0,0) )
+        self.assertEqual( uncertainty(y), 0 )
+        self.assertEqual( dof(y), inf )   
+ 
+        y = atan2(ureal(0,1),0)
+        self.assertEqual( value(y), math.atan2(0,0) )
+        self.assertEqual( uncertainty(y), 0 )
+        self.assertEqual( dof(y), inf ) 
+        
         # ----------------------        
         x_cpt = result( cos(x2) )
         y_cpt = result( sin(x2) )
@@ -1747,7 +1874,7 @@ class HyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.sinh( self.x ), TOL )
         equivalent( u, math.cosh( self.x ) * self.u, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.sinh(self.x2)
@@ -1765,7 +1892,7 @@ class HyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, math.cosh( self.x ),TOL )
         equivalent( u, math.sinh( self.x) * self.u, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
         
         # This will test an intermediate component of uncertainty
         vv = math.cosh(self.x2)
@@ -1784,7 +1911,7 @@ class HyperbolicTrigTestsReal(unittest.TestCase):
         equivalent( v, math.tanh( self.x ), TOL )
         uu = self.u/(math.cosh( self.x )**2)
         equivalent( u, uu, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         # This will test an intermediate component of uncertainty
         vv = math.tanh(self.x2)
@@ -1830,7 +1957,7 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, log_form( self.x ), TOL )
         equivalent( u, derivative( self.x ) * self.u, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         # This will test an intermediate component of uncertainty
         vv = log_form(self.x2)
@@ -1851,7 +1978,7 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         df = dof(y)
         equivalent( v, log_form( self.x ),TOL )
         equivalent( u, derivative( self.x) * self.u, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
         
         # This will test an intermediate component of uncertainty
         vv = log_form(self.x2)
@@ -1873,7 +2000,7 @@ class InverseHyperbolicTrigTestsReal(unittest.TestCase):
         equivalent( v, log_form( self.x3 ), TOL )
         uu = derivative(self.x3) * self.u3
         equivalent( u, uu, TOL )
-        self.assertTrue( is_infinity(df) )
+        self.assertTrue( math.isinf(df) )
 
         # This will test an intermediate component of uncertainty
         vv = log_form(self.x5)
