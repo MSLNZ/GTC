@@ -2543,6 +2543,67 @@ class TestStringRepresentations(unittest.TestCase):
         self.assertEqual(s.group(3),repr(0.))
         self.assertEqual(s.group(4),"inf")
   
+    def test_strange_cases(self):
+        z = UncertainComplex._elementary(
+            complex(inf,inf),
+            inf,inf,
+            None,
+            inf,
+            None,True
+        )
+        self.assertEqual( str(z), '(inf(inf)+inf(inf)j)')
+        self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[inf,inf], r=nan, df=inf)')
+        
+        z = UncertainComplex._elementary(
+            complex(inf,inf),
+            inf,inf,
+            None,
+            nan,
+            None,True
+        )
+        self.assertEqual( str(z), '(inf(inf)+inf(inf)j)')
+        self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[inf,inf], r=nan, df=nan)')
+
+        z = UncertainComplex._elementary(
+            complex(inf,inf),
+            inf,nan,
+            None,
+            nan,
+            None,True
+        )
+        self.assertEqual( str(z), '(inf(inf)+inf(nan)j)')
+        self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[inf,nan], r=nan, df=nan)')
+
+        z = UncertainComplex._elementary(
+            complex(inf,inf),
+            nan,nan,
+            None,
+            nan,
+            None,True
+        )
+        self.assertEqual( str(z), '(inf(nan)+inf(nan)j)')
+        self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[nan,nan], r=nan, df=nan)')
+
+        z = UncertainComplex._elementary(
+            complex(inf,nan),
+            nan,nan,
+            None,
+            nan,
+            None,True
+        )
+        self.assertEqual( str(z), '(inf(nan)+nan(nan)j)')
+        self.assertEqual( repr(z), 'ucomplex((inf+nanj), u=[nan,nan], r=nan, df=nan)')
+
+        z = UncertainComplex._elementary(
+            complex(nan,nan),
+            nan,nan,
+            None,
+            nan,
+            None,True
+        )
+        self.assertEqual( str(z), '(nan(nan)+nan(nan)j)')
+        self.assertEqual( repr(z), 'ucomplex((nan+nanj), u=[nan,nan], r=nan, df=nan)')
+
 #-----------------------------------------------------
 class TestMisc(unittest.TestCase):
  

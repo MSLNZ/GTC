@@ -288,7 +288,21 @@ class UncertainReal(object):
         Degrees-of-freedom are greater than 1E6 are set to `inf`.
         
         """
-        if self.u != 0:
+        if (
+            math.isnan(self.x) or math.isinf(self.x) or 
+            math.isnan(self.u) or math.isinf(self.u)
+        ):
+            return GroomedUncertainReal(
+                x = self.x,
+                u = self.u,
+                df = self.df,
+                label = self.label,  
+                precision = digits,
+                df_decimals = df_decimals,
+                u_digits = '({})'.format(self.u)
+            )
+            
+        elif self.u != 0:
             log10_u = math.log10( self.u )
             if log10_u.is_integer(): log10_u += 1 
             
@@ -328,48 +342,27 @@ class UncertainReal(object):
                 df = df_factor*math.floor(self.df/df_factor)
                 if df > inf_dof: df = inf
             
-            if self.label is None:
-                return GroomedUncertainReal(
-                    x = x,
-                    u = u,
-                    df = df,
-                    label = None,
-                    precision = decimal_places,
-                    df_decimals = df_decimals,
-                    u_digits = "({})".format(u_digits)
-                )
-            else:
-                return GroomedUncertainReal(
-                    x = x,
-                    u = u,
-                    df = df,
-                    label = self.label,
-                    precision = decimal_places,
-                    df_decimals = df_decimals,
-                    u_digits = "({})".format(u_digits)
-                )
+            return GroomedUncertainReal(
+                x = x,
+                u = u,
+                df = df,
+                label = self.label,
+                precision = decimal_places,
+                df_decimals = df_decimals,
+                u_digits = "({})".format(u_digits)
+            )
+            
         elif _is_uncertain_real_constant(self):
             # Use default fixed-point precision
-            if self.label is None:
-                return GroomedUncertainReal(
-                    x = self.x,
-                    u = 0,
-                    df = inf,
-                    label = None,
-                    precision = 6,
-                    df_decimals = 0,
-                    u_digits = ""
-                )  
-            else:
-                return GroomedUncertainReal(
-                    x = self.x,
-                    u = 0,
-                    df = inf,
-                    label = self.label,
-                    precision = 6,
-                    df_decimals = 0,
-                    u_digits = ""
-                )  
+            return GroomedUncertainReal(
+                x = self.x,
+                u = 0,
+                df = inf,
+                label = self.label,
+                precision = 6,
+                df_decimals = 0,
+                u_digits = ""
+            )  
         else:
             assert False, "unexpected"
         
@@ -378,14 +371,16 @@ class UncertainReal(object):
         x = self.x
         u = self.u
         df = self.df
-        df = "{!r}".format(df) if df < inf_dof else 'inf' 
+        
+        if not math.isnan(df) and df > inf_dof:
+            df = inf 
         
         if self.label is None:
-            s = "ureal({!r},{!r},{})".format( 
+            s = "ureal({!r},{!r},{!r})".format( 
                 x,u,df
             )            
         else:
-            s = "ureal({!r},{!r},{}, label={!r})".format( 
+            s = "ureal({!r},{!r},{!r}, label={!r})".format( 
                 x,u,df,self.label
             )                  
         
@@ -2131,17 +2126,31 @@ class UncertainComplex(object):
         `df_decimals` specifies the number of decimal places 
         reported for the degrees-of-freedom.
         
-        Degrees-of-freedom are greater than 1E6 are set to `inf`.
+        Degrees-of-freedom are greater than `inf_dof` are set to `inf`.
         
         """
         v11, v12, v21, v22 = self.v 
         re_u = math.sqrt( v11 )
         im_u = math.sqrt( v22 )
         
-        den = (re_u*im_u)
-        r = v12/den if v12 != 0.0 else 0.0
-        
-        if v11 != 0 or v22 != 0:
+        if (
+            cmath.isnan(self.x) or cmath.isinf(self.x) or 
+            math.isnan(re_u) or math.isinf(re_u) or 
+            math.isnan(im_u) or math.isinf(im_u) 
+        ):
+            return GroomedUncertainComplex(
+                x = self.x,
+                u = [re_u,im_u],
+                r = None,
+                df = self.df,
+                label = self.label,
+                precision = digits,
+                df_decimals = df_decimals,
+                re_u_digits = '{}'.format(re_u),
+                im_u_digits = '{}'.format(im_u)
+            )
+            
+        elif v11 != 0 or v22 != 0:
             re = self.real 
             im = self.imag 
             
@@ -2190,15 +2199,18 @@ class UncertainComplex(object):
                 re_u_digits = "{:.0f}".format(re_u/factor)
                 im_u_digits = "{:.0f}".format(im_u/factor)
 
+            den = (re_u*im_u)
+            r = v12/den if v12 != 0.0 else 0.0
             r_factor = 10**(-3)
             r = r_factor*round(r/r_factor)
 
-            if math.isinf(self.df):
+            df = self.df
+            if not math.isnan(df) and df > inf_dof:
                 df = inf
             else:
                 df_factor = 10**(-df_decimals)
                 df = df_factor*math.floor(self.df/df_factor)
-                if df > inf_dof: df = inf
+                if not math.isnan(df) and df > inf_dof: df = inf
             
             return GroomedUncertainComplex(
                 x = complex(re_x,im_x),
@@ -2211,8 +2223,7 @@ class UncertainComplex(object):
                 re_u_digits = re_u_digits,
                 im_u_digits = im_u_digits
             )
-        else:
-            # A constant 
+        elif _is_uncertain_complex_constant(self):
             # Just use Python's default fixed-point precision
             return GroomedUncertainComplex(
                 x = self.x,
@@ -2225,7 +2236,10 @@ class UncertainComplex(object):
                 re_u_digits = 0,
                 im_u_digits = 0
             )
-
+            
+        else:
+            assert False, 'unexpected'
+            
     #------------------------------------------------------------------------
     def __repr__(self):
         
@@ -2233,8 +2247,10 @@ class UncertainComplex(object):
         u = self.u
         r = self.r  
         df = self.df
-        df = repr( df ) if df < inf_dof else 'inf' 
         
+        if not math.isnan(df) and df > inf_dof:
+            df = inf 
+
         if self.label is None:
             s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
                 "u=[{1[0]!r},{1[1]!r}], "

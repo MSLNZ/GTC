@@ -297,13 +297,15 @@ def ureal(x,u,df=inf,label=None,independent=True):
         ureal(2.5,0.5,3.0, label='x')
     
     """    
-    if not isinstance(x,numbers.Real) or math.isnan(x) or math.isinf(x):
+    # Arguments to these math functions must be compatible with float
+    if math.isnan(x) or math.isinf(x):
         raise RuntimeError("invalid value: '{!r}'".format(x) )
         
-    if not isinstance(u,numbers.Real) or u < 0 or math.isinf(u) or math.isnan(u):
+    if u < 0 or math.isinf(u) or math.isnan(u):
         raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
         
-    if not isinstance(df,numbers.Real) or df < 1 or math.isnan(df):
+    # inf is allowed, but not nan
+    if df < 1 or math.isnan(df):
         raise RuntimeError("invalid dof: '{!r}'".format(df) )
     
     if u == 0:
@@ -513,13 +515,12 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     VarianceCovariance(rr=1.1999999999999997, ri=0.7, ir=0.7, ii=2.2)
     
     """
-    if (not isinstance(z,numbers.Complex) 
-    or math.isnan(z.real) or math.isinf(z.real) 
-    or math.isnan(z.imag) or math.isinf(z.imag)
-    ):
+    # Arguments to these math functions must be compatible with float
+    # otherwise a TypeError is raised by Python
+    if cmath.isnan(z) or cmath.isinf(z):
         raise RuntimeError("invalid value: '{!r}'".format(z) )
         
-    if not isinstance(df,numbers.Real) or df < 1 or math.isnan(df):
+    if df < 1 or math.isnan(df):
         raise RuntimeError("invalid dof: '{!r}'".format(df) )
         
     if is_sequence(u):
@@ -533,7 +534,9 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 
         elif case == 4:
             u_r,cv1,cv2,u_i = u
-            if not isinstance(cv1,numbers.Real) or cv1 != cv2:
+            
+            # nan != nan is True
+            if math.isinf(cv1) or cv1 != cv2:
                 raise RuntimeError(
                     "covariance elements not equal: {!r} and {!r}".format(cv1,cv2) 
                 )            
@@ -555,24 +558,19 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 "invalid uncertainty sequence: '{!r}'".format(u)
             )
         
-    elif isinstance(u,numbers.Real):
+    elif not math.isinf(u) and not math.isnan(u):
         u_r = u_i = float(u)
         r = None
     else:
         raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
 
     # Checking of valid uncertainty values
-    if not isinstance(u_r,numbers.Real) or u_r < 0:
+    # Note, comparisons with nan are always false
+    if not( 0 <= u_r and u_r < inf ):
         raise RuntimeError("invalid real uncertainty: '{!r}'".format(u_r) )
         
-    if not isinstance(u_i,numbers.Real) or u_i < 0:
+    if not ( 0 <= u_i and u_i < inf ):
         raise RuntimeError("invalid imag uncertainty: '{!r}'".format(u_i) )
-
-    if (math.isinf(u_r) or math.isnan(u_r) 
-        or math.isinf(u_i) or math.isnan(u_i)
-        or r is not None and math.isnan(r)
-    ):
-        raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )            
         
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:

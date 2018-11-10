@@ -916,6 +916,40 @@ class TestUncertainReal(unittest.TestCase):
         z1 = ucomplex(1+3j,1)
         self.assertTrue( reporting.is_ureal( z1.real ) )
         
+    def test_strange_rounding_cases(self):
+        """
+        The __str__ method 
+        
+        """
+        x = UncertainReal._elementary(
+            inf,inf,inf,
+            None,True
+        )
+        self.assertEqual( str(x), 'inf(inf)')
+        self.assertEqual( repr(x), 'ureal(inf,inf,inf)')
+
+        x = UncertainReal._elementary(
+            inf,inf,nan,
+            None,True
+        )
+        self.assertEqual( str(x), 'inf(inf)')
+        self.assertEqual( repr(x), 'ureal(inf,inf,nan)')
+        
+        x = UncertainReal._elementary(
+            inf,nan,nan,
+            None,True
+        )
+        self.assertEqual( str(x), 'inf(nan)')
+        self.assertEqual( repr(x), 'ureal(inf,nan,nan)')
+        
+        x = UncertainReal._elementary(
+            nan,nan,nan,
+            None,True
+        )
+        self.assertEqual( str(x), 'nan(nan)')
+        self.assertEqual( repr(x), 'ureal(nan,nan,nan)')
+        
+        
 #----------------------------------------------------------------------------
 class TestComparisons(unittest.TestCase):
 
