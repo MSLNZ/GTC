@@ -299,14 +299,14 @@ def ureal(x,u,df=inf,label=None,independent=True):
     """    
     # Arguments to these math functions must be compatible with float
     if math.isnan(x) or math.isinf(x):
-        raise RuntimeError("invalid value: '{!r}'".format(x) )
+        raise ValueError("invalid: '{!r}'".format(x) )
         
     if u < 0 or math.isinf(u) or math.isnan(u):
-        raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
+        raise ValueError("invalid uncertainty: '{!r}'".format(u) )
         
     # inf is allowed, but not nan
     if df < 1 or math.isnan(df):
-        raise RuntimeError("invalid dof: '{!r}'".format(df) )
+        raise ValueError("invalid dof: '{!r}'".format(df) )
     
     if u == 0:
         # Is this what we want? Perhaps not.
@@ -419,7 +419,7 @@ def constant(x,label=None):
     elif isinstance(x,numbers.Complex):
         return UncertainComplex._constant(x,label)
     else:
-        raise RuntimeError(
+        raise TypeError(
             "Cannot make a constant: {!r}".format( x )
         )
   
@@ -465,7 +465,7 @@ def result(un,label=None):
         UncertainComplex._intermediate(un,label)
         
     else:
-        raise RuntimeError(
+        raise TypeError(
             "expected an uncertain number '{!r}'".format(un)
         )
           
@@ -488,7 +488,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     :type label: str 
     
     :rtype: :class:`~lib.UncertainComplex`
-    :raises: :exc:`RuntimeError` if ``df`` or ``u`` have illegal values.
+    :raises: :exc:`ValueError` if ``df`` or ``u`` have illegal values.
 
     ``u`` can be a float, a 2-element or 4-element sequence.
 
@@ -518,10 +518,10 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     # Arguments to these math functions must be compatible with float
     # otherwise a TypeError is raised by Python
     if cmath.isnan(z) or cmath.isinf(z):
-        raise RuntimeError("invalid value: '{!r}'".format(z) )
+        raise ValueError("invalid: '{!r}'".format(z) )
         
     if df < 1 or math.isnan(df):
-        raise RuntimeError("invalid dof: '{!r}'".format(df) )
+        raise ValueError("invalid dof: '{!r}'".format(df) )
         
     if is_sequence(u):
     
@@ -537,7 +537,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
             
             # nan != nan is True
             if math.isinf(cv1) or cv1 != cv2:
-                raise RuntimeError(
+                raise ValueError(
                     "covariance elements not equal: {!r} and {!r}".format(cv1,cv2) 
                 )            
             u_r = math.sqrt(u_r)
@@ -546,7 +546,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
             
             # Allow a little tolerance for numerical imprecision
             if r is not None and abs(r) > 1 + 1E-10:
-                raise RuntimeError(
+                raise ValueError(
                     "invalid correlation: {!r}, cv={}".format(r,u)
                 )
             if r is not None:
@@ -554,7 +554,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 independent = False
                 
         else:
-            raise RuntimeError(
+            raise ValueError(
                 "invalid uncertainty sequence: '{!r}'".format(u)
             )
         
@@ -562,15 +562,15 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
         u_r = u_i = float(u)
         r = None
     else:
-        raise RuntimeError("invalid uncertainty: '{!r}'".format(u) )
+        raise TypeError("invalid uncertainty: '{!r}'".format(u) )
 
     # Checking of valid uncertainty values
     # Note, comparisons with nan are always false
     if not( 0 <= u_r and u_r < inf ):
-        raise RuntimeError("invalid real uncertainty: '{!r}'".format(u_r) )
+        raise ValueError("invalid real uncertainty: '{!r}'".format(u_r) )
         
     if not ( 0 <= u_i and u_i < inf ):
-        raise RuntimeError("invalid imag uncertainty: '{!r}'".format(u_i) )
+        raise ValueError("invalid imag uncertainty: '{!r}'".format(u_i) )
         
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
@@ -615,7 +615,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         
         >>> z = v * exp(phi)/ i
         >>> z
-        ucomplex((127.7321699281021+219.8465119126384j), u=[0.06997872798837172,0.29571682684612355], r=-28.582576088518298, df=5.0)
+        ucomplex((127.7321699281021+219.8465119126384j), u=[0.06997872798837172,0.29571682684612355], r=-28.582576088518298, df=4.999999999999997)
 
     """
     if len(x_seq) != len(u_seq):
@@ -675,7 +675,7 @@ def set_correlation(r,arg1,arg2=None):
     argument `independent=False` when calling 
     :func:`~ureal` or :func:`~ucomplex`.
         
-    An :exc:`RuntimeError` is raised when illegal arguments are used
+    A :exc:`ValueError` is raised when illegal arguments are used
 
     When a pair of uncertain real numbers is provided,
     ``r`` is the correlation coefficient between them. 
@@ -725,13 +725,7 @@ def set_correlation(r,arg1,arg2=None):
             ):
                 lib.set_correlation_real(arg1,arg2,r)
             else:
-                # if arg1._context is not arg2._context:
-                    # raise RuntimeError(
-                        # "Different contexts"
-                    # )
-                # if arg2._node in arg1._context._ensemble.get(arg1._node,[]):
                 if hasattr(arg1._node,'ensemble') and arg2._node.uid in arg1._node.ensemble:
-                # if arg2._node in arg1._node.ensemble.get(arg1._node.uid,[]):
                     lib.set_correlation_real(arg1,arg2,r)
                 else:
                     raise RuntimeError( 
@@ -739,14 +733,13 @@ def set_correlation(r,arg1,arg2=None):
                         "{!r}, {!r}".format(arg2._node,arg1._node)
                     )
         elif isinstance(arg2,UncertainComplex):
-            raise RuntimeError(
-                "`arg1` and `arg2` not the same type, "+\
-                "got: {!r} and {!r}".format(arg1,arg2)
+            raise TypeError(
+                "`arg1` and `arg2` not the same type: {!r} and {!r}".format(arg1,arg2)
             )
             # r_rr = set_correlation_real(arg1,arg2.real,r[0])
             # r_ri = set_correlation_real(arg1,arg2.imag,r[1])
         else:
-            raise RuntimeError(
+            raise TypeError(
                 "second argument must be ureal, got: {!r}".format(arg2) 
             )
         
@@ -758,17 +751,15 @@ def set_correlation(r,arg1,arg2=None):
             lib.set_correlation_real(arg1.real,arg1.imag,r)
             
         elif isinstance(arg2,UncertainReal):
-            raise RuntimeError(
-                "`arg1` and `arg2` not the same type, "+\
-                "got: {!r} and {!r}".format(arg1,arg2)
+            raise TypeError(
+                "`arg1` and `arg2` not the same type: {!r} and {!r}".format(arg1,arg2)
             )
             # r_rr = set_correlation_real(arg1.real,arg2,r[0])
             # r_ir = set_correlation_real(arg1.imag,arg2,r[2])
         elif isinstance(arg2,UncertainComplex):
             if not( is_sequence(r) and len(r)==4 ):
-                raise RuntimeError(
-                    "needs a sequence of 4 correlation coefficients,"
-                    + "got '{!r}'".format(r)
+                raise TypeError(
+                    "needs a sequence of 4 correlation coefficients: '{!r}'".format(r)
                 )
             else:
                 # Trivial case
@@ -801,11 +792,11 @@ def set_correlation(r,arg1,arg2=None):
                             "arguments must be in the same ensemble"
                         )
         else:
-            raise RuntimeError(
+            raise TypeError(
                 "Illegal type for second argument: {!r}".format(arg2)
             )
     else:
-        raise RuntimeError(
+        raise TypeError(
             "illegal arguments: {}, {}, {}".format( 
                 repr(r), repr(arg1), repr(arg2) 
             )
@@ -854,7 +845,7 @@ def get_correlation(arg1,arg2=None):
             # there is no correlation
             return CorrelationMatrix(0.0,0.0,0.0,0.0)
         else:
-            raise RuntimeError(
+            raise TypeError(
                 "illegal second argument '%r'" % arg2
             )  
             
@@ -878,12 +869,12 @@ def get_correlation(arg1,arg2=None):
             r_ii = lib.get_correlation_real(arg1.imag,arg2.imag)
             return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
         else:
-            raise RuntimeError(
+            raise TypeError(
                 "illegal second argument '%r'" % arg2
             )
         
     else:
-        raise RuntimeError(
+        raise TypeError(
             "illegal first argument '%r'" % arg1
         )
         
@@ -933,7 +924,7 @@ def get_covariance(arg1,arg2=None):
             # there is no correlation
             return CovarianceMatrix(0.0,0.0,0.0,0.0)
         else:
-            raise RuntimeError(
+            raise TypeError(
                 "illegal second argument '%r'" % arg2
             )  
             
@@ -957,12 +948,12 @@ def get_covariance(arg1,arg2=None):
             cv_ii = lib.get_covariance_real(arg1.imag,arg2.imag)
             return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
         else:
-            raise RuntimeError(
+            raise TypeError(
                 "illegal second argument '%r'" % arg2
             )
         
     else:
-        raise RuntimeError(
+        raise TypeError(
             "illegal first argument '%r'" % arg1
         )
         

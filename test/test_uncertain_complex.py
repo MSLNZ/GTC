@@ -2399,8 +2399,8 @@ class TestGetSetCorrelation(unittest.TestCase):
         check_r = get_correlation(z2,z1)
         self.assertTrue( equivalent_sequence(r_t,check_r) )
 
-        self.assertRaises(RuntimeError,set_correlation,r,z1,x1)
-        self.assertRaises(RuntimeError,set_correlation,r,x1,z1)
+        self.assertRaises(TypeError,set_correlation,r,z1,x1)
+        self.assertRaises(TypeError,set_correlation,r,x1,z1)
 
     def test_with_mixed_unumbers(self):
         x1 = ureal(1,2,independent=False)
@@ -2611,7 +2611,7 @@ class TestMisc(unittest.TestCase):
         z = 1+0j
         uc = constant(z)
         self.assertTrue( _is_uncertain_complex_constant(uc) )
-        self.assertRaises(RuntimeError,_is_uncertain_complex_constant,z)
+        self.assertRaises(TypeError,_is_uncertain_complex_constant,z)
         
         # Setting u=0 makes a constant (at the moment, should this be changed?)
         un = ucomplex(1j,0)

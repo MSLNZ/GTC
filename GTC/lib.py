@@ -44,7 +44,7 @@ def _is_uncertain_real_constant(x):
             len(x._d_components) == 0
         )
     else:
-        raise RuntimeError(
+        raise TypeError(
             "UncertainReal required: {!r}".format(x)
         )
 
@@ -56,7 +56,7 @@ def _is_uncertain_complex_constant(z):
             _is_uncertain_real_constant(z.imag)
         )
     else:
-        raise RuntimeError(
+        raise TypeError(
             "UncertainComplex required: {!r}".format(z)
         )
           
@@ -140,7 +140,7 @@ class UncertainReal(object):
         The uncertain number will have a value ``x``, standard
         uncertainty ``u`` and degrees of freedom ``df``.
 
-        A ``RuntimeError`` is raised if the value of 
+        A ``ValueError`` is raised if the value of 
         `u` is less than zero or the value of `df` is less than 1.
 
         The ``independent`` argument controls whether this
@@ -160,12 +160,12 @@ class UncertainReal(object):
         
         """
         if df < 1:
-            raise RuntimeError(
+            raise ValueError(
                 "invalid degrees of freedom: {!r}".format(df) 
             )
         if u < 0:
             # u == 0 can occur in complex UNs.
-            raise RuntimeError(
+            raise ValueError(
                 "invalid uncertainty: {!r}".format(u)
             )
                     
@@ -1490,7 +1490,7 @@ def set_correlation_real(x1,x2,r):
             not ln2.independent
         ):
             if ln1 is ln2 and r != 1.0:
-                raise RuntimeError(
+                raise ValueError(
                     "value should be 1.0, got: '{}'".format(r)
                 )
             else:
@@ -1501,7 +1501,7 @@ def set_correlation_real(x1,x2,r):
                 "`set_correlation` called on independent node"
             )
     else:
-        raise RuntimeError(
+        raise TypeError(
             "Arguments must be elementary uncertain numbers, \
             got: {!r} and {!r}".format(x1,x2)
         )
@@ -1658,7 +1658,7 @@ def welch_satterthwaite(x):
     
     """    
     if not isinstance(x,UncertainReal):
-        raise RuntimeError(
+        raise TypeError(
             "UncertainReal required, got: '{!r}'".format(x)
         )
     
@@ -2205,12 +2205,13 @@ class UncertainComplex(object):
             r = r_factor*round(r/r_factor)
 
             df = self.df
-            if not math.isnan(df) and df > inf_dof:
-                df = inf
-            else:
-                df_factor = 10**(-df_decimals)
-                df = df_factor*math.floor(self.df/df_factor)
-                if not math.isnan(df) and df > inf_dof: df = inf
+            if not math.isnan(df):
+                if df > inf_dof:
+                    df = inf
+                else:
+                    df_factor = 10**(-df_decimals)
+                    df = df_factor*math.floor(self.df/df_factor)
+                    if not math.isnan(df) and df > inf_dof: df = inf
             
             return GroomedUncertainComplex(
                 x = complex(re_x,im_x),
@@ -2228,7 +2229,7 @@ class UncertainComplex(object):
             return GroomedUncertainComplex(
                 x = self.x,
                 u = [0.0, 0.0],
-                r = r,
+                r = None,
                 df = inf,
                 label = self.label,
                 precision = 6,
@@ -2254,14 +2255,14 @@ class UncertainComplex(object):
         if self.label is None:
             s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
                 "u=[{1[0]!r},{1[1]!r}], "
-                "r={2!r}, df={3}"
+                "r={2!r}, df={3!r}"
                 ")").format( 
                 x,u,r,df
             )        
         else:
             s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
                 "u=[{1[0]!r},{1[1]!r}], "
-                "r={2!r}, df={3}, "
+                "r={2!r}, df={3!r}, "
                 "label={4}"
                 ")").format( 
                 x,u,r,df,self.label
@@ -3818,7 +3819,7 @@ def willink_hall(x):
     # covariance regardless of degrees of freedom.
     #
     if not isinstance(x,UncertainComplex):
-        raise RuntimeError(
+        raise TypeError(
             "expected 'UncertainComplex' got: '{!r}'".format(x)
         )
     

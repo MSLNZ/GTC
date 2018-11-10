@@ -28,7 +28,7 @@ class TestContext(unittest.TestCase):
 
         # illegal dof is checked when the object is created
         self.assertRaises(
-            RuntimeError,
+            ValueError,
             UncertainReal._elementary,x_value,x_u,0,None,False
         )
 

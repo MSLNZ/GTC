@@ -257,8 +257,8 @@ class TestGetSetCorrelation(unittest.TestCase):
         check_r = get_correlation(z2,z1)
         self.assertTrue( equivalent_sequence(r_t,check_r) )
 
-        self.assertRaises(RuntimeError,set_correlation,r,z1,x1)
-        self.assertRaises(RuntimeError,set_correlation,r,x1,z1)
+        self.assertRaises(TypeError,set_correlation,r,z1,x1)
+        self.assertRaises(TypeError,set_correlation,r,x1,z1)
 
     def test_illegal_set_correlation(self):
         x1 = ureal(1,2,3,independent=False)

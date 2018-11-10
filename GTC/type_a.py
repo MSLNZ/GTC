@@ -35,6 +35,7 @@ import sys
 import math
 import numbers
 from functools import reduce
+
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -68,6 +69,13 @@ __all__ = (
     'variance_covariance_complex',
 )
 
+#-----------------------------------------------------------------------------------------
+def _as_value(x):
+    try:
+        return x.x 
+    except AttributeError:
+        return x 
+        
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     """
@@ -247,11 +255,11 @@ def mean(seq):
     """
     mu = sum(seq) / len(seq)
     if isinstance(mu,(numbers.Real,UncertainReal) ):
-        return float(mu)
+        return _as_value(mu)
     elif isinstance(mu,(numbers.Complex,UncertainComplex)):
-        return complex(mu)
+        return _as_value(mu)
     else:
-        raise RuntimeError(
+        raise TypeError(
             "Unexpected type: '%s'" % repr(mu)
         )
 
@@ -305,7 +313,7 @@ def standard_deviation(seq,mu=None):
 
     # `mean` returns either a real or complex
     if isinstance(mu,numbers.Real):
-        accum = lambda psum,x: psum + (float(x)-mu)**2
+        accum = lambda psum,x: psum + (_as_value(x)-mu)**2
         variance = reduce(accum, seq, 0.0) / (N - 1)
         
         return math.sqrt( variance )
@@ -441,7 +449,7 @@ def variance_covariance_complex(seq,mu=None):
     """
     N = len(seq)
     
-    zseq = [ complex(x) for x in seq ]
+    zseq = [ _as_value(x) for x in seq ]
     
     if mu is None:
         mu = mean(zseq)        
