@@ -335,13 +335,14 @@ class UncertainReal(object):
             else:
                 u_digits = "{:.0f}".format(self.u/factor)
 
-            if math.isinf(self.df):
-                df = inf
-            else:
-                df_factor = 10**(-df_decimals)
-                df = df_factor*math.floor(self.df/df_factor)
-                if df > inf_dof: df = inf
-            
+            df = self.df
+            if not math.isnan(df):
+                if df > inf_dof:
+                    df = inf
+                else:
+                    df_factor = 10 ** (-df_decimals)
+                    df = df_factor * math.floor(df / df_factor)
+
             return GroomedUncertainReal(
                 x = x,
                 u = u,
@@ -1317,7 +1318,7 @@ def _rmul(lhs,rhs):
     
         return UncertainComplex(r,i)
     else:
-        assert false, 'unexpected'
+        assert False, 'unexpected'
 
 #----------------------------------------------------------------------------
 def _sub(lhs,rhs):

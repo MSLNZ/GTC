@@ -948,7 +948,14 @@ class TestUncertainReal(unittest.TestCase):
         )
         self.assertEqual( str(x), 'nan(nan)')
         self.assertEqual( repr(x), 'ureal(nan,nan,nan)')
-        
+
+        x = UncertainReal._elementary(
+            1,0.1,nan,
+            None,True
+        )
+        self.assertEqual( str(x), '1.00(10)')
+        self.assertEqual( repr(x), 'ureal(1.0,0.1,nan)')
+
         
 #----------------------------------------------------------------------------
 class TestComparisons(unittest.TestCase):
