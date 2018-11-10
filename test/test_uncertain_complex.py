@@ -2604,6 +2604,16 @@ class TestStringRepresentations(unittest.TestCase):
         self.assertEqual( str(z), '(nan(nan)+nan(nan)j)')
         self.assertEqual( repr(z), 'ucomplex((nan+nanj), u=[nan,nan], r=nan, df=nan)')
 
+        z = UncertainComplex._elementary(
+            complex(1,1),
+            0.1,0.1,
+            None,
+            nan,
+            None,True
+        )
+        self.assertEqual( str(z), '(1.00(10)+1.00(10)j)')
+        self.assertEqual( repr(z), 'ucomplex((1+1j), u=[0.1,0.1], r=0.0, df=nan)')
+
 #-----------------------------------------------------
 class TestMisc(unittest.TestCase):
  
