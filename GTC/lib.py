@@ -2212,7 +2212,6 @@ class UncertainComplex(object):
                 else:
                     df_factor = 10**(-df_decimals)
                     df = df_factor*math.floor(self.df/df_factor)
-                    if not math.isnan(df) and df > inf_dof: df = inf
             
             return GroomedUncertainComplex(
                 x = complex(re_x,im_x),

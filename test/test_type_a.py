@@ -58,6 +58,16 @@ class TestTypeA(unittest.TestCase):
             self.assertTrue( equivalent( type_a.mean(seq) , data_.mean(), TOL) )
             self.assertTrue( equivalent( type_a.mean(seq) , numpy.mean(seq), TOL) )
 
+    def testUNMean(self):
+        """A sequence of uncertain numbers"""
+        
+        TOL = 1E-12
+        data_ = StdDataSets(mu=-3.172,h=0.2,q=1.5,n=10)
+        
+        seq = [ ureal(x_i,1) for x_i in data_.seq() ]
+        self.assertTrue( equivalent( type_a.mean(seq) , data_.mean(), TOL) )
+        
+
     def testStd(self):
         TOL = 1E-13
         
@@ -81,6 +91,25 @@ class TestTypeA(unittest.TestCase):
                 numpy.std(seq,ddof=1), TOL )
             )            
 
+    def testUNStd(self):
+        TOL = 1E-13
+        
+        data_ = StdDataSets(mu=-3.172,h=0.1,q=1.5,n=10)
+        
+        seq = [ ureal(x_i,1) for x_i in data_.seq() ]
+        
+        N = float(len(seq))
+        root_N = math.sqrt(N)
+        
+        self.assertTrue( equivalent(
+            root_N * type_a.standard_uncertainty(seq) ,
+            data_.std(), TOL)
+        )
+        self.assertTrue( equivalent(
+            root_N * type_a.standard_uncertainty(seq) ,
+            data_.std(), TOL )
+        )            
+
     def testComplexMean(self):
         TOL = 1E-12
 
@@ -101,6 +130,26 @@ class TestTypeA(unittest.TestCase):
                     TOL
                 )
             )
+
+    def testUNComplexMean(self):
+        TOL = 1E-12
+
+        mu = complex(-3.172,0.123)
+        
+        re_data_ = StdDataSets(mu=mu.real,h=0.1,q=1.5,n=10)
+        im_data_ = StdDataSets(mu=mu.imag,h=0.1,q=1.5,n=10)
+
+        re_seq = re_data_.seq()
+        im_seq = im_data_.seq()
+        zseq = [ ucomplex(complex(i,j),1.0) for i,j in izip(re_seq,im_seq) ]
+        
+        equivalent_complex(
+            type_a.mean(zseq),
+            complex( re_data_.mean(),im_data_.mean() ),
+            TOL
+        )
+
+            
     def testComplexUncertainties(self):
         TOL = 1E-12
 
@@ -121,6 +170,27 @@ class TestTypeA(unittest.TestCase):
             self.assertTrue( equivalent(r,1.0,TOL) )
             self.assertTrue( equivalent( root_N * u_re , re_data_.std(), TOL) )
             self.assertTrue( equivalent( root_N * u_im , im_data_.std(), TOL) )
+
+    def testUNComplexUncertainties(self):
+        TOL = 1E-12
+
+        mu = complex(-3.172,-0.123)
+        
+        re_data_ = StdDataSets(mu=mu.real,h=0.1,q=1.5,n=10)
+        im_data_ = StdDataSets(mu=mu.imag,h=0.1,q=1.5,n=10)
+        
+        re_seq = re_data_.seq()
+        im_seq = im_data_.seq()
+        zseq = [ ucomplex( complex(i,j), 1) for i,j in izip(re_seq,im_seq) ]
+
+        root_N = math.sqrt( len(zseq) )            
+
+        (u_re,u_im), r = type_a.standard_uncertainty(zseq)
+
+        self.assertTrue( equivalent(r,1.0,TOL) )
+        self.assertTrue( equivalent( root_N * u_re , re_data_.std(), TOL) )
+        self.assertTrue( equivalent( root_N * u_im , im_data_.std(), TOL) )
+
 
     def testTypeAComplex(self):
         TOL = 1E-12
@@ -147,6 +217,30 @@ class TestTypeA(unittest.TestCase):
             self.assertTrue( equivalent( root_N * u[0] , re_data_.std(), TOL) )
             self.assertTrue( equivalent( root_N * u[1] , im_data_.std(), TOL) )
 
+    def testUNTypeAComplex(self):
+        TOL = 1E-12
+
+        mu = complex(3.172,0.123)
+        
+        re_data_ = StdDataSets(mu=mu.real,h=0.1,q=1.5,n=10)
+        im_data_ = StdDataSets(mu=mu.imag,h=0.1,q=1.5,n=10)
+        
+        re_seq = re_data_.seq()
+        im_seq = im_data_.seq()
+        zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
+
+        root_N = math.sqrt( len(zseq) )            
+
+        z = type_a.estimate(zseq)
+        
+        self.assertTrue( equivalent(get_correlation(z),1.0,TOL) )
+        self.assertEqual( dof(z), len(zseq)-1 )
+        self.assertTrue( equivalent_complex(value(z),complex( re_data_.mean(),im_data_.mean() ),TOL) )
+        
+        u = uncertainty(z)
+        self.assertTrue( equivalent( root_N * u[0] , re_data_.std(), TOL) )
+        self.assertTrue( equivalent( root_N * u[1] , im_data_.std(), TOL) )
+
     def testTypeAReal(self):
         TOL = 1E-12
 
@@ -162,6 +256,22 @@ class TestTypeA(unittest.TestCase):
             self.assertEqual( dof(x), len(seq)-1 )
             self.assertTrue( equivalent(value(x),data_.mean(),TOL) )
             self.assertTrue( equivalent( root_N * uncertainty(x) , data_.std(), TOL) )
+
+    def testUNTypeAReal(self):
+        TOL = 1E-12
+
+        data_ = StdDataSets(mu=11.342,h=0.1,q=1.5,n=10)
+        
+        seq = data_.seq()
+        
+        root_N = math.sqrt(len(seq))
+        
+        x = type_a.estimate(seq)
+        
+        self.assertEqual( dof(x), len(seq)-1 )
+        self.assertTrue( equivalent(value(x),data_.mean(),TOL) )
+        self.assertTrue( equivalent( root_N * uncertainty(x) , data_.std(), TOL) )
+
 
 #-----------------------------------------------------
 class TestEnsembleWS(unittest.TestCase):
