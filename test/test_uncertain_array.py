@@ -72,9 +72,9 @@ class TestUncertainArray(unittest.TestCase):
         # create an UncertainReal by bypassing exception handling
         return UncertainReal._elementary(x, u, df=df, label=label, independent=independent)
 
-    def _ucomplex(self, x, u, df=inf, label=None, independent=True):
+    def _ucomplex(self, z, u_r, u_i, r=None, df=inf, label=None, independent=True):
         # create an UncertainComplex by bypassing exception handling
-        return UncertainComplex._elementary(z, u, df=df, label=label, independent=independent)
+        return UncertainComplex._elementary(z, u_r, u_i, r=r, df=df, label=label, independent=independent)
 
     def test_empty_array_like(self):
         for item in [list(), tuple()]:
@@ -2229,6 +2229,7 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_copy(self):
         c = self.xa.copy()
+        self.assertTrue(isinstance(c, UncertainArray))
         self.assertTrue(c.shape == self.xa.shape)
         for i in range(len(self.xa)):
             self.assertTrue(c[i] is not self.xa[i])
@@ -2244,6 +2245,7 @@ class TestUncertainArray(unittest.TestCase):
             [ureal(3, 0.3, df=30, label='3', independent=False),
              ureal(4, 0.4, df=40, label='4', independent=True)]])
         c = x.copy()
+        self.assertTrue(isinstance(c, UncertainArray))
         self.assertTrue(c.shape == x.shape)
         for i in range(2):
             for j in range(2):
@@ -3081,6 +3083,7 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_isnan(self):
         self.assertTrue(not all(np.isnan(self.xa)))
+        self.assertTrue(not all(np.isnan(self.xca)))
 
         a = uarray([self._ureal(nan, nan), self._ureal(nan, 0), ureal(7, 7), self._ureal(inf, 0)])
         out = np.isnan(a)
@@ -3097,10 +3100,43 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(not out[1, 0])
         self.assertTrue(not out[1, 1])
 
+        a = uarray([self._ucomplex(nan, nan, nan), self._ucomplex(nan, 0, 0),
+                    ucomplex(7, 7, 7), self._ucomplex(inf, 0, 0)])
+        out = np.isnan(a)
+        self.assertTrue(not isinstance(out, UncertainArray))
+        self.assertTrue(out[0])
+        self.assertTrue(out[1])
+        self.assertTrue(not out[2])
+        self.assertTrue(not out[3])
+
+        out = np.isnan(a.reshape(2, 2))
+        self.assertTrue(not isinstance(out, UncertainArray))
+        self.assertTrue(out[0, 0])
+        self.assertTrue(out[0, 1])
+        self.assertTrue(not out[1, 0])
+        self.assertTrue(not out[1, 1])
+
     def test_isinf(self):
         self.assertTrue(not all(np.isinf(self.xa)))
+        self.assertTrue(not all(np.isinf(self.xca)))
 
         a = uarray([self._ureal(nan, nan), self._ureal(-inf, 0), ureal(7, 7), self._ureal(inf, 0)])
+        out = np.isinf(a)
+        self.assertTrue(not isinstance(out, UncertainArray))
+        self.assertTrue(not out[0])
+        self.assertTrue(out[1])
+        self.assertTrue(not out[2])
+        self.assertTrue(out[3])
+
+        out = np.isinf(a.reshape(2, 2))
+        self.assertTrue(not isinstance(out, UncertainArray))
+        self.assertTrue(not out[0, 0])
+        self.assertTrue(out[0, 1])
+        self.assertTrue(not out[1, 0])
+        self.assertTrue(out[1, 1])
+
+        a = uarray([self._ucomplex(nan+1j, nan, nan), self._ucomplex(-inf, 0, 0),
+                    ucomplex(7, 7, 7), self._ucomplex(inf, 0, 0)])
         out = np.isinf(a)
         self.assertTrue(not isinstance(out, UncertainArray))
         self.assertTrue(not out[0])

@@ -6,8 +6,10 @@ does not have to be installed in order for someone to use GTC.
 """
 from __future__ import division
 import warnings
-from numbers import Number
+from numbers import Number, Real, Complex
 from math import isnan, isinf
+from cmath import isnan as cisnan
+from cmath import isinf as cisinf
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -37,16 +39,22 @@ else:
     else:
 
         def _isnan(number):
-            try:
-                return isnan(number.x)
-            except AttributeError:
-                return isnan(number)
+            val = value(number)
+            if isinstance(val, Real):
+                return isnan(val)
+            elif isinstance(val, Complex):
+                return cisnan(val)
+            else:
+                raise TypeError('cannot calculate isnan of type {}'.format(type(number)))
 
         def _isinf(number):
-            try:
-                return isinf(number.x)
-            except AttributeError:
-                return isinf(number)
+            val = value(number)
+            if isinstance(val, Real):
+                return isinf(val)
+            elif isinstance(val, Complex):
+                return cisinf(val)
+            else:
+                raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
 
         class UncertainArray(np.ndarray):
             """Base: :class:`numpy.ndarray`
