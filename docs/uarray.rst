@@ -31,7 +31,7 @@ Example 1. Creating an UncertainArray
 
 The following example illustrates how to create an :class:`.UncertainArray` and how
 one can either use the internal functions of **GTC** or use the equivalent numpy
-functions for the calculation.
+functions during the calculation.
 
 Import numpy and the necessary **GTC** functions and modules
 
@@ -48,7 +48,7 @@ Next, define the uncertain arrays
    >>> currents = uarray([ureal(0.023, 0.003), ureal(0.019, 0.006), ureal(0.020, 0.004)])
    >>> phases = uarray([ureal(1.0442, 2e-4), ureal(1.0438, 5e-4), ureal(1.0441, 3e-4)])
 
-One can use the :obj:`~.core.cos` function of **GTC** to calculate the AC resistances
+One can use the :func:`~.core.cos` function of **GTC** to calculate the AC resistances
 
 .. code-block:: pycon
 
@@ -59,7 +59,7 @@ One can use the :obj:`~.core.cos` function of **GTC** to calculate the AC resist
                    ureal(125.3181626494936,25.06618583901181,inf)],
                   dtype=object)
 
-or, use the equivalent :data:`numpy.cos` function
+or, use the equivalent :data:`numpy.cos() <numpy.cos>` function
 
 .. code-block:: pycon
 
@@ -71,7 +71,8 @@ or, use the equivalent :data:`numpy.cos` function
                   dtype=object)
 
 To calculate the average and standard deviation of the AC resistance one
-can use the :obj:`~.type_a.mean` function of **GTC**
+can use the :func:`~.type_a.mean` and :func:`~.type_a.standard_deviation` functions
+of **GTC**
 
 .. code-block:: pycon
 
@@ -81,8 +82,8 @@ can use the :obj:`~.type_a.mean` function of **GTC**
    12.742029183091395
 
 or, use the equivalent :func:`numpy.average` and :func:`numpy.std` functions
-*(notice that we perform the calculation using the* ``.x`` *attribute to only*
-*use the* :obj:`~core.value` *of the uncertain numbers)*
+*(notice that we perform the calculation using the* :attr:`.UncertainArray.x`
+*attribute to only use the* :func:`~core.value` *of the uncertain numbers)*
 
 .. code-block:: pycon
 
@@ -90,6 +91,14 @@ or, use the equivalent :func:`numpy.average` and :func:`numpy.std` functions
    121.96586792024915
    >>> np.std(resistances.x, ddof=1)
    12.742029183091395
+
+Or calculate the weighted average by using 1.0/:attr:`.UncertainArray.v` as the
+weights
+
+.. code-block:: pycon
+
+   >>> np.average(resistances.x, weights=1.0/resistances.v)
+   113.6918944119361
 
 .. _uarray-example-2:
 

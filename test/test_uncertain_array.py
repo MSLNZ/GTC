@@ -49,6 +49,7 @@ from GTC import inf, nan
 from GTC.uncertain_array import UncertainArray
 from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
+from GTC import type_a
 
 from testing_tools import *
 
@@ -3280,6 +3281,28 @@ class TestUncertainArray(unittest.TestCase):
                     names=['a', 'b'],
                     dtype=([('x', np.object), ('y', np.object)]))
         self.assertTrue(ua.dtype.names == ('x', 'y'))
+
+    def test_example1(self):
+        v = [ureal(4.937, 0.012), ureal(5.013, 0.008), ureal(4.986, 0.014)]
+        i = [ureal(0.023, 0.003), ureal(0.019, 0.006), ureal(0.020, 0.004)]
+        p = [ureal(1.0442, 2e-4), ureal(1.0438, 5e-4), ureal(1.0441, 3e-4)]
+        va = uarray(v)
+        ia = uarray(i)
+        pa = uarray(p)
+
+        r = [(v[idx] / i[idx]) * cos(p[idx]) for idx in range(len(v))]
+        ra = (va / ia) * np.cos(pa)
+        for idx in range(len(v)):
+            self.assertTrue(equivalent(r[idx].x, ra[idx].x))
+            self.assertTrue(equivalent(r[idx].u, ra[idx].u))
+
+        self.assertTrue(equivalent(type_a.mean(r), np.average(ra.x)))
+        self.assertTrue(equivalent(type_a.mean(r), ra.x.mean()))
+        self.assertTrue(equivalent(type_a.standard_deviation(r), np.std(ra.x, ddof=1)))
+
+        weights = [(1.0/r[idx].u)**2 for idx in range(len(r))]
+        wt_ave = sum(weights[idx] * r[idx].x for idx in range(len(r))) / sum(weights)
+        self.assertTrue(equivalent(wt_ave, np.average(ra.x, weights=1.0/ra.v)))
 
     #
     # The following is a list of all ufuncs
