@@ -516,6 +516,14 @@ else:
             def _phase(self):
                 return UncertainArray([value._phase() for value in self])
 
+            def copy(self, order='C'):
+               out = np.empty(self.shape, dtype=self.dtype, order=order)
+               item_set = out.itemset
+               item_get = self.item
+               for i in xrange(self.size):
+                   item_set(i, +item_get(i))
+               return UncertainArray(out, label=self.label)
+
             def sum(self, *args, **kwargs):
                 return UncertainArray(np.asarray(self).sum(*args, **kwargs))
 
@@ -558,14 +566,14 @@ else:
             def round(self, decimals=0, **kwargs):
                 digits = kwargs.get('digits', decimals)
                 df_decimals = kwargs.get('df_decimals', digits)
-                out = self.copy()
+                out = np.empty(self.shape, dtype=self.dtype)
                 item_set = out.itemset
                 item_get = self.item
                 # do not use list comprehension because the returned value from
-                # _round is a tuple (it's actually a namedtuple)
+                # _round is a tuple (it's actually a GroomedUncertain... namedtuple)
                 for i in xrange(self.size):
                     item_set(i, item_get(i)._round(digits, df_decimals))
-                return out
+                return UncertainArray(out)
 
             def __matmul__(self, other):
                 # Implements the protocol used by the '@' operator defined in PEP 465.

@@ -2229,12 +2229,45 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_copy(self):
         c = self.xa.copy()
-        c[:] = ureal(2, 1)
         self.assertTrue(c.shape == self.xa.shape)
         for i in range(len(self.xa)):
-            self.assertTrue(c[i].x == 2)
-            self.assertTrue(c[i].u == 1)
-            self.assertTrue(self.xa[i] is self.x[i])
+            self.assertTrue(c[i] is not self.xa[i])
+            # self.assertTrue(c[i].x is not self.xa[i].x)
+            self.assertTrue(c[i].x == self.xa[i].x)
+            self.assertTrue(c[i].u is not self.xa[i].u)
+            self.assertTrue(c[i].u == self.xa[i].u)
+            self.assertTrue(self.xa[i] is self.x[i])  # original is unchanged
+
+        x = uarray([
+            [ureal(1, 0.1, df=10, label='1', independent=True),
+             ureal(2, 0.2, df=20, label='2', independent=False)],
+            [ureal(3, 0.3, df=30, label='3', independent=False),
+             ureal(4, 0.4, df=40, label='4', independent=True)]])
+        c = x.copy()
+        self.assertTrue(c.shape == x.shape)
+        for i in range(2):
+            for j in range(2):
+                self.assertTrue(c[i, j] is not x[i, j])
+                # self.assertTrue(c[i, j].x is not x[i, j].x)
+                self.assertTrue(c[i, j].x == x[i, j].x)
+                self.assertTrue(c[i, j].u is not x[i, j].u)
+                self.assertTrue(c[i, j].u == x[i, j].u)
+                self.assertTrue(c[i, j].df is not x[i, j].df)
+                self.assertTrue(c[i, j].df == x[i, j].df)
+                self.assertTrue(c[i, j].label is None)  # labels don't get copied, see UncertainReal.__pos__
+                self.assertTrue(x[i, j].label is not None)
+                self.assertTrue(c[i, j]._u_components._index is not x[i, j]._u_components._index)
+                self.assertTrue(c[i, j]._u_components._index == x[i, j]._u_components._index)
+                self.assertTrue(c[i, j]._u_components._value is not x[i, j]._u_components._value)
+                self.assertTrue(c[i, j]._u_components._value == x[i, j]._u_components._value)
+                self.assertTrue(c[i, j]._d_components._index is not x[i, j]._d_components._index)
+                self.assertTrue(c[i, j]._d_components._index == x[i, j]._d_components._index)
+                self.assertTrue(c[i, j]._d_components._value is not x[i, j]._d_components._value)
+                self.assertTrue(c[i, j]._d_components._value == x[i, j]._d_components._value)
+                self.assertTrue(c[i, j]._i_components._index is not x[i, j]._i_components._index)
+                self.assertTrue(c[i, j]._i_components._index == x[i, j]._i_components._index)
+                self.assertTrue(c[i, j]._i_components._value is not x[i, j]._i_components._value)
+                self.assertTrue(c[i, j]._i_components._value == x[i, j]._i_components._value)
 
     def test_nbytes(self):
         self.assertTrue(self.xa.nbytes == self.ya.nbytes)
