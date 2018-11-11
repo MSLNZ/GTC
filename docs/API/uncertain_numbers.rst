@@ -9,6 +9,7 @@ Introduction
 
 The GUM Tree calculator (``GTC``) is a data processing tool that uses `uncertain numbers` to represent measured quantities, and automates the evaluation of uncertainty when derived quantities are calculated from measured data. 
 
+.. _measurement_error:
 
 Measurement error
 =================
@@ -26,6 +27,8 @@ This is how 'uncertainty' arises. After any measurement, we are faced with uncer
 For example, suppose the speed of a car is measured by a law enforcement officer. The measurement is made to decide whether, in fact, a car was travelling faster than the legal limit. However, this simple fact cannot be determined perfectly, because the actual speed :math:`Y` remains unknown. It is possible that the measured value :math:`y` will indicate that the car was speeding when in fact it was not, or that it was not speeding when in fact it was. The difficulty in making the correct decision is inevitable. So, in practice, a decision rule must be used that takes account of the measurement uncertainty. In this example, the rule will probably err on the side of caution (a few speeding drivers will escape rather than unfairly accusing good drivers of speeding).
 
 Like the measurand, the measurement error :math:`E_y` is not known. At best its behaviour can be described in statistical terms. This leads to more technical uses of the word 'uncertainty'. For instance, the term 'standard uncertainty' refers to the standard deviation of a distribution associated with an unpredictable quantity.
+
+.. _measurement_models:
 
 Measurement models
 ------------------
