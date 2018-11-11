@@ -186,11 +186,11 @@ is as follows:
 
 1) Select a wavelength from the light source.
 2) Move REF to be in the beam path of the light source.
-3) Block the light and record the background signal of REF.
-4) Unblock the light and record the signal of REF.
+3) Block the light and measure the background signal of REF.
+4) Unblock the light and measure the signal of REF.
 5) Move PD to be in the beam path of the light source.
-6) Block the light and record the background signal of PD.
-7) Unblock the light and record the signal of PD.
+6) Block the light and measure the background signal of PD.
+7) Unblock the light and measure the signal of PD.
 8) Repeat step (1).
 
 10 readings were acquired in steps 3, 4, 6 and 7 and they were used determine
@@ -213,8 +213,9 @@ negligible.
 |     800    |  0.442(9) |   0.0004(3)   |  1.421(2)  |   0.00003(1)   |
 +------------+-----------+---------------+------------+----------------+
 
-We create a :class:`list` from the information in the table
-*(the degrees of freedom = 10 - 1 = 9)*
+We can create a :class:`list` from the information in the table. It is okay to mix
+built-in data types (e.g., :class:`int`, :class:`float` or
+:class:`complex`) with uncertain numbers. The degrees of freedom = 10 - 1 = 9.
 
 .. code-block:: pycon
 
@@ -226,8 +227,8 @@ We create a :class:`list` from the information in the table
    ...  (800, ureal(0.442, 9e-3, 9), ureal(4e-4, 3e-4, 9), ureal(1.421, 2e-3, 9), ureal(3e-5, 1e-5, 9))
    ... ]
 
-and then create an :class:`.UncertainArray` from ``data`` to calculate the
-relative spectral response
+Next, we create a *named* :class:`.UncertainArray` from ``data`` and calculate the
+relative spectral response by using the *names* that were specified
 
 .. code-block:: pycon
 
@@ -241,14 +242,33 @@ relative spectral response
                    ureal(0.31077362646642787,0.006352297390618683,9.105944114389143)],
                   dtype=object)
 
-Since ``res`` is a numpy array we can use numpy syntax to access the relative
-spectral response for wavelengths > 600 nm
+Since ``ua`` and ``res`` are numpy arrays we can use numpy syntax to filter information. To select
+the data where the PD signal is > 2 volts, we can use
 
 .. code-block:: pycon
 
-   >>> res[ ua['nm'] > 600 ]
-   UncertainArray([ureal(0.36167007760313324,0.0010846673083513545,10.620461706054874),
-                   ureal(0.31077362646642787,0.006352297390618683,9.105944114389143)],
+   >>> gt2 = ua[ ua['pd-sig'] > 2 ]
+   >>> gt2
+   UncertainArray([(500, ureal(2.741,0.007,9.0), ureal(0.0006,0.0002,9.0), ureal(5.825,0.004,9.0), ureal(4e-05,3e-05,9.0)),
+                   (600, ureal(2.916,0.003,9.0), ureal(0.0002,0.0001,9.0), ureal(6.015,0.003,9.0), ureal(3e-05,1e-05,9.0))],
+                  dtype=[('nm', '<i4'), ('pd-sig', 'O'), ('pd-bg', 'O'), ('ref-sig', 'O'), ('ref-bg', 'O')])
+
+We can also use the *name* feature on ``gt2`` to then get the REF signal for the filtered data
+
+.. code-block:: pycon
+
+   >>> gt2['ref-sig']
+   UncertainArray([ureal(5.825,0.004,9.0), ureal(6.015,0.003,9.0)],
+                  dtype=object)
+
+To select the relative spectral response where the wavelengths are < 700 nm
+
+.. code-block:: pycon
+
+   >>> res[ ua['nm'] < 700 ]
+   UncertainArray([ureal(0.342006675660713,0.0010935674325269068,9.630065079733788),
+                   ureal(0.4704581662363347,0.0012448685947602906,10.30987538377716),
+                   ureal(0.4847571974590064,0.0005545173836499742,13.031921586772652)],
                   dtype=object)
 
 This is a very simplified analysis. In practise one should use a
