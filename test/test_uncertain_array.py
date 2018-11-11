@@ -1751,12 +1751,12 @@ class TestUncertainArray(unittest.TestCase):
         xarray = uarray(xlist)
         self.assertTrue(xarray.shape == (100,))
 
-        a = xarray.sum()
         b = 0
         for x in xlist:
             b += x
-        self.assertTrue(equivalent(a.x, b.x))
-        self.assertTrue(equivalent(a.u, b.u))
+        for a in [xarray.sum(), np.sum(xarray)]:
+            self.assertTrue(equivalent(a.x, b.x))
+            self.assertTrue(equivalent(a.u, b.u))
 
         # 3D array
         xlist = [[[ureal(i*j*k, i*j*k*0.1) for k in range(1, 5)] for j in range(7, 10)] for i in range(3, 9)]
@@ -1777,36 +1777,36 @@ class TestUncertainArray(unittest.TestCase):
                     axis_2[i][j] += value
 
         # axis=None
-        a = xarray.sum()
-        self.assertTrue(equivalent(a.x, axis_none.x))
-        self.assertTrue(equivalent(a.u, axis_none.u))
+        for a in [xarray.sum(), np.sum(xarray)]:
+            self.assertTrue(equivalent(a.x, axis_none.x))
+            self.assertTrue(equivalent(a.u, axis_none.u))
 
         # axis=0
-        a = xarray.sum(axis=0)
         m, n = len(axis_0), len(axis_0[0])
-        self.assertTrue(a.shape == (m, n))
-        for j in range(m):
-            for k in range(n):
-                self.assertTrue(equivalent(a[j, k].x, axis_0[j][k].x))
-                self.assertTrue(equivalent(a[j, k].u, axis_0[j][k].u))
+        for a in [xarray.sum(axis=0), np.sum(xarray, axis=0)]:
+            self.assertTrue(a.shape == (m, n))
+            for j in range(m):
+                for k in range(n):
+                    self.assertTrue(equivalent(a[j, k].x, axis_0[j][k].x))
+                    self.assertTrue(equivalent(a[j, k].u, axis_0[j][k].u))
 
         # axis=1
-        a = xarray.sum(axis=1)
         m, n = len(axis_1), len(axis_1[0])
-        self.assertTrue(a.shape == (m, n))
-        for i in range(m):
-            for k in range(n):
-                self.assertTrue(equivalent(a[i, k].x, axis_1[i][k].x))
-                self.assertTrue(equivalent(a[i, k].u, axis_1[i][k].u))
+        for a in [xarray.sum(axis=1), np.sum(xarray, axis=1)]:
+            self.assertTrue(a.shape == (m, n))
+            for i in range(m):
+                for k in range(n):
+                    self.assertTrue(equivalent(a[i, k].x, axis_1[i][k].x))
+                    self.assertTrue(equivalent(a[i, k].u, axis_1[i][k].u))
 
         # axis=2
-        a = xarray.sum(axis=2)
         m, n = len(axis_2), len(axis_2[0])
-        self.assertTrue(a.shape == (m, n))
-        for i in range(m):
-            for j in range(n):
-                self.assertTrue(equivalent(a[i, j].x, axis_2[i][j].x))
-                self.assertTrue(equivalent(a[i, j].u, axis_2[i][j].u))
+        for a in [xarray.sum(axis=2), np.sum(xarray, axis=2)]:
+            self.assertTrue(a.shape == (m, n))
+            for i in range(m):
+                for j in range(n):
+                    self.assertTrue(equivalent(a[i, j].x, axis_2[i][j].x))
+                    self.assertTrue(equivalent(a[i, j].u, axis_2[i][j].u))
 
     def test_mean(self):
         for j, (x, xa) in enumerate([(self.x, self.xa), (self.xc, self.xca)]):
@@ -1815,47 +1815,47 @@ class TestUncertainArray(unittest.TestCase):
                 ave += val
             ave = ave/float(len(x))
 
-            m = xa.mean()
-            if j == 0:
-                self.assertTrue(equivalent(m.x, ave.x))
-                self.assertTrue(equivalent(m.u, ave.u))
-            else:
-                self.assertTrue(equivalent_complex(m.x, ave.x))
-                self.assertTrue(equivalent(m.u.real, ave.u.real))
-                self.assertTrue(equivalent(m.u.imag, ave.u.imag))
+            for m in [xa.mean(), np.mean(xa), np.average(xa)]:
+                if j == 0:
+                    self.assertTrue(equivalent(m.x, ave.x))
+                    self.assertTrue(equivalent(m.u, ave.u))
+                else:
+                    self.assertTrue(equivalent_complex(m.x, ave.x))
+                    self.assertTrue(equivalent(m.u.real, ave.u.real))
+                    self.assertTrue(equivalent(m.u.imag, ave.u.imag))
 
             xa = xa.reshape(2, 3)
 
-            m = xa.mean()
-            if j == 0:
-                self.assertTrue(equivalent(m.x, ave.x))
-                self.assertTrue(equivalent(m.u, ave.u))
-            else:
-                self.assertTrue(equivalent_complex(m.x, ave.x))
-                self.assertTrue(equivalent(m.u.real, ave.u.real))
-                self.assertTrue(equivalent(m.u.imag, ave.u.imag))
-
-            m = xa.mean(axis=0)
-            aves = [(x[0] + x[3])/2.0, (x[1] + x[4])/2.0, (x[2] + x[5])/2.0]
-            for idx in range(3):
+            for m in [xa.mean(), np.mean(xa), np.average(xa)]:
                 if j == 0:
-                    self.assertTrue(equivalent(m[idx].x, aves[idx].x))
-                    self.assertTrue(equivalent(m[idx].u, aves[idx].u))
+                    self.assertTrue(equivalent(m.x, ave.x))
+                    self.assertTrue(equivalent(m.u, ave.u))
                 else:
-                    self.assertTrue(equivalent_complex(m[idx].x, aves[idx].x))
-                    self.assertTrue(equivalent(m[idx].u.real, aves[idx].u.real))
-                    self.assertTrue(equivalent(m[idx].u.imag, aves[idx].u.imag))
+                    self.assertTrue(equivalent_complex(m.x, ave.x))
+                    self.assertTrue(equivalent(m.u.real, ave.u.real))
+                    self.assertTrue(equivalent(m.u.imag, ave.u.imag))
 
-            m = xa.mean(axis=1)
-            aves = [(x[0] + x[1] + x[2])/3.0, (x[3] + x[4] + x[5])/3.0]
-            for idx in range(2):
-                if j == 0:
-                    self.assertTrue(equivalent(m[idx].x, aves[idx].x))
-                    self.assertTrue(equivalent(m[idx].u, aves[idx].u))
-                else:
-                    self.assertTrue(equivalent_complex(m[idx].x, aves[idx].x))
-                    self.assertTrue(equivalent(m[idx].u.real, aves[idx].u.real))
-                    self.assertTrue(equivalent(m[idx].u.imag, aves[idx].u.imag))
+            for m in [xa.mean(axis=0), np.mean(xa, axis=0), np.average(xa, axis=0)]:
+                aves = [(x[0] + x[3])/2.0, (x[1] + x[4])/2.0, (x[2] + x[5])/2.0]
+                for idx in range(3):
+                    if j == 0:
+                        self.assertTrue(equivalent(m[idx].x, aves[idx].x))
+                        self.assertTrue(equivalent(m[idx].u, aves[idx].u))
+                    else:
+                        self.assertTrue(equivalent_complex(m[idx].x, aves[idx].x))
+                        self.assertTrue(equivalent(m[idx].u.real, aves[idx].u.real))
+                        self.assertTrue(equivalent(m[idx].u.imag, aves[idx].u.imag))
+
+            for m in [xa.mean(axis=1), np.mean(xa, axis=1), np.average(xa, axis=1)]:
+                aves = [(x[0] + x[1] + x[2])/3.0, (x[3] + x[4] + x[5])/3.0]
+                for idx in range(2):
+                    if j == 0:
+                        self.assertTrue(equivalent(m[idx].x, aves[idx].x))
+                        self.assertTrue(equivalent(m[idx].u, aves[idx].u))
+                    else:
+                        self.assertTrue(equivalent_complex(m[idx].x, aves[idx].x))
+                        self.assertTrue(equivalent(m[idx].u.real, aves[idx].u.real))
+                        self.assertTrue(equivalent(m[idx].u.imag, aves[idx].u.imag))
 
     def test_std(self):
         for j, (x, xa) in enumerate([(self.x, self.xa), (self.xc, self.xca)]):
@@ -1896,10 +1896,10 @@ class TestUncertainArray(unittest.TestCase):
                 for i in range(len(x)):
                     stdevs[idx] += (x[i][idx] - ave) ** 2
                 stdevs[idx] = sqrt(stdevs[idx] / (n - ddof))
-            a = xa.std(axis=0, ddof=ddof)
-            for i in range(len(stdevs)):
-                self.assertTrue(equivalent(a[i].x, stdevs[i].x))
-                self.assertTrue(equivalent(a[i].u, stdevs[i].u))
+            for a in [xa.std(axis=0, ddof=ddof), np.std(xa, axis=0, ddof=ddof)]:
+                for i in range(len(stdevs)):
+                    self.assertTrue(equivalent(a[i].x, stdevs[i].x))
+                    self.assertTrue(equivalent(a[i].u, stdevs[i].u))
 
         # axis-1 -> rows
         aves = [0.0 for _ in range(len(x))]
@@ -1915,10 +1915,10 @@ class TestUncertainArray(unittest.TestCase):
                 for item in [(val - ave) ** 2 for val in x[idx]]:
                     stdevs[idx] += item
                 stdevs[idx] = sqrt(stdevs[idx] / (n - ddof))
-            a = xa.std(axis=1, ddof=ddof)
-            for i in range(len(stdevs)):
-                self.assertTrue(equivalent(a[i].x, stdevs[i].x))
-                self.assertTrue(equivalent(a[i].u, stdevs[i].u))
+            for a in [xa.std(axis=1, ddof=ddof), np.std(xa, axis=1, ddof=ddof)]:
+                for i in range(len(stdevs)):
+                    self.assertTrue(equivalent(a[i].x, stdevs[i].x))
+                    self.assertTrue(equivalent(a[i].u, stdevs[i].u))
 
     def test_var(self):
         for j, (x, xa) in enumerate([(self.x, self.xa), (self.xc, self.xca)]):
@@ -1959,10 +1959,10 @@ class TestUncertainArray(unittest.TestCase):
                 for i in range(len(x)):
                     vars[idx] += (x[i][idx] - ave) ** 2
                 vars[idx] = vars[idx] / (n - ddof)
-            a = xa.var(axis=0, ddof=ddof)
-            for i in range(len(vars)):
-                self.assertTrue(equivalent(a[i].x, vars[i].x))
-                self.assertTrue(equivalent(a[i].u, vars[i].u))
+            for a in [xa.var(axis=0, ddof=ddof), np.var(xa, axis=0, ddof=ddof)]:
+                for i in range(len(vars)):
+                    self.assertTrue(equivalent(a[i].x, vars[i].x))
+                    self.assertTrue(equivalent(a[i].u, vars[i].u))
 
         # axis-1 -> rows
         aves = [0.0 for _ in range(len(x))]
@@ -1978,98 +1978,98 @@ class TestUncertainArray(unittest.TestCase):
                 for item in [(val - ave) ** 2 for val in x[idx]]:
                     vars[idx] += item
                 vars[idx] = vars[idx] / (n - ddof)
-            a = xa.var(axis=1, ddof=ddof)
-            for i in range(len(vars)):
-                self.assertTrue(equivalent(a[i].x, vars[i].x))
-                self.assertTrue(equivalent(a[i].u, vars[i].u))
+            for a in [xa.var(axis=1, ddof=ddof), np.var(xa, axis=1, ddof=ddof)]:
+                for i in range(len(vars)):
+                    self.assertTrue(equivalent(a[i].x, vars[i].x))
+                    self.assertTrue(equivalent(a[i].u, vars[i].u))
 
     def test_max(self):
-        a = self.xa.max()
         b = max(self.x)
-        self.assertTrue(equivalent(a.x, b.x))
-        self.assertTrue(equivalent(a.u, b.u))
+        for a in [self.xa.max(), np.max(self.xa)]:
+            self.assertTrue(equivalent(a.x, b.x))
+            self.assertTrue(equivalent(a.u, b.u))
 
         xa = self.xa.reshape(3, 2)
 
-        a = xa.max()
-        self.assertTrue(equivalent(a.x, b.x))
-        self.assertTrue(equivalent(a.u, b.u))
+        for a in [xa.max(), np.max(xa)]:
+            self.assertTrue(equivalent(a.x, b.x))
+            self.assertTrue(equivalent(a.u, b.u))
 
-        a = xa.max(axis=0)
-        for i, b in enumerate([self.x[::2], self.x[1::2]]):
-            b = max(b)
-            self.assertTrue(equivalent(a[i].x, b.x))
-            self.assertTrue(equivalent(a[i].u, b.u))
+        for a in [xa.max(axis=0), np.max(xa, axis=0)]:
+            for i, b in enumerate([self.x[::2], self.x[1::2]]):
+                b = max(b)
+                self.assertTrue(equivalent(a[i].x, b.x))
+                self.assertTrue(equivalent(a[i].u, b.u))
 
-        a = xa.max(axis=1)
-        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
-            b = max(b)
-            self.assertTrue(equivalent(a[i].x, b.x))
-            self.assertTrue(equivalent(a[i].u, b.u))
+        for a in [xa.max(axis=1), np.max(xa, axis=1)]:
+            for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+                b = max(b)
+                self.assertTrue(equivalent(a[i].x, b.x))
+                self.assertTrue(equivalent(a[i].u, b.u))
 
     def test_min(self):
-        a = self.xa.min()
         b = min(self.x)
-        self.assertTrue(equivalent(a.x, b.x))
-        self.assertTrue(equivalent(a.u, b.u))
+        for a in [self.xa.min(), np.min(self.xa)]:
+            self.assertTrue(equivalent(a.x, b.x))
+            self.assertTrue(equivalent(a.u, b.u))
 
         xa = self.xa.reshape(3, 2)
 
-        a = xa.min()
-        self.assertTrue(equivalent(a.x, b.x))
-        self.assertTrue(equivalent(a.u, b.u))
+        for a in [xa.min(), np.min(xa)]:
+            self.assertTrue(equivalent(a.x, b.x))
+            self.assertTrue(equivalent(a.u, b.u))
 
-        a = xa.min(axis=0)
-        for i, b in enumerate([self.x[::2], self.x[1::2]]):
-            b = min(b)
-            self.assertTrue(equivalent(a[i].x, b.x))
-            self.assertTrue(equivalent(a[i].u, b.u))
+        for a in [xa.min(axis=0), np.min(xa, axis=0)]:
+            for i, b in enumerate([self.x[::2], self.x[1::2]]):
+                b = min(b)
+                self.assertTrue(equivalent(a[i].x, b.x))
+                self.assertTrue(equivalent(a[i].u, b.u))
 
-        a = xa.min(axis=1)
-        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
-            b = min(b)
-            self.assertTrue(equivalent(a[i].x, b.x))
-            self.assertTrue(equivalent(a[i].u, b.u))
+        for a in [xa.min(axis=1), np.min(xa, axis=1)]:
+            for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+                b = min(b)
+                self.assertTrue(equivalent(a[i].x, b.x))
+                self.assertTrue(equivalent(a[i].u, b.u))
 
     def test_argmax(self):
-        a = self.xa.argmax()
         b = self.x.index(max(self.x))
-        self.assertTrue(a == b)
+        for a in [self.xa.argmax(), np.argmax(self.xa)]:
+            self.assertTrue(a == b)
 
         xa = self.xa.reshape(3, 2)
 
-        a = xa.argmax()
-        self.assertTrue(equivalent(a, b))
+        for a in [xa.argmax(), np.argmax(xa)]:
+            self.assertTrue(equivalent(a, b))
 
-        a = xa.argmax(axis=0)
-        for i, b in enumerate([self.x[::2], self.x[1::2]]):
-            self.assertTrue(a[i] == b.index(max(b)))
+        for a in [xa.argmax(axis=0), np.argmax(xa, axis=0)]:
+            for i, b in enumerate([self.x[::2], self.x[1::2]]):
+                self.assertTrue(a[i] == b.index(max(b)))
 
-        a = xa.argmax(axis=1)
-        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
-            self.assertTrue(a[i] == b.index(max(b)))
+        for a in [xa.argmax(axis=1), np.argmax(xa, axis=1)]:
+            for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+                self.assertTrue(a[i] == b.index(max(b)))
 
     def test_argmin(self):
-        a = self.xa.argmin()
         b = self.x.index(min(self.x))
-        self.assertTrue(a == b)
+        for a in [self.xa.argmin(), np.argmin(self.xa)]:
+            self.assertTrue(a == b)
 
         xa = self.xa.reshape(3, 2)
 
-        a = xa.argmin()
-        self.assertTrue(equivalent(a, b))
+        for a in [xa.argmin(), np.argmin(xa)]:
+            self.assertTrue(equivalent(a, b))
 
-        a = xa.argmin(axis=0)
-        for i, b in enumerate([self.x[::2], self.x[1::2]]):
-            self.assertTrue(a[i] == b.index(min(b)))
+        for a in [xa.argmin(axis=0), np.argmin(xa, axis=0)]:
+            for i, b in enumerate([self.x[::2], self.x[1::2]]):
+                self.assertTrue(a[i] == b.index(min(b)))
 
-        a = xa.argmin(axis=1)
-        for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
-            self.assertTrue(a[i] == b.index(min(b)))
+        for a in [xa.argmin(axis=1), np.argmin(xa, axis=1)]:
+            for i, b in enumerate([self.x[:2], self.x[2:4], self.x[4:]]):
+                self.assertTrue(a[i] == b.index(min(b)))
 
     def test_transpose(self):
         a = uarray([ureal(i, i*0.1) for i in range(5*7)]).reshape(5, 7)
-        for item in [a.T, a.transpose()]:
+        for item in [a.T, a.transpose(), np.transpose(a)]:
             for i in range(5):
                 for j in range(7):
                     self.assertTrue(equivalent(a[i, j].x, item[j, i].x))
@@ -2077,28 +2077,28 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_argsort(self):
         b = [self.x.index(a) for a in sorted(self.x)]
-        a = self.xa.argsort()
-        for i in range(len(a)):
-            self.assertTrue(a[i] == b[i])
+        for a in [self.xa.argsort(), np.argsort(self.xa)]:
+            for i in range(len(a)):
+                self.assertTrue(a[i] == b[i])
 
         xa = self.xa.reshape(2, 3)
-        a = xa.argsort()
         b = [[item.index(x) for x in sorted(item)] for item in [self.x[:3], self.x[3:]]]
-        for i in range(2):
-            for j in range(3):
-                self.assertTrue(a[i, j] == b[i][j])
+        for a in [xa.argsort(), np.argsort(xa)]:
+            for i in range(2):
+                for j in range(3):
+                    self.assertTrue(a[i, j] == b[i][j])
 
-        a = xa.argsort(axis=0)
         b = [[item.index(x) for x in sorted(item)] for item in [self.x[::3], self.x[1::3], self.x[2::3]]]
-        for i in range(2):
-            for j in range(3):
-                self.assertTrue(a[i, j] == b[j][i])
+        for a in [xa.argsort(axis=0), np.argsort(xa, axis=0)]:
+            for i in range(2):
+                for j in range(3):
+                    self.assertTrue(a[i, j] == b[j][i])
 
-        a = xa.argsort(axis=1)
         b = [[item.index(x) for x in sorted(item)] for item in [self.x[:3], self.x[3:]]]
-        for i in range(2):
-            for j in range(3):
-                self.assertTrue(a[i, j] == b[i][j])
+        for a in [xa.argsort(axis=1), np.argsort(xa, axis=1)]:
+            for i in range(2):
+                for j in range(3):
+                    self.assertTrue(a[i, j] == b[i][j])
 
     def test_where(self):
         a = self.xa[np.where(self.xa.x > 25)]

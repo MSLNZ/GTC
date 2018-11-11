@@ -400,8 +400,8 @@ else:
                 return UncertainArray([abs(value) for value in inputs[0]])
 
             def _conjugate(self, *inputs):
-                # use self instead of inputs[0] because I wanted to create
-                # a custom __doc__ for this method
+                # use self instead of inputs[0]
+                # I wanted to create a custom __doc__ for this method
                 return UncertainArray([value.conjugate() for value in self])
 
             def conjugate(self):
@@ -516,44 +516,44 @@ else:
             def _phase(self):
                 return UncertainArray([value._phase() for value in self])
 
-            def sum(self, **kwargs):
-                return UncertainArray(np.asarray(self).sum(**kwargs))
+            def sum(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).sum(*args, **kwargs))
 
-            def mean(self, **kwargs):
-                return UncertainArray(np.asarray(self).mean(**kwargs))
+            def mean(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).mean(*args, **kwargs))
 
-            def std(self, **kwargs):
-                return UncertainArray(np.asarray(self).std(**kwargs))
+            def std(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).std(*args, **kwargs))
 
-            def var(self, **kwargs):
-                return UncertainArray(np.asarray(self).var(**kwargs))
+            def var(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).var(*args, **kwargs))
 
-            def max(self, **kwargs):
-                return UncertainArray(np.asarray(self).max(**kwargs))
+            def max(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).max(*args, **kwargs))
 
-            def min(self, **kwargs):
-                return UncertainArray(np.asarray(self).min(**kwargs))
+            def min(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).min(*args, **kwargs))
 
-            def trace(self, **kwargs):
-                return UncertainArray(np.asarray(self).trace(**kwargs))
+            def trace(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).trace(*args, **kwargs))
 
-            def cumprod(self, **kwargs):
-                return UncertainArray(np.asarray(self).cumprod(**kwargs))
+            def cumprod(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).cumprod(*args, **kwargs))
 
-            def cumsum(self, **kwargs):
-                return UncertainArray(np.asarray(self).cumsum(**kwargs))
+            def cumsum(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).cumsum(*args, **kwargs))
 
-            def prod(self, **kwargs):
-                return UncertainArray(np.asarray(self).prod(**kwargs))
+            def prod(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).prod(*args, **kwargs))
 
-            def ptp(self, **kwargs):
-                return UncertainArray(np.asarray(self).ptp(**kwargs))
+            def ptp(self, *args, **kwargs):
+                return UncertainArray(np.asarray(self).ptp(*args, **kwargs))
 
-            def any(self, **kwargs):
-                return np.asarray(self, dtype=np.bool).any(**kwargs)
+            def any(self, *args, **kwargs):
+                return np.asarray(self, dtype=np.bool).any(*args, **kwargs)
 
-            def all(self, **kwargs):
-                return np.asarray(self, dtype=np.bool).all(**kwargs)
+            def all(self, *args, **kwargs):
+                return np.asarray(self, dtype=np.bool).all(*args, **kwargs)
 
             def round(self, decimals=0, **kwargs):
                 digits = kwargs.get('digits', decimals)
