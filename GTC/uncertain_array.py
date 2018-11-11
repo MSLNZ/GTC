@@ -14,6 +14,13 @@ except ImportError:
     izip = zip
     xrange = range
 
+from GTC.core import (
+    value,
+    uncertainty,
+    variance,
+    dof,
+)
+
 from GTC.lib import (
     UncertainReal,
     UncertainComplex
@@ -134,8 +141,10 @@ else:
 
                 """
                 if self.ndim == 0:
-                    return self.item(0).x
-                return np.asarray([item.x for item in self])
+                    return value(self.item(0))
+                item_get = self.item
+                out = np.asarray([value(item_get(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
 
             @property
             def u(self):
@@ -156,20 +165,22 @@ else:
 
                 """
                 if self.ndim == 0:
-                    return self.item(0).u
-                if isinstance(self.item(0), UncertainComplex):
-                    # for an UncertainArray with ucomplex elements the .u attribute
-                    # returns a StandardUncertainty namedtuple and therefore we cannot
-                    # use list comprehension to create the returned array because we
-                    # want the StandardUncertainty to be returned as a namedtuple
-                    # "object" and not as a tuple of floats
-                    out = np.empty(self.shape, dtype=object)
-                    item_set = out.itemset
-                    item_get = self.item
-                    for i in xrange(self.size):
-                        item_set(i, item_get(i).u)
+                    return uncertainty(self.item(0))
+                # for an UncertainArray with ucomplex elements the uncertainty
+                # returns a StandardUncertainty namedtuple and therefore we
+                # want the StandardUncertainty to be returned as a namedtuple
+                # "object" and not as a tuple of floats
+                out = np.empty(self.shape, dtype=object)
+                item_set = out.itemset
+                item_get = self.item
+                for i in xrange(self.size):
+                    item_set(i, uncertainty(item_get(i)))
+                try:
+                    # if this works then there are no StandardUncertainty
+                    # elements in the array
+                    return out.astype(np.float64)
+                except ValueError:
                     return out
-                return np.asarray([item.u for item in self])
 
             @property
             def real(self):
@@ -226,20 +237,22 @@ else:
 
                 """
                 if self.ndim == 0:
-                    return self.item(0).v
-                if isinstance(self.item(0), UncertainComplex):
-                    # for an UncertainArray with ucomplex elements the .v attribute
-                    # returns a VarianceCovariance namedtuple and therefore we cannot
-                    # use list comprehension to create the returned array because we
-                    # want the VarianceCovariance to be returned as a namedtuple
-                    # "object" and not as a tuple of floats
-                    out = np.empty(self.shape, dtype=object)
-                    item_set = out.itemset
-                    item_get = self.item
-                    for i in xrange(self.size):
-                        item_set(i, item_get(i).v)
+                    return variance(self.item(0))
+                # for an UncertainArray with ucomplex elements the variance()
+                # returns a VarianceCovariance namedtuple and therefore we
+                # want the VarianceCovariance to be returned as a namedtuple
+                # "object" and not as a tuple of floats
+                out = np.empty(self.shape, dtype=object)
+                item_set = out.itemset
+                item_get = self.item
+                for i in xrange(self.size):
+                    item_set(i, variance(item_get(i)))
+                try:
+                    # if this works then there are no VarianceCovariance
+                    # elements in the array
+                    return out.astype(np.float64)
+                except ValueError:
                     return out
-                return np.asarray([item.v for item in self])
 
             @property
             def df(self):
@@ -255,8 +268,10 @@ else:
 
                 """
                 if self.ndim == 0:
-                    return self.item(0).df
-                return np.asarray([item.df for item in self])
+                    return dof(self.item(0))
+                item_get = self.item
+                out = np.asarray([dof(item_get(i)) for i in xrange(self.size)])
+                return out.reshape(self.shape)
 
             @property
             def r(self):

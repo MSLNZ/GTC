@@ -30,8 +30,6 @@ from GTC import (
     version
 )
 
-from GTC.uncertain_array import UncertainArray
-
 # aliases 
 rp = reporting
 tb = type_b
@@ -1295,6 +1293,8 @@ def uarray(array, label=None, dtype=None, names=None):
 
     return UncertainArray(array, dtype=dtype, label=label)
 
+# import here to avoid circular import issues
+from GTC.uncertain_array import UncertainArray
 
 #============================================================================    
 if __name__ == "__main__":

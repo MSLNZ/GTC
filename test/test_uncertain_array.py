@@ -1,6 +1,7 @@
 import unittest
 import os
 import math
+import cmath
 import tempfile
 try:
     from itertools import izip  # Python 2
@@ -14,6 +15,10 @@ except ImportError:
 import numpy as np
 
 from GTC.core import (
+    value,
+    uncertainty,
+    variance,
+    dof,
     ureal,
     ucomplex,
     uarray,
@@ -368,6 +373,92 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(r[0, 1], 0.29629629629629634))
         self.assertTrue(equivalent(r[1, 0], 0.026854219948849102))
         self.assertTrue(equivalent(r[1, 1], 0.33730158730158727))
+
+    def test_x_u_v_df_mixed(self):
+        a = uarray([ureal(1, 1, df=7), ucomplex(1+1j, (1, 0.5, 0.5, 1), df=4),
+                    7, 3.2, 8-3j, self._ureal(inf, 9, df=nan)])
+
+        x = a.x
+        # everything got cast to complex128
+        self.assertTrue(equivalent_complex(x[0], 1+0j))
+        self.assertTrue(equivalent_complex(x[1], 1+1j))
+        self.assertTrue(equivalent_complex(x[2], 7+0j))
+        self.assertTrue(equivalent_complex(x[3], 3.2+0j))
+        self.assertTrue(equivalent_complex(x[4], 8-3j))
+        self.assertTrue(cmath.isinf(x[5]))
+
+        u = a.u
+        self.assertTrue(equivalent(u[0], 1))
+        self.assertTrue(isinstance(u[1], StandardUncertainty))
+        self.assertTrue(equivalent(u[1].real, 1))
+        self.assertTrue(equivalent(u[1].imag, 1))
+        self.assertTrue(equivalent(u[2], 0))
+        self.assertTrue(equivalent(u[3], 0))
+        self.assertTrue(equivalent(u[4], 0))
+        self.assertTrue(equivalent(u[5], 9))
+
+        v = a.v
+        self.assertTrue(equivalent(v[0], 1.0))
+        self.assertTrue(isinstance(v[1], VarianceCovariance))
+        self.assertTrue(equivalent(v[1].rr, 1.0))
+        self.assertTrue(equivalent(v[1].ri, 0.5))
+        self.assertTrue(equivalent(v[1].ir, 0.5))
+        self.assertTrue(equivalent(v[1].ii, 1.0))
+        self.assertTrue(equivalent(v[2], 0.0))
+        self.assertTrue(equivalent(v[3], 0.0))
+        self.assertTrue(equivalent(v[4], 0.0))
+        self.assertTrue(equivalent(v[5], 81.0))
+
+        df = a.df
+        self.assertTrue(equivalent(df[0], 7))
+        self.assertTrue(equivalent(df[1], 4))
+        self.assertTrue(math.isinf(df[2]))
+        self.assertTrue(math.isinf(df[3]))
+        self.assertTrue(math.isinf(df[4]))
+        self.assertTrue(math.isnan(df[5]))
+
+    def test_value_uncertainty_variance_dof_mixed(self):
+        a = uarray([ureal(1, 1, df=7), ucomplex(1+1j, (1, 0.5, 0.5, 1), df=4),
+                    7, 3.2, 8-3j, self._ureal(inf, 9, df=nan)])
+
+        x = value(a)
+        # everything got cast to complex128
+        self.assertTrue(equivalent_complex(x[0], 1+0j))
+        self.assertTrue(equivalent_complex(x[1], 1+1j))
+        self.assertTrue(equivalent_complex(x[2], 7+0j))
+        self.assertTrue(equivalent_complex(x[3], 3.2+0j))
+        self.assertTrue(equivalent_complex(x[4], 8-3j))
+        self.assertTrue(cmath.isinf(x[5]))
+
+        u = uncertainty(a)
+        self.assertTrue(equivalent(u[0], 1))
+        self.assertTrue(isinstance(u[1], StandardUncertainty))
+        self.assertTrue(equivalent(u[1].real, 1))
+        self.assertTrue(equivalent(u[1].imag, 1))
+        self.assertTrue(equivalent(u[2], 0))
+        self.assertTrue(equivalent(u[3], 0))
+        self.assertTrue(equivalent(u[4], 0))
+        self.assertTrue(equivalent(u[5], 9))
+
+        v = variance(a)
+        self.assertTrue(equivalent(v[0], 1.0))
+        self.assertTrue(isinstance(v[1], VarianceCovariance))
+        self.assertTrue(equivalent(v[1].rr, 1.0))
+        self.assertTrue(equivalent(v[1].ri, 0.5))
+        self.assertTrue(equivalent(v[1].ir, 0.5))
+        self.assertTrue(equivalent(v[1].ii, 1.0))
+        self.assertTrue(equivalent(v[2], 0.0))
+        self.assertTrue(equivalent(v[3], 0.0))
+        self.assertTrue(equivalent(v[4], 0.0))
+        self.assertTrue(equivalent(v[5], 81.0))
+
+        df = dof(a)
+        self.assertTrue(equivalent(df[0], 7))
+        self.assertTrue(equivalent(df[1], 4))
+        self.assertTrue(math.isinf(df[2]))
+        self.assertTrue(math.isinf(df[3]))
+        self.assertTrue(math.isinf(df[4]))
+        self.assertTrue(math.isnan(df[5]))
 
     def test_label(self):
         # no label
