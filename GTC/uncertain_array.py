@@ -129,9 +129,7 @@ else:
 
             @property
             def x(self):
-                """The result of :attr:`UncertainReal.x <.lib.UncertainReal.x>` or
-                :attr:`UncertainComplex.x <.lib.UncertainComplex.x>` for each element
-                in the array.
+                """The result of :func:`~.core.value` for each element in the array.
 
                 **Example**::
 
@@ -148,9 +146,7 @@ else:
 
             @property
             def u(self):
-                """The result of :attr:`UncertainReal.u <.lib.UncertainReal.u>` or
-                :attr:`UncertainComplex.u <.lib.UncertainComplex.u>` for each element
-                in the array.
+                """The result of :func:`~.core.uncertainty` for each element in the array.
 
                 **Example**::
 
@@ -220,9 +216,7 @@ else:
 
             @property
             def v(self):
-                """The result of :attr:`UncertainReal.v <.lib.UncertainReal.v>` or
-                :attr:`UncertainComplex.v <.lib.UncertainComplex.v>` for each element
-                in the array.
+                """The result of :func:`~.core.variance` for each element in the array.
 
                 **Example**::
 
@@ -256,9 +250,7 @@ else:
 
             @property
             def df(self):
-                """The result of :attr:`UncertainReal.df <.lib.UncertainReal.df>` or
-                :attr:`UncertainComplex.df <.lib.UncertainComplex.df>` for each element
-                in the array.
+                """The result of :func:`~.core.dof` for each element in the array.
 
                 **Example**::
 
