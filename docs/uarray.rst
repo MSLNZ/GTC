@@ -7,14 +7,16 @@ Numpy and Uncertain Numbers
 You can use the :func:`~.core.uarray` function to create a :class:`numpy.ndarray`
 that contains :class:`~.lib.UncertainReal` or :class:`~.lib.UncertainComplex`
 numbers. The advantages of creating an :class:`.UncertainArray` are that you can
-use *most* of the builtin numpy functions for your calculation and you can use
+use *some* of the builtin numpy functions for your calculation and you can use
 numpy's convenient :ref:`arrays.indexing` to access array elements. However, you
 will not get the speed advantages that typically come with using numpy arrays that
-are filled with native data types: :class:`bool`, :class:`int`, :class:`float` or
-:class:`complex`. The reason being that :class:`~.lib.UncertainReal` and
-:class:`~.lib.UncertainComplex` are Python objects that do not have a C
-implementation and therefore all numerical operations are executed in Python and
-not in C.
+are filled with native data types: :class:`int`, :class:`float` or :class:`complex`.
+The reason being that :class:`~.lib.UncertainReal` and :class:`~.lib.UncertainComplex`
+are Python objects that do not have a C implementation and therefore all numerical
+operations are executed in Python and not in C. This also means that the numpy
+functions that call BLAS, LAPACK or MKL routines cannot be used. If you want to use
+these optimized libraries then you must pass in the values, :attr:`.UncertainArray.x`,
+of the array to the numpy function.
 
 Calling the :func:`~.core.uarray` function serves a different purpose than calling
 the :func:`~.core.multiple_ureal` and :func:`~.core.multiple_ucomplex` functions. Think
@@ -92,8 +94,44 @@ or, use the equivalent :func:`numpy.average` and :func:`numpy.std` functions
    >>> np.std(resistances.x, ddof=1)
    12.742029183091395
 
-Or calculate the weighted average by using 1.0/:attr:`.UncertainArray.v` as the
-weights
+*Caution:* One could pass in the :class:`.UncertainArray` (note the missing
+``.x`` attribute) to calculate the average
+
+.. code-block:: pycon
+
+   >>> r_ave = np.average(resistances)
+
+The value of the returned result is correct,
+
+.. code-block:: pycon
+
+   >>> r_ave.x
+   121.96586792024915
+
+however, the *uncertainty* of the returned result does not equal the standard deviation
+(which may be misleading to some readers)
+
+.. code-block:: pycon
+
+   >>> r_ave.u
+   16.939155846751817
+   >>> np.std(resistances.x, ddof=1)
+   12.742029183091395
+
+This is not an error in **GTC**. The *uncertainty* results from the rule for error
+propagation by addition
+
+.. code-block:: pycon
+
+   >>> import math
+   >>> math.sqrt(resistances[0].u**2 + resistances[1].u**2 + resistances[2].u**2)/3.0
+   16.939155846751817
+
+Therefore, it is important to understand what is happening in the calculation *behind the scenes*
+in order to understand the results that are returned from the calculation.
+
+If one wanted to calculate the weighted average they could use the variances,
+1.0/:attr:`.UncertainArray.v`, as the weights
 
 .. code-block:: pycon
 
