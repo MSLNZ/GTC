@@ -3236,15 +3236,15 @@ class TestUncertainArray(unittest.TestCase):
 
         self.assertTrue(ua.dtype.names == ('u', 'v', 'w', 'x', 'y', 'z'))
         for i, field in enumerate(sorted(ua.dtype.fields)):
-            typ = ua.dtype.fields[field][0].str
+            kind = ua.dtype.fields[field][0].kind
             if i == 0:
-                self.assertTrue(typ == '<c16')
+                self.assertTrue(kind == 'c')
             elif i == 2:
-                self.assertTrue(typ == '<f8')
+                self.assertTrue(kind == 'f')
             elif i == 4:
-                self.assertTrue(typ == '<i4')
+                self.assertTrue(kind == 'i')
             else:
-                self.assertTrue(typ == '|O')
+                self.assertTrue(kind == 'O')
 
         u = ua['u']
         self.assertTrue(u[0] == a[0][0])
