@@ -56,7 +56,7 @@ Dependencies
 Documentation
 =============
 
-The documentation for **GTC** can be found [here](https://readthedocs.org/projects/gtc/badge/).
+The documentation for **GTC** can be found [here](https://gtc.readthedocs.io/en/latest/).
 
 [rtd badge]: https://readthedocs.org/projects/gtc/badge/
 [travis shield]: https://img.shields.io/travis/MSLNZ/GTC/develop.svg?label=Travis-CI
