@@ -9,6 +9,6 @@ python:
   - "3.7"
 branches:
   only:
-  - develop
+  - master
 script:
   - python setup.py tests
