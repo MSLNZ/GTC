@@ -267,11 +267,11 @@ built-in data types (e.g., :class:`int`, :class:`float` or
 .. code-block:: pycon
 
    >>> data = [
-   ...  (400, ureal(1.273, 4e-3, 9), ureal(4e-4, 3e-4, 9), ureal(3.721, 2e-3, 9), ureal(2e-5, 2e-5, 9)),
-   ...  (500, ureal(2.741, 7e-3, 9), ureal(6e-4, 2e-4, 9), ureal(5.825, 4e-3, 9), ureal(4e-5, 3e-5, 9)),
-   ...  (600, ureal(2.916, 3e-3, 9), ureal(2e-4, 1e-4, 9), ureal(6.015, 3e-3, 9), ureal(3e-5, 1e-5, 9)),
-   ...  (700, ureal(1.741, 5e-3, 9), ureal(3e-4, 4e-4, 9), ureal(4.813, 4e-3, 9), ureal(5e-5, 4e-5, 9)),
-   ...  (800, ureal(0.442, 9e-3, 9), ureal(4e-4, 3e-4, 9), ureal(1.421, 2e-3, 9), ureal(3e-5, 1e-5, 9))
+   ...  (400., ureal(1.273, 4e-3, 9), ureal(4e-4, 3e-4, 9), ureal(3.721, 2e-3, 9), ureal(2e-5, 2e-5, 9)),
+   ...  (500., ureal(2.741, 7e-3, 9), ureal(6e-4, 2e-4, 9), ureal(5.825, 4e-3, 9), ureal(4e-5, 3e-5, 9)),
+   ...  (600., ureal(2.916, 3e-3, 9), ureal(2e-4, 1e-4, 9), ureal(6.015, 3e-3, 9), ureal(3e-5, 1e-5, 9)),
+   ...  (700., ureal(1.741, 5e-3, 9), ureal(3e-4, 4e-4, 9), ureal(4.813, 4e-3, 9), ureal(5e-5, 4e-5, 9)),
+   ...  (800., ureal(0.442, 9e-3, 9), ureal(4e-4, 3e-4, 9), ureal(1.421, 2e-3, 9), ureal(3e-5, 1e-5, 9))
    ... ]
 
 Next, we create a *named* :class:`.UncertainArray` from ``data`` and calculate the
@@ -296,9 +296,9 @@ the data where the PD signal is > 2 volts, we can use
 
    >>> gt2 = ua[ ua['pd-sig'] > 2 ]
    >>> gt2
-   UncertainArray([(500, ureal(2.741,0.007,9.0), ureal(0.0006,0.0002,9.0), ureal(5.825,0.004,9.0), ureal(4e-05,3e-05,9.0)),
-                   (600, ureal(2.916,0.003,9.0), ureal(0.0002,0.0001,9.0), ureal(6.015,0.003,9.0), ureal(3e-05,1e-05,9.0))],
-                  dtype=[('nm', '<i4'), ('pd-sig', 'O'), ('pd-bg', 'O'), ('ref-sig', 'O'), ('ref-bg', 'O')])
+   UncertainArray([(500., ureal(2.741,0.007,9.0), ureal(0.0006,0.0002,9.0), ureal(5.825,0.004,9.0), ureal(4e-05,3e-05,9.0)),
+                   (600., ureal(2.916,0.003,9.0), ureal(0.0002,0.0001,9.0), ureal(6.015,0.003,9.0), ureal(3e-05,1e-05,9.0))],
+                  dtype=[('nm', '<f8'), ('pd-sig', 'O'), ('pd-bg', 'O'), ('ref-sig', 'O'), ('ref-bg', 'O')])
 
 We can also use the *name* feature on ``gt2`` to then get the REF signal for the filtered data
 
