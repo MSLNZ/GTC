@@ -8,6 +8,7 @@ Measurement and uncertainty
    :maxdepth: 1
 
     Introduction <API/uncertain_numbers>
+    Installing GTC <install>
 
 GTC Modules
 -----------
@@ -21,9 +22,15 @@ GTC Modules
     Reporting <API/reporting_functions>
     Storage <API/persistence>
     Named tuples <API/named_tuples>
+
+Release Notes
+-------------
+.. toctree::
+   :maxdepth: 2
+
     License <license>
     Authors <authors>
-    Release Notes <changelog>
+    Change Log <changelog>
 
 Indices and tables
 ==================
