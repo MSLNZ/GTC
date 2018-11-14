@@ -11,7 +11,7 @@ Version 1.0.0
     
     The application programmer interface in GTC 1.0.0 remains very close to that provided in GTC 0.9.11, although not all functions in GTC 0.9.11 are available yet. It is our intention to provide the remainder in forthcoming releases.  
     
-    The most significant change has been to the method of storing uncertain numbers. The :mod:`archive` module in GTC 0.9.11 was replaced in GTC 1.0.0 by the :mod:`persistence` module. So, archives created using GTC 0.9.11 are not interchangeable with GTC 1.0.0. 
+    The most significant change has been to the method of storing uncertain numbers. The ``archive`` module in GTC 0.9.11 was replaced in GTC 1.0.0 by the ``persistence`` module. So, archives created using GTC 0.9.11 are not interchangeable with GTC 1.0.0. 
     
     
     
