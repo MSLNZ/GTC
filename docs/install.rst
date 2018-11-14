@@ -15,7 +15,7 @@ From PyPI
 
    pip install gtc
 
-This is the recommended way to install the package.
+This obtains the most recent stable release of **GTC** and is the recommended way to install the package.
 
 From the Source Code
 --------------------
@@ -43,8 +43,6 @@ Once you have a copy of the source code, you can install it by running
    cd GTC
    pip install .
 
-The recommended way to install **GTC** is :ref:`from PyPI <from-pypi>` because it is
-a stable release.
 
 Dependencies
 ------------
