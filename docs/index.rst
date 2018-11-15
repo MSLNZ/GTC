@@ -2,6 +2,10 @@
 GUM Tree Calculator
 ===================
 
+.. image:: images/GTCwin.png
+    :align: left
+    :scale: 108%
+
 Measurement and uncertainty
 ---------------------------
 .. toctree::
