@@ -2,8 +2,8 @@
 Release Notes
 =============
 
-Version 1.0.0
-=============
+Version 1.0.0 (2018.11.16)
+==========================
 
     The initial release of the Python code version of the GUM Tree Calculator.
     
