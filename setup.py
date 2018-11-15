@@ -98,9 +98,9 @@ setup(
     version=fetch_init('version'),
     author='Measurement Standards Laboratory of New Zealand',
     author_email='info@measurement.govt.nz',
-    url='https://github.com/MSLNZ/GTC2',
+    url='https://github.com/MSLNZ/GTC',
     description='The GUM Tree Calculator for Python',
-    long_description=read('README.md'),
+    long_description=read('README.rst'),
     platforms='any',
     license='MIT',
     classifiers=[
