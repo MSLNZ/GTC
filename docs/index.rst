@@ -2,12 +2,17 @@
 GUM Tree Calculator
 ===================
 
+.. image:: images/GTCwin.png
+    :align: left
+    :scale: 108%
+
 Measurement and uncertainty
 ---------------------------
 .. toctree::
    :maxdepth: 1
 
     Introduction <API/uncertain_numbers>
+    Installing GTC <install>
 
 GTC Modules
 -----------
@@ -22,9 +27,15 @@ GTC Modules
     Storage <API/persistence>
     Named tuples <API/named_tuples>
     Numpy and Uncertain Numbers <uarray.rst>
+
+Release Notes
+-------------
+.. toctree::
+   :maxdepth: 2
+
     License <license>
     Authors <authors>
-    Release Notes <changelog>
+    Change Log <changelog>
 
 Indices and tables
 ==================

@@ -43,7 +43,7 @@ class TestMisc(unittest.TestCase):
         # real y, uncertain complex constant 
         x1 = ureal(10,1)
         x2 = constant(1+5j) 
-        self.assert_( equivalent_sequence( 
+        self.assertTrue( equivalent_sequence(
             rp.u_component(x1,x2),
             (0.,0.,0.,0.),
             TOL
@@ -51,7 +51,7 @@ class TestMisc(unittest.TestCase):
         
         # real y, complex-valued x 
         y = ureal(1,1) 
-        self.assert_( equivalent_sequence( 
+        self.assertTrue( equivalent_sequence(
             rp.u_component(y,1+7j),
             (0.,0.,0.,0.),
             TOL
@@ -60,7 +60,7 @@ class TestMisc(unittest.TestCase):
         # complex y, uncertain complex constant 
         x1 = ucomplex(10,1)
         x2 = constant(1+5j) 
-        self.assert_( equivalent_sequence( 
+        self.assertTrue( equivalent_sequence(
             rp.u_component(x1,x2),
             (0.,0.,0.,0.),
             TOL
