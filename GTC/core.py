@@ -847,7 +847,7 @@ def get_correlation(arg1,arg2=None):
             return CorrelationMatrix(0.0,0.0,0.0,0.0)
         else:
             raise TypeError(
-                "illegal second argument '%r'" % arg2
+                "illegal second argument {!r}".format(arg2)
             )  
             
     elif isinstance(arg1,UncertainComplex):
@@ -871,12 +871,12 @@ def get_correlation(arg1,arg2=None):
             return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
         else:
             raise TypeError(
-                "illegal second argument '%r'" % arg2
+                "illegal second argument {!r}".format(arg2)
             )
         
     else:
         raise TypeError(
-            "illegal first argument '%r'" % arg1
+            "illegal first argument {!r}".format(arg1)
         )
         
 #---------------------------------------------------------------------------
@@ -926,7 +926,7 @@ def get_covariance(arg1,arg2=None):
             return CovarianceMatrix(0.0,0.0,0.0,0.0)
         else:
             raise TypeError(
-                "illegal second argument '%r'" % arg2
+                "illegal second argument {!r}".format(arg2)
             )  
             
     elif isinstance(arg1,UncertainComplex):
@@ -950,12 +950,12 @@ def get_covariance(arg1,arg2=None):
             return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
         else:
             raise TypeError(
-                "illegal second argument '%r'" % arg2
+                "illegal second argument {!r}".format(arg2)
             )
         
     else:
         raise TypeError(
-            "illegal first argument '%r'" % arg1
+            "illegal first argument {!r}".format(arg1)
         )
         
 #---------------------------------------------------------------------------
@@ -969,7 +969,17 @@ def log(x):
         continuous from above.
         
     """
-    return x._log()
+    try:
+        return x._log()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.log(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.log(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
     
 #---------------------------------------------------------------------------
 def log10(x):
@@ -982,7 +992,17 @@ def log10(x):
         axis to :math:`-\infty`, continuous from above.
         
     """
-    return x._log10()
+    try:
+        return x._log10()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.log10(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.log10(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
     
 #---------------------------------------------------------------------------
 def exp(x):
@@ -990,7 +1010,17 @@ def exp(x):
     Uncertain number exponential function
 
     """
-    return x._exp()
+    try:
+        return x._exp()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.exp(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.exp(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
     
 #---------------------------------------------------------------------------
 def pow(x,y):
@@ -1013,7 +1043,17 @@ def sqrt(x):
         axis to :math:`-\infty`, continuous from above.
         
     """
-    return x._sqrt()
+    try:
+        return x._sqrt()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.sqrt(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.sqrt(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 
 #----------------------------------------------------------------------------
 def sin(x):
@@ -1021,7 +1061,17 @@ def sin(x):
     Uncertain number sine function
 
     """
-    return x._sin()
+    try:
+        return x._sin()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.sin(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.sin(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 
 #----------------------------------------------------------------------------
 def cos(x):
@@ -1029,14 +1079,34 @@ def cos(x):
     Uncertain number cosine function
 
     """
-    return x._cos()
+    try:
+        return x._cos()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.cos(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.cos(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 #----------------------------------------------------------------------------
 def tan(x):
     """
     Uncertain number tangent function
 
     """
-    return x._tan()
+    try:
+        return x._tan()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.tan(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.tan(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 
 #---------------------------------------------------------------------------
 def asin(x):
@@ -1050,7 +1120,17 @@ def asin(x):
         the real axis to :math:`-\infty`, continuous from above.
         
     """
-    return x._asin()
+    try:
+        return x._asin()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.asin(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.asin(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 #---------------------------------------------------------------------------
 def acos(x):
     """
@@ -1063,7 +1143,17 @@ def acos(x):
         to :math:`-\infty`, continuous from above.
         
     """
-    return x._acos()
+    try:
+        return x._acos()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.acos(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.acos(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
             
 #---------------------------------------------------------------------------
 def atan(x):
@@ -1079,7 +1169,18 @@ def atan(x):
         axis to :math:`-\mathrm{j}\infty`, continuous from the left.
         
     """
-    return x._atan()
+    try:
+        return x._atan()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.atan(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.atan(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
+            
 #----------------------------------------------------------------------------
 def atan2(y,x):
     """
@@ -1107,7 +1208,15 @@ def atan2(y,x):
     try:
         return y._atan2(x)
     except AttributeError:
-        return x._ratan2(y)
+        try:
+            return x._ratan2(y)
+        except AttributeError:
+            if isinstance(x,numbers.Real) and isinstance(y,numbers.Real):
+                return math.atan2(y,x)
+            else:
+                raise TypeError(
+                    "illegal arguments: x={!r} y={!r}".format(x,y)
+                )
 
 #---------------------------------------------------------------------------
 def sinh(x):
@@ -1115,14 +1224,34 @@ def sinh(x):
     Uncertain number hyperbolic sine function
 
     """
-    return x._sinh()
+    try:
+        return x._sinh()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.sinh(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.sinh(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 #---------------------------------------------------------------------------
 def cosh(x):
     """
     Uncertain number hyperbolic cosine function
 
     """
-    return x._cosh()
+    try:
+        return x._cosh()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.cosh(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.cosh(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
     
 #---------------------------------------------------------------------------
 def tanh(x):
@@ -1130,7 +1259,17 @@ def tanh(x):
     Uncertain number hyperbolic tangent function
 
     """
-    return x._tanh()
+    try:
+        return x._tanh()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.tanh(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.tanh(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
             
 #---------------------------------------------------------------------------
 def asinh(x):
@@ -1147,7 +1286,17 @@ def asinh(x):
         from the left.
         
     """
-    return x._asinh()
+    try:
+        return x._asinh()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.asinh(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.asinh(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 
 #---------------------------------------------------------------------------
 def acosh(x):
@@ -1160,7 +1309,17 @@ def acosh(x):
         real axis to :math:`-\infty`, continuous from above.
         
     """
-    return x._acosh()
+    try:
+        return x._acosh()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.acosh(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.acosh(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
 
 #---------------------------------------------------------------------------
 def atanh(x):
@@ -1175,7 +1334,17 @@ def atanh(x):
         from above.
         
     """
-    return x._atanh()
+    try:
+        return x._atanh()
+    except AttributeError:
+        if isinstance(x,numbers.Real):
+            return math.atanh(x)
+        elif isinstance(x,numbers.Complex):
+            return cmath.atanh(x)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(x)
+            )
             
 #----------------------------------------------------------------------------
 def magnitude(x):
@@ -1203,7 +1372,15 @@ def phase(z):
     :rtype:     :class:`~lib.UncertainReal`
     
     """
-    return z._phase()
+    try:
+        return z._phase()
+    except AttributeError:
+        if isinstance(z,numbers.Complex):
+            return cmath.phase(z)
+        else:
+            raise TypeError(
+                "illegal argument: {!r}".format(z)
+            )
 
 #---------------------------------------------------------------------------
 def mag_squared(x):

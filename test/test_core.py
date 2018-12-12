@@ -396,6 +396,67 @@ class TestGetCovariance(unittest.TestCase):
         check_r = get_covariance(x1,1.0)
         self.assertTrue( equivalent(0,check_r) )
         
+#----------------------------------------------------------------------------
+class TestPolymorphicMaths(unittest.TestCase):
+    """
+    math functions will assume that an uncertain number argument is provided,
+    but should then try to find a suitable math or cmath library function 
+    instead, finally raising TypeError if nothing can be done
+    """
+    def test_unary(self):
+        unary_fns = [
+            ('cos', 1.0, 1.0+.5j)
+        ,   ('sin', 1.0, 1.0+.5j)
+        ,   ('tan', 1.0, 1.0+.5j)
+        ,   ('acos', 0.5, 0.5+0.5j)
+        ,   ('asin', 0.5, 0.5+0.5j)
+        ,   ('atan', 0.5, 0.5+0.5j)
+        ,   ('exp', -0.5, -0.5+0.5j)
+        ,   ('log', 0.5, 0.5+0.5j)
+        ,   ('log10', 0.5, 0.5+0.5j)
+        ,   ('sqrt',  0.5, 0.5+0.5j)
+        ,   ('sinh', 1.0, 1.0+.5j)
+        ,   ('cosh', 1.0, 1.0+.5j)
+        ,   ('tanh', 1.0, 1.0+.5j)
+        ,   ('acosh', 1.5, 1.5+0.5j)
+        ,   ('asinh', 1.5, 1.5+0.5j)
+        ,   ('atanh', 0.5, 0.5+0.5j)
+        ]
+        # This is intended to test the selection of 
+        # an appropriate library or exception, not numerical accuracy.
+        for d in unary_fns:
+            self.assertTrue( equivalent(
+                eval("{}({})".format(d[0],d[1])),
+                eval("math.{}({})".format(d[0],d[1]))
+            ) )
+            self.assertTrue( equivalent_complex(
+                eval("{}({})".format(d[0],d[2])),
+                eval("cmath.{}({})".format(d[0],d[2]))
+            ) )
+            eval("self.assertRaises(TypeError,{},'s')".format(d[0]))
+            
+    def test_special_cases(self):
+        """
+        Note magnitude, mag_squared and pow do not use libraries
+        
+        """
+        # phase:
+        x = 1.0+1j
+        self.assertTrue(
+            equivalent(cmath.phase(x), phase(x) )
+        )
+        self.assertRaises(TypeError,phase,'z')
+        
+        # atan2:
+        y, x = 1.0, 1.0
+        self.assertTrue(
+            equivalent(math.atan2(y,x), atan2(y,x))
+        )
+        self.assertRaises(TypeError,atan2,y,'x')
+        self.assertRaises(TypeError,atan2,'y',x)
+        self.assertRaises(TypeError,atan2,.5+.5j,.2+.2j)
+       
+        
 #============================================================================
 if(__name__== '__main__'):
 
