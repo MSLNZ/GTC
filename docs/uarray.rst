@@ -1,30 +1,20 @@
 .. _numpy-uarray:
 
-===========================
-Numpy and Uncertain Numbers
-===========================
+================================
+Collections of Uncertain Numbers
+================================
 
-You can use the :func:`~.core.uarray` function to create a :class:`numpy.ndarray`
-that contains :class:`~.lib.UncertainReal` or :class:`~.lib.UncertainComplex`
-numbers. The advantages of creating an :class:`.UncertainArray` are that you can
-use *some* of the builtin numpy functions for your calculation and you can use
-numpy's convenient :ref:`arrays.indexing` to access array elements. However, you
-will not get the speed advantages that typically come with using numpy arrays that
-are filled with native data types: :class:`int`, :class:`float` or :class:`complex`.
-The reason being that :class:`~.lib.UncertainReal` and :class:`~.lib.UncertainComplex`
-are Python objects that do not have a C implementation and therefore all numerical
-operations are executed in Python and not in C. This also means that the numpy
-functions that call BLAS, LAPACK or MKL routines cannot be used. If you want to use
-these optimized libraries then you must pass in the values, :attr:`.UncertainArray.x`,
-of the array to the numpy function.
+The :func:`~.core.uarray` is provided to create arrays of uncertain-number objects. 
+These :class:`.UncertainArray` objects are based on :class:`numpy.ndarray`, which provides excellent support 
+for manipulating data stored as elements in the array (see :ref:`arrays.indexing` ).
 
-Calling the :func:`~.core.uarray` function serves a different purpose than calling
-the :func:`~.core.multiple_ureal` and :func:`~.core.multiple_ucomplex` functions. Think
-of :func:`~.core.uarray` as being just a *container* of *any* uncertain number. The
-:func:`~core.multiple_ureal` and :func:`~core.multiple_ucomplex` functions return a
-sequence of uncertain numbers that can be correlated. The uncertain numbers that
-are returned from :func:`~.core.multiple_ureal` and :func:`~.core.multiple_ucomplex`
-can be included in the :func:`~.core.uarray` *container*.
+An :class:`.UncertainArray` can contain a mixture of :class:`~.lib.UncertainReal`, 
+:class:`~.lib.UncertainComplex` and Python numeric types (:class:`int`, :class:`float` and :class:`complex`). 
+
+Core mathematical functions can be applied to an :class:`.UncertainArray`, in which 
+case the corresponding function is applied to each array element and the results 
+returned in another :class:`.UncertainArray`. This vectorisation of commands is 
+convenient, but does not offer any significant speed advantage over explicit Python iteration or for loops. 
 
 .. _uarray-example-1:
 
@@ -32,14 +22,12 @@ Example 1. Creating an UncertainArray
 -------------------------------------
 
 The following example illustrates how to create an :class:`.UncertainArray` and how
-one can either use the internal functions of **GTC** or use the equivalent numpy
-functions during the calculation.
+to use the internal functions of **GTC** during the calculation.
 
-Import numpy and the necessary **GTC** functions and modules
+Import the necessary **GTC** functions and modules
 
 .. code-block:: pycon
 
-   >>> import numpy as np
    >>> from GTC import ureal, uarray, cos, type_a
 
 Next, define the uncertain arrays
@@ -50,7 +38,7 @@ Next, define the uncertain arrays
    >>> currents = uarray([ureal(0.023, 0.003), ureal(0.019, 0.006), ureal(0.020, 0.004)])
    >>> phases = uarray([ureal(1.0442, 2e-4), ureal(1.0438, 5e-4), ureal(1.0441, 3e-4)])
 
-One can use the :func:`~.core.cos` function of **GTC** to calculate the AC resistances
+One can use the :func:`~.core.cos` function to calculate the AC resistances
 
 .. code-block:: pycon
 
@@ -61,82 +49,42 @@ One can use the :func:`~.core.cos` function of **GTC** to calculate the AC resis
                    ureal(125.3181626494936,25.06618583901181,inf)],
                   dtype=object)
 
-or, use the equivalent :data:`numpy.cos() <numpy.cos>` function
-
-.. code-block:: pycon
-
-   >>> resistances = (voltages / currents) * np.cos(phases)
-   >>> resistances
-   UncertainArray([ureal(107.88283143147648,14.07416562378944,inf),
-                   ureal(132.69660967977737,41.90488273081293,inf),
-                   ureal(125.3181626494936,25.06618583901181,inf)],
-                  dtype=object)
-
-To calculate the average and standard deviation of the AC resistance one
-can use the :func:`~.type_a.mean` and :func:`~.type_a.standard_deviation` functions
-of **GTC**
+To calculate the average AC resistance we could use :func:`.type_a.mean`, which evaluates the mean of the uncertain number values 
 
 .. code-block:: pycon
 
    >>> type_a.mean(resistances)
    121.96586792024915
-   >>> type_a.standard_deviation(resistances)
-   12.742029183091395
 
-or, use the equivalent :func:`numpy.average` and :func:`numpy.std` functions
-*(notice that we perform the calculation using the* :attr:`.UncertainArray.x`
-*attribute to only use the* :func:`~core.value` *of the uncertain numbers)*
+Note, however, that the result obtained here is a real number, not an uncertain number. We have discarded all the information about the uncertainty in each resistance.
+
+A better calculation of the average for this case uses :func:`.function.mean`, which propagates the uncertainties 
 
 .. code-block:: pycon
 
-   >>> np.average(resistances.x)
-   121.96586792024915
-   >>> np.std(resistances.x, ddof=1)
-   12.742029183091395
+   >>> fn.mean(resistances)
+   ureal(121.96586792024915,16.939155846751817,inf)
 
-*Caution:* One could pass in the :class:`.UncertainArray` (note the missing
-``.x`` attribute) to calculate the average
+Now the value is correct and we obtain a standard uncertainty of 16.939155846751817, which is the combined uncertainty of the mean of these three AC resistance values according to the GUM calculation
 
 .. code-block:: pycon
 
-   >>> r_ave = np.average(resistances)
-
-The value of the returned result is correct,
-
-.. code-block:: pycon
-
-   >>> r_ave.x
-   121.96586792024915
-
-however, the *uncertainty* of the returned result does not equal the standard deviation
-(which may be misleading to some readers)
-
-.. code-block:: pycon
-
-   >>> r_ave.u
-   16.939155846751817
-   >>> np.std(resistances.x, ddof=1)
-   12.742029183091395
-
-This is not an error in **GTC**. The *uncertainty* results from the rule for error
-propagation by addition
-
-.. code-block:: pycon
-
-   >>> import math
    >>> math.sqrt(resistances[0].u**2 + resistances[1].u**2 + resistances[2].u**2)/3.0
    16.939155846751817
 
-Therefore, it is important to understand what is happening in the calculation *behind the scenes*
-in order to understand the results that are returned from the calculation.
+.. note::
 
-If one wanted to calculate the weighted average they could use the variances,
-1.0/:attr:`.UncertainArray.v`, as the weights
+    the *uncertainty* of the result does not equal the Type-A standard uncertainty of the three resistance values 
 
-.. code-block:: pycon
+    .. code-block:: pycon
 
-   >>> np.average(resistances.x, weights=1.0/resistances.v)
-   113.6918944119361
+           >>> type_a.standard_uncertainty(resistances)
+           7.356613978879885
+
+    This is not an error; they are different things. The *uncertainty* evaluated by :func:`.function.mean` is obtained by propagating 
+    the uncertainties of the three uncertain-number inputs. The *uncertainty* evaluated by :func:`.type_a.standard_uncertainty`
+    is the sample standard error in the mean, calculated from the values of the inputs alone.
+
 
 .. _uarray-example-2:
 
@@ -355,11 +303,11 @@ Python 3.5 (:pep:`465`), we can determine :math:`C`
                    ureal(2.8800000000000003,5.719851484085929,inf)],
                   dtype=object)
 
-Alternatively, we could use the :func:`numpy.dot` function
+Alternatively, we could use the :func:`numpy.dot` function, which is automatically imported by **GTC**
 
 .. code-block:: pycon
 
-   >>> C = np.dot(A, B)
+   >>> C = dot(A, B)
    >>> C
    UncertainArray([ureal(-0.0699999999999994,1.7792484368406793,inf),
                    ureal(-7.689999999999999,2.9414535522424963,inf),

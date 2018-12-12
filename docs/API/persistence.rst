@@ -1,7 +1,7 @@
 .. _persistence_module:
 
-persistence module
-==================
+The persistence module
+======================
 
 .. automodule:: persistence
 	:members:
