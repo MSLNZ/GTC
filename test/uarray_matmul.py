@@ -1,8 +1,6 @@
 # This script is imported by test_uncertain_array.py
 #
-# The np.matmul() function is currently not supported (as of v1.15.0) for dtype=object
-#   TypeError: Object arrays are not currently supported
-# However, from Python 3.5+ the @ symbol can be used for an ndarray with dtype=object
+# From Python 3.5+ the @ symbol can be used for an ndarray with dtype=object
 #
 # If the test_uncertain_array.py module is executed with Python < 3.5 and it contains
 # the @ symbol then a SyntaxError is raised. Therefore, this script is only imported
@@ -32,8 +30,8 @@ def run():
 
     z = b[0] * 1 + b[1] * 2 + b[2] * 3
     za = ba @ [1, 2, 3]
-    assert equivalent(z.x, za.x)
-    assert equivalent(z.u, za.u)
+    assert equivalent(z.x, za.value())
+    assert equivalent(z.u, za.uncertainty())
 
     try:
         ba @ [1, 2]

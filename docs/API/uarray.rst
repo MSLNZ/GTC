@@ -312,7 +312,7 @@ Python 3.5 (:pep:`465`), we can determine :math:`C`
                    ureal(2.8800000000000003,5.719851484085929,inf)],
                   dtype=object)
 
-Alternatively, we could use the :func:`numpy.dot` function, which is automatically imported by **GTC**
+Alternatively, we could use the :func:`~core.dot` function
 
 .. code-block:: pycon
 

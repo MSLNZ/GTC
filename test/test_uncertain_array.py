@@ -15,10 +15,6 @@ except ImportError:
 import numpy as np
 
 from GTC.core import (
-    value,
-    uncertainty,
-    variance,
-    dof,
     ureal,
     ucomplex,
     uarray,
@@ -50,6 +46,7 @@ from GTC.uncertain_array import UncertainArray
 from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
 from GTC import type_a
+from GTC.linear_algebra import matmul
 
 from testing_tools import *
 
@@ -99,15 +96,18 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(ua[0, 0].size == 0)
         self.assertTrue(ua[0][0].size == 0)
 
-    def test_x_u_v_df_ureal(self):
+    def test_value_uncertainty_variance_r_dof_ureal(self):
         # make sure that a uarray of size==1 is okay
         a = uarray(ureal(1.2, 0.3, df=4.2))
-        self.assertTrue(equivalent(a.x, 1.2))
-        self.assertTrue(equivalent(a.u, 0.3))
-        self.assertTrue(equivalent(a.v, 0.09))
-        self.assertTrue(equivalent(a.df, 4.2))
+        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(equivalent(a.value(), 1.2))
+        self.assertTrue(equivalent(a.uncertainty(), 0.3))
+        self.assertTrue(equivalent(a.variance(), 0.09))
+        self.assertTrue(equivalent(a.dof(), 4.2))
 
+        # a 1D array
         a = uarray([ureal(1.2, 0.3, df=3.3), ureal(2.5, 0.8, df=7)])
+        self.assertTrue(a.dtype == np.object)
         self.assertTrue(equivalent(a[0].x, 1.2))
         self.assertTrue(equivalent(a[0].u, 0.3))
         self.assertTrue(equivalent(a[0].v, 0.09))
@@ -117,28 +117,30 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1].v, 0.64))
         self.assertTrue(equivalent(a[1].df, 7.0))
 
-        x = a.x
+        x = a.value(float)
         self.assertTrue(x.dtype == np.float64)
         self.assertTrue(equivalent(x[0], 1.2))
         self.assertTrue(equivalent(x[1], 2.5))
 
-        u = a.u
+        u = a.uncertainty(float)
         self.assertTrue(u.dtype == np.float64)
         self.assertTrue(equivalent(u[0], 0.3))
         self.assertTrue(equivalent(u[1], 0.8))
 
-        v = a.v
+        v = a.variance(float)
         self.assertTrue(v.dtype == np.float64)
         self.assertTrue(equivalent(v[0], 0.09))
         self.assertTrue(equivalent(v[1], 0.64))
 
-        df = a.df
+        df = a.dof()
         self.assertTrue(df.dtype == np.float64)
         self.assertTrue(equivalent(df[0], 3.3))
         self.assertTrue(equivalent(df[1], 7.0))
 
+        # a 2D array
         a = uarray([[ureal(1.2, 0.3, df=1), ureal(2.5, 0.8, df=2)],
                     [ureal(-3.1, 1.1, df=3), ureal(0.3, 0.05, df=4)]])
+        self.assertTrue(a.dtype == np.object)
         self.assertTrue(equivalent(a[0, 0].x, 1.2))
         self.assertTrue(equivalent(a[0, 0].u, 0.3))
         self.assertTrue(equivalent(a[0, 0].v, 0.09))
@@ -156,28 +158,28 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1, 1].v, 0.0025))
         self.assertTrue(equivalent(a[1, 1].df, 4.0))
 
-        x = a.x
+        x = a.value(float)
         self.assertTrue(x.dtype == np.float64)
         self.assertTrue(equivalent(x[0, 0], 1.2))
         self.assertTrue(equivalent(x[0, 1], 2.5))
         self.assertTrue(equivalent(x[1, 0], -3.1))
         self.assertTrue(equivalent(x[1, 1], 0.3))
 
-        u = a.u
+        u = a.uncertainty(float)
         self.assertTrue(u.dtype == np.float64)
         self.assertTrue(equivalent(u[0, 0], 0.3))
         self.assertTrue(equivalent(u[0, 1], 0.8))
         self.assertTrue(equivalent(u[1, 0], 1.1))
         self.assertTrue(equivalent(u[1, 1], 0.05))
 
-        v = a.v
+        v = a.variance(float)
         self.assertTrue(v.dtype == np.float64)
         self.assertTrue(equivalent(v[0, 0], 0.09))
         self.assertTrue(equivalent(v[0, 1], 0.64))
         self.assertTrue(equivalent(v[1, 0], 1.21))
         self.assertTrue(equivalent(v[1, 1], 0.0025))
 
-        df = a.df
+        df = a.dof()
         self.assertTrue(df.dtype == np.float64)
         self.assertTrue(equivalent(df[0, 0], 1.0))
         self.assertTrue(equivalent(df[0, 1], 2.0))
@@ -189,23 +191,25 @@ class TestUncertainArray(unittest.TestCase):
             _ = a.r
         self.assertTrue(str(err.exception) == "'UncertainReal' object has no attribute 'r'")
 
-    def test_x_u_v_r_df_ucomplex(self):
+    def test_value_uncertainty_variance_r_dof_ucomplex(self):
         # make sure that a uarray of size==1 is okay
         a = uarray(ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2))
-        self.assertTrue(equivalent_complex(a.x, 1.2-0.5j))
-        self.assertTrue(isinstance(a.u, StandardUncertainty))
-        self.assertTrue(equivalent(a.u.real, 1.0954451150103321))
-        self.assertTrue(equivalent(a.u.imag, 1.4832396974191326))
-        self.assertTrue(isinstance(a.v, VarianceCovariance))
-        self.assertTrue(equivalent(a.v.rr, 1.2))
-        self.assertTrue(equivalent(a.v.ri, 0.7))
-        self.assertTrue(equivalent(a.v.ir, 0.7))
-        self.assertTrue(equivalent(a.v.ii, 2.2))
+        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(equivalent_complex(a.value(), 1.2-0.5j))
+        self.assertTrue(isinstance(a.uncertainty(), StandardUncertainty))
+        self.assertTrue(equivalent(a.uncertainty().real, 1.0954451150103321))
+        self.assertTrue(equivalent(a.uncertainty().imag, 1.4832396974191326))
+        self.assertTrue(isinstance(a.variance(), VarianceCovariance))
+        self.assertTrue(equivalent(a.variance().rr, 1.2))
+        self.assertTrue(equivalent(a.variance().ri, 0.7))
+        self.assertTrue(equivalent(a.variance().ir, 0.7))
+        self.assertTrue(equivalent(a.variance().ii, 2.2))
         self.assertTrue(equivalent(a.r, 0.2651515151515152))
-        self.assertTrue(equivalent(a.df, 4.2))
+        self.assertTrue(equivalent(a.dof(), 4.2))
 
         a = uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2),
                     ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5), df=2.6)])
+        self.assertTrue(a.dtype == np.object)
         self.assertTrue(equivalent_complex(a[0].x, 1.2-0.5j))
         self.assertTrue(isinstance(a[0].u, StandardUncertainty))
         self.assertTrue(equivalent(a[0].u.real, 1.0954451150103321))
@@ -229,12 +233,12 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1].r, 0.29629629629629634))
         self.assertTrue(equivalent(a[1].df, 2.6))
 
-        x = a.x
+        x = a.value(complex)
         self.assertTrue(x.dtype == np.complex128)
         self.assertTrue(equivalent_complex(x[0], 1.2-0.5j))
         self.assertTrue(equivalent_complex(x[1], -0.2+1.2j))
 
-        u = a.u
+        u = a.uncertainty()
         self.assertTrue(u.dtype == np.object)
         self.assertTrue(isinstance(u[0], StandardUncertainty))
         self.assertTrue(equivalent(u[0].real, 1.0954451150103321))
@@ -243,7 +247,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(u[1].real, 0.9486832980505138))
         self.assertTrue(equivalent(u[1].imag, 1.224744871391589))
 
-        v = a.v
+        v = a.variance()
         self.assertTrue(v.dtype == np.object)
         self.assertTrue(isinstance(v[0], VarianceCovariance))
         self.assertTrue(equivalent(v[0].rr, 1.2))
@@ -256,7 +260,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(v[1].ir, 0.4))
         self.assertTrue(equivalent(v[1].ii, 1.5))
 
-        df = a.df
+        df = a.dof()
         self.assertTrue(df.dtype == np.float64)
         self.assertTrue(equivalent(df[0], 4.2))
         self.assertTrue(equivalent(df[1], 2.6))
@@ -266,11 +270,12 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(r[0], 0.2651515151515152))
         self.assertTrue(equivalent(r[1], 0.29629629629629634))
 
+        # a 2D array
         a = uarray([[ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2),
                      ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5), df=2.6)],
                     [ucomplex(6.3-1.5j, (3.4, 0.21, 0.21, 2.3), df=10.3),
                      ucomplex(8.7j, (1.4, 0.85, 0.85, 1.8), df=8.8)]])
-
+        self.assertTrue(a.dtype == np.object)
         self.assertTrue(equivalent_complex(a[0, 0].x, 1.2-0.5j))
         self.assertTrue(isinstance(a[0, 0].u, StandardUncertainty))
         self.assertTrue(equivalent(a[0, 0].u.real, 1.0954451150103321))
@@ -316,14 +321,14 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1, 1].r, 0.33730158730158727))
         self.assertTrue(equivalent(a[1, 1].df, 8.8))
 
-        x = a.x
+        x = a.value(complex)
         self.assertTrue(x.dtype == np.complex128)
         self.assertTrue(equivalent_complex(x[0, 0], 1.2-0.5j))
         self.assertTrue(equivalent_complex(x[0, 1], -0.2+1.2j))
         self.assertTrue(equivalent_complex(x[1, 0], 6.3-1.5j))
         self.assertTrue(equivalent_complex(x[1, 1], 8.7j))
 
-        u = a.u
+        u = a.uncertainty()
         self.assertTrue(u.dtype == np.object)
         self.assertTrue(isinstance(u[0, 0], StandardUncertainty))
         self.assertTrue(equivalent(u[0, 0].real, 1.0954451150103321))
@@ -338,7 +343,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(u[1, 1].real, 1.1832159566199232))
         self.assertTrue(equivalent(u[1, 1].imag, 1.3416407864998738))
 
-        v = a.v
+        v = a.variance()
         self.assertTrue(v.dtype == np.object)
         self.assertTrue(isinstance(v[0, 0], VarianceCovariance))
         self.assertTrue(equivalent(v[0, 0].rr, 1.2))
@@ -361,7 +366,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(v[1, 1].ir, 0.85))
         self.assertTrue(equivalent(v[1, 1].ii, 1.8))
 
-        df = a.df
+        df = a.dof()
         self.assertTrue(df.dtype == np.float64)
         self.assertTrue(equivalent(df[0, 0], 4.2))
         self.assertTrue(equivalent(df[0, 1], 2.6))
@@ -375,63 +380,31 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(r[1, 0], 0.026854219948849102))
         self.assertTrue(equivalent(r[1, 1], 0.33730158730158727))
 
-    def test_x_u_v_df_mixed(self):
-        a = uarray([ureal(1, 1, df=7), ucomplex(1+1j, (1, 0.5, 0.5, 1), df=4),
-                    7, 3.2, 8-3j, self._ureal(inf, 9, df=nan)])
-
-        x = a.x
-        # everything got cast to complex128
-        self.assertTrue(equivalent_complex(x[0], 1+0j))
-        self.assertTrue(equivalent_complex(x[1], 1+1j))
-        self.assertTrue(equivalent_complex(x[2], 7+0j))
-        self.assertTrue(equivalent_complex(x[3], 3.2+0j))
-        self.assertTrue(equivalent_complex(x[4], 8-3j))
-        self.assertTrue(cmath.isinf(x[5]))
-
-        u = a.u
-        self.assertTrue(equivalent(u[0], 1))
-        self.assertTrue(isinstance(u[1], StandardUncertainty))
-        self.assertTrue(equivalent(u[1].real, 1))
-        self.assertTrue(equivalent(u[1].imag, 1))
-        self.assertTrue(equivalent(u[2], 0))
-        self.assertTrue(equivalent(u[3], 0))
-        self.assertTrue(equivalent(u[4], 0))
-        self.assertTrue(equivalent(u[5], 9))
-
-        v = a.v
-        self.assertTrue(equivalent(v[0], 1.0))
-        self.assertTrue(isinstance(v[1], VarianceCovariance))
-        self.assertTrue(equivalent(v[1].rr, 1.0))
-        self.assertTrue(equivalent(v[1].ri, 0.5))
-        self.assertTrue(equivalent(v[1].ir, 0.5))
-        self.assertTrue(equivalent(v[1].ii, 1.0))
-        self.assertTrue(equivalent(v[2], 0.0))
-        self.assertTrue(equivalent(v[3], 0.0))
-        self.assertTrue(equivalent(v[4], 0.0))
-        self.assertTrue(equivalent(v[5], 81.0))
-
-        df = a.df
-        self.assertTrue(equivalent(df[0], 7))
-        self.assertTrue(equivalent(df[1], 4))
-        self.assertTrue(math.isinf(df[2]))
-        self.assertTrue(math.isinf(df[3]))
-        self.assertTrue(math.isinf(df[4]))
-        self.assertTrue(math.isnan(df[5]))
-
     def test_value_uncertainty_variance_dof_mixed(self):
         a = uarray([ureal(1, 1, df=7), ucomplex(1+1j, (1, 0.5, 0.5, 1), df=4),
-                    7, 3.2, 8-3j, self._ureal(inf, 9, df=nan)])
+                    7, 3.2, 8-3j, self._ureal(inf, 9, df=nan), nan])
 
-        x = value(a)
-        # everything got cast to complex128
+        x = a.value()
+        self.assertTrue(x.dtype == np.object)
+        self.assertTrue(equivalent(x[0], 1))
+        self.assertTrue(equivalent_complex(x[1], 1+1j))
+        self.assertTrue(equivalent(x[2], 7))
+        self.assertTrue(equivalent(x[3], 3.2))
+        self.assertTrue(equivalent_complex(x[4], 8-3j))
+        self.assertTrue(cmath.isinf(x[5]))
+        self.assertTrue(math.isnan(x[6]))
+
+        x = a.value(complex)
+        self.assertTrue(x.dtype == np.complex128)
         self.assertTrue(equivalent_complex(x[0], 1+0j))
         self.assertTrue(equivalent_complex(x[1], 1+1j))
         self.assertTrue(equivalent_complex(x[2], 7+0j))
         self.assertTrue(equivalent_complex(x[3], 3.2+0j))
         self.assertTrue(equivalent_complex(x[4], 8-3j))
         self.assertTrue(cmath.isinf(x[5]))
+        self.assertTrue(cmath.isnan(x[6]))
 
-        u = uncertainty(a)
+        u = a.uncertainty()
         self.assertTrue(equivalent(u[0], 1))
         self.assertTrue(isinstance(u[1], StandardUncertainty))
         self.assertTrue(equivalent(u[1].real, 1))
@@ -440,8 +413,9 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(u[3], 0))
         self.assertTrue(equivalent(u[4], 0))
         self.assertTrue(equivalent(u[5], 9))
+        self.assertTrue(equivalent(u[6], 0))
 
-        v = variance(a)
+        v = a.variance()
         self.assertTrue(equivalent(v[0], 1.0))
         self.assertTrue(isinstance(v[1], VarianceCovariance))
         self.assertTrue(equivalent(v[1].rr, 1.0))
@@ -452,14 +426,16 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(v[3], 0.0))
         self.assertTrue(equivalent(v[4], 0.0))
         self.assertTrue(equivalent(v[5], 81.0))
+        self.assertTrue(equivalent(v[6], 0))
 
-        df = dof(a)
+        df = a.dof()
         self.assertTrue(equivalent(df[0], 7))
         self.assertTrue(equivalent(df[1], 4))
         self.assertTrue(math.isinf(df[2]))
         self.assertTrue(math.isinf(df[3]))
         self.assertTrue(math.isinf(df[4]))
         self.assertTrue(math.isnan(df[5]))
+        self.assertTrue(math.isinf(df[6]))
 
     def test_label(self):
         # no label
@@ -865,9 +841,9 @@ class TestUncertainArray(unittest.TestCase):
         a = uarray([nan])
         b = uarray([ureal(1, 1)])
         c = a + b
-        self.assertTrue(math.isnan(c.x))
-        self.assertTrue(equivalent(c.u, 1))
-        self.assertTrue(math.isinf(c.df))
+        self.assertTrue(math.isnan(c.value()))
+        self.assertTrue(equivalent(c.uncertainty(), 1))
+        self.assertTrue(math.isinf(c.dof()))
 
     def test_shape_mismatch(self):
         with self.assertRaises(ValueError):
@@ -879,19 +855,183 @@ class TestUncertainArray(unittest.TestCase):
     def test_subtract(self):
         n = len(self.x)
 
-        # x - y
+        # 1D array of uncertain numbers, no vectorization
         z = [x - y for x, y in izip(self.x, self.y)]
+        zc = [x - y for x, y in izip(self.xc, self.yc)]
         za = self.xa - self.ya
+        zca = self.xca - self.yca
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+            self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+            self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # 1D array of uncertain numbers, with vectorization
+        # also switch the subtraction order to be y - x
+        for m in range(n):
+            z = [y - x for y, x in izip(self.y[m:], self.x[m:])]
+            zc = [y - x for y, x in izip(self.yc[m:], self.xc[m:])]
+            za = self.ya[m:] - self.xa[m:]
+            zca = self.yca[m:] - self.xca[m:]
+            for i in range(n-m):
+                self.assertTrue(equivalent(z[i].x, za[i].x))
+                self.assertTrue(equivalent(z[i].u, za[i].u))
+                self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+                self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+                self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # reshape the x and y arrays to be 2D
+        z = [[self.x[0]-self.y[0], self.x[1]-self.y[1]],
+             [self.x[2]-self.y[2], self.x[3]-self.y[3]],
+             [self.x[4]-self.y[4], self.x[5]-self.y[5]]]
+        zc = [[self.xc[0]-self.yc[0], self.xc[1]-self.yc[1]],
+              [self.xc[2]-self.yc[2], self.xc[3]-self.yc[3]],
+              [self.xc[4]-self.yc[4], self.xc[5]-self.yc[5]]]
+        xa = self.xa.reshape(3, 2)
+        ya = self.ya.reshape(3, 2)
+        xca = self.xca.reshape(3, 2)
+        yca = self.yca.reshape(3, 2)
+
+        # 2D array of uncertain numbers, no vectorization
+        za = xa - ya
+        zca = xca - yca
+        for i in range(3):
+            for j in range(2):
+                self.assertTrue(equivalent(z[i][j].x, za[i, j].x))
+                self.assertTrue(equivalent(z[i][j].u, za[i, j].u))
+                self.assertTrue(equivalent_complex(zc[i][j].x, zca[i, j].x))
+                self.assertTrue(equivalent(zc[i][j].u.real, zca[i, j].u.real))
+                self.assertTrue(equivalent(zc[i][j].u.imag, zca[i, j].u.imag))
+
+        # 2D array of uncertain numbers, vectorization with the first column
+        za = xa[:, 0] - ya[:, 0]
+        zca = xca[:, 0] - yca[:, 0]
+        for i in range(3):
+            self.assertTrue(equivalent(z[i][0].x, za[i].x))
+            self.assertTrue(equivalent(z[i][0].u, za[i].u))
+            self.assertTrue(equivalent_complex(zc[i][0].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i][0].u.real, zca[i].u.real))
+            self.assertTrue(equivalent(zc[i][0].u.imag, zca[i].u.imag))
+
+        # 2D array of uncertain numbers, vectorization with the second row
+        za = xa[1, :] - ya[1, :]
+        zca = xca[1, :] - yca[1, :]
+        for j in range(2):
+            self.assertTrue(equivalent(z[1][j].x, za[j].x))
+            self.assertTrue(equivalent(z[1][j].u, za[j].u))
+            self.assertTrue(equivalent_complex(zc[1][j].x, zca[j].x))
+            self.assertTrue(equivalent(zc[1][j].u.real, zca[j].u.real))
+            self.assertTrue(equivalent(zc[1][j].u.imag, zca[j].u.imag))
+
+        # check subtraction with a number, UncertainArray[ureal] - number
+        for number in [88, 23.32, ureal(1.2, 0.4)]:
+            z = [x - number for x in self.x]
+            za = self.xa - number
+            for i in range(n):
+                self.assertTrue(equivalent(z[i].x, za[i].x))
+                self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # check subtraction with a number, UncertainArray[ucomplex] - number
+        for number in [88, 23.32, 16.3-5.2j, ucomplex(1.2j, 0.4)]:
+            zc = [x - number for x in self.xc]
+            zca = self.xca - number
+            for i in range(n):
+                self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+                self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+                self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # check subtraction with a number, number - UncertainArray[ureal]
+        for number in [-5, 1.8e4, ureal(-0.3, 0.015)]:
+            z = [number - x for x in self.x]
+            za = number - self.xa
+            for i in range(n):
+                self.assertTrue(equivalent(z[i].x, za[i].x))
+                self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # check subtraction with a number, number - UncertainArray[ucomplex]
+        for number in [88, 23.32, 16.3-5.2j, ucomplex(1.2j, 0.4)]:
+            zc = [number - x for x in self.xc]
+            zca = number - self.xca
+            for i in range(n):
+                self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+                self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+                self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # check subtraction with a "regular" ndarray -> UncertainArray[ureal] - ndarray
+        my_array = np.ones(len(z)) * 8.12
+        z = [x - 8.12 for x in self.x]
+        za = self.xa - my_array
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
             self.assertTrue(equivalent(z[i].u, za[i].u))
 
-        # y - x
-        z = [y - x for y, x in izip(self.y, self.x)]
-        za = self.ya - self.xa
+        # check subtraction with a "regular" ndarray -> UncertainArray[ucomplex] - ndarray
+        my_array = np.ones(len(z)) * (8.12+4.3j)
+        zc = [x - (8.12+4.3j) for x in self.xc]
+        zca = self.xca - my_array
+        for i in range(n):
+            self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+            self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # check subtraction with a "regular" ndarray -> ndarray - UncertainArray[ureal]
+        my_array = np.ones(len(z)) * -6.2
+        z = [-6.2 - x for x in self.x]
+        za = my_array - self.xa
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
             self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # check subtraction with a "regular" ndarray -> ndarray - UncertainArray[ucomplex]
+        my_array = np.ones(len(z)) * (-6.2-0.3j)
+        zc = [(-6.2-0.3j) - x for x in self.xc]
+        zca = my_array - self.xca
+        for i in range(n):
+            self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+            self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # check subtraction with a list -> UncertainArray[ureal] - list
+        my_list = list(range(n))
+        z = [x - val for x, val in izip(self.x, my_list)]
+        za = self.xa - my_list
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # check subtraction with a list -> UncertainArray[ucomplex] - list
+        my_list = [1+3j, 5j, -3+2.2j, 0.1+0.4j, 8., 1.9+3.4j]
+        zc = [x - val for x, val in izip(self.xc, my_list)]
+        zca = self.xca - my_list
+        for i in range(n):
+            self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+            self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        # check subtraction with a list -> list - UncertainArray[ureal]
+        my_list = list(range(n))
+        z = [val - x for val, x in izip(my_list, self.x)]
+        za = my_list - self.xa
+        for i in range(n):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # check subtraction with a list -> list - UncertainArray[ucomplex]
+        my_list = [3.1-2.3j, 4+5j, 3.2+7.3j, 5.1-0.4j, 0.1, 6.1+3.7j]
+        zc = [val - x for val, x in izip(my_list, self.xc)]
+        zca = my_list - self.xca
+        for i in range(n):
+            self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
+            self.assertTrue(equivalent(zc[i].u.real, zca[i].u.real))
+            self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
+
+        a = uarray([nan])
+        b = uarray([ureal(1, 1)])
+        c = a - b
+        self.assertTrue(math.isnan(c.value()))
+        self.assertTrue(equivalent(c.uncertainty(), 1))
+        self.assertTrue(math.isinf(c.dof()))
 
     def test_multiply(self):
         n = len(self.x)
@@ -1756,8 +1896,8 @@ class TestUncertainArray(unittest.TestCase):
         for x in xlist:
             b += x
         for a in [xarray.sum(), np.sum(xarray)]:
-            self.assertTrue(equivalent(a.x, b.x))
-            self.assertTrue(equivalent(a.u, b.u))
+            self.assertTrue(equivalent(a.value(), b.x))
+            self.assertTrue(equivalent(a.uncertainty(), b.u))
 
         # 3D array
         xlist = [[[ureal(i*j*k, i*j*k*0.1) for k in range(1, 5)] for j in range(7, 10)] for i in range(3, 9)]
@@ -1779,8 +1919,8 @@ class TestUncertainArray(unittest.TestCase):
 
         # axis=None
         for a in [xarray.sum(), np.sum(xarray)]:
-            self.assertTrue(equivalent(a.x, axis_none.x))
-            self.assertTrue(equivalent(a.u, axis_none.u))
+            self.assertTrue(equivalent(a.value(), axis_none.x))
+            self.assertTrue(equivalent(a.uncertainty(), axis_none.u))
 
         # axis=0
         m, n = len(axis_0), len(axis_0[0])
@@ -1818,23 +1958,23 @@ class TestUncertainArray(unittest.TestCase):
 
             for m in [xa.mean(), np.mean(xa), np.average(xa)]:
                 if j == 0:
-                    self.assertTrue(equivalent(m.x, ave.x))
-                    self.assertTrue(equivalent(m.u, ave.u))
+                    self.assertTrue(equivalent(m.value(), ave.x))
+                    self.assertTrue(equivalent(m.uncertainty(), ave.u))
                 else:
-                    self.assertTrue(equivalent_complex(m.x, ave.x))
-                    self.assertTrue(equivalent(m.u.real, ave.u.real))
-                    self.assertTrue(equivalent(m.u.imag, ave.u.imag))
+                    self.assertTrue(equivalent_complex(m.value(), ave.x))
+                    self.assertTrue(equivalent(m.uncertainty().real, ave.u.real))
+                    self.assertTrue(equivalent(m.uncertainty().imag, ave.u.imag))
 
             xa = xa.reshape(2, 3)
 
             for m in [xa.mean(), np.mean(xa), np.average(xa)]:
                 if j == 0:
-                    self.assertTrue(equivalent(m.x, ave.x))
-                    self.assertTrue(equivalent(m.u, ave.u))
+                    self.assertTrue(equivalent(m.value(), ave.x))
+                    self.assertTrue(equivalent(m.uncertainty(), ave.u))
                 else:
-                    self.assertTrue(equivalent_complex(m.x, ave.x))
-                    self.assertTrue(equivalent(m.u.real, ave.u.real))
-                    self.assertTrue(equivalent(m.u.imag, ave.u.imag))
+                    self.assertTrue(equivalent_complex(m.value(), ave.x))
+                    self.assertTrue(equivalent(m.uncertainty().real, ave.u.real))
+                    self.assertTrue(equivalent(m.uncertainty().imag, ave.u.imag))
 
             for m in [xa.mean(axis=0), np.mean(xa, axis=0), np.average(xa, axis=0)]:
                 aves = [(x[0] + x[3])/2.0, (x[1] + x[4])/2.0, (x[2] + x[5])/2.0]
@@ -1873,12 +2013,12 @@ class TestUncertainArray(unittest.TestCase):
                 a = sqrt(stdev/(float(len(x)-ddof)))
                 b = xa.std(ddof=ddof)
                 if j == 0:
-                    self.assertTrue(equivalent(a.x, b.x))
-                    self.assertTrue(equivalent(a.u, b.u))
+                    self.assertTrue(equivalent(a.x, b.value()))
+                    self.assertTrue(equivalent(a.u, b.uncertainty()))
                 else:
-                    self.assertTrue(equivalent_complex(a.x, b.x))
-                    self.assertTrue(equivalent(a.u.real, b.u.real))
-                    self.assertTrue(equivalent(a.u.imag, b.u.imag))
+                    self.assertTrue(equivalent_complex(a.x, b.value()))
+                    self.assertTrue(equivalent(a.u.real, b.uncertainty().real))
+                    self.assertTrue(equivalent(a.u.imag, b.uncertainty().imag))
 
         x = [[ureal(i*j, i*j*0.05) for j in range(1, 11)] for i in range(5, 11)]
         xa = uarray(x)
@@ -1936,12 +2076,12 @@ class TestUncertainArray(unittest.TestCase):
                 a = var/(float(len(x)-ddof))
                 b = xa.var(ddof=ddof)
                 if j == 0:
-                    self.assertTrue(equivalent(a.x, b.x))
-                    self.assertTrue(equivalent(a.u, b.u))
+                    self.assertTrue(equivalent(a.x, b.value()))
+                    self.assertTrue(equivalent(a.u, b.uncertainty()))
                 else:
-                    self.assertTrue(equivalent_complex(a.x, b.x))
-                    self.assertTrue(equivalent(a.u.real, b.u.real))
-                    self.assertTrue(equivalent(a.u.imag, b.u.imag))
+                    self.assertTrue(equivalent_complex(a.x, b.value()))
+                    self.assertTrue(equivalent(a.u.real, b.uncertainty().real))
+                    self.assertTrue(equivalent(a.u.imag, b.uncertainty().imag))
 
         x = [[ureal(i*j, i*j*0.05) for j in range(1, 11)] for i in range(5, 11)]
         xa = uarray(x)
@@ -1987,14 +2127,14 @@ class TestUncertainArray(unittest.TestCase):
     def test_max(self):
         b = max(self.x)
         for a in [self.xa.max(), np.max(self.xa)]:
-            self.assertTrue(equivalent(a.x, b.x))
-            self.assertTrue(equivalent(a.u, b.u))
+            self.assertTrue(equivalent(a.value(), b.x))
+            self.assertTrue(equivalent(a.uncertainty(), b.u))
 
         xa = self.xa.reshape(3, 2)
 
         for a in [xa.max(), np.max(xa)]:
-            self.assertTrue(equivalent(a.x, b.x))
-            self.assertTrue(equivalent(a.u, b.u))
+            self.assertTrue(equivalent(a.value(), b.x))
+            self.assertTrue(equivalent(a.uncertainty(), b.u))
 
         for a in [xa.max(axis=0), np.max(xa, axis=0)]:
             for i, b in enumerate([self.x[::2], self.x[1::2]]):
@@ -2011,14 +2151,14 @@ class TestUncertainArray(unittest.TestCase):
     def test_min(self):
         b = min(self.x)
         for a in [self.xa.min(), np.min(self.xa)]:
-            self.assertTrue(equivalent(a.x, b.x))
-            self.assertTrue(equivalent(a.u, b.u))
+            self.assertTrue(equivalent(a.value(), b.x))
+            self.assertTrue(equivalent(a.uncertainty(), b.u))
 
         xa = self.xa.reshape(3, 2)
 
         for a in [xa.min(), np.min(xa)]:
-            self.assertTrue(equivalent(a.x, b.x))
-            self.assertTrue(equivalent(a.u, b.u))
+            self.assertTrue(equivalent(a.value(), b.x))
+            self.assertTrue(equivalent(a.uncertainty(), b.u))
 
         for a in [xa.min(axis=0), np.min(xa, axis=0)]:
             for i, b in enumerate([self.x[::2], self.x[1::2]]):
@@ -2102,7 +2242,7 @@ class TestUncertainArray(unittest.TestCase):
                     self.assertTrue(a[i, j] == b[i][j])
 
     def test_where(self):
-        a = self.xa[np.where(self.xa.x > 25)]
+        a = self.xa[np.where(self.xa.value() > 25)]
         b = [x for x in self.x if x.x > 25]
         self.assertTrue(len(a) == len(b))
         for i in range(len(a)):
@@ -2184,12 +2324,12 @@ class TestUncertainArray(unittest.TestCase):
 
         t = xarray.reshape(3, 3).trace()
         xt = xlist[0] + xlist[4] + xlist[8]
-        self.assertTrue(equivalent(t.x, xt.x))
-        self.assertTrue(equivalent(t.u, xt.u))
+        self.assertTrue(equivalent(t.value(), xt.x))
+        self.assertTrue(equivalent(t.uncertainty(), xt.u))
 
         t = np.trace(xarray.reshape(3, 3))
-        self.assertTrue(equivalent(t.x, xt.x))
-        self.assertTrue(equivalent(t.u, xt.u))
+        self.assertTrue(equivalent(t.value(), xt.x))
+        self.assertTrue(equivalent(t.uncertainty(), xt.u))
 
         # UncertainArray[ucomplex]
         xlist = [ucomplex(complex(i, i*2), (i*0.2, i * 0.1)) for i in range(9)]
@@ -2200,14 +2340,14 @@ class TestUncertainArray(unittest.TestCase):
 
         t = xarray.reshape(3, 3).trace()
         xt = xlist[0] + xlist[4] + xlist[8]
-        self.assertTrue(equivalent_complex(t.x, xt.x))
-        self.assertTrue(equivalent(t.u.real, xt.u.real))
-        self.assertTrue(equivalent(t.u.imag, xt.u.imag))
+        self.assertTrue(equivalent_complex(t.value(), xt.x))
+        self.assertTrue(equivalent(t.uncertainty().real, xt.u.real))
+        self.assertTrue(equivalent(t.uncertainty().imag, xt.u.imag))
 
         t = np.trace(xarray.reshape(3, 3))
-        self.assertTrue(equivalent_complex(t.x, xt.x))
-        self.assertTrue(equivalent(t.u.real, xt.u.real))
-        self.assertTrue(equivalent(t.u.imag, xt.u.imag))
+        self.assertTrue(equivalent_complex(t.value(), xt.x))
+        self.assertTrue(equivalent(t.uncertainty().real, xt.u.real))
+        self.assertTrue(equivalent(t.uncertainty().imag, xt.u.imag))
 
     def test_ndim(self):
         a = uarray([ureal(1, 1) for _ in range(1000)])
@@ -2384,14 +2524,137 @@ class TestUncertainArray(unittest.TestCase):
                 self.assertTrue(equivalent(z[i][j].u, za[i,j].u))
 
     def test_matmul(self):
-        # The np.matmul() function is currently not supported (as of v1.15.0) for dtype=object
-        #   TypeError: Object arrays are not currently supported
-        # However, from Python 3.5+ the @ symbol can be used for an ndarray with dtype=object
+        # From Python 3.5+ the @ symbol can be used for an ndarray with dtype=object
         # NOTE: We can only run this test if Python >= 3.5
         import sys
         if sys.version_info >= (3, 5):
             from uarray_matmul import run
             run()
+        else:
+            m = [[ureal(5, 1), ureal(-1, 0.3), ureal(3, 1.3)],
+                 [ureal(1, 0.1), ureal(2, 0.8), ureal(-3, 1)],
+                 [ureal(-1, 0.5), ureal(2, 1.1), ureal(4, 0.3)]]
+            b = [ureal(1, 0.2), ureal(2, 1.1), ureal(3, 0.4)]
+
+            ma = uarray(m)
+            ba = uarray(b)
+
+            # vector * vector
+
+            z = b[0] * 1 + b[1] * 2 + b[2] * 3
+            za = matmul(ba, [1, 2, 3])
+            assert equivalent(z.x, za.value())
+            assert equivalent(z.u, za.uncertainty())
+
+            try:
+                matmul(ba, [1, 2])
+            except ValueError:  # Expect this error -> shapes (3,) and (2,) not aligned: 3 (dim 0) != 2 (dim 0)
+                pass
+            else:
+                raise ValueError('this should not work -> matmul(ba, [1, 2])')
+
+            # vector * matrix
+
+            z = [1 * m[0][0] + 2 * m[1][0] + 3 * m[2][0],
+                 1 * m[0][1] + 2 * m[1][1] + 3 * m[2][1],
+                 1 * m[0][2] + 2 * m[1][2] + 3 * m[2][2]]
+            za = matmul([1, 2, 3], ma)
+            for i in range(3):
+                assert equivalent(z[i].x, za[i].x)
+                assert equivalent(z[i].u, za[i].u)
+
+            try:
+                matmul([1, 2], ma)
+            except ValueError:  # Expect this error -> shapes (2,) and (3,3) not aligned: 2 (dim 0) != 3 (dim 0)
+                pass
+            else:
+                raise ValueError('this should not work -> matmul([1, 2], ma)')
+
+            # matrix * vector
+
+            z = [m[0][0] * b[0] + m[0][1] * b[1] + m[0][2] * b[2],
+                 m[1][0] * b[0] + m[1][1] * b[1] + m[1][2] * b[2],
+                 m[2][0] * b[0] + m[2][1] * b[1] + m[2][2] * b[2]]
+
+            za = matmul(ma, ba)
+            for i in range(3):
+                assert equivalent(z[i].x, za[i].x)
+                assert equivalent(z[i].u, za[i].u)
+
+            try:
+                matmul(ma, np.arange(4))
+            except ValueError:  # Expect this error -> shapes (3,3) and (4,) not aligned: 3 (dim 1) != 4 (dim 0)
+                pass
+            else:
+                raise ValueError('this should not work -> matmul(ma, np.arange(4))')
+
+            # matrix * matrix
+
+            na = np.arange(10 * 10).reshape(10, 10) * -3.1
+            nb = np.arange(10 * 10).reshape(10, 10) * 2.3
+            nc = matmul(na, nb)
+
+            ua = uarray(na.copy() * ureal(1, 0))
+            ub = uarray(nb.copy() * ureal(1, 0))
+            uc = matmul(ua, ub)
+            assert nc.shape == uc.shape
+
+            i, j = nc.shape
+            for ii in range(i):
+                for jj in range(j):
+                    assert equivalent(na[ii, jj], ua[ii, jj].x)
+                    assert equivalent(nb[ii, jj], ub[ii, jj].x)
+                    assert equivalent(nc[ii, jj], uc[ii, jj].x, tol=1e-10)
+
+            try:
+                matmul(ma, np.arange(4 * 4).reshape(4, 4))
+            except ValueError:  # Expect this error -> shapes (3,3) and (4,4) not aligned: 3 (dim 1) != 4 (dim 0)
+                pass
+            else:
+                raise ValueError('this should not work -> matmul(ma, np.arange(4*4).reshape(4,4))')
+
+            # test a bunch of different dimensions
+            test_dims = [
+                [(), ()],
+                [(0,), (1, 3)],
+                [(1,), (1, 3)],
+                [(4,), (4, 3)],
+                [(2, 4), (4,)],
+                [(2, 4), (3,)],
+                [(2, 4), (3, 2)],
+                [(2, 4), (4, 2)],
+                [(1, 2, 4), (1, 4, 2)],
+                [(2, 2, 4), (1, 4, 2)],
+                [(1, 2, 4), (2, 4, 2)],
+                [(2, 2, 4), (2, 4, 2)],
+                [(3, 2, 4), (3, 4, 2)],
+                [(6, 2, 4), (3, 2, 2)],
+                [(6, 2, 4), (3, 4, 8)],
+                [(6, 2, 4), (6, 4, 8)],
+                [(5, 3, 2, 4), (5, 3, 4, 2)],
+                [(3, 2, 2, 4), (3, 9, 4, 2)],
+                [(8, 3, 1, 2, 4), (8, 3, 9, 4, 2)],
+            ]
+
+            for s1, s2 in test_dims:
+                na = np.arange(int(np.prod(np.array(s1)))).reshape(s1)
+                nb = np.arange(int(np.prod(np.array(s2)))).reshape(s2)
+                try:
+                    nc = matmul(na, nb)
+                except:
+                    nc = None
+
+                ua = uarray(na.copy() * ureal(1, 0))
+                ub = uarray(nb.copy() * ureal(1, 0))
+                try:
+                    uc = matmul(ua, ub)
+                except:
+                    if nc is not None:
+                        raise AssertionError('The regular matmul PASSED, the custom-written matmul FAILED')
+                else:
+                    if nc is None:
+                        raise AssertionError('The regular matmul FAILED, the custom-written matmul PASSED')
+                    assert np.array_equal(nc, uc), 'The arrays are not equal\n{}\n{}'.format(nc, uc)
 
     def test_astype(self):
         # make sure that the following is not allowed
@@ -2414,8 +2677,8 @@ class TestUncertainArray(unittest.TestCase):
         b = 1.0
         for x in xlist:
             b *= x
-        self.assertTrue(equivalent(a.x, b.x))
-        self.assertTrue(equivalent(a.u, b.u))
+        self.assertTrue(equivalent(a.value(), b.x))
+        self.assertTrue(equivalent(a.uncertainty(), b.u))
 
         # 3D array
         xlist = [[[ureal(i * j * k, i * j * k * 0.1) for k in range(1, 5)] for j in range(7, 10)] for i in range(3, 9)]
@@ -2437,8 +2700,8 @@ class TestUncertainArray(unittest.TestCase):
 
         # axis=None
         a = xarray.prod()
-        self.assertTrue(equivalent(a.x, axis_none.x))
-        self.assertTrue(equivalent(a.u, axis_none.u))
+        self.assertTrue(equivalent(a.value(), axis_none.x))
+        self.assertTrue(equivalent(a.uncertainty(), axis_none.u))
 
         # axis=0
         a = xarray.prod(axis=0)
@@ -2650,31 +2913,31 @@ class TestUncertainArray(unittest.TestCase):
         xa = uarray([[[ureal(i*j*k, 0.8) for k in range(2)] for j in range(3)] for i in range(4)])
 
         ptp = xa.ptp()
-        self.assertTrue(ptp.x == 6)
+        self.assertTrue(ptp.value() == 6)
 
         ptp = xa.ptp(axis=0)
-        self.assertTrue(ptp[:, 0].sum().x == 0)
-        self.assertTrue(ptp[0, :].sum().x == 0)
-        self.assertTrue(ptp[:, 1].sum().x == 9)
-        self.assertTrue(ptp[1, :].sum().x == 3)
-        self.assertTrue(ptp[2, :].sum().x == 6)
+        self.assertTrue(ptp[:, 0].sum().value() == 0)
+        self.assertTrue(ptp[0, :].sum().value() == 0)
+        self.assertTrue(ptp[:, 1].sum().value() == 9)
+        self.assertTrue(ptp[1, :].sum().value() == 3)
+        self.assertTrue(ptp[2, :].sum().value() == 6)
 
         ptp = xa.ptp(axis=1)
-        self.assertTrue(ptp[:, 0].sum().x == 0)
-        self.assertTrue(ptp[0, :].sum().x == 0)
-        self.assertTrue(ptp[:, 1].sum().x == 12)
-        self.assertTrue(ptp[1, :].sum().x == 2)
-        self.assertTrue(ptp[2, :].sum().x == 4)
-        self.assertTrue(ptp[3, :].sum().x == 6)
+        self.assertTrue(ptp[:, 0].sum().value() == 0)
+        self.assertTrue(ptp[0, :].sum().value() == 0)
+        self.assertTrue(ptp[:, 1].sum().value() == 12)
+        self.assertTrue(ptp[1, :].sum().value() == 2)
+        self.assertTrue(ptp[2, :].sum().value() == 4)
+        self.assertTrue(ptp[3, :].sum().value() == 6)
 
         ptp = xa.ptp(axis=2)
-        self.assertTrue(ptp[:, 0].sum().x == 0)
-        self.assertTrue(ptp[0, :].sum().x == 0)
-        self.assertTrue(ptp[:, 1].sum().x == 6)
-        self.assertTrue(ptp[:, 2].sum().x == 12)
-        self.assertTrue(ptp[1, :].sum().x == 3)
-        self.assertTrue(ptp[2, :].sum().x == 6)
-        self.assertTrue(ptp[3, :].sum().x == 9)
+        self.assertTrue(ptp[:, 0].sum().value() == 0)
+        self.assertTrue(ptp[0, :].sum().value() == 0)
+        self.assertTrue(ptp[:, 1].sum().value() == 6)
+        self.assertTrue(ptp[:, 2].sum().value() == 12)
+        self.assertTrue(ptp[1, :].sum().value() == 3)
+        self.assertTrue(ptp[2, :].sum().value() == 6)
+        self.assertTrue(ptp[3, :].sum().value() == 9)
 
     def test_round(self):
         a = uarray([[ureal(0.378384871, 0.1831984, df=12.44649822), ureal(1.649863876, 1.28794362876, df=9.2184761424)],
@@ -3296,13 +3559,13 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(r[idx].x, ra[idx].x))
             self.assertTrue(equivalent(r[idx].u, ra[idx].u))
 
-        self.assertTrue(equivalent(type_a.mean(r), np.average(ra.x)))
-        self.assertTrue(equivalent(type_a.mean(r), ra.x.mean()))
-        self.assertTrue(equivalent(type_a.standard_deviation(r), np.std(ra.x, ddof=1)))
+        self.assertTrue(equivalent(type_a.mean(r), np.average(ra.value(float))))
+        self.assertTrue(equivalent(type_a.mean(r), ra.value(float).mean()))
+        self.assertTrue(equivalent(type_a.standard_deviation(r), np.std(ra.value(float), ddof=1)))
 
         weights = [(1.0/r[idx].u)**2 for idx in range(len(r))]
         wt_ave = sum(weights[idx] * r[idx].x for idx in range(len(r))) / sum(weights)
-        self.assertTrue(equivalent(wt_ave, np.average(ra.x, weights=1.0/ra.v)))
+        self.assertTrue(equivalent(wt_ave, np.average(ra.value(float), weights=1.0/ra.variance(float))))
 
     #
     # The following is a list of all ufuncs
