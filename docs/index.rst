@@ -26,7 +26,7 @@ GTC Modules
     Reporting <API/reporting_functions>
     Storage <API/persistence>
     Named tuples <API/named_tuples>
-    Numpy and Uncertain Numbers <uarray.rst>
+    Collections of Uncertain Numbers <API/uarray.rst>
 
 Release Notes
 -------------

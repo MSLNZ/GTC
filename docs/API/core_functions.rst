@@ -12,8 +12,8 @@ Core Functions and Classes
 Core Functions
 ==============
 
-A set of core mathematical functions, together with functions that create elementary uncertain numbers and functions that can be used to access uncertain number attributes, are defined in the :mod:`core` module. These functions are automatically imported into the ``GTC`` namespace, so they are available after performing ``from GTC import *``. 
-
+Functions that create elementary uncertain numbers and functions that can be used to access uncertain-number attributes, are defined in the :mod:`core` module. A set of standard mathematical functions (like :func:`~core.sqrt`, :func:`~core.sin`, :func:`~core.log10`, etc) is also defined for uncertain numbers and can be applied to the numeric Python types as well.
+All these functions are imported automatically into the ``GTC`` namespace, so they are available after performing ``from GTC import *``.
 
 .. automodule:: core
 	:members: 
@@ -119,8 +119,16 @@ Uncertain Complex Numbers
     :members: conjugate, df, imag, real, label, u, v, x, r
    
 
-Uncertain Arrays
-----------------
+Arrays of Uncertain Numbers
+===========================
+
+An :class:`.UncertainArray` is a convenient container of uncertain numbers. It provides succinct expressions for the application of standard mathematical operations to array elements. 
+For instance, if :code:`A` and :code:`B` are arrays of the same size, they can be added :code:`A + B`, or subtracted :code:`A - B`, etc; or a function like :code:`sqrt(A)` can be applied to each element, and so on. An :class:`.UncertainArray` also provides excellent support for manipulating stored data.
+
+The function :func:`~.core.uarray`, which is available by default in the **GTC** namespace, is used to create a :class:`.UncertainArray`. 
+
+:ref:`numpy-uarray` provides more information and some examples using :class:`.UncertainArray`.
+
 
 .. autoclass:: uncertain_array.UncertainArray
    :members: x, u, v, df, label, real, imag, r, conjugate

@@ -4,25 +4,32 @@
 Collections of Uncertain Numbers
 ================================
 
-The :func:`~.core.uarray` is provided to create arrays of uncertain-number objects. 
-These :class:`.UncertainArray` objects are based on :class:`numpy.ndarray`, which provides excellent support 
-for manipulating data stored as elements in the array (see :ref:`arrays.indexing` ).
+The :class:`.UncertainArray` array object is a convenient container for uncertain-number objects based on :class:`numpy.ndarray`, which provides excellent support 
+for manipulating stored data (see :ref:`arrays.indexing` ). An :class:`.UncertainArray` can contain a mixture of :class:`~.lib.UncertainReal`, 
+:class:`~.lib.UncertainComplex` or Python numbers (:class:`int`, :class:`float` and :class:`complex`).  
+The usual mathematical operations can be applied to :class:`.UncertainArray` objects, producing an :class:`.UncertainArray` 
+containing the results of the operation. For instance, if :code:`A` and :code:`B` are arrays of the same size, they can be added :code:`A + B`, subtracted :code:`A - B`, etc; or a function like :code:`sqrt(A)` applied. This vectorisation provides a succinct expression for repetitive operations 
+but it does not offer a significant speed advantage over explicit Python iteration. 
 
-An :class:`.UncertainArray` can contain a mixture of :class:`~.lib.UncertainReal`, 
-:class:`~.lib.UncertainComplex` and Python numeric types (:class:`int`, :class:`float` and :class:`complex`). 
+The function :func:`~.core.uarray` is used to create an  :class:`.UncertainArray` array object.
 
-Core mathematical functions can be applied to an :class:`.UncertainArray`, in which 
-case the corresponding function is applied to each array element and the results 
-returned in another :class:`.UncertainArray`. This vectorisation of commands is 
-convenient, but does not offer any significant speed advantage over explicit Python iteration or for loops. 
+.. note::
 
+    When we need the matrix product of a pair of two-dimensional arrays, the 
+    function :func:`~core.matmul` should be used (for Python 3.5 and above the 
+    binary ``@`` operator is an alternative). For example::
+    
+        >>> a = uarray([[ureal(1,1),ureal(2,1)],[ureal(3,1),ureal(4,1)]])
+    
+        
+    
 .. _uarray-example-1:
 
 Example 1. Creating an UncertainArray
 -------------------------------------
 
 The following example illustrates how to create an :class:`.UncertainArray` and how
-to use the internal functions of **GTC** during the calculation.
+to use **GTC** functions for calculation.
 
 Import the necessary **GTC** functions and modules
 
@@ -38,7 +45,7 @@ Next, define the uncertain arrays
    >>> currents = uarray([ureal(0.023, 0.003), ureal(0.019, 0.006), ureal(0.020, 0.004)])
    >>> phases = uarray([ureal(1.0442, 2e-4), ureal(1.0438, 5e-4), ureal(1.0441, 3e-4)])
 
-One can use the :func:`~.core.cos` function to calculate the AC resistances
+We can use the :func:`~.core.cos` function to calculate the AC resistances
 
 .. code-block:: pycon
 
@@ -49,23 +56,23 @@ One can use the :func:`~.core.cos` function to calculate the AC resistances
                    ureal(125.3181626494936,25.06618583901181,inf)],
                   dtype=object)
 
-To calculate the average AC resistance we could use :func:`.type_a.mean`, which evaluates the mean of the uncertain number values 
+Now, to calculate the average AC resistance we could use :func:`.type_a.mean`, which evaluates the mean of the uncertain number values 
 
 .. code-block:: pycon
 
    >>> type_a.mean(resistances)
    121.96586792024915
 
-Note, however, that the result obtained here is a real number, not an uncertain number. We have discarded all the information about the uncertainty in each resistance.
+However, that is a real number, not an uncertain number. We have discarded all information about the uncertainty of each resistance!
 
-A better calculation of the average for this case uses :func:`.function.mean`, which propagates the uncertainties 
+A better calculation in this case uses :func:`.function.mean`, which will propagate uncertainties 
 
 .. code-block:: pycon
 
    >>> fn.mean(resistances)
    ureal(121.96586792024915,16.939155846751817,inf)
 
-Now the value is correct and we obtain a standard uncertainty of 16.939155846751817, which is the combined uncertainty of the mean of these three AC resistance values according to the GUM calculation
+This obtains an uncertain number with a standard uncertainty of 16.939155846751817, which is the combined uncertainty of the mean of AC resistance values according to the GUM calculation
 
 .. code-block:: pycon
 
@@ -74,16 +81,18 @@ Now the value is correct and we obtain a standard uncertainty of 16.939155846751
 
 .. note::
 
-    the *uncertainty* of the result does not equal the Type-A standard uncertainty of the three resistance values 
+    A Type-A evaluation of the standard uncertainty of the mean of the three resistance values is a different calculation  
 
     .. code-block:: pycon
 
            >>> type_a.standard_uncertainty(resistances)
            7.356613978879885
 
-    This is not an error; they are different things. The *uncertainty* evaluated by :func:`.function.mean` is obtained by propagating 
-    the uncertainties of the three uncertain-number inputs. The *uncertainty* evaluated by :func:`.type_a.standard_uncertainty`
-    is the sample standard error in the mean, calculated from the values of the inputs alone.
+    The standard uncertainty evaluated here by :func:`.type_a.standard_uncertainty`
+    is a sample statistic calculated from the values alone. On the other hand,
+    the standard uncertainty obtained by :func:`.function.mean` is evaluated by propagating 
+    the input uncertainties through the calculation of the mean value. There is no reason to expect 
+    these two different calculations to yield the same result.    
 
 
 .. _uarray-example-2:
