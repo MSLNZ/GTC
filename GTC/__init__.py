@@ -81,11 +81,14 @@ __all__ = (
     ,   'type_b',       'tb'
     ,   'type_a',       'ta'
     ,   'persistence',  'pr'
+    ,   'linear_algebra', 'la'
     ,   'math'
     ,   'cmath'
     ,   'inf'
     ,   'nan'
     ,   'uarray'
+    ,   'dot'
+    ,   'matmul'
 )
  
 #----------------------------------------------------------------------------

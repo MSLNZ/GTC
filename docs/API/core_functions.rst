@@ -131,4 +131,4 @@ The function :func:`~.core.uarray`, which is available by default in the **GTC**
 
 
 .. autoclass:: uncertain_array.UncertainArray
-   :members: x, u, v, df, label, real, imag, r, conjugate
+   :members: value, uncertainty, variance, dof, label, real, imag, r, conjugate
