@@ -87,10 +87,9 @@ else:
 
             """
             def __new__(cls, array, dtype=None, label=None):
-                if dtype is None:
-                    obj = np.asarray(array).view(cls)
-                else:
-                    obj = np.asarray(array, dtype=dtype).view(cls)
+                if dtype is None: 
+                    dtype = object
+                obj = np.asarray(array, dtype=dtype).view(cls)
                 obj._label = label
                 return obj
 
