@@ -153,6 +153,24 @@ else:
                     return a, a.itemset, inputs[0].item
                 return a, a.itemset, inputs[0].item, inputs[1].item
 
+            def __repr__(self):
+                # Use the numpy formating but replace the class name 
+                # with 'uarray' and hide the default dtype
+                np_array_repr = np.array_repr(self)
+                
+                if np_array_repr.find('UncertainArray(') == 0:
+                    prefix = 'uarray'
+
+                    i = np_array_repr.rfind('dtype=object')
+                    if i == -1:
+                        # if dtype is not `object`, show it
+                        return prefix + np_array_repr[14:]
+                    else:
+                        i = np_array_repr[:i].rfind(',') # trailing ',' 
+                        return prefix + np_array_repr[14:i] + ')'
+                else:
+                    return np_array_repr
+                
             @property
             def label(self):
                 """The label that was assigned to the array when it was created.
