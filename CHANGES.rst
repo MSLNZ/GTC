@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+Version 1.1.0 (????.??.??)
+==========================
+
+    Inclusion of an array-like class to hold collections of uncertain numbers. The new ``UncertainArray`` class is based on :class:`numpy.ndarray`, which provides excellent support 
+    for manipulating stored data. Standard mathematical operations can be applied to ``UncertainArray`` objects. This vectorisation offers a succinct way of expressing repetitive operations 
+    but it does not provide a significant speed advantage over Python iteration.
+    
+    The standard mathematical functions (``sin``, ``sqrt``, etc) defined by **GTC** now accept Python numbers as arguments, as well as uncertain number types and ``UncertainArray``.
+
 Version 1.0.0 (2018.11.16)
 ==========================
 
