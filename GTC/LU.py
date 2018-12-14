@@ -1,11 +1,10 @@
 """
 Provides LU decomposition functions for Python objects stored in 2D arrays.
 
-The function 'solve' returns the solution vector 'x' to a . x = b
-The function 'invab' returns the determinant of a previously LU decomposed matrix 
-The function 'ludet' carries out back-substitution as part of the solution to a . x = b
-The function 'ludcmp' performs LU decomposition
-
+:func:`solve` returns the solution vector `x` to the equation `a.x = b`
+:func:`ludet` returns the determinant of a previously LU-decomposed matrix 
+:func:`ludcmp` performs LU decomposition
+:func:`invab` 
 """
 from __future__ import division
 
@@ -106,22 +105,23 @@ def ludcmp(a):
 #----------------------------------------------------------------------------
 def _lubksb(a_lu,idx,b):
     """
-    Return `x` the solution to the matrix equation`a.x = b`
+    LU back-substitution 
 
-    Solves the linear equations `a.x = b`,
-    where `a` is a 2D array and `x` and `b` are 1D arrays.
+    The argument `a_lu` is the LU decomposition of `a`,
+    where `a` is a 2D array (`x` and `b` are 1D).
     
-    The argument `a_lu` is `a` after LU decomposition
-    `a_lu`, and `idx` are not changed by the routine.
+    The argument `a_lu` is not changed, so the routine 
+    may be used successively on different cases of `b`.
     
-    The types of `b` need only be a sequence
+    The contents of `b` are changed by the function:
+    `b` becomes the solution vector.
+    
+    The argument `b` need only be a sequence type;
+    `a_lu` must be array-like.
 
     Usage::
         a_lu, idx = _ludcmp(a)
         x = _lubksub( a_lu, idx, b )
-
-    .. note:: 
-        `b` becomes the solution vector
 
     """
     
@@ -160,21 +160,20 @@ def _lubksb(a_lu,idx,b):
 #---------------------------------------------------------
 def invab(a,b):
     """
-    Return the product `a^-1.b`
+    Return the solution `x` to the linear equation`a.x = b` when `b` is 2D
     
-    `b` can be any sequence type 
-    `a` must be an ndarray
+    `a` and `b` must be array-like
+    Neither `a` or `b` are changed by the function 
     
     """
     if len(b.shape) != 2:
         raise RuntimeError( 
             "A 2D array is needed for `b`, got  shape={}".format(b.shape)
         )
-    # Checks on `a` when `ludcmp` is called
-    
-    a,idx,p = ludcmp(a)
+    # Checks `a` shape when `ludcmp` is called 
+    a_lu,idx,p = ludcmp(a.copy())
 
-    N = a.shape[0]
+    N = a_lu.shape[0]
     M = b.shape[1]
         
     y = np.empty( (N,M), b.dtype )
@@ -182,7 +181,7 @@ def invab(a,b):
     # For each column in matrix 'b'
     for j in xrange(M):
     
-        col = _lubksb(a,idx,[ b[i,j] for i in xrange(N) ])
+        col = _lubksb(a_lu,idx,[ b[i,j] for i in xrange(N) ])
         
         for i in xrange(N):
             y[i,j] = col[i]
@@ -221,6 +220,10 @@ def ludet(a_lu,p):
 def solve(a,b):
     """
     Return the solution `x` for `a.x = b` 
+    
+    Both `a` and `b` must be array-like
+    `a` is a square 2D array, `b` is a 1D array
+    Neither `a` or `b` are changed by the function 
 
     """
     a_lu,i,p = ludcmp( a.copy() )
