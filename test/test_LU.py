@@ -117,6 +117,7 @@ class TestLUScalar(unittest.TestCase):
 class TestLUInvProduct(unittest.TestCase):
     """
     The LU module provides a function to evaluate inv(a).b
+    where `b` is a 2D array
     
     """
     def test(self):
@@ -126,14 +127,24 @@ class TestLUInvProduct(unittest.TestCase):
               (27.20225830408064, 628.4433741012242, 9.040512258882565)
             ])
 
-        b = numpy.linalg.inv( a )
-
-        a_inv = invab(a.copy(),numpy.identity(3))
-
+        # Calculate the inverse matrix
+        a_inv = invab(a,numpy.identity(3))
         a_b = numpy.dot(a,a_inv)
-        
         for i in xrange(3):
-            self.assertTrue( equivalent(1.0,a_b[i,i]) )    
+            for j in xrange(3):
+                if i == j:
+                    self.assertTrue( equivalent(1.0,a_b[i,i]) )   
+                else:
+                    self.assertTrue( equivalent(0.0,a_b[i,j]) )    
+
+        # Solve `a.x=b` for `b` a matrix 
+        x = numpy.array([ (-2,1), (-3,2), (4,4) ])
+        b = numpy.dot(a,x)
+        
+        a_b = invab(a,b)
+        for i in xrange(a_b.shape[0]):
+            for j in xrange(a_b.shape[1]):
+                self.assertTrue( equivalent(x[i,j],a_b[i,j]) )
 
 #-----------------------------------------------------
 class TestLUComplex(unittest.TestCase):
