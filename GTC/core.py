@@ -88,9 +88,9 @@ __all__ = (
     ,   'linear_algebra', 'la'
     ,   'math'
     ,   'cmath'
-    ,   'uarray'
-    ,   'dot'
-    ,   'matmul'
+    # ,   'uarray'
+    # ,   'dot'
+    # ,   'matmul'
 )
 
 #----------------------------------------------------------------------------
@@ -1405,9 +1405,9 @@ def mag_squared(x):
 # import here to avoid circular imports
 from GTC import linear_algebra
 la = linear_algebra
-uarray = linear_algebra.uarray
-dot = linear_algebra.dot
-matmul = linear_algebra.matmul
+# uarray = linear_algebra.uarray
+# dot = linear_algebra.dot
+# matmul = linear_algebra.matmul
 
 #============================================================================    
 if __name__ == "__main__":
