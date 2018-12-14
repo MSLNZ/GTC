@@ -26,7 +26,8 @@ GTC Modules
     Reporting <API/reporting_functions>
     Storage <API/persistence>
     Named tuples <API/named_tuples>
-    Collections of Uncertain Numbers <API/uarray.rst>
+    Uncertain-number arrays <API/uarray.rst>
+    Linear algebra <API/linear_algebra.rst>
 
 Release Notes
 -------------

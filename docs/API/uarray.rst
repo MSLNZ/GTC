@@ -9,19 +9,24 @@ for manipulating stored data (see :ref:`arrays.indexing` ). An :class:`.Uncertai
 :class:`~.lib.UncertainComplex` or Python numbers (:class:`int`, :class:`float` and :class:`complex`).  
 The usual mathematical operations can be applied to :class:`.UncertainArray` objects, producing an :class:`.UncertainArray` 
 containing the results of the operation. For instance, if :code:`A` and :code:`B` are arrays of the same size, they can be added :code:`A + B`, subtracted :code:`A - B`, etc; or a function like :code:`sqrt(A)` applied. This vectorisation provides a succinct expression for repetitive operations 
-but it does not offer a significant speed advantage over explicit Python iteration. 
+but it does not offer a significant speed advantage over iteration in Python. 
 
 The function :func:`~.core.uarray` is used to create an  :class:`.UncertainArray` array object.
 
 .. note::
 
-    When we need the matrix product of a pair of two-dimensional arrays, the 
-    function :func:`~core.matmul` should be used (for Python 3.5 and above the 
-    binary ``@`` operator is an alternative). For example::
+    To evaluate the product of two-dimensional arrays, the 
+    function :func:`linear_algebra.matmul` should be used (for Python 3.5 and above the 
+    built-in binary operator ``@`` is an alternative). For example::
     
-        >>> a = uarray([[ureal(1,1),ureal(2,1)],[ureal(3,1),ureal(4,1)]])
-    
-        
+        >>> a = uarray([[1.1,.5],[ureal(3,1),.5]])
+        >>> b = uarray([[5.2,ucomplex(4,1)],[.1,.1+3j]])
+        >>> matmul(a,b)
+        UncertainArray([[5.7700000000000005,
+                 ucomplex((4.45+1.5j), u=[1.1,1.1], r=0.0, df=inf)],
+                [ureal(15.650000000000002,5.2,inf),
+                 ucomplex((12.05+1.5j), u=[5.0,3.0], r=0.0, df=inf)]],
+               dtype=object)
     
 .. _uarray-example-1:
 
