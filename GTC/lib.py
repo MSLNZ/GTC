@@ -1528,8 +1528,8 @@ def get_correlation_real(x1,x2):
         ln1 = x1._node
         ln2 = x2._node
         
-        if ln1 is ln2:
-            return 1.0
+        if ln1.independent:
+            return 0.0
         else:
             return ln1.correlation.get( ln2.uid, 0.0 )
         
@@ -1635,8 +1635,11 @@ def get_covariance_real(x1,x2):
     """
     if x1.is_elementary and x2.is_elementary:
         n1 = x1._node
-        n2 = x2._node
-        return n1.u*n1.correlation.get(n2.uid,0.0)*n2.u
+        if n1.independent:
+            return 0.0
+        else:
+            n2 = x2._node
+            return n1.u*n1.correlation.get(n2.uid,0.0)*n2.u
     else:        
         return std_covariance_real(x1,x2) 
         
@@ -1983,9 +1986,9 @@ class UncertainComplex(object):
         # trivial addition and subtraction of zero to 
         # produce a new uncertain number.
         # 
-        assert (i.is_elementary == r.is_elementary) or\
-            (i.is_elementary and _is_uncertain_real_constant(r)) or\
-            (r.is_elementary and _is_uncertain_real_constant(i))
+        # assert (i.is_elementary == r.is_elementary) or\
+            # (i.is_elementary and _is_uncertain_real_constant(r)) or\
+            # (r.is_elementary and _is_uncertain_real_constant(i))
             
         assert i.is_intermediate == r.is_intermediate
         
@@ -3831,11 +3834,22 @@ def willink_hall(x):
     real = x.real
     imag = x.imag
 
-    if real.is_elementary:
-        assert imag.is_elementary
+    if (
+        real.is_elementary and imag.is_elementary
+    or  real.is_elementary and _is_uncertain_real_constant(imag)
+    or  imag.is_elementary and _is_uncertain_real_constant(real)
+    ):
+        vr = real.v if real.is_elementary else 0.0
+        vi = real.v if imag.is_elementary else 0.0
+        
+        if real.is_elementary and imag.is_elementary:
+            cv = get_covariance_real(real,imag)
+        else:
+            cv = 0.0
+            
         return VarianceAndDof(
-            std_variance_covariance_complex(x),
-            real.df
+            (vr,cv,cv,vi),
+            real.df if real.is_elementary else imag.df
         )
     else:
         # Separate the work to be done on 
