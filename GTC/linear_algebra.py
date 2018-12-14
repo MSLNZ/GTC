@@ -9,13 +9,17 @@ except ImportError:
 import numpy as np
 
 from GTC.uncertain_array import UncertainArray
+from GTC import LU
 
 __all__ = (
     'uarray',
     'dot',
     'matmul',
+    'solve',
+    'inv',
+    'det',
+    'identity','zeros','ones','empty','full'
 )
-
 
 def uarray(array, label=None, dtype=None, names=None):
     """Create an array of uncertain numbers.
@@ -30,8 +34,8 @@ def uarray(array, label=None, dtype=None, names=None):
                   :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` elements.
     :param label: A label to assign to the `array`. This `label` does not
                   change the labels that were previously assigned to each array
-                  element when they were created using :func:`ureal` or
-                  :func:`ucomplex`.
+                  element when they were created using :func:`~core.ureal` or
+                  :func:`~core.ucomplex`.
     :type label: str
     :param dtype: The data type to use to create the array.
     :type dtype: :class:`numpy.dtype`
@@ -152,3 +156,131 @@ def dot(lhs, rhs):
     :rtype: :class:`.UncertainArray`
     """
     return UncertainArray(np.dot(lhs, rhs))
+
+#---------------------------------------------------------------------------
+def solve(a,b):
+    """Return :math:`x`, the solution of :math:`a \cdot x = b`
+
+    :arg a: 2D :class:`~uncertain_array.UncertainArray`
+    :arg b: :class:`~uncertain_array.UncertainArray`
+    
+    :rtype: :class:`~uncertain_array.UncertainArray`
+
+    
+    **Example**::
+    
+        >>> a = la.uarray([[-2,3],[-4,1]])
+        >>> b = la.uarray([4,-2])
+        >>> la.solve(a,b)
+        UncertainArray([1.0, 2.0], dtype=object)
+    
+    """
+    return LU.solve(a,b)
+    
+
+#---------------------------------------------------------------------------
+def inv(a):
+    """Return the (multiplicative) matrix inverse 
+
+    **Example**::
+    
+        >>> x = la.uarray( [[2,1],[3,4]])
+        >>> x_inv =la.inv(x)
+        >>> la.matmul(x,x_inv)
+        UncertainArray([[1.0, 0.0],
+                [4.440892098500626e-16, 1.0]], dtype=object)
+    
+    """
+    return LU.invab(a,np.identity(a.shape[0]))
+
+#---------------------------------------------------------------------------
+def det(a):
+    """Return the matrix determinant
+
+    **Example**::
+    
+        >>> x = la.uarray( range(4) )
+        >>> x.shape = 2,2
+        >>> print x
+        [[0 1]
+        [2 3]]
+        >>> la.det(x)
+        -2.0
+
+    """    
+    a_lu, i, p = LU.ludcmp(a.copy())
+    return LU.ludet(a_lu,p)
+
+#---------------------------------------------------------------------------
+def identity(n,dtype=None):
+    """Return an identity array with ``n`` dimensions
+    
+    **Example**::
+    
+        >>> la.identity(3)
+        UncertainArray([[1, 0, 0],
+                    [0, 1, 0],
+                    [0, 0, 1]], dtype=object)
+        
+    """    
+    if dtype is None: dtype=object
+    return uarray( np.identity(n,dtype=dtype) )
+
+def empty(shape,dtype=None):
+    """Return an array of shape ``shape`` containing ``None`` elements
+    
+    **Example**::
+    
+        >>> la.empty( (2,3) )
+        UncertainArray([[None, None, None],
+                    [None, None, None]], dtype=object)
+        
+    """
+    if dtype is None: dtype=object
+    return uarray( np.empty(shape,dtype=dtype) )
+
+
+def zeros(shape,dtype=None):
+    """Return an array of shape ``shape`` containing ``0``'s
+    
+    **Example**::
+    
+        >>> la.zeros( (2,3) )
+        UncertainArray([[0, 0, 0],
+                [0, 0, 0]], dtype=object)
+        
+    """
+    if dtype is None: dtype=object
+    return uarray( np.zeros(shape,dtype=dtype) )
+
+def ones(shape,dtype=None):
+    """Return an array of shape ``shape`` containing ``1``'s
+
+    **Example**::
+    
+        >>> la.ones( (2,3) )
+        UncertainArray([[1, 1, 1],
+                    [1, 1, 1]], dtype=object)
+    
+    """
+    if dtype is None: dtype=object
+    return uarray( np.ones(shape,dtype=dtype) )
+    
+def full(shape,fill_value,dtype=None):
+    """Return an array of shape ``shape`` containing ``fill_value``'s
+
+    **Example**::
+    
+        >>> la.full( (1,3),ureal(2,1) )
+        UncertainArray([[ureal(2.0,1.0,inf), ureal(2.0,1.0,inf),
+                 ureal(2.0,1.0,inf)]], dtype=object)
+    
+    """
+    if dtype is None: dtype=object
+    return uarray( np.full(shape,fill_value,dtype=dtype) )
+
+#============================================================================    
+if __name__ == "__main__":
+    import doctest       
+    from GTC import *
+    doctest.testmod(  optionflags=doctest.NORMALIZE_WHITESPACE )
