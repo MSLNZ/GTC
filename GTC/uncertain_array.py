@@ -58,24 +58,7 @@ else:
         UncertainArray = None
     else:
 
-        def _isnan(number):
-            val = value(number)
-            if isinstance(val, Real):
-                return isnan(val)
-            elif isinstance(val, Complex):
-                return cisnan(val)
-            else:
-                raise TypeError('cannot calculate isnan of type {}'.format(type(number)))
-
-        def _isinf(number):
-            val = value(number)
-            if isinstance(val, Real):
-                return isinf(val)
-            elif isinstance(val, Complex):
-                return cisinf(val)
-            else:
-                raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
-
+        #--------------------------------------------------------------------
         class UncertainArray(np.ndarray):
             """Base: :class:`numpy.ndarray`
 
@@ -83,7 +66,7 @@ else:
             :class:`int`, :class:`float`, :class:`complex`,
             :class:`.UncertainReal` or :class:`.UncertainComplex`.
 
-            Do not instantiate this class directly. Use :func:`~.core.uarray` instead.
+            Do not instantiate this class directly. Use :func:`~.uarray` instead.
 
             """
             def __new__(cls, array, dtype=None, label=None):
@@ -164,10 +147,19 @@ else:
                     i = np_array_repr.rfind('dtype=object')
                     if i == -1:
                         # if dtype is not `object`, show it
-                        return prefix + np_array_repr[14:]
+                        output = prefix + np_array_repr[14:]
                     else:
                         i = np_array_repr[:i].rfind(',') # trailing ',' 
-                        return prefix + np_array_repr[14:i] + ')'
+                        output = prefix + np_array_repr[14:i] + ')'
+                    
+                    # numpy used the width of the class name in formating new
+                    # line indents but we have replaced this with 'uarray'!
+                    extra_space = ' '*(len('UncertainArray') - len('uarray'))
+                    return ''.join([ 
+                        l_i.replace(extra_space,'',1) 
+                            for l_i in output.splitlines(True) # Retains \n's
+                    ])
+                    
                 else:
                     return np_array_repr
                 
@@ -195,8 +187,8 @@ else:
 
                     >>> a = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> a.real
-                    UncertainArray([ureal(1.2,0.6,inf), ureal(3.2,1.4,inf),
-                                    ureal(0.0,0.9,inf)], dtype=object)
+                    uarray([ureal(1.2,0.6,inf), ureal(3.2,1.4,inf),
+                            ureal(0.0,0.9,inf)])
 
                 :rtype: :class:`UncertainArray`
                 """
@@ -217,8 +209,8 @@ else:
 
                     >>> a = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> a.imag
-                    UncertainArray([ureal(-0.5,0.6,inf), ureal(1.2,0.2,inf),
-                                    ureal(1.5,0.9,inf)], dtype=object)
+                    uarray([ureal(-0.5,0.6,inf), ureal(1.2,0.2,inf),
+                            ureal(1.5,0.9,inf)])
 
                 :rtype: :class:`UncertainArray`
                 """
@@ -349,10 +341,9 @@ else:
 
                     >>> a = uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> a.conjugate()
-                    UncertainArray([ucomplex((1.2+0.5j), u=[0.6,0.6], r=0.0, df=inf),
-                                    ucomplex((3.2-1.2j), u=[1.4,0.2], r=0.0, df=inf),
-                                    ucomplex((0-1.5j), u=[0.9,0.9], r=0.0, df=inf)],
-                                   dtype=object)
+                    uarray([ucomplex((1.2+0.5j), u=[0.6,0.6], r=0.0, df=inf),
+                            ucomplex((3.2-1.2j), u=[1.4,0.2], r=0.0, df=inf),
+                            ucomplex((0-1.5j), u=[0.9,0.9], r=0.0, df=inf)])
 
                 :rtype: :class:`UncertainArray`
                 """
