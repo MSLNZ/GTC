@@ -194,10 +194,10 @@ def ludet(a_lu,p):
     Return the determinant of a matrix `a` using its LU decomposition `a_lu`
 
     Usage::
-        >>> a = .... # some matrix
-        >>> parity = 1 # value is not important
-        >>> a_lu,i,p = ludcmp(a.copy())
-        >>> d = ludet(a_lu,p)
+        a = .... # some matrix
+        parity = 1 # value is not important
+        a_lu,i,p = ludcmp(a.copy())
+        d = ludet(a_lu,p)
 
     """
     Nx,Ny = a_lu.shape

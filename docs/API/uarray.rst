@@ -39,7 +39,7 @@ Import the necessary **GTC** functions and modules
 
 .. code-block:: pycon
 
-   >>> from GTC import ureal, uarray, cos, type_a
+   >>> from GTC import ureal, cos, type_a
 
 Next, define the uncertain arrays
 

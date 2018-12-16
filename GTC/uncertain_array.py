@@ -162,37 +162,10 @@ else:
                 # Use the numpy formating but hide the default dtype
                 np_array_repr = np.array_repr(self)
                 
-                if np_array_repr.find('uarray(') == 0:
-                    i = np_array_repr.rfind('dtype=object')
-                    if i == -1:
-                        # if dtype is not `object`, show it
-                        output = prefix + np_array_repr[14:]
-                    else:
-                        i = np_array_repr[:i].rfind(',') # trailing ',' 
-                        output = np_array_repr[:i] + ')'
-                                    
-                    return output 
-                    
-                # if np_array_repr.find('UncertainArray(') == 0:
-                    # assert False
-                    # prefix = 'uarray'
-
-                    # i = np_array_repr.rfind('dtype=object')
-                    # if i == -1:
-                        # # if dtype is not `object`, show it
-                        # output = prefix + np_array_repr[14:]
-                    # else:
-                        # i = np_array_repr[:i].rfind(',') # trailing ',' 
-                        # output = prefix + np_array_repr[14:i] + ')'
-                    
-                    # # numpy used the width of the class name in formating new
-                    # # line indents but we have replaced this with 'uarray'!
-                    # extra_space = ' '*(len('UncertainArray') - len('uarray'))
-                    # return ''.join([ 
-                        # l_i.replace(extra_space,'',1) 
-                            # for l_i in output.splitlines(True) # Retains \n's
-                    # ])
-                    
+                if self.dtype == np.object:
+                    # Truncate string from trailing ',' 
+                    i = np_array_repr.rfind(',')  
+                    return np_array_repr[:i] + ')'                    
                 else:
                     return np_array_repr
                 
@@ -766,3 +739,6 @@ else:
 
             def all(self, *args, **kwargs):
                 return np.asarray(self, dtype=np.bool).all(*args, **kwargs)
+                
+        # Allows pickle to understand the class name 'uarray'         
+        uarray = UncertainArray
