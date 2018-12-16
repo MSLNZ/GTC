@@ -57,6 +57,23 @@ else:
         # The __array_ufunc__ method was not introduced until v1.13.0
         UncertainArray = None
     else:
+        def _isnan(number):
+            val = value(number)
+            if isinstance(val, Real):
+                return isnan(val)
+            elif isinstance(val, Complex):
+                return cisnan(val)
+            else:
+                raise TypeError('cannot calculate isnan of type {}'.format(type(number)))
+
+        def _isinf(number):
+            val = value(number)
+            if isinstance(val, Real):
+                return isinf(val)
+            elif isinstance(val, Complex):
+                return cisinf(val)
+            else:
+                raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
 
         #--------------------------------------------------------------------
         class UncertainArray(np.ndarray):

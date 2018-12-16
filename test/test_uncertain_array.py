@@ -17,7 +17,6 @@ import numpy as np
 from GTC.core import (
     ureal,
     ucomplex,
-    uarray,
     cos,
     sin,
     tan,
@@ -46,7 +45,7 @@ from GTC.uncertain_array import UncertainArray
 from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
 from GTC import type_a
-from GTC.linear_algebra import matmul
+from GTC.linear_algebra import matmul, uarray
 
 from testing_tools import *
 
