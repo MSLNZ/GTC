@@ -79,6 +79,11 @@ else:
             def __array_finalize__(self, obj):
                 if obj is None: return
                 self._label = getattr(obj, 'label', None)
+                
+                # numpy looks at type().__name__ when preparing
+                # a string representation of the object. This 
+                # change means we see `uarray` not `UncertainArray`.
+                self.__class__.__name__ = 'uarray'
 
             def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
                 try:
@@ -137,28 +142,39 @@ else:
                 return a, a.itemset, inputs[0].item, inputs[1].item
 
             def __repr__(self):
-                # Use the numpy formating but replace the class name 
-                # with 'uarray' and hide the default dtype
+                # Use the numpy formating but hide the default dtype
                 np_array_repr = np.array_repr(self)
                 
-                if np_array_repr.find('UncertainArray(') == 0:
-                    prefix = 'uarray'
-
+                if np_array_repr.find('uarray(') == 0:
                     i = np_array_repr.rfind('dtype=object')
                     if i == -1:
                         # if dtype is not `object`, show it
                         output = prefix + np_array_repr[14:]
                     else:
                         i = np_array_repr[:i].rfind(',') # trailing ',' 
-                        output = prefix + np_array_repr[14:i] + ')'
+                        output = np_array_repr[:i] + ')'
+                                    
+                    return output 
                     
-                    # numpy used the width of the class name in formating new
-                    # line indents but we have replaced this with 'uarray'!
-                    extra_space = ' '*(len('UncertainArray') - len('uarray'))
-                    return ''.join([ 
-                        l_i.replace(extra_space,'',1) 
-                            for l_i in output.splitlines(True) # Retains \n's
-                    ])
+                # if np_array_repr.find('UncertainArray(') == 0:
+                    # assert False
+                    # prefix = 'uarray'
+
+                    # i = np_array_repr.rfind('dtype=object')
+                    # if i == -1:
+                        # # if dtype is not `object`, show it
+                        # output = prefix + np_array_repr[14:]
+                    # else:
+                        # i = np_array_repr[:i].rfind(',') # trailing ',' 
+                        # output = prefix + np_array_repr[14:i] + ')'
+                    
+                    # # numpy used the width of the class name in formating new
+                    # # line indents but we have replaced this with 'uarray'!
+                    # extra_space = ' '*(len('UncertainArray') - len('uarray'))
+                    # return ''.join([ 
+                        # l_i.replace(extra_space,'',1) 
+                            # for l_i in output.splitlines(True) # Retains \n's
+                    # ])
                     
                 else:
                     return np_array_repr
