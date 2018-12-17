@@ -12,7 +12,8 @@
 # the `unittest discover` command will not attempt to import it.
 import numpy as np
 
-from GTC import ureal, uarray
+from GTC import ureal
+from GTC.linear_algebra import uarray
 
 from testing_tools import equivalent
 
