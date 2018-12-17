@@ -109,13 +109,13 @@ class TestLUScalar(unittest.TestCase):
         numpy_det = numpy.linalg.det(a)
         a_lu,i,p = ludcmp( a.copy() )
         lu_det = ludet(a_lu,p)
-        self.assert_( equivalent(numpy_det,lu_det) )
+        self.assertTrue( equivalent(numpy_det,lu_det) )
 
         # Solve system of equations
         numpy_soln = numpy.linalg.solve( a, b )
         lu_soln = solve( a,b )
         for b1,b2 in zip(numpy_soln,lu_soln):
-            self.assert_( equivalent(b1,b2) )    
+            self.assertTrue( equivalent(b1,b2) )
 
 #-----------------------------------------------------
 class TestLUInvProduct(unittest.TestCase):
