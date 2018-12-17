@@ -3566,6 +3566,24 @@ class TestUncertainArray(unittest.TestCase):
         wt_ave = sum(weights[idx] * r[idx].x for idx in range(len(r))) / sum(weights)
         self.assertTrue(equivalent(wt_ave, np.average(ra.value(float), weights=1.0/ra.variance(float))))
 
+    def test_broadcasting(self):
+        x = uarray([[ureal(1, 1)], [ureal(2, 2)], [ureal(3, 3)]])
+        y = uarray([ureal(4, 4), ureal(5, 5), ureal(6, 6)])
+        got = x + y
+
+        expect = uarray(
+            [[ureal(1, 1) + ureal(4, 4), ureal(1, 1) + ureal(5, 5), ureal(1, 1) + ureal(6, 6)],
+             [ureal(2, 2) + ureal(4, 4), ureal(2, 2) + ureal(5, 5), ureal(2, 2) + ureal(6, 6)],
+             [ureal(3, 3) + ureal(4, 4), ureal(3, 3) + ureal(5, 5), ureal(3, 3) + ureal(6, 6)]]
+        )
+
+        self.assertTrue(x.shape != y.shape)
+        self.assertTrue(got.shape == expect.shape)
+        for i in range(3):
+            for j in range(3):
+                self.assertTrue(equivalent(got[i, j].x, expect[i, j].x))
+                self.assertTrue(equivalent(got[i, j].u, expect[i, j].u))
+
     #
     # The following is a list of all ufuncs
     #
