@@ -45,11 +45,11 @@ Array broadcasting
     
         >>> x = la.uarray([1,2])
         >>> y = la.uarray([[1],[2]])
-        >>> print x.shape,y.shape
+        >>> print(x.shape,y.shape)  # doctest: +SKIP
         (2,) (2, 1)
         >>> x + y
         uarray([[2, 3],
-        [3, 4]])
+                [3, 4]])
         
 Module contents
 ---------------
@@ -267,7 +267,7 @@ def det(a):
     
         >>> x = la.uarray( range(4) )
         >>> x.shape = 2,2
-        >>> print x
+        >>> print(x)
         [[0 1]
         [2 3]]
         >>> la.det(x)
