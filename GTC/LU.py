@@ -7,6 +7,11 @@ Provides LU decomposition functions for Python objects stored in 2D arrays.
 :func:`invab` 
 """
 from __future__ import division
+from functools import reduce
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range
 
 import numpy as np 
 import array

@@ -5,6 +5,10 @@ import cmath
 import numpy
 import operator
 import collections
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range
 
 TOL = 1E-13
 DIGITS = 13

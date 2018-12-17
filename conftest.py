@@ -1,14 +1,19 @@
 """
 Injects GTC in to the doctest namespace for pytest.
 """
+import sys
+
 import pytest
 
 from GTC import *
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(autouse=True)
 def add_gtc(doctest_namespace):
-    for key, value in globals().items():
+    for key, val in globals().items():
         if key.startswith('_'):
             continue
-        doctest_namespace[key] = value
+        doctest_namespace[key] = val
+
+    if sys.version_info.major > 2:
+        doctest_namespace['xrange'] = range
