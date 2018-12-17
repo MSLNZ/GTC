@@ -150,6 +150,29 @@ else:
 
                 return attr(*inputs)
 
+            def __repr__(self):
+                # Use the numpy formatting but hide the default dtype
+                np_array_repr = np.array_repr(self)
+                
+                if self.dtype == np.object:
+                    # Truncate string from trailing ',' 
+                    i = np_array_repr.rfind(',')  
+                    return np_array_repr[:i] + ')'                    
+                else:
+                    return np_array_repr
+
+            def __matmul__(self, other):
+                # Implements the protocol used by the '@' operator defined in PEP 465.
+                # import here to avoid circular imports
+                from GTC.linear_algebra import matmul
+                return matmul(self, other)
+
+            def __rmatmul__(self, other):
+                # Implements the protocol used by the '@' operator defined in PEP 465.
+                # import here to avoid circular imports
+                from GTC.linear_algebra import matmul
+                return matmul(other, self)
+
             def _create_empty(self, inputs=None, dtype=None, order='C'):
                 if dtype is None:
                     dtype = object
@@ -164,17 +187,6 @@ else:
                 # then the inputs are already broadcasted iterators
                 return a, a.itemset, izip(*inputs)
 
-            def __repr__(self):
-                # Use the numpy formatting but hide the default dtype
-                np_array_repr = np.array_repr(self)
-                
-                if self.dtype == np.object:
-                    # Truncate string from trailing ',' 
-                    i = np_array_repr.rfind(',')  
-                    return np_array_repr[:i] + ')'                    
-                else:
-                    return np_array_repr
-                
             @property
             def label(self):
                 """The label that was assigned to the array when it was created.
@@ -560,12 +572,6 @@ else:
                     itemset(i, phase(item))
                 return UncertainArray(arr)
 
-            def copy(self, order='C'):
-                arr, itemset, iterator = self._create_empty(order=order)
-                for i, item in enumerate(iterator):
-                    itemset(i, +item)
-                return UncertainArray(arr, label=self.label)
-
             def _equal(self, *inputs):
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
@@ -682,17 +688,11 @@ else:
                     itemset(i, abs(item))
                 return UncertainArray(arr)
 
-            def __matmul__(self, other):
-                # Implements the protocol used by the '@' operator defined in PEP 465.
-                # import here to avoid circular imports
-                from GTC.linear_algebra import matmul
-                return matmul(self, other)
-
-            def __rmatmul__(self, other):
-                # Implements the protocol used by the '@' operator defined in PEP 465.
-                # import here to avoid circular imports
-                from GTC.linear_algebra import matmul
-                return matmul(other, self)
+            def copy(self, order='C'):
+                arr, itemset, iterator = self._create_empty(order=order)
+                for i, item in enumerate(iterator):
+                    itemset(i, +item)
+                return UncertainArray(arr, label=self.label)
 
             def round(self, decimals=0, **kwargs):
                 digits = kwargs.get('digits', decimals)
