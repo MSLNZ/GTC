@@ -628,29 +628,29 @@ else:
                         itemset(i, b)
                 return UncertainArray(arr)
 
-            def _logical_and(self, *inputs):
-                arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                for i, (a, b) in enumerate(iterator):
-                    itemset(i, bool(a) and bool(b))
-                return arr
+            # def _logical_and(self, *inputs):
+                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
+                # for i, (a, b) in enumerate(iterator):
+                    # itemset(i, bool(a) and bool(b))
+                # return arr
 
-            def _logical_or(self, *inputs):
-                arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                for i, (a, b) in enumerate(iterator):
-                    itemset(i, bool(a) or bool(b))
-                return arr
+            # def _logical_or(self, *inputs):
+                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
+                # for i, (a, b) in enumerate(iterator):
+                    # itemset(i, bool(a) or bool(b))
+                # return arr
 
-            def _logical_xor(self, *inputs):
-                arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                for i, (a, b) in enumerate(iterator):
-                    itemset(i, bool(a) ^ bool(b))
-                return arr
+            # def _logical_xor(self, *inputs):
+                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
+                # for i, (a, b) in enumerate(iterator):
+                    # itemset(i, bool(a) ^ bool(b))
+                # return arr
 
-            def _logical_not(self, *inputs):
-                arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                for i, item in enumerate(iterator):
-                    itemset(i, not bool(item))
-                return arr
+            # def _logical_not(self, *inputs):
+                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
+                # for i, item in enumerate(iterator):
+                    # itemset(i, not bool(item))
+                # return arr
 
             def _isinf(self, *inputs):
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
@@ -711,11 +711,11 @@ else:
             def mean(self, *args, **kwargs):
                 return UncertainArray(np.asarray(self).mean(*args, **kwargs))
 
-            def std(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).std(*args, **kwargs))
+            # def std(self, *args, **kwargs):
+                # return UncertainArray(np.asarray(self).std(*args, **kwargs))
 
-            def var(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).var(*args, **kwargs))
+            # def var(self, *args, **kwargs):
+                # return UncertainArray(np.asarray(self).var(*args, **kwargs))
 
             def max(self, *args, **kwargs):
                 return UncertainArray(np.asarray(self).max(*args, **kwargs))
