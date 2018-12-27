@@ -430,25 +430,21 @@ def constant(x,label=None):
 #----------------------------------------------------------------------------
 def result(un,label=None):
     """
-    Declare ``un`` to be an uncertain-number 'result'
+    Declare the uncertain number ``un`` to be an intermediate result
     
-    `un` - an uncertain number
-    `label` - a label can be assigned
+    `un` - an uncertain number or :class:`~core.UncertainArray`
+    `label` - a string or sequence of strings
     
-    This function must be called before other
-    uncertain numbers are derived from the
-    uncertain number.
+    This function must be called before any other uncertain numbers 
+    are defined that depend on ``un``.
     
-    The dependence of other uncertain numbers on a
-    declared intermediate result evaluated. 
-    
-    Declaring intermediate results also enables
-    these results and the dependence of other 
-    uncertain numbers to be stored in an archive.
+    The component of uncertainty of an uncertain number with respect to 
+    an intermediate result can be evaluated. Declaring intermediate results 
+    also enables the dependencies of uncertain numbers to be stored in an archive.
 
-    :arg un: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
-    :arg label: str
-    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
+    :arg un: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray`
+    :arg label: str or a sequence of str
+    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray`
     
     **Example**::
 
@@ -461,17 +457,16 @@ def result(un,label=None):
         
     """
     un = +un 
-    
-    if isinstance(un,UncertainReal):
-        UncertainReal._intermediate(un,label)
-        
-    elif isinstance(un,UncertainComplex):
-        UncertainComplex._intermediate(un,label)
-        
-    else:
-        raise TypeError(
-            "expected an uncertain number '{!r}'".format(un)
-        )
+    try:
+        un._intermediate(label)
+    except AttributeError:
+        if isinstance(un,numbers.Complex):
+            #Allow numbers to be quietly overlooked
+            pass
+        else:
+            raise TypeError(
+                "`result` is undefined for {!r}'".format(un)
+            )
           
     return un 
 

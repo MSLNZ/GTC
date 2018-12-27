@@ -203,8 +203,7 @@ else:
 
             @property
             def real(self):
-                """The result of :attr:`UncertainReal.real <.lib.UncertainReal.real>` or
-                :attr:`UncertainComplex.real <.lib.UncertainComplex.real>` for each
+                """The result of applying the attribute ``real`` to each
                 element in the array.
 
                 **Example**::
@@ -225,8 +224,7 @@ else:
 
             @property
             def imag(self):
-                """The result of :attr:`UncertainReal.imag <.lib.UncertainReal.imag>` or
-                :attr:`UncertainComplex.imag <.lib.UncertainComplex.imag>` for each
+                """The result of applying the attribute ``imag`` to each
                 element in the array.
 
                 **Example**::
@@ -247,8 +245,7 @@ else:
 
             @property
             def r(self):
-                """The result of :attr:`UncertainComplex.r <.lib.UncertainComplex.r>`
-                for each element in the array.
+                """The result of applying the attribute ``r`` to  each element in the array.
 
                 **Example**::
 
@@ -357,9 +354,7 @@ else:
                 return arr
 
             def conjugate(self):
-                """The result of :meth:`UncertainReal.conjugate() <.lib.UncertainReal.conjugate>`
-                or :meth:`UncertainComplex.conjugate() <.lib.UncertainComplex.conjugate>`
-                for each element in the array.
+                """The result of applying the attribute ``conjugate`` to each element in the array.
 
                 **Example**::
 
@@ -634,29 +629,32 @@ else:
                         itemset(i, b)
                 return UncertainArray(arr)
 
-            # def _logical_and(self, *inputs):
-                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                # for i, (a, b) in enumerate(iterator):
-                    # itemset(i, bool(a) and bool(b))
-                # return arr
+            def _logical_and(self, *inputs):
+                arr, itemset, iterator = self._create_empty(inputs, dtype=object)
+                for i, (a, b) in enumerate(iterator):
+                    itemset(i, a and b )
+                return UncertainArray(arr)
 
-            # def _logical_or(self, *inputs):
-                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                # for i, (a, b) in enumerate(iterator):
-                    # itemset(i, bool(a) or bool(b))
-                # return arr
+            def _logical_or(self, *inputs):
+                arr, itemset, iterator = self._create_empty(inputs, dtype=object)
+                for i, (a, b) in enumerate(iterator):
+                    itemset(i, a or b )
+                return UncertainArray(arr)
 
-            # def _logical_xor(self, *inputs):
+            def _logical_xor(self, *inputs):
+                raise TypeError(
+                    "Boolean bitwise operations are not defined for `UncertainArray`"
+                )
                 # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 # for i, (a, b) in enumerate(iterator):
                     # itemset(i, bool(a) ^ bool(b))
                 # return arr
 
-            # def _logical_not(self, *inputs):
-                # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
-                # for i, item in enumerate(iterator):
-                    # itemset(i, not bool(item))
-                # return arr
+            def _logical_not(self, *inputs):
+                arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
+                for i, item in enumerate(iterator):
+                    itemset(i, not bool(item))
+                return arr
 
             def _isinf(self, *inputs):
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
@@ -711,10 +709,16 @@ else:
             def mean(self, *args, **kwargs):
                 return UncertainArray(np.asarray(self).mean(*args, **kwargs))
 
-            # def std(self, *args, **kwargs):
+            def std(self, *args, **kwargs):
+                raise TypeError(
+                    "`std` is not defined for `UncertainArray`"
+                )
                 # return UncertainArray(np.asarray(self).std(*args, **kwargs))
 
-            # def var(self, *args, **kwargs):
+            def var(self, *args, **kwargs):
+                raise TypeError(
+                    "`var` is not defined for `UncertainArray`"
+                )
                 # return UncertainArray(np.asarray(self).var(*args, **kwargs))
 
             def max(self, *args, **kwargs):

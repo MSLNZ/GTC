@@ -189,10 +189,9 @@ class UncertainReal(object):
                 ,   ln
                 )
     #------------------------------------------------------------------------
-    @classmethod
-    def _intermediate(cls,un,label):
+    def _intermediate(self,label):
         """
-        Create an intermediate uncertain number
+        Make this object an intermediate uncertain real number
         
         To investigate the sensitivity of subsequent results,
         an intermediate UN must be declared.
@@ -203,22 +202,22 @@ class UncertainReal(object):
         :arg label: str
         
         """
-        if not un.is_elementary:
-            if not un.is_intermediate:                     
+        if not self.is_elementary:
+            if not self.is_intermediate:                     
                 # A new registration 
                 uid = context._context._next_intermediate_id()
                 
-                u = un.u
-                un._node = context._context.new_node(uid,label,u)
+                u = self.u
+                self._node = context._context.new_node(uid,label,u)
 
                 # Seed the Vector of intermediate components 
                 # with this new Node object, so that uncertainty 
                 # will be propagated.
-                un._i_components = vector.merge_vectors(
-                    un._i_components,
-                    vector.Vector( index=[un._node], value=[u] )
+                self._i_components = vector.merge_vectors(
+                    self._i_components,
+                    vector.Vector( index=[self._node], value=[u] )
                 )
-                un.is_intermediate = True
+                self.is_intermediate = True
                             
             # else:
                 # Assume that it has been registered, perhaps the 
@@ -2089,10 +2088,10 @@ class UncertainComplex(object):
         return ucomplex   
         
     #----------------------------------------------------------------------------
-    @classmethod
-    def _intermediate(cls,z,label):
+    # @classmethod
+    def _intermediate(self,label):
         """
-        Return an intermediate uncertain complex number
+        Make this object an intermediate uncertain complex number
 
         :arg z: the uncertain complex number
         :type z: :class:`UncertainComplex`
@@ -2106,16 +2105,17 @@ class UncertainComplex(object):
         
         """
         if label is None:
-            UncertainReal._intermediate(z.real,None)
-            UncertainReal._intermediate(z.imag,None) 
+            self.real._intermediate(None)
+            self.imag._intermediate(None) 
         else:
             label_r = "{}_re".format(label)
             label_i = "{}_im".format(label)
             
-            UncertainReal._intermediate(z.real,label_r)
-            UncertainReal._intermediate(z.imag,label_i) 
+            self.real._intermediate(label_r)
+            self.imag._intermediate(label_i) 
             
-        z._label = label
+        self._label = label
+        
         
     #------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
