@@ -22,7 +22,7 @@ class TestMisc(unittest.TestCase):
         x1 = ucomplex(10,1)
         x2 = x1**2 
         y = magnitude(x1*3j + x2) 
-        self.assertRaises(RuntimeError,rp.u_component,y,x2)
+        self.assertRaises(TypeError,rp.u_component,y,x2)
         
         # non-intermediate complex component
         y = x1*3j + x2
@@ -32,7 +32,7 @@ class TestMisc(unittest.TestCase):
         x1 = ureal(10,1)
         x2 = x1**2 
         y = x1*3j + x2 
-        self.assertRaises(RuntimeError,rp.u_component,y,x2)
+        self.assertRaises(TypeError,rp.u_component,y,x2)
         
         # y must be an uncertain type
         self.assertRaises(RuntimeError,rp.u_component,10.0,x2)

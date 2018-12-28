@@ -185,10 +185,10 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(df[1, 0], 3.0))
         self.assertTrue(equivalent(df[1, 1], 4.0))
 
-        # the ucomplex class has a `r` property, but ureal does not
-        with self.assertRaises(AttributeError) as err:
-            _ = a.r
-        self.assertTrue(str(err.exception) == "'UncertainReal' object has no attribute 'r'")
+        # # the ucomplex class has a `r` property, but ureal does not
+        # with self.assertRaises(AttributeError) as err:
+            # _ = a.r
+        # self.assertTrue(str(err.exception) == "'UncertainReal' object has no attribute 'r'")
 
     def test_value_uncertainty_variance_r_dof_ucomplex(self):
         # make sure that a uarray of size==1 is okay

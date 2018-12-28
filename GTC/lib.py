@@ -832,7 +832,7 @@ class UncertainReal(object):
             0.0
             
         """
-        return self._x
+        return 0.0
 
     #------------------------------------------------------------------------
     @property
