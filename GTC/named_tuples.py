@@ -81,6 +81,27 @@ ComponentOfUncertainty = namedtuple('ComponentOfUncertainty','rr, ri, ir, ii')
 
    """
 
+JacobianMatrix = namedtuple('JacobianMatrix','rr, ri, ir, ii')
+""":obj:`~collections.namedtuple`: Partial derivatives of one complex with respect to another
+ 
+.. attribute:: rr
+  
+   :class:`float`: real component with respect to real component
+  
+.. attribute:: ri
+  
+   :class:`float`: real component with respect to imaginary component
+ 
+.. attribute:: ir
+  
+   :class:`float`: imaginary component with respect to real component
+   
+.. attribute:: ii
+  
+   :class:`float`: imaginary component with respect to imaginary component
+
+   """
+   
 Influence = namedtuple('Influence','label, u')
 """:obj:`~collections.namedtuple`: label and value of a component of uncertainty
  
@@ -157,5 +178,4 @@ GroomedUncertainComplex = namedtuple(
     # )
 # InterceptSlope = namedtuple('intercept_slope','a b')
 
-# JacobianMatrix = namedtuple('jacobian_matrix','rr ri ir ii')
 

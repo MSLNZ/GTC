@@ -24,6 +24,10 @@ from GTC.named_tuples import (
     VarianceCovariance, 
     VarianceAndDof, 
     StandardUncertainty,
+    ComponentOfUncertainty, 
+    JacobianMatrix,
+    CorrelationMatrix,
+    CovarianceMatrix,
     GroomedUncertainReal,
     GroomedUncertainComplex,
 )
@@ -32,6 +36,7 @@ from GTC import (
     inf, 
     nan, 
     inf_dof, 
+    is_sequence,
 )
 
 LOG10_E = math.log10(math.e)
@@ -188,47 +193,7 @@ class UncertainReal(object):
                 ,   vector.Vector( )
                 ,   ln
                 )
-    #------------------------------------------------------------------------
-    def _intermediate(self,label):
-        """
-        Make this object an intermediate uncertain real number
-        
-        To investigate the sensitivity of subsequent results,
-        an intermediate UN must be declared.
-        
-        Parameters
-        ----------
-        :arg un: :class:`UncertainReal`
-        :arg label: str
-        
-        """
-        if not self.is_elementary:
-            if not self.is_intermediate:                     
-                # A new registration 
-                uid = context._context._next_intermediate_id()
-                
-                u = self.u
-                self._node = context._context.new_node(uid,label,u)
 
-                # Seed the Vector of intermediate components 
-                # with this new Node object, so that uncertainty 
-                # will be propagated.
-                self._i_components = vector.merge_vectors(
-                    self._i_components,
-                    vector.Vector( index=[self._node], value=[u] )
-                )
-                self.is_intermediate = True
-                            
-            # else:
-                # Assume that it has been registered, perhaps the 
-                # user has repeated the registration process.
-
-        # else:
-            # There should be no harm in ignoring elementary UNs.
-            # They will be archived properly and they are not dependent
-            # on anything. It is convenient for the user not to worry
-            # whether or not something is elementary or not. 
-            
     #------------------------------------------------------------------------
     @classmethod
     def _archived_elementary(cls,uid,x):
@@ -271,6 +236,47 @@ class UncertainReal(object):
         
         return un  
         
+    #------------------------------------------------------------------------
+    def _intermediate(self,label):
+        """
+        Make this object an intermediate uncertain real number
+        
+        To investigate the sensitivity of subsequent results,
+        an intermediate UN must be declared.
+        
+        Parameters
+        ----------
+        :arg un: :class:`UncertainReal`
+        :arg label: str
+        
+        """
+        if not self.is_elementary:
+            if not self.is_intermediate:                     
+                # A new registration 
+                uid = context._context._next_intermediate_id()
+                
+                u = self.u
+                self._node = context._context.new_node(uid,label,u)
+
+                # Seed the Vector of intermediate components 
+                # with this new Node object, so that uncertainty 
+                # will be propagated.
+                self._i_components = vector.merge_vectors(
+                    self._i_components,
+                    vector.Vector( index=[self._node], value=[u] )
+                )
+                self.is_intermediate = True
+                            
+            # else:
+                # Assume that it has been registered, perhaps the 
+                # user has repeated the registration process.
+
+        # else:
+            # There should be no harm in ignoring elementary UNs.
+            # They will be archived properly and they are not dependent
+            # on anything. It is convenient for the user not to worry
+            # whether or not something is elementary or not. 
+            
     #-------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
         """
@@ -393,6 +399,301 @@ class UncertainReal(object):
         return "{1.x:.{0}f}{1.u_digits}".format( gself.precision, gself )
              
     #------------------------------------------------------------------------
+    def sensitivity(self,x):
+        """
+        The partial derivative with respect to `x` 
+        
+        """
+        if isinstance(x,UncertainReal):
+            if x.is_elementary:
+                n = x._node
+                if n.independent:
+                    return self._u_components.get(n,0.0) / n.u
+                        
+                else:
+                    return self._d_components.get(n,0.0) / n.u
+                    
+            elif x.is_intermediate:
+                return self._i_components.get(n,0.0) / n.u
+                
+            elif _is_uncertain_real_constant(x):
+                return 0
+                
+            else:
+                raise RuntimeError(
+                    "`x` is not an elementary or intermediate uncertain number"
+                )
+             
+        elif isinstance(x,UncertainComplex):
+            # The idea is to treat `self` as complex with 
+            # a null imaginary part.
+            result = [0.0,0.0,0.0,0.0]
+            for i,x_i in enumerate( (x.real, x.imag) ):
+                result[i] = self.sensitivity(x_i)                    
+
+            return JacobianMatrix(*result)
+                    
+        elif isinstance(x,numbers.Real):
+            return 0.0
+            
+        elif isinstance(x,numbers.Complex):
+            return JacobianMatrix(0.0,0.0,0.0,0.0)
+            
+        else:
+            assert False, 'unexpected'
+    #------------------------------------------------------------------------
+    def u_component(self,x):
+        """
+        The signed component of uncertainty due to uncertainty in `x` 
+        
+        If ``x`` and ``y`` are uncertain real numbers, return a float. 
+
+        If ``y`` or ``x`` is an uncertain complex number, return 
+        a 4-element sequence of float, containing the 
+        components of uncertainty.
+
+        Otherwise, return 0.
+
+        **Example**::
+
+            >>> x = ureal(3,1)
+            >>> y = 3 * x
+            >>> y.u_component(x)
+            3.0
+            
+            >>> q = ucomplex(2,1)
+            >>> z = magnitude(q)    # uncertain real numbers
+            >>> z.u_component(q)
+            ComponentOfUncertainty(rr=1.0, ri=0.0, ir=0.0, ii=0.0)
+        
+        """
+        if isinstance(x,UncertainReal):
+            if x.is_elementary:
+                if x._node.independent:
+                    return self._u_components.get(x._node,0.0)
+                else:
+                    return self._d_components.get(x._node,0.0)
+                    
+            elif x.is_intermediate:
+                return self._i_components.get(x._node,0.0)
+                
+            elif _is_uncertain_real_constant(x):
+                return 0
+                
+            else:
+                raise RuntimeError(
+                    "`x` is not an elementary or intermediate uncertain number"
+                )
+            
+        elif isinstance(x,UncertainComplex):
+            # The idea is to treat `self` as complex with 
+            # a null imaginary part.
+            result = [0.0,0.0,0.0,0.0]
+            for i,x_i in enumerate( (x.real, x.imag) ):
+                if x_i.is_elementary:
+                    if x_i._node.independent:
+                        u_i = self._u_components.get(x_i._node,0.0)
+                    else:
+                        u_i = self._d_components.get(x_i._node,0.0)
+                        
+                elif x_i.is_intermediate:
+                    u_i = self._i_components.get(x_i._node,0.0)
+
+                elif _is_uncertain_complex_constant(x):
+                    u_i = 0 
+                    
+                else:
+                    raise TypeError(
+                        "invalid argument {!r}".format(x)
+                    )
+                    
+                result[i] = u_i
+
+            return ComponentOfUncertainty(*result)
+                    
+        elif isinstance(x,numbers.Real):
+            return 0.0
+            
+        elif isinstance(x,numbers.Complex):
+            return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+            
+        else:
+            assert False, 'unexpected'
+            
+    # #---------------------------------------------------------------------------
+    # def component(self,x):
+        # """
+        # Return the magnitude of the component of uncertainty 
+        # due to uncertainty in ``x``.
+
+        # :arg x: an uncertain number
+        # :type x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
+
+        # :rtype: float
+        
+        # If ``x`` is uncertain real, the function calls 
+        # :func:`reporting.u_component` and returns the magnitude 
+        # of the result. 
+        
+        # If ``x`` is uncertain complex,
+        # the returned value represents the magnitude 
+        # of the component of uncertainty matrix (this is 
+        # obtained by applying :func:`reporting.u_bar`    
+        # to the result obtained from :func:`reporting.u_component`).
+
+        # If ``x`` is a number, zero is returned.
+        
+        # ``component`` can also e used in conjunction with :func:`~core.result` 
+        # to evaluate a component of uncertainty with respect to an 
+        # intermediate uncertain number. 
+        
+        # **Examples**::
+        
+            # >>> x1 = ureal(2,1)
+            # >>> x2 = ureal(5,1)
+            # >>> y = x1/x2
+            # >>> reporting.u_component(y,x2)
+            # -0.08
+            # >>> component(y,x2)
+            # 0.08
+            
+            # >>> I = ureal(1E-3,1E-5)
+            # >>> R = ureal(1E3,1)
+            # >>> V = result( I*R )
+            # >>> P = V**2/R  
+            # >>> component(P,V)   
+            # 2.0099751242241783e-05
+            
+        # """
+        # return reporting.u_bar( self.u_component(x) )
+
+    #------------------------------------------------------------------------
+    def set_correlation(self,r,x):
+        """
+        """
+        if r == 0.0: return 
+        
+        if isinstance(x,UncertainReal):
+            if (
+                math.isinf( self._node.df ) and
+                math.isinf( x._node.df )
+            ):
+                set_correlation_real(self,x,r)
+            else:
+                if hasattr(self._node,'ensemble') and x._node.uid in self._node.ensemble:
+                    set_correlation_real(self,x,r)
+                else:
+                    raise RuntimeError( 
+                        "the argument is not in the same ensemble:" +\
+                        "{!r}, {!r}".format(x._node,self._node)
+                    )
+        elif isinstance(x,UncertainComplex):
+            raise TypeError(
+                "illegal argument {!r}".format(x)
+            )
+            # r_rr = set_correlation_real(arg1,arg2.real,r[0])
+            # r_ri = set_correlation_real(arg1,arg2.imag,r[1])
+        else:
+            raise TypeError(
+                "argument must be ureal: {!r}".format(x) 
+            )    
+
+    #------------------------------------------------------------------------
+    def get_correlation(self,x=None):
+        """
+        Evaluate the correlation coefficient 
+        
+        The input `x` may be an uncertain real number,
+        ,an uncertain complex number, or `None`.
+        
+        When an uncertain real number is provided,
+        the correlation between the arguments is a real number. 
+        
+        When an uncertain complex number is provided,
+        a :obj:`~named_tuples.CorrelationMatrix` is returned, 
+        representing a 2-by-2 matrix of correlation coefficients.
+           
+        """
+        if isinstance(x,UncertainReal):
+            return get_correlation_real(self,x)
+            
+        elif isinstance(x,UncertainComplex):
+            r_rr = get_correlation_real(self,x.real)
+            r_ri = get_correlation_real(self,x.imag)
+            r_ir = 0.0
+            r_ii = 0.0
+            return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
+            
+        elif isinstance(x,numbers.Real):
+            # When second argument is a number, there is no correlation.
+            return 0
+            
+        elif isinstance(x,numbers.Complex):
+            # If second argument is a number, 
+            # there is no correlation
+            return CorrelationMatrix(0.0,0.0,0.0,0.0)
+            
+        elif x is None:
+            # NB this is legacy of `get_correlation(y,x)` being a 
+            # bivariate function. In that case, a number would 
+            # be converted to an uncertain constant and it was 
+            # possible that the second argument `x` was `None`.
+            assert _is_uncertain_real_constant(self)
+            return 0.0
+                        
+        else:
+            raise TypeError(
+                "illegal argument {!r}".format(x)
+            )         
+            
+    #---------------------------------------------------------------------------
+    def get_covariance(self,arg=None):
+        """Evaluate covariance.
+        
+        The input argument should be an uncertain real, 
+        an uncertain complex number, or `None`.
+        
+        When an uncertain real number is supplied,
+        the covariance between the two arguments is returned 
+        as a real number. 
+        
+        When an uncertain complex number is supplied,
+        a :class:`~named_tuples.CovarianceMatrix` is returned, 
+        representing a 2-by-2 variance-covariance matrix.
+        
+        """
+        if isinstance(arg,UncertainReal):
+            return get_covariance_real(self,arg)
+            
+        elif isinstance(arg,UncertainComplex):
+            cv_rr = get_covariance_real(self,arg.real)
+            cv_ri = get_covariance_real(self,arg.imag)
+            cv_ir = 0.0
+            cv_ii = 0.0
+            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
+            
+        elif isinstance(arg,numbers.Real): 
+            # Second argument can be a number, but
+            # there is no correlation.
+            return 0.0
+            
+        elif isinstance(arg,numbers.Complex):
+            # Second argument can be a complex number, but
+            # there is no correlation
+            return CovarianceMatrix(0.0,0.0,0.0,0.0)
+            
+        elif arg is None:
+            # This is implicitly treating the uncertain number
+            # as complex. Since the imaginary component is zero 
+            # there is no covariance
+            return 0.0
+            
+        else:
+            raise TypeError(
+                "illegal argument {!r}".format(arg)
+            )  
+            
+    #------------------------------------------------------------------------
     # 
     def __abs__(self):
         return abs(self._x)
@@ -513,6 +814,25 @@ class UncertainReal(object):
                 v = std_variance_real(self)
                 self._u = math.sqrt( v )
                 return v
+
+    #------------------------------------------------------------------------
+    @property
+    def r(self):
+        """Correlation coefficient
+
+        :rtype: float
+        
+        This is always zero. It is provided for compatibility with  
+        :class:`~.UncertainComplex` but because the imaginary 
+        component is implicitly zero there is no correlation.
+        
+        **Example**::
+            >>> ur = ureal(2.5,0.5)
+            >>> ur.r
+            0.0
+            
+        """
+        return self._x
 
     #------------------------------------------------------------------------
     @property
@@ -2088,7 +2408,6 @@ class UncertainComplex(object):
         return ucomplex   
         
     #----------------------------------------------------------------------------
-    # @classmethod
     def _intermediate(self,label):
         """
         Make this object an intermediate uncertain complex number
@@ -2115,7 +2434,6 @@ class UncertainComplex(object):
             self.imag._intermediate(label_i) 
             
         self._label = label
-        
         
     #------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
@@ -2283,6 +2601,299 @@ class UncertainComplex(object):
             gself.re_u_digits,
             gself.im_u_digits
         )
+        
+    #------------------------------------------------------------------------
+    def sensitivity(self,x):
+        """
+        The partial derivatives with respect to the components of `x`
+        
+        Return a 4-element sequence of float, 
+        containing the partial derivatives.
+
+        """
+        if isinstance(x,UncertainComplex):
+            x_re, x_im  = x.real, x.imag
+            y_re, y_im = self.real, self.imag
+            
+            # require 4 partial derivatives:
+            #   dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im
+            if (x.real.is_elementary and x.imag.is_elementary
+            or  x.real.is_intermediate and x.imag.is_intermediate
+            ):
+                dy_re_dx_re = y_re.sensitivity(x_re)
+                dy_re_dx_im = y_re.sensitivity(x_im)
+                dy_im_dx_re = y_im.sensitivity(x_re)
+                dy_im_dx_im = y_im.sensitivity(x_im)
+                
+                return JacobianMatrix(
+                    dy_re_dx_re, 
+                    dy_re_dx_im, 
+                    dy_im_dx_re, 
+                    dy_im_dx_im
+                )
+                                
+            elif _is_uncertain_complex_constant(x):
+                return JacobianMatrix(0.0,0.0,0.0,0.0)
+                
+            else:
+                raise RuntimeError(
+                    "An elementary or intermediate " 
+                    + "uncertain number was expected: {!r}".format(x)
+                )
+                
+        elif isinstance(x,UncertainReal):
+            if x.is_elementary or x.is_intermediate:
+                dy_re_dx_re = self.real.sensitivity(x)
+                dy_im_dx_re = self.imag.sensitivity(x)
+                
+                return JacobianMatrix(dy_re_dx_re, 0.0, dy_im_dx_re, 0.0)
+                 
+            elif _is_uncertain_real_constant(x):
+                return JacobianMatrix(0.0,0.0,0.0,0.0)
+                
+            else:
+                raise TypeError(
+                    "invalid argument {!r}".format(x)
+                )
+            
+        elif isinstance(x,numbers.Complex):
+            return JacobianMatrix(0.0,0.0,0.0,0.0)
+            
+    #------------------------------------------------------------------------
+    def u_component(self,x):
+        """
+        The signed components of uncertainty due to uncertainties in `x`
+        
+        Return a 4-element sequence of float, 
+        containing the components of uncertainty.
+
+        **Example**::
+            
+            >>> q = ucomplex(2,1)
+            >>> z = magnitude(q)    # uncertain real numbers
+            >>> z.u_component(q)
+            ComponentOfUncertainty(rr=1.0, ri=0.0, ir=0.0, ii=0.0)
+        
+            >>> r = ucomplex(3,1)
+            >>> z = q * r
+            >>> z.u_component(q)
+            ComponentOfUncertainty(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
+            
+        """
+        if isinstance(x,UncertainComplex):
+            x_re, x_im  = x.real, x.imag
+            y_re, y_im = self.real, self.imag
+            
+            # require 4 partial derivatives:
+            #   dy_re_dx_re, dy_re_dx_im, dy_im_dx_re, dy_im_dx_im
+            if (x.real.is_elementary and x.imag.is_elementary
+            or  x.real.is_intermediate and x.imag.is_intermediate
+            ):
+                dy_re_dx_re = y_re.u_component(x_re)
+                dy_re_dx_im = y_re.u_component(x_im)
+                dy_im_dx_re = y_im.u_component(x_re)
+                dy_im_dx_im = y_im.u_component(x_im)
+                
+                return ComponentOfUncertainty(
+                    dy_re_dx_re, 
+                    dy_re_dx_im, 
+                    dy_im_dx_re, 
+                    dy_im_dx_im
+                )
+                               
+            elif _is_uncertain_complex_constant(x):
+                return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+                
+            else:
+                raise RuntimeError(
+                    "An elementary or intermediate " 
+                    + "uncertain number was expected: {!r}".format(x)
+                )
+                
+        elif isinstance(x,UncertainReal):
+            y_re, y_im = self.real, self.imag
+
+            if x.is_elementary or x.is_intermediate:
+                dy_re_dx_re = self.real.u_component(x)
+                dy_im_dx_re = self.imag.u_component(x)
+                
+                return ComponentOfUncertainty(dy_re_dx_re, 0.0, dy_im_dx_re, 0.0)
+                
+            elif _is_uncertain_real_constant(x):
+                return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+                
+            else:
+                raise TypeError(
+                    "invalid argument {!r}".format(x)
+                )
+            
+        elif isinstance(x,numbers.Complex):
+            return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+            
+    # #---------------------------------------------------------------------------
+    # def component(self,x):
+        # """
+        # Return the magnitude of the component of uncertainty 
+        # due to uncertainty in ``x``.
+
+        # :arg x: an uncertain number
+        # :type x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
+
+        # :rtype: float
+               
+        # The returned value represents the magnitude 
+        # of the component of uncertainty matrix (this is 
+        # obtained by applying :func:`reporting.u_bar`    
+        # to the result obtained from :func:`reporting.u_component`).
+
+        # If ``x`` is a number, zero is returned.
+        
+        # ``component`` can also be used in conjunction with :func:`~core.result` 
+        # to evaluate a component of uncertainty with respect to an 
+        # intermediate uncertain number. 
+        
+        # **Example**::
+        
+            # >>> z1 = ucomplex(1+2j,1)
+            # >>> z2 = ucomplex(3-2j,1)
+            # >>> y = z1 - z2
+            # >>> reporting.u_component(y,z2)
+            # ComponentOfUncertainty(rr=-1.0, ri=0.0, ir=0.0, ii=-1.0)
+            # >>> component(y,z2)
+            # 1.0
+            
+        # """
+        # return reporting.u_bar( self.u_component(x) )
+        
+    #------------------------------------------------------------------------
+    def get_correlation(self,arg=None):
+        """
+        Evaluate the correlation coefficients 
+
+        The input argument may be a an uncertain real
+        or an uncertain complex number.
+                
+        A :obj:`~named_tuples.CorrelationMatrix` is returned, 
+        representing a 2-by-2 matrix of correlation coefficients.
+        
+        """
+        if arg is None:
+            return get_correlation_real(self.real,self.imag)
+            
+        elif isinstance(arg,UncertainReal):
+            r_rr = get_correlation_real(self.real,arg)
+            r_ri = 0.0
+            r_ir = get_correlation_real(self.imag,arg)
+            r_ii = 0.0
+            return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
+            
+        elif isinstance(arg,UncertainComplex):
+            r_rr = get_correlation_real(self.real,arg.real)
+            r_ri = get_correlation_real(self.real,arg.imag)
+            r_ir = get_correlation_real(self.imag,arg.real)
+            r_ii = get_correlation_real(self.imag,arg.imag)
+            return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
+            
+        elif isinstance(arg,numbers.Complex): 
+            # If second argument is a number, 
+            # there is no correlation
+            return CorrelationMatrix(0.0,0.0,0.0,0.0)
+            
+        else:
+            raise TypeError(
+                "illegal second argument {!r}".format(arg)
+            )
+
+    #------------------------------------------------------------------------
+    def set_correlation(self,r,arg):
+        """
+        """
+        if arg is None:
+            set_correlation_real(self.real,self.imag,r)
+            
+        elif isinstance(arg,UncertainReal):
+            raise TypeError(
+                "illegal argument {!r}".format(arg)
+            )
+            # r_rr = set_correlation_real(self.real,arg2,r[0])
+            # r_ir = set_correlation_real(self.imag,arg2,r[2])
+            
+        elif isinstance(arg,UncertainComplex):
+            if not( is_sequence(r) and len(r)==4 ):
+                raise TypeError(
+                    "needs a sequence of 4 correlation coefficients: '{!r}'".format(r)
+                )
+            else:
+                # Trivial case
+                if all( r_i == 0.0 for r_i in r ): return 
+                
+                if (
+                    math.isinf( self.real._node.df ) and
+                    # `ucomplex()` prevents these two cases
+                    # math.isinf( arg2.real._node.df ) and
+                    # math.isinf( self.imag._node.df ) and
+                    math.isinf( arg.imag._node.df )
+                ):
+                    set_correlation_real(self.real,arg.real,r[0])
+                    set_correlation_real(self.real,arg.imag,r[1])
+                    set_correlation_real(self.imag,arg.real,r[2])
+                    set_correlation_real(self.imag,arg.imag,r[3])
+                else:
+                    # They have to be in the same ensemble. 
+                    # Just need to cross-check one of the component 
+                    # pairs to verify this
+                    n_re1 = self.real._node
+                    n_re2 = arg.real._node
+                    if n_re2.uid in n_re1.ensemble:                    
+                        set_correlation_real(self.real,arg.real,r[0])
+                        set_correlation_real(self.real,arg.imag,r[1])
+                        set_correlation_real(self.imag,arg.real,r[2])
+                        set_correlation_real(self.imag,arg.imag,r[3])
+                    else:
+                        raise RuntimeError( 
+                            "arguments must be in the same ensemble"
+                        )        
+        else:
+            raise TypeError(
+                "Illegal argument: {!r}".format(arg)
+            )
+                        
+    #---------------------------------------------------------------------------
+    def get_covariance(self,arg=None):
+        """Evaluate covariance.
+        
+        The input argument can be an uncertain number or `None`.
+                
+        A :class:`~named_tuples.CovarianceMatrix` is returned, 
+        representing a 2-by-2 variance-covariance matrix.
+        
+        """
+        if arg is None:
+            return get_covariance_real(self.real,self.imag)
+            
+        elif isinstance(arg,numbers.Complex): 
+            # Second argument can be a number, but
+            # there is no correlation
+            return CovarianceMatrix(0.0,0.0,0.0,0.0)
+            
+        elif isinstance(arg,UncertainReal):
+            cv_rr = get_covariance_real(self.real,arg)
+            cv_ri = 0.0
+            cv_ir = get_covariance_real(self.imag,arg)
+            cv_ii = 0.0
+            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
+            
+        elif isinstance(arg,UncertainComplex):
+            cv_rr = get_covariance_real(self.real,arg.real)
+            cv_ri = get_covariance_real(self.real,arg.imag)
+            cv_ir = get_covariance_real(self.imag,arg.real)
+            cv_ii = get_covariance_real(self.imag,arg.imag)
+            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
+            
+        else:
+            raise TypeError(
+                "illegal argument {!r}".format(arg)
+            )
         
     #------------------------------------------------------------------------
     def __neg__(self):

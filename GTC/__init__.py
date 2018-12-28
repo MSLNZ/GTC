@@ -28,11 +28,12 @@ inf_dof = 1E5
 inf = float('inf')
 nan = float('nan') 
 
-# Do not consider strings to be sequences
+# Do not consider strings as sequences
 def is_sequence(obj):
     if isinstance(obj, basestring):
         return False
-    return isinstance(obj, Sequence)
+    else:
+        return isinstance(obj, Sequence)
     
 #----------------------------------------------------------------------------
 

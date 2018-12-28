@@ -15,16 +15,9 @@ from GTC import type_a
 from GTC import persistence
 from GTC import function
 
-from GTC.named_tuples import (
-    CorrelationMatrix, 
-    CovarianceMatrix
-)
-
 from GTC import (   
     inf,
     nan,
-    # is_infinity,
-    # is_undefined,
     is_sequence,
     copyright,
     version
@@ -88,9 +81,6 @@ __all__ = (
     ,   'linear_algebra', 'la'
     ,   'math'
     ,   'cmath'
-    # ,   'uarray'
-    # ,   'dot'
-    # ,   'matmul'
 )
 
 #----------------------------------------------------------------------------
@@ -262,7 +252,7 @@ def component(y,x):
         2.0099751242241783e-05
         
     """
-    return reporting.u_bar( reporting.u_component(y,x) )
+    return reporting.u_bar( y.u_component(x) )
             
 #----------------------------------------------------------------------------
 def label(x):
@@ -460,12 +450,9 @@ def result(un,label=None):
     try:
         un._intermediate(label)
     except AttributeError:
-        if isinstance(un,numbers.Complex):
-            #Allow numbers to be quietly overlooked
-            pass
-        else:
+        if not isinstance(un,numbers.Complex):
             raise TypeError(
-                "`result` is undefined for {!r}'".format(un)
+                "undefined for {!r}'".format(un)
             )
           
     return un 
@@ -716,84 +703,8 @@ def set_correlation(r,arg1,arg2=None):
     # This relies on checking done in the calling functions 
     # to ensure that arguments are elementary, declared dependent,
     # and that the correlation coefficient value is OK.
-    if isinstance(arg1,UncertainReal):
-        if isinstance(arg2,UncertainReal):
-            if (
-                math.isinf( arg1._node.df ) and
-                math.isinf( arg2._node.df )
-            ):
-                lib.set_correlation_real(arg1,arg2,r)
-            else:
-                if hasattr(arg1._node,'ensemble') and arg2._node.uid in arg1._node.ensemble:
-                    lib.set_correlation_real(arg1,arg2,r)
-                else:
-                    raise RuntimeError( 
-                        "arguments are not in the same ensemble:" +\
-                        "{!r}, {!r}".format(arg2._node,arg1._node)
-                    )
-        elif isinstance(arg2,UncertainComplex):
-            raise TypeError(
-                "`arg1` and `arg2` not the same type: {!r} and {!r}".format(arg1,arg2)
-            )
-            # r_rr = set_correlation_real(arg1,arg2.real,r[0])
-            # r_ri = set_correlation_real(arg1,arg2.imag,r[1])
-        else:
-            raise TypeError(
-                "second argument must be ureal, got: {!r}".format(arg2) 
-            )
-        
-    elif isinstance(arg1,UncertainComplex):
-        # A single complex number may have correlation set 
-        # provided it was declared ``dependent``. The additional
-        # requirement of infinite dof does not apply.
-        if arg2 is None:
-            lib.set_correlation_real(arg1.real,arg1.imag,r)
-            
-        elif isinstance(arg2,UncertainReal):
-            raise TypeError(
-                "`arg1` and `arg2` not the same type: {!r} and {!r}".format(arg1,arg2)
-            )
-            # r_rr = set_correlation_real(arg1.real,arg2,r[0])
-            # r_ir = set_correlation_real(arg1.imag,arg2,r[2])
-        elif isinstance(arg2,UncertainComplex):
-            if not( is_sequence(r) and len(r)==4 ):
-                raise TypeError(
-                    "needs a sequence of 4 correlation coefficients: '{!r}'".format(r)
-                )
-            else:
-                # Trivial case
-                if all( r_i == 0.0 for r_i in r ): return 
-                
-                if (
-                    math.isinf( arg1.real._node.df ) and
-                    # `ucomplex()` prevents these two cases
-                    # math.isinf( arg2.real._node.df ) and
-                    # math.isinf( arg1.imag._node.df ) and
-                    math.isinf( arg2.imag._node.df )
-                ):
-                    lib.set_correlation_real(arg1.real,arg2.real,r[0])
-                    lib.set_correlation_real(arg1.real,arg2.imag,r[1])
-                    lib.set_correlation_real(arg1.imag,arg2.real,r[2])
-                    lib.set_correlation_real(arg1.imag,arg2.imag,r[3])
-                else:
-                    # They have to be in the same ensemble. 
-                    # Just need to cross-check one of the component 
-                    # pairs to verify this
-                    n_re1 = arg1.real._node
-                    n_re2 = arg2.real._node
-                    if n_re2.uid in n_re1.ensemble:                    
-                        lib.set_correlation_real(arg1.real,arg2.real,r[0])
-                        lib.set_correlation_real(arg1.real,arg2.imag,r[1])
-                        lib.set_correlation_real(arg1.imag,arg2.real,r[2])
-                        lib.set_correlation_real(arg1.imag,arg2.imag,r[3])
-                    else:
-                        raise RuntimeError( 
-                            "arguments must be in the same ensemble"
-                        )
-        else:
-            raise TypeError(
-                "Illegal type for second argument: {!r}".format(arg2)
-            )
+    if isinstance( arg1,(UncertainReal,UncertainComplex) ):
+        arg1.set_correlation(r,arg2)
     else:
         raise TypeError(
             "illegal arguments: {}, {}, {}".format( 
@@ -820,57 +731,11 @@ def get_correlation(arg1,arg2=None):
     # Return zero if numerical arguments are given
     
     # If the arg is any number type, it matches `numbers.Complex`
-    if isinstance(arg1,numbers.Complex): arg1 = constant(arg1)
+    if isinstance(arg1,numbers.Complex): 
+        arg1 = constant(arg1)
     
-    if isinstance(arg1,UncertainReal):
-        if isinstance(arg2,UncertainReal):
-            return lib.get_correlation_real(arg1,arg2)
-        elif isinstance(arg2,UncertainComplex):
-            r_rr = lib.get_correlation_real(arg1,arg2.real)
-            r_ri = lib.get_correlation_real(arg1,arg2.imag)
-            r_ir = 0.0
-            r_ii = 0.0
-            return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
-        elif isinstance(arg2,numbers.Real) or arg2 is None:
-            # When second argument is a number, there is no correlation.
-            # Arg2 is None when a real number is found, like 0,
-            # and gets converted above to an UncertainReal constant,
-            # when really it represented 0+0j. By implication
-            # we return the zero correlation between real and 
-            # imaginary components            
-            return 0
-        elif isinstance(arg2,numbers.Complex):
-            # If second argument is a number, 
-            # there is no correlation
-            return CorrelationMatrix(0.0,0.0,0.0,0.0)
-        else:
-            raise TypeError(
-                "illegal second argument {!r}".format(arg2)
-            )  
-            
-    elif isinstance(arg1,UncertainComplex):
-        if arg2 is None:
-            return lib.get_correlation_real(arg1.real,arg1.imag)
-        elif isinstance(arg2,numbers.Complex): 
-            # If second argument is a number, 
-            # there is no correlation
-            return CorrelationMatrix(0.0,0.0,0.0,0.0)
-        elif isinstance(arg2,UncertainReal):
-            r_rr = lib.get_correlation_real(arg1.real,arg2)
-            r_ri = 0.0
-            r_ir = lib.get_correlation_real(arg1.imag,arg2)
-            r_ii = 0.0
-            return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
-        elif isinstance(arg2,UncertainComplex):
-            r_rr = lib.get_correlation_real(arg1.real,arg2.real)
-            r_ri = lib.get_correlation_real(arg1.real,arg2.imag)
-            r_ir = lib.get_correlation_real(arg1.imag,arg2.real)
-            r_ii = lib.get_correlation_real(arg1.imag,arg2.imag)
-            return CorrelationMatrix(r_rr,r_ri,r_ir,r_ii)
-        else:
-            raise TypeError(
-                "illegal second argument {!r}".format(arg2)
-            )
+    if isinstance(arg1,(UncertainReal,UncertainComplex)):
+        return arg1.get_correlation(arg2)
         
     else:
         raise TypeError(
@@ -895,61 +760,11 @@ def get_covariance(arg1,arg2=None):
     """
     # If numerical arguments are given then return zero. 
     # NB if the arg is any number type, it matches `numbers.Complex`
-    if isinstance(arg1,numbers.Complex): arg1 = constant(arg1)
+    if isinstance(arg1,numbers.Complex): 
+        arg1 = constant(arg1)
     
-    # Different possibilities for the second argument lead
-    # to different types of return type:
-    # 
-    if isinstance(arg1,UncertainReal):
-        if isinstance(arg2,UncertainReal):
-            return lib.get_covariance_real(arg1,arg2)
-        elif isinstance(arg2,UncertainComplex):
-            cv_rr = lib.get_covariance_real(arg1,arg2.real)
-            cv_ri = lib.get_covariance_real(arg1,arg2.imag)
-            cv_ir = 0.0
-            cv_ii = 0.0
-            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
-        elif isinstance(arg2,numbers.Real) or arg2 is None:
-            # Second argument can be a number, but
-            # there is no correlation.
-            # Arg2 is None when a real number is found, like 0,
-            # and gets converted above to an UncertainReal constant,
-            # when really it represented 0+0j. By implication
-            # we return the zero correlation between real and imaginary
-            # components            
-            return 0.0
-        elif isinstance(arg2,numbers.Complex):
-            # Second argument can be a complex number, but
-            # there is no correlation
-            return CovarianceMatrix(0.0,0.0,0.0,0.0)
-        else:
-            raise TypeError(
-                "illegal second argument {!r}".format(arg2)
-            )  
-            
-    elif isinstance(arg1,UncertainComplex):
-        if arg2 is None:
-            return lib.get_covariance_real(arg1.real,arg1.imag)
-        elif isinstance(arg2,numbers.Complex): 
-            # Second argument can be a number, but
-            # there is no correlation
-            return CovarianceMatrix(0.0,0.0,0.0,0.0)
-        elif isinstance(arg2,UncertainReal):
-            cv_rr = lib.get_covariance_real(arg1.real,arg2)
-            cv_ri = 0.0
-            cv_ir = lib.get_covariance_real(arg1.imag,arg2)
-            cv_ii = 0.0
-            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
-        elif isinstance(arg2,UncertainComplex):
-            cv_rr = lib.get_covariance_real(arg1.real,arg2.real)
-            cv_ri = lib.get_covariance_real(arg1.real,arg2.imag)
-            cv_ir = lib.get_covariance_real(arg1.imag,arg2.real)
-            cv_ii = lib.get_covariance_real(arg1.imag,arg2.imag)
-            return CovarianceMatrix(cv_rr,cv_ri,cv_ir,cv_ii)
-        else:
-            raise TypeError(
-                "illegal second argument {!r}".format(arg2)
-            )
+    if isinstance( arg1,(UncertainReal,UncertainComplex) ):
+        return arg1.get_covariance(arg2)
         
     else:
         raise TypeError(
