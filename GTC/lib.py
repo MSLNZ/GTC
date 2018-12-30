@@ -239,10 +239,11 @@ class UncertainReal(object):
     #------------------------------------------------------------------------
     def _intermediate(self,label):
         """
-        Make this object an intermediate uncertain real number
+        Return an intermediate uncertain real number
         
-        To investigate the sensitivity of subsequent results,
-        an intermediate UN must be declared.
+        An intermediate UN must be defined to allow 
+        the sensitivity of subsequent results to be investigated.
+        .
         
         Parameters
         ----------
@@ -253,20 +254,29 @@ class UncertainReal(object):
         if not self.is_elementary:
             if not self.is_intermediate:                     
                 # A new registration 
-                uid = context._context._next_intermediate_id()
-                
-                u = self.u
-                self._node = context._context.new_node(uid,label,u)
+                _node = context._context.new_node(
+                    context._context._next_intermediate_id(),
+                    label,
+                    self.u
+                )
 
                 # Seed the Vector of intermediate components 
-                # with this new Node object, so that uncertainty 
-                # will be propagated.
-                self._i_components = vector.merge_vectors(
+                # with this new Node.
+                _i_components = vector.merge_vectors(
                     self._i_components,
-                    vector.Vector( index=[self._node], value=[u] )
+                    vector.Vector( index=[_node], value=[_node.u] )
                 )
-                self.is_intermediate = True
+                
+                un = UncertainReal(
+                    self.x,
+                    self._u_components,
+                    self._d_components,
+                    _i_components,
+                    node=_node
+                )
+                assert un.is_intermediate == True
                             
+                return un
             # else:
                 # Assume that it has been registered, perhaps the 
                 # user has repeated the registration process.
@@ -277,6 +287,8 @@ class UncertainReal(object):
             # on anything. It is convenient for the user not to worry
             # whether or not something is elementary or not. 
             
+        return self 
+        
     #-------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
         """
@@ -414,6 +426,7 @@ class UncertainReal(object):
                     return self._d_components.get(n,0.0) / n.u
                     
             elif x.is_intermediate:
+                n = x._node
                 return self._i_components.get(n,0.0) / n.u
                 
             elif _is_uncertain_real_constant(x):
@@ -2410,7 +2423,10 @@ class UncertainComplex(object):
     #----------------------------------------------------------------------------
     def _intermediate(self,label):
         """
-        Make this object an intermediate uncertain complex number
+        Return an intermediate uncertain complex number
+        
+        An intermediate UN must be defined to allow 
+        the sensitivity of subsequent results to be investigated.
 
         :arg z: the uncertain complex number
         :type z: :class:`UncertainComplex`
@@ -2424,16 +2440,19 @@ class UncertainComplex(object):
         
         """
         if label is None:
-            self.real._intermediate(None)
-            self.imag._intermediate(None) 
+            un_re = self.real._intermediate(None)
+            un_im = self.imag._intermediate(None) 
         else:
             label_r = "{}_re".format(label)
             label_i = "{}_im".format(label)
             
-            self.real._intermediate(label_r)
-            self.imag._intermediate(label_i) 
+            un_re = self.real._intermediate(label_r)
+            un_im = self.imag._intermediate(label_i) 
             
-        self._label = label
+        un = UncertainComplex(un_re,un_im)
+        un._label = label
+        
+        return un 
         
     #------------------------------------------------------------------------
     def _round(self,digits,df_decimals):
