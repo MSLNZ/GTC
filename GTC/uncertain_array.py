@@ -41,6 +41,7 @@ from GTC.core import (
     mag_squared,
     magnitude,
     phase,
+    result,
 )
 
 from GTC.lib import (
@@ -565,6 +566,25 @@ else:
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, phase(item))
+                return UncertainArray(arr)
+
+            def _intermediate(self,*inputs):
+                # Default second argument of calling function is `None`
+                if inputs == (None,): 
+                    arr, itemset, iterator = self._create_empty()
+                    for i, x in enumerate(iterator):
+                        itemset( i, result(x) )
+                else:
+                    arr, itemset, iterator = self._create_empty(inputs)
+                    for i, (x, lbl) in enumerate(iterator):
+                        itemset(i, result(x,lbl))
+                    
+                return UncertainArray(arr)
+
+            def _sensitivity(self, *inputs):
+                arr, itemset, iterator = self._create_empty(inputs)
+                for i, (y, x) in enumerate(iterator):
+                    itemset(i, y.sensitivity(x) )
                 return UncertainArray(arr)
 
             def _equal(self, *inputs):
