@@ -276,6 +276,42 @@ def k_to_dof(k,p=95):
         return df if df < inf_dof else inf 
 
 #----------------------------------------------------------------------------
+def sensitivity(y,x):
+    """Return the first partial derivative of ``y`` with respect to ``x``
+    
+    If ``x`` and ``y`` are uncertain real numbers, return a float. 
+
+    If ``y`` or ``x`` is an uncertain complex number, return 
+    a 4-element sequence of float, representing the Jacobian matrix.
+
+    Otherwise, return 0.
+
+    **Example**::
+
+        >>> x = ureal(3,1)
+        >>> y = 3 * x
+        >>> reporting.sensitivity(y,x)
+        3.0
+
+        >>> q = ucomplex(2,1)
+        >>> z = magnitude(q)    # uncertain real numbers
+        >>> reporting.sensitivity(z,q)
+        JacobianMatrix(rr=1.0, ri=0.0, ir=0.0, ii=0.0)
+        
+        >>> r = ucomplex(3,1)
+        >>> z = q * r
+        >>> reporting.sensitivity(z,q)
+        JacobianMatrix(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
+        
+    """
+    if isinstance( y,(UncertainReal,UncertainComplex) ):
+        return y.sensitivity(x)
+    else:
+        raise RuntimeError(
+            "An uncertain number is expected: {!r}".format(y)
+        ) 
+        
+#----------------------------------------------------------------------------
 def u_component(y,x):
     """Return the component of uncertainty in ``y`` due to ``x``
     
