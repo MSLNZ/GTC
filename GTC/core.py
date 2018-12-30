@@ -420,13 +420,17 @@ def constant(x,label=None):
 #----------------------------------------------------------------------------
 def result(un,label=None):
     """
-    Declare the uncertain number ``un`` to be an intermediate result
+    Define an uncertain number as an intermediate result
     
     `un` - an uncertain number or :class:`~core.UncertainArray`
     `label` - a string or sequence of strings
     
-    This function must be called before any other uncertain numbers 
-    are defined that depend on ``un``.
+    .. note::
+    
+        This function defines a new object representing the intermediate result.
+        The argument ``un`` does not become an intermediate result itself. So, 
+        it is best to apply this function to a temporary object, as shown
+        in the example below.
     
     The component of uncertainty of an uncertain number with respect to 
     an intermediate result can be evaluated. Declaring intermediate results 
@@ -446,16 +450,16 @@ def result(un,label=None):
         3.505784505642068e-05  
         
     """
-    un = +un 
     try:
-        un._intermediate(label)
+        return un._intermediate(label)
     except AttributeError:
-        if not isinstance(un,numbers.Complex):
+        if isinstance(un,numbers.Complex):
+            return un
+        else:
             raise TypeError(
                 "undefined for {!r}'".format(un)
             )
           
-    return un 
 
 #----------------------------------------------------------------------------
 def ucomplex(z,u,df=inf,label=None,independent=True):
