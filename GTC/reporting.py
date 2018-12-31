@@ -75,6 +75,7 @@ __all__ = (
     'k2_factor_sq',
     'k2_to_dof',
     'u_component',
+    'sensitivity',
     'is_ureal',
     'is_ucomplex',
     'v_bar',
@@ -304,7 +305,7 @@ def sensitivity(y,x):
         JacobianMatrix(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
         
     """
-    if isinstance( y,(UncertainReal,UncertainComplex) ):
+    if hasattr(y,'sensitivity'):
         return y.sensitivity(x)
     else:
         raise RuntimeError(
@@ -341,7 +342,7 @@ def u_component(y,x):
         ComponentOfUncertainty(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
         
     """
-    if isinstance( y,(UncertainReal,UncertainComplex) ):
+    if hasattr(y,'u_component'):
         return y.u_component(x)
     else:
         raise RuntimeError(

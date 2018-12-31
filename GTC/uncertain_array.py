@@ -354,6 +354,38 @@ else:
                     itemset(i, dof(item))
                 return arr
 
+            def sensitivity(self, x):
+                if self.ndim == 0:
+                    if hasattr(x,'item'):
+                        return self.item(0).sensitivity(x.item(0))
+                    else:
+                        return self.item(0).sensitivity(x)
+                    
+                # `_create_empty()` handles only ndarray-like sequences
+                if not isinstance(x,np.ndarray):
+                    x = np.asarray(x)
+                    
+                arr, itemset, iterator = self._create_empty((self, x))
+                for i, (y, x) in enumerate(iterator):
+                    itemset(i, y.sensitivity(x) )
+                return UncertainArray(arr)
+
+            def u_component(self, x):
+                if self.ndim == 0:
+                    if hasattr(x,'item'):
+                        return self.item(0).u_component(x.item(0))
+                    else:
+                        return self.item(0).u_component(x)
+                    
+                # `_create_empty()` handles only ndarray-like sequences
+                if not isinstance(x,np.ndarray):
+                    x = np.asarray(x)
+                    
+                arr, itemset, iterator = self._create_empty((self, x))
+                for i, (y, x) in enumerate(iterator):
+                    itemset(i, y.u_component(x) )
+                return UncertainArray(arr)
+                
             def conjugate(self):
                 """The result of applying the attribute ``conjugate`` to each element in the array.
 
@@ -568,23 +600,21 @@ else:
                     itemset(i, phase(item))
                 return UncertainArray(arr)
 
-            def _intermediate(self,*inputs):
+            def _intermediate(self,labels):
                 # Default second argument of calling function is `None`
-                if inputs == (None,): 
+                if labels is None: 
                     arr, itemset, iterator = self._create_empty()
                     for i, x in enumerate(iterator):
                         itemset( i, result(x) )
                 else:
-                    arr, itemset, iterator = self._create_empty(inputs)
+                    # `_create_empty()` handles only ndarray-like sequences
+                    if not isinstance(labels,np.ndarray):
+                        labels = np.asarray(labels)
+                        
+                    arr, itemset, iterator = self._create_empty((self, labels))
                     for i, (x, lbl) in enumerate(iterator):
                         itemset(i, result(x,lbl))
                     
-                return UncertainArray(arr)
-
-            def _sensitivity(self, *inputs):
-                arr, itemset, iterator = self._create_empty(inputs)
-                for i, (y, x) in enumerate(iterator):
-                    itemset(i, y.sensitivity(x) )
                 return UncertainArray(arr)
 
             def _equal(self, *inputs):
