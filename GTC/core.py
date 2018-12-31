@@ -427,9 +427,9 @@ def result(un,label=None):
     
     .. note::
     
-        This function defines a new object representing the intermediate result.
-        The argument ``un`` does not become an intermediate result itself. So, 
-        it is best to apply this function to a temporary object, as shown
+        This function defines a new object to represent the intermediate result.
+        The object ``un`` is not changed into the intermediate result. So, 
+        this function is best applied to a temporary object, as shown
         in the example below.
     
     The component of uncertainty of an uncertain number with respect to 
@@ -450,15 +450,14 @@ def result(un,label=None):
         3.505784505642068e-05  
         
     """
-    try:
+    if hasattr(un,'_intermediate'):
         return un._intermediate(label)
-    except AttributeError:
-        if isinstance(un,numbers.Complex):
-            return un
-        else:
-            raise TypeError(
-                "undefined for {!r}'".format(un)
-            )
+    elif isinstance(un,numbers.Complex):
+        return un
+    else:
+        raise TypeError(
+            "undefined for {!r}'".format(un)
+        )
           
 
 #----------------------------------------------------------------------------
