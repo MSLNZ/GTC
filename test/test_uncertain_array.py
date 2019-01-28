@@ -1387,8 +1387,9 @@ class TestUncertainArray(unittest.TestCase):
         n = len(x)
         z = [atan2(v1, v2) for v1, v2 in izip(x, y)]
 
-        # call np.arctan2
+        # call np.arctan2 
         za = np.arctan2(xa, ya)
+       
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
             self.assertTrue(equivalent(z[i].u, za[i].u))
