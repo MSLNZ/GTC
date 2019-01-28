@@ -264,7 +264,9 @@ else:
                     itemset(i, item.r)
                 return arr
 
-            def value(self, dtype=None):
+            # def value(self, dtype=None):
+            @property
+            def x(self):
                 """The result of :func:`~.core.value` for each element in the array.
 
                 **Example**::
@@ -281,12 +283,14 @@ else:
                 """
                 if self.ndim == 0:
                     return value(self.item(0))
-                arr, itemset, iterator = self._create_empty(dtype=dtype)
+                arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, value(item))
                 return arr
 
-            def uncertainty(self, dtype=None):
+            # def uncertainty(self, dtype=None):
+            @property
+            def u(self):
                 """The result of :func:`~.core.uncertainty` for each element in the array.
 
                 **Example**::
@@ -306,12 +310,14 @@ else:
                 """
                 if self.ndim == 0:
                     return uncertainty(self.item(0))
-                arr, itemset, iterator = self._create_empty(dtype=dtype)
+                arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, uncertainty(item))
                 return arr
 
-            def variance(self, dtype=None):
+            # def variance(self, dtype=None):
+            @property
+            def v(self):
                 """The result of :func:`~.core.variance` for each element in the array.
 
                 **Example**::
@@ -331,12 +337,14 @@ else:
                 """
                 if self.ndim == 0:
                     return variance(self.item(0))
-                arr, itemset, iterator = self._create_empty(dtype=dtype)
+                arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, variance(item))
                 return arr
 
-            def dof(self):
+            # def dof(self):
+            @property
+            def df(self):
                 """The result of :func:`~.core.dof` for each element in the array.
 
                 **Example**::
