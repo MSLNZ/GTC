@@ -5,6 +5,7 @@ This module was written in the following way so that numpy >= 1.13.0
 does not have to be installed in order for someone to use GTC.
 """
 from __future__ import division
+
 import warnings
 from numbers import Number, Real, Complex
 from math import isnan, isinf
@@ -202,6 +203,12 @@ else:
                 """
                 return self._label
 
+            # Note: I have adopted the following policy regarding arrays of dimension 0. 
+            # When properties or methods are called on a uarray with ndim == 0 another 
+            # uarray is returned. However, when a function is applied to a uarray,
+            # e.g., sin( a ) and a.ndim == 0, then the result is returned as a scalar. 
+            # This seems to match the existing behaviour of numpy arrays.
+            
             @property
             def real(self):
                 """The result of applying the attribute ``real`` to each
@@ -216,8 +223,8 @@ else:
 
                 :rtype: :class:`UncertainArray`
                 """
-                if self.ndim == 0:
-                    return self.item(0).real
+                # if self.ndim == 0:
+                    # return self.item(0).real
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, item.real)
@@ -237,8 +244,8 @@ else:
 
                 :rtype: :class:`UncertainArray`
                 """
-                if self.ndim == 0:
-                    return self.item(0).imag
+                # if self.ndim == 0:
+                    # return self.item(0).imag
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, item.imag)
@@ -257,8 +264,6 @@ else:
 
                 :rtype: :class:`numpy.ndarray`
                 """
-                if self.ndim == 0:
-                    return self.item(0).r
                 arr, itemset, iterator = self._create_empty(dtype=float)
                 for i, item in enumerate(iterator):
                     itemset(i, item.r)
@@ -357,17 +362,18 @@ else:
                 """
                 if self.ndim == 0:
                     return dof(self.item(0))
+                    
                 arr, itemset, iterator = self._create_empty(dtype=float)
                 for i, item in enumerate(iterator):
                     itemset(i, dof(item))
                 return arr
 
             def sensitivity(self, x):
-                if self.ndim == 0:
-                    if hasattr(x,'item'):
-                        return self.item(0).sensitivity(x.item(0))
-                    else:
-                        return self.item(0).sensitivity(x)
+                # if self.ndim == 0:
+                    # if hasattr(x,'item'):
+                        # return self.item(0).sensitivity(x.item(0))
+                    # else:
+                        # return self.item(0).sensitivity(x)
                     
                 # `_create_empty()` handles only ndarray-like sequences
                 if not isinstance(x,np.ndarray):
@@ -379,11 +385,11 @@ else:
                 return UncertainArray(arr)
 
             def u_component(self, x):
-                if self.ndim == 0:
-                    if hasattr(x,'item'):
-                        return self.item(0).u_component(x.item(0))
-                    else:
-                        return self.item(0).u_component(x)
+                # if self.ndim == 0:
+                    # if hasattr(x,'item'):
+                        # return self.item(0).u_component(x.item(0))
+                    # else:
+                        # return self.item(0).u_component(x)
                     
                 # `_create_empty()` handles only ndarray-like sequences
                 if not isinstance(x,np.ndarray):
@@ -411,18 +417,27 @@ else:
                 return self._conjugate()
 
             def _conjugate(self, *ignore):
+                # if self.ndim == 0:
+                    # return self.item(0).conjugate()
+
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, item.conjugate())
                 return UncertainArray(arr)
 
             def _positive(self, *ignore):
+                if self.ndim == 0:
+                    return +self.item(0)
+
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, +item)
                 return UncertainArray(arr)
 
             def _negative(self, *ignore):
+                if self.ndim == 0:
+                    return -self.item(0)
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, -item)
@@ -465,144 +480,228 @@ else:
                 return UncertainArray(arr)
 
             def _exp(self, *ignore):
+                if self.ndim == 0:
+                    return exp( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, exp(item))
                 return UncertainArray(arr)
 
             def _log(self, *ignore):
+                if self.ndim == 0:
+                    return log( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, log(item))
                 return UncertainArray(arr)
 
             def _log10(self, *ignore):
+                if self.ndim == 0:
+                    return log10( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, log10(item))
                 return UncertainArray(arr)
 
             def _sqrt(self, *ignore):
+                if self.ndim == 0:
+                    return sqrt( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, sqrt(item))
                 return UncertainArray(arr)
 
             def _cos(self, *ignore):
+                if self.ndim == 0:
+                    return cos( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, cos(item))
                 return UncertainArray(arr)
 
             def _sin(self, *ignore):
+                if self.ndim == 0:
+                    return sin( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, sin(item))
                 return UncertainArray(arr)
 
             def _tan(self, *ignore):
+                if self.ndim == 0:
+                    return tan( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, tan(item))
                 return UncertainArray(arr)
 
             def _arccos(self, *ignore):
+                if self.ndim == 0:
+                    return acos( self.item(0) )
+            
                 return self._acos()
 
             def _acos(self):
+                if self.ndim == 0:
+                    return acos( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, acos(item))
                 return UncertainArray(arr)
 
             def _arcsin(self, *ignore):
+                if self.ndim == 0:
+                    return asin( self.item(0) )
+            
                 return self._asin()
 
             def _asin(self):
+                if self.ndim == 0:
+                    return asin( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, asin(item))
                 return UncertainArray(arr)
 
             def _arctan(self, *ignore):
+                if self.ndim == 0:
+                    return atan( self.item(0) )
+            
                 return self._atan()
 
             def _atan(self):
+                if self.ndim == 0:
+                    return atan( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, atan(item))
                 return UncertainArray(arr)
 
             def _arctan2(self, *inputs):
+                if self.ndim == 0:
+                    return atan2( self.item(0) )
+            
                 return self._atan2(inputs[1])
 
             def _atan2(self, *inputs):
+                if self.ndim == 0:
+                    return atan2( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty((self, inputs[0]))
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, atan2(a, b))
                 return UncertainArray(arr)
 
             def _sinh(self, *ignore):
+                if self.ndim == 0:
+                    return sinh( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, sinh(item))
                 return UncertainArray(arr)
 
             def _cosh(self, *ignore):
+                if self.ndim == 0:
+                    return cosh( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, cosh(item))
                 return UncertainArray(arr)
 
             def _tanh(self, *ignore):
+                if self.ndim == 0:
+                    return tanh( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, tanh(item))
                 return UncertainArray(arr)
 
             def _arccosh(self, *ignore):
+                if self.ndim == 0:
+                    return acosh( self.item(0) )
+            
                 return self._acosh()
 
             def _acosh(self):
+                if self.ndim == 0:
+                    return acosh( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, acosh(item))
                 return UncertainArray(arr)
 
             def _arcsinh(self, *ignore):
+                if self.ndim == 0:
+                    return asinh( self.item(0) )
+            
                 return self._asinh()
 
             def _asinh(self):
+                if self.ndim == 0:
+                    return asinh( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, asinh(item))
                 return UncertainArray(arr)
 
             def _arctanh(self, *ignore):
+                if self.ndim == 0:
+                    return atanh( self.item(0) )
+            
                 return self._atanh()
 
             def _atanh(self):
+                if self.ndim == 0:
+                    return atanh( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, atanh(item))
                 return UncertainArray(arr)
 
             def _square(self, *ignore):
+                if self.ndim == 0:
+                    return mag_squared( self.item(0) )
+            
                 return self._mag_squared()
 
             def _mag_squared(self):
+                if self.ndim == 0:
+                    return mag_squared( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, mag_squared(item))
                 return UncertainArray(arr)
 
             def _magnitude(self):
+                if self.ndim == 0:
+                    return magnitude( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, magnitude(item))
                 return UncertainArray(arr)
 
             def _phase(self):
+                if self.ndim == 0:
+                    return phase( self.item(0) )
+            
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
                     itemset(i, phase(item))
@@ -611,6 +710,9 @@ else:
             def _intermediate(self,labels):
                 # Default second argument of calling function is `None`
                 if labels is None: 
+                    if self.ndim == 0:
+                        return result( self.item(0) )
+            
                     arr, itemset, iterator = self._create_empty()
                     for i, x in enumerate(iterator):
                         itemset( i, result(x) )
@@ -619,6 +721,9 @@ else:
                     if not isinstance(labels,np.ndarray):
                         labels = np.asarray(labels)
                         
+                    if self.ndim == 0:
+                        return result( self.item(0), labels.item(0) )
+            
                     arr, itemset, iterator = self._create_empty((self, labels))
                     for i, (x, lbl) in enumerate(iterator):
                         itemset(i, result(x,lbl))
@@ -626,42 +731,65 @@ else:
                 return UncertainArray(arr)
 
             def _equal(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) == inputs[1].item(0)
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a == b)
                 return arr
 
             def _not_equal(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) != inputs[1].item(0)
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a != b)
                 return arr
 
             def _less(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) < inputs[1].item(0)
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a < b)
                 return arr
 
             def _less_equal(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) <= inputs[1].item(0)
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a <= b)
                 return arr
 
             def _greater(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) > inputs[1].item(0)
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a > b)
                 return arr
 
             def _greater_equal(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) >= inputs[1].item(0)
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a >= b)
                 return arr
 
             def _maximum(self, *inputs):
+                if self.ndim ==0:
+                    a = inputs[0].item(0)
+                    b = inputs[1].item(0) 
+                    return a if a > b else b 
+                    
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, (a, b) in enumerate(iterator):
                     if _isnan(a):
@@ -675,6 +803,11 @@ else:
                 return UncertainArray(arr)
 
             def _minimum(self, *inputs):
+                if self.ndim ==0:
+                    a = inputs[0].item(0)
+                    b = inputs[1].item(0) 
+                    return a if a < b else b 
+                    
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, (a, b) in enumerate(iterator):
                     if _isnan(a):
@@ -688,12 +821,18 @@ else:
                 return UncertainArray(arr)
 
             def _logical_and(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) and inputs[1].item(0) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=object)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a and b )
                 return UncertainArray(arr)
 
             def _logical_or(self, *inputs):
+                if self.ndim ==0:
+                    return inputs[0].item(0) or inputs[1].item(0) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=object)
                 for i, (a, b) in enumerate(iterator):
                     itemset(i, a or b )
@@ -715,30 +854,46 @@ else:
                 return arr
 
             def _isinf(self, *inputs):
+                if self.ndim ==0:
+                    return not self.item(0) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, item in enumerate(iterator):
                     itemset(i, _isinf(item))
                 return arr
 
             def _isnan(self, *inputs):
+                if self.ndim ==0:
+                    return _isnan( self.item(0) ) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, item in enumerate(iterator):
                     itemset(i, _isnan(item))
                 return arr
 
             def _isfinite(self, *inputs):
+                # TODO: is this correct? It doesn't match below.
+                if self.ndim ==0:
+                    return _isinf( self.item(0) ) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, item in enumerate(iterator):
                     itemset(i, not (_isnan(item) or _isinf(item)))
                 return arr
 
             def _reciprocal(self, *inputs):
+                if self.ndim ==0:
+                    return 1.0 / ( self.item(0) ) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, item in enumerate(iterator):
                     itemset(i, 1.0/item)
                 return UncertainArray(arr)
 
             def _absolute(self, *inputs):
+                if self.ndim ==0:
+                    return abs( self.item(0) ) 
+                    
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, item in enumerate(iterator):
                     itemset(i, abs(item))
