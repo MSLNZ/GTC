@@ -77,6 +77,26 @@ else:
             else:
                 raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
 
+        def _asscalar(a):
+            """
+            Return the single element `a` as an appropriate numpy type 
+            or as an uncertain type augmented with attributes 
+            `dtype`, `ndim` and `size`.
+            
+            """
+            if isinstance( a, (UncertainReal,UncertainComplex) ):
+                a.dtype = np.dtype('object_')
+                a.ndim = 0
+                a.size = 1
+            elif isinstance(a,Real):
+                a = np.float_(a)
+            elif isinstance(a,Complex):
+                a = np.complex_(a)
+            else:
+                assert False, "unexpected"
+                
+            return a
+
         #--------------------------------------------------------------------
         class UncertainArray(np.ndarray):
             """Base: :class:`numpy.ndarray`
@@ -267,7 +287,7 @@ else:
                 arr, itemset, iterator = self._create_empty(dtype=float)
                 for i, item in enumerate(iterator):
                     itemset(i, item.r)
-                return arr
+                return UncertainArray(arr)
 
             # def value(self, dtype=None):
             @property
@@ -285,13 +305,15 @@ else:
                 :param dtype: The data type of the returned array.
                 :type dtype: :class:`numpy.dtype`
                 :rtype: :class:`numpy.ndarray`
+                
                 """
                 if self.ndim == 0:
-                    return value(self.item(0))
+                    return _asscalar( value(self.item(0)) )
+                    
                 arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, value(item))
-                return arr
+                return UncertainArray(arr)
 
             # def uncertainty(self, dtype=None):
             @property
@@ -318,7 +340,7 @@ else:
                 arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, uncertainty(item))
-                return arr
+                return UncertainArray(arr)
 
             # def variance(self, dtype=None):
             @property
@@ -345,7 +367,7 @@ else:
                 arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, variance(item))
-                return arr
+                return UncertainArray(arr)
 
             # def dof(self):
             @property
@@ -363,10 +385,10 @@ else:
                 if self.ndim == 0:
                     return dof(self.item(0))
                     
-                arr, itemset, iterator = self._create_empty(dtype=float)
+                arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, dof(item))
-                return arr
+                return UncertainArray(arr)
 
             def sensitivity(self, x):
                 if self.ndim == 0:
@@ -610,7 +632,7 @@ else:
                 
             def _atan2(self, *inputs):
                 if self.ndim ==0:
-                    return atan2(inputs[0].item(0),inputs[1].item(0))
+                    return atan2(self.item(0),inputs[0].item(0))
                     
                 arr, itemset, iterator = self._create_empty((self, inputs[0]))
                 for i, (a, b) in enumerate(iterator):
@@ -932,11 +954,31 @@ else:
                 return UncertainArray(arr)
 
             def sum(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).sum(*args, **kwargs))
+                result = np.asarray(self).sum(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
+            # `numpy.average` uses `dtype` and `.size` attributes 
+            # on the result returned by `mean`. It will use `mean` as 
+            # defined in a subclass if available. 
+            # In our single element case an uncertain number is 
+            # returned, which does not have these attributes. 
+            # Numpy has its own scalar classes for float, etc, that 
+            # have these extra attributes. Hence, it does not look 
+            # like we can make `average` work the way numpy does 
+            # when the mean is a single element (as it usually will be).
+            # A way to fix this is to add the `.ndim` and `.size` attributes 
+            # to the result returned by `mean`, but we would then have 
+            # cast Python scalar types to numpy ones too.
             def mean(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).mean(*args, **kwargs))
-
+                result = np.asarray(self).mean(*args, **kwargs)
+                if result.shape != ():
+                    return UncertainArray(result)
+                else: 
+                    return _asscalar(result)
+            
             def std(self, *args, **kwargs):
                 raise TypeError(
                     "`std` is not defined for `UncertainArray`"
@@ -950,31 +992,67 @@ else:
                 # return UncertainArray(np.asarray(self).var(*args, **kwargs))
 
             def max(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).max(*args, **kwargs))
+                result = np.asarray(self).max(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def min(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).min(*args, **kwargs))
+                result = np.asarray(self).min(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def trace(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).trace(*args, **kwargs))
+                result = np.asarray(self).trace(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def cumprod(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).cumprod(*args, **kwargs))
+                result = np.asarray(self).cumprod(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def cumsum(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).cumsum(*args, **kwargs))
+                result = np.asarray(self).cumsum(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def prod(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).prod(*args, **kwargs))
+                result = np.asarray(self).prod(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def ptp(self, *args, **kwargs):
-                return UncertainArray(np.asarray(self).ptp(*args, **kwargs))
+                result = np.asarray(self).ptp(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def any(self, *args, **kwargs):
-                return np.asarray(self, dtype=np.bool).any(*args, **kwargs)
+                result = np.asarray(self, dtype=bool).any(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
 
             def all(self, *args, **kwargs):
-                return np.asarray(self, dtype=np.bool).all(*args, **kwargs)
+                result = np.asarray(self, dtype=bool).all(*args, **kwargs)
+                if hasattr(result,'ndim'):
+                    return UncertainArray(result)
+                else: 
+                    return result
                 
         # Allows pickle to understand the class name 'uarray'         
         uarray = UncertainArray

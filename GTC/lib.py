@@ -83,6 +83,9 @@ class UncertainReal(object):
     ,   'is_elementary'         
     ,   'is_intermediate'       
     ,   '_node'                 # May refer to a node
+    ,   'ndim'                  # for numpy
+    ,   'size'                  # for numpy
+    ,   'dtype'                 # for numpy
     ]            
 
     #-------------------------------------------------------------------------
@@ -2292,6 +2295,9 @@ class UncertainComplex(object):
     ,   '_label'
     ,   'is_elementary'         
     ,   'is_intermediate'       
+    ,   'ndim'              # for numpy
+    ,   'size'              # for numpy
+    ,   'dtype'             # for numpy
     )
 
     #------------------------------------------------------------------------
