@@ -8,6 +8,16 @@ from __future__ import division
 import math
 import cmath
 import numbers
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+else:
+    if np.__version__ < '1.13.0':
+        # The __array_ufunc__ method was not introduced until v1.13.0
+        np = None
+
 try:
     from itertools import izip  # Python 2
     PY2 = True
@@ -83,20 +93,25 @@ class UncertainReal(object):
     ,   'is_elementary'         
     ,   'is_intermediate'       
     ,   '_node'                 # May refer to a node
-    ,   'ndim'                  # for numpy
     ,   'size'                  # for numpy
     ,   'dtype'                 # for numpy
+    ,   'shape'                 # for numpy
     ]            
 
     #-------------------------------------------------------------------------
     def __init__(self,x,u_comp,d_comp,i_comp,node=None):
 
-        self._x = float(x)
+        self._x = np.float_(x) if np else float(x)
         self._u_components = u_comp
         self._d_components = d_comp
         self._i_components = i_comp
         self._node = node
  
+        if np:
+            self.dtype = np.dtype('O')
+            self.size = 1
+            self.shape = ()
+
         if node is None:
             self.is_elementary = False 
             self.is_intermediate = False
@@ -758,7 +773,10 @@ class UncertainReal(object):
     def __bool__(self):
         # Used to coerce to Boolean 
         return UncertainReal.__ne__(self, 0.0)
-    __nonzero__ = __bool__
+        
+    # Must return either `bool` or `int`
+    def __nonzero__(self):
+        return bool( UncertainReal.__bool__(self) )
 
     #------------------------------------------------------------------------
     @property
@@ -1396,7 +1414,8 @@ def _pow(lhs,rhs):
 
         try:
             y = l**r
-        except ValueError:
+        except (ValueError,FloatingPointError):
+            # `FloatingPointError` is raised when `l**r` uses numpy types.
             # py 2.7 does not handle fractional powers of negative numbers 
             # but py3 does by returning a complex. 
             # We patch the py2 case by casting `lhs` to a ucomplex
@@ -1431,7 +1450,8 @@ def _pow(lhs,rhs):
             
             try:
                 y = l**r
-            except ValueError:
+            except (ValueError,FloatingPointError):
+                # `FloatingPointError` is raised when `l**r` uses numpy types.
                 # py 2.7 does not handle fractional powers of negative numbers 
                 # but py3 does by returning a complex. 
                 # We patch the py2 case by casting `lhs` to a ucomplex
@@ -1473,7 +1493,8 @@ def _rpow(lhs,rhs):
 
         try:
             y = l**r
-        except ValueError:
+        except (ValueError,FloatingPointError):
+            # `FloatingPointError` is raised when `l**r` uses numpy types.
             # py 2.7 does not handle fractional powers of negative numbers 
             # but py3 does by returning a complex. 
             # We patch the py2 case by casting `lhs` to a ucomplex
@@ -2295,9 +2316,9 @@ class UncertainComplex(object):
     ,   '_label'
     ,   'is_elementary'         
     ,   'is_intermediate'       
-    ,   'ndim'              # for numpy
-    ,   'size'              # for numpy
-    ,   'dtype'             # for numpy
+    ,   'size'                  # for numpy
+    ,   'dtype'                 # for numpy
+    ,   'shape'                 # for numpy
     )
 
     #------------------------------------------------------------------------
@@ -2332,7 +2353,14 @@ class UncertainComplex(object):
         
         self.real = r  #: :class:`UncertainReal`: The real component.
         self.imag = i  #: :class:`UncertainReal`: The imaginary component.
-        self._value = complex(r.x,i.x)
+        
+        z = complex(r.x,i.x)
+        self._value = np.complex_( z ) if np else z
+
+        if np:
+            self.dtype = np.dtype('O')
+            self.size = 1
+            self.shape = ()
         
         self.is_elementary = r.is_elementary or i.is_elementary
         self.is_intermediate = r.is_intermediate
@@ -2940,7 +2968,10 @@ class UncertainComplex(object):
     # For coercion to Boolean 
     def __bool__(self):
         return UncertainComplex.__ne__(self,0.0)
-    __nonzero__ = __bool__
+        
+    # Must return either `bool` or `int`
+    def __nonzero__(self):
+        return bool( UncertainComplex.__bool__(self) )
 
     #------------------------------------------------------------------------
     def __abs__(self):
