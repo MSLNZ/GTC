@@ -1,5 +1,7 @@
 import re
 import unittest
+import numpy 
+
 try:
     from operator import div  # Python 2
 except ImportError:
@@ -20,6 +22,8 @@ from testing_tools import *
 
 TOL = 1E-13 
 LOG10_E = cmath.log10(cmath.e)
+
+numpy.seterr(all='raise')
 
 #----------------------------------------------------------------------------
 def is_positive_definite(x):
@@ -842,8 +846,10 @@ class ArithmeticTestsComplex(unittest.TestCase):
         ,   TOL
         )
 
-        self.assertRaises(ZeroDivisionError,div,y,0)
- 
+        # numpy raises a different error
+        self.assertRaises(FloatingPointError,div,y,0)
+        # self.assertRaises(ZeroDivisionError,div,y,0)
+
         # Test for _d_component 
         y = self.un1b / self.un2
         equivalent_complex(value(y),self.x1/self.x2,TOL)

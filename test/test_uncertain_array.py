@@ -281,7 +281,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(df[1], 2.6))
 
         r = a.r
-        self.assertTrue(r.dtype == np.object_)
+        self.assertTrue(r.dtype == np.float_)
         self.assertTrue(equivalent(r[0], 0.2651515151515152))
         self.assertTrue(equivalent(r[1], 0.29629629629629634))
 
@@ -393,7 +393,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(df[1, 1], 8.8))
 
         r = a.r
-        self.assertTrue(r.dtype == np.object_)
+        self.assertTrue(r.dtype == np.float_)
         self.assertTrue(equivalent(r[0, 0], 0.2651515151515152))
         self.assertTrue(equivalent(r[0, 1], 0.29629629629629634))
         self.assertTrue(equivalent(r[1, 0], 0.026854219948849102))
@@ -1134,48 +1134,48 @@ class TestUncertainArray(unittest.TestCase):
         rr = uarray( ureal(1.2,0.4,7) )
         # ==
         y = l == r 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( not y )
         y = l == rr 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( y )
         # !=
         y = l != r 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( y )
         y = l != rr 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( not y )
         # <
         y = l < r 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( not y )
         y = l < rr 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( not y )
 
         # >
         y = l > r 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( y )
         y = l > rr 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( not y )
 
         # <=
         y = l <= r 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( not y )
         y = l <= rr 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( y )
 
         # >=
         y = l >= r 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( y )
         y = l >= rr 
-        self.assertTrue( isinstance(y,bool) )
+        self.assertTrue( isinstance(y,np.bool_) )
         self.assertTrue( y )
         
         n = len(self.x)
@@ -3614,18 +3614,18 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(not c[1])
 
         c = np.any(uarray([ucomplex(-1j, 1), ucomplex(0, 0), ucomplex(5 + 2j, 1)]))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
 
         # NaN, +INF, -INF evaluate to True because these are not equal to zero.
         c = np.any(uarray(self._ureal(np.nan, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
         c = np.any(uarray(self._ureal(np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
         c = np.any(uarray(self._ureal(-np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
 
     def test_all(self):
@@ -3641,18 +3641,18 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(not c[1])
 
         c = np.all(uarray([ucomplex(-1j, 1), ucomplex(2.1-3.2j, 0.004), ucomplex(5 + 2j, 2.3)]))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
 
         # NaN, +INF, -INF evaluate to True because these are not equal to zero.
         c = np.all(uarray([self._ureal(np.nan, 0), ureal(2, 1)]))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
         c = np.all(uarray(self._ureal(np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
         c = np.all(uarray(self._ureal(-np.inf, 0)))
-        self.assertTrue(isinstance(c, UncertainArray))
+        self.assertTrue(isinstance(c, np.bool_))
         self.assertTrue(c)
 
     def test_isnan(self):

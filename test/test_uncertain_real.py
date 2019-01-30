@@ -1,5 +1,6 @@
 import re
 import unittest
+import numpy
 
 from GTC import *
 from GTC import context 
@@ -20,6 +21,9 @@ from testing_tools import *
 
 TOL = 1E-13 
 LOG10_E = math.log10(math.e)
+
+# numpy warning are raised as errors
+numpy.seterr(all='raise')
 
 #----------------------------------------------------------------------------
 class SimpleAttributesAndFunctions(unittest.TestCase):
@@ -711,7 +715,9 @@ class ArithmeticTestsReal(unittest.TestCase):
         y = 1.0 / self.w
         self.assertTrue( y is not self.w )
         
-        self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
+        # numpy raises a different error!
+        self.assertRaises(FloatingPointError,UncertainReal.__div__, self.z, 0)
+        # self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
 
         newy = y/(1.0+0j)
         self.assertFalse( newy is y )
