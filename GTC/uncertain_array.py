@@ -7,6 +7,7 @@ does not have to be installed in order for someone to use GTC.
 from __future__ import division
 
 import warnings
+
 from numbers import Number, Real, Complex
 from math import isnan, isinf
 from cmath import isnan as cisnan
@@ -77,25 +78,25 @@ else:
             else:
                 raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
 
-        def _asscalar(a):
-            """
-            Return the single element `a` as an appropriate numpy type 
-            or as an uncertain type augmented with attributes 
-            `dtype`, `ndim` and `size`.
-            
-            """
-            if isinstance( a, (UncertainReal,UncertainComplex) ):
-                a.dtype = np.dtype('object_')
-                a.ndim = 0
-                a.size = 1
-            elif isinstance(a,Real):
-                a = np.float_(a)
-            elif isinstance(a,Complex):
-                a = np.complex_(a)
-            else:
-                assert False, "unexpected"
-                
-            return a
+        # Note numpy defines its own numeric types, instead of bool, int,
+        # float, complex, that have additional attributes. These are assumed by  
+        # functions like `numpy.average`. (Uses `dtype` and `.size` attributes 
+        # on the result returned by `mean`, as defined in a subclass if available.) 
+
+        # One way to fix this is to add the required attributes 
+        # to all the return values from `UncertainArray` methods.
+        
+        # Another option is to ensure that array elements of 
+        # are always numpy-compatible. We need all uncertain 
+        # number objects to be initialised with  
+        #           a.dtype = np.dtype('O')
+        #           a.size = 1
+        #           a.shape = ()
+        # 
+        # However, our use of dtype==object for the arrays means that numeric  
+        # elements are not cast to numpy types when they are loaded into an array. 
+        # To fix this would require iteration through all arrays as they 
+        # are being created!        
 
         #--------------------------------------------------------------------
         class UncertainArray(np.ndarray):
@@ -109,8 +110,15 @@ else:
 
             """
             def __new__(cls, array, dtype=None, label=None):
-                if dtype is None: 
-                    dtype = object
+                # The first case allows users to create uarray instances 
+                # with a definite numpy number type. This could be done 
+                # by wrapping a call to uarray() around an ndarray.
+                # Without this, the type gets converted back to Python.
+                if type(array) == np.ndarray: 
+                    dtype = array.dtype
+                elif dtype is None: 
+                    dtype = np.dtype('O')
+                    
                 obj = np.asarray(array, dtype=dtype).view(cls)
                 obj._label = label
                 return obj
@@ -222,9 +230,6 @@ else:
                 :rtype: :class:`str`
                 """
                 return self._label
-
-            # Note: When ndim == 0, e.g., sin( a ) or a.x and a.ndim == 0, 
-            # then the result is returned as a scalar. 
             
             @property
             def real(self):
@@ -240,7 +245,7 @@ else:
 
                 :rtype: :class:`UncertainArray`
                 """
-                if self.ndim == 0:
+                if self.shape == ():
                     return self.item(0).real
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
@@ -261,7 +266,7 @@ else:
 
                 :rtype: :class:`UncertainArray`
                 """
-                if self.ndim == 0:
+                if self.shape == ():
                     return self.item(0).imag
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
@@ -279,9 +284,9 @@ else:
                     >>> a.r
                     array([0.26515152, 0.2962963 ])
 
-                :rtype: :class:`numpy.ndarray`
+                :rtype: :class:`UncertainArray`
                 """
-                if self.ndim == 0:
+                if self.shape == ():
                     return self.item(0).r
                     
                 arr, itemset, iterator = self._create_empty(dtype=float)
@@ -289,9 +294,22 @@ else:
                     itemset(i, item.r)
                 return UncertainArray(arr)
 
-            # def value(self, dtype=None):
             @property
             def x(self):
+                """The result of :func:`~.core.value` for each element in the array.
+
+                **Example**::
+
+                    >>> a = la.uarray([0.57, ureal(0.45, 0.12), ucomplex(1.1+0.68j, 0.19)])
+                    >>> a.x
+                    array([0.57, 0.45, (1.1+0.68j)])
+                
+                :rtype: :class:`UncertainArray`
+                
+                """
+                return self.value()
+                
+            def value(self, dtype=None):
                 """The result of :func:`~.core.value` for each element in the array.
 
                 **Example**::
@@ -305,19 +323,35 @@ else:
                 :param dtype: The data type of the returned array.
                 :type dtype: :class:`numpy.dtype`
                 :rtype: :class:`numpy.ndarray`
-                
                 """
-                if self.ndim == 0:
-                    return _asscalar( value(self.item(0)) )
+                if self.shape == ():
+                    return value(self.item(0)) 
                     
                 arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
-                    itemset(i, value(item))
+                    itemset(i, value(item) )
                 return UncertainArray(arr)
 
-            # def uncertainty(self, dtype=None):
             @property
             def u(self):
+                """The result of :func:`~.core.uncertainty` for each element in the array.
+
+                **Example**::
+
+                    >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
+                    >>> r.u
+                    array([0.18, 0.12, 0.19])
+                    >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
+                    >>> c.u
+                    array([StandardUncertainty(real=0.6, imag=0.6),
+                           StandardUncertainty(real=1.4, imag=0.2),
+                           StandardUncertainty(real=0.9, imag=0.9)])
+
+                :rtype: :class:`UncertainArray`
+                """
+                return self.uncertainty()
+                
+            def uncertainty(self, dtype=None):
                 """The result of :func:`~.core.uncertainty` for each element in the array.
 
                 **Example**::
@@ -335,16 +369,33 @@ else:
                 :type dtype: :class:`numpy.dtype`
                 :rtype: :class:`numpy.ndarray`
                 """
-                if self.ndim == 0:
+                if self.shape == ():
                     return uncertainty(self.item(0))
                 arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, uncertainty(item))
                 return UncertainArray(arr)
 
-            # def variance(self, dtype=None):
             @property
             def v(self):
+                """The result of :func:`~.core.variance` for each element in the array.
+
+                **Example**::
+
+                    >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
+                    >>> r.v
+                    array([0.0324, 0.0144, 0.0361])
+                    >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.5, 0.5)), ucomplex(1.5j, 0.9)])
+                    >>> c.v
+                    array([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
+                           VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
+                           VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)])
+
+                :rtype: :class:`UncertainArray`
+                """
+                return self.variance()
+                
+            def variance(self, dtype=None):
                 """The result of :func:`~.core.variance` for each element in the array.
 
                 **Example**::
@@ -362,16 +413,29 @@ else:
                 :type dtype: :class:`numpy.dtype`
                 :rtype: :class:`numpy.ndarray`
                 """
-                if self.ndim == 0:
+                if self.shape == ():
                     return variance(self.item(0))
                 arr, itemset, iterator = self._create_empty(dtype=None)
                 for i, item in enumerate(iterator):
                     itemset(i, variance(item))
                 return UncertainArray(arr)
 
-            # def dof(self):
             @property
             def df(self):
+                """The result of :func:`~.core.dof` for each element in the array.
+
+                **Example**::
+
+                    >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
+                    >>> a.df
+                    array([ 3.,  4.,  7., inf])
+
+                :rtype: :class:`UncertainArray`
+                
+                """
+                return self.dof()
+                
+            def dof(self,dtype=None):
                 """The result of :func:`~.core.dof` for each element in the array.
 
                 **Example**::
@@ -382,16 +446,16 @@ else:
 
                 :rtype: :class:`numpy.ndarray`
                 """
-                if self.ndim == 0:
+                if self.shape == ():
                     return dof(self.item(0))
                     
-                arr, itemset, iterator = self._create_empty(dtype=None)
+                arr, itemset, iterator = self._create_empty(dtype=dtype)
                 for i, item in enumerate(iterator):
                     itemset(i, dof(item))
                 return UncertainArray(arr)
 
             def sensitivity(self, x):
-                if self.ndim == 0:
+                if self.shape == ():
                     if hasattr(x,'item'):
                         return self.item(0).sensitivity(x.item(0))
                     else:
@@ -403,11 +467,11 @@ else:
                     
                 arr, itemset, iterator = self._create_empty((self, x))
                 for i, (y, x) in enumerate(iterator):
-                    itemset(i, y.sensitivity(x) )
+                    itemset(i, y.sensitivity(x)) 
                 return UncertainArray(arr)
 
             def u_component(self, x):
-                if self.ndim == 0:
+                if self.shape == ():
                     if hasattr(x,'item'):
                         return self.item(0).u_component(x.item(0))
                     else:
@@ -419,7 +483,7 @@ else:
                     
                 arr, itemset, iterator = self._create_empty((self, x))
                 for i, (y, x) in enumerate(iterator):
-                    itemset(i, y.u_component(x) )
+                    itemset(i, y.u_component(x)) 
                 return UncertainArray(arr)
                 
             def conjugate(self):
@@ -439,25 +503,25 @@ else:
                 return self._conjugate()
 
             def _conjugate(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return self.item(0).conjugate()
 
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
-                    itemset(i, item.conjugate())
+                    itemset(i, item.conjugate()) 
                 return UncertainArray(arr)
 
             def _positive(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return +self.item(0)
 
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
-                    itemset(i, +item)
+                    itemset(i, +item) 
                 return UncertainArray(arr)
 
             def _negative(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return -self.item(0)
             
                 arr, itemset, iterator = self._create_empty()
@@ -471,7 +535,7 @@ else:
                     
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, (a, b) in enumerate(iterator):
-                    itemset(i, a + b)
+                    itemset(i, a + b )
                 return UncertainArray(arr)
 
             def _subtract(self, *inputs):
@@ -516,11 +580,11 @@ else:
                     
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, (a, b) in enumerate(iterator):
-                    itemset(i, a ** b)
+                    itemset(i, a ** b) 
                 return UncertainArray(arr)
 
             def _exp(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return exp( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -529,7 +593,7 @@ else:
                 return UncertainArray(arr)
 
             def _log(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return log( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -538,7 +602,7 @@ else:
                 return UncertainArray(arr)
 
             def _log10(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return log10( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -547,7 +611,7 @@ else:
                 return UncertainArray(arr)
 
             def _sqrt(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return sqrt( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -556,7 +620,7 @@ else:
                 return UncertainArray(arr)
 
             def _cos(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return cos( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -565,8 +629,8 @@ else:
                 return UncertainArray(arr)
 
             def _sin(self, *ignore):
-                if self.ndim == 0:
-                    return sin( self.item(0) )
+                if self.shape == ():
+                    return sin( self.item(0)) 
             
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
@@ -574,22 +638,19 @@ else:
                 return UncertainArray(arr)
 
             def _tan(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return tan( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
                 for i, item in enumerate(iterator):
-                    itemset(i, tan(item))
+                    itemset(i, tan(item)) 
                 return UncertainArray(arr)
 
             def _arccos(self, *ignore):
-                if self.ndim == 0:
-                    return acos( self.item(0) )
-            
                 return self._acos()
 
             def _acos(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return acos( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -598,13 +659,10 @@ else:
                 return UncertainArray(arr)
 
             def _arcsin(self, *ignore):
-                if self.ndim == 0:
-                    return asin( self.item(0) )
-            
                 return self._asin()
 
             def _asin(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return asin( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -613,13 +671,10 @@ else:
                 return UncertainArray(arr)
 
             def _arctan(self, *ignore):
-                if self.ndim == 0:
-                    return atan( self.item(0) )
-            
                 return self._atan()
 
             def _atan(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return atan( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -640,7 +695,7 @@ else:
                 return UncertainArray(arr)
                
             def _sinh(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return sinh( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -649,7 +704,7 @@ else:
                 return UncertainArray(arr)
 
             def _cosh(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return cosh( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -658,7 +713,7 @@ else:
                 return UncertainArray(arr)
 
             def _tanh(self, *ignore):
-                if self.ndim == 0:
+                if self.shape == ():
                     return tanh( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -667,13 +722,10 @@ else:
                 return UncertainArray(arr)
 
             def _arccosh(self, *ignore):
-                if self.ndim == 0:
-                    return acosh( self.item(0) )
-            
                 return self._acosh()
 
             def _acosh(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return acosh( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -682,13 +734,10 @@ else:
                 return UncertainArray(arr)
 
             def _arcsinh(self, *ignore):
-                if self.ndim == 0:
-                    return asinh( self.item(0) )
-            
                 return self._asinh()
 
             def _asinh(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return asinh( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -697,13 +746,10 @@ else:
                 return UncertainArray(arr)
 
             def _arctanh(self, *ignore):
-                if self.ndim == 0:
-                    return atanh( self.item(0) )
-            
                 return self._atanh()
 
             def _atanh(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return atanh( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -712,13 +758,10 @@ else:
                 return UncertainArray(arr)
 
             def _square(self, *ignore):
-                if self.ndim == 0:
-                    return mag_squared( self.item(0) )
-            
                 return self._mag_squared()
 
             def _mag_squared(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return mag_squared( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -727,7 +770,7 @@ else:
                 return UncertainArray(arr)
 
             def _magnitude(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return magnitude( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -736,7 +779,7 @@ else:
                 return UncertainArray(arr)
 
             def _phase(self):
-                if self.ndim == 0:
+                if self.shape == ():
                     return phase( self.item(0) )
             
                 arr, itemset, iterator = self._create_empty()
@@ -747,18 +790,18 @@ else:
             def _intermediate(self,labels):
                 # Default second argument of calling function is `None`
                 if labels is None: 
-                    if self.ndim == 0:
+                    if self.shape == ():
                         return result( self.item(0) )
             
                     arr, itemset, iterator = self._create_empty()
                     for i, x in enumerate(iterator):
-                        itemset( i, result(x) )
+                        itemset( i, result(x)) 
                 else:
                     # `_create_empty()` handles only ndarray-like sequences
                     if not isinstance(labels,np.ndarray):
                         labels = np.asarray(labels)
                         
-                    if self.ndim == 0:
+                    if self.shape == ():
                         return result( self.item(0), labels.item(0) )
             
                     arr, itemset, iterator = self._create_empty((self, labels))
@@ -825,7 +868,7 @@ else:
                 if self.ndim ==0:
                     a = inputs[0].item(0)
                     b = inputs[1].item(0) 
-                    return a if a > b else b 
+                    return a if a > b else b
                     
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, (a, b) in enumerate(iterator):
@@ -843,7 +886,7 @@ else:
                 if self.ndim ==0:
                     a = inputs[0].item(0)
                     b = inputs[1].item(0) 
-                    return a if a < b else b 
+                    return a if a < b else b
                     
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, (a, b) in enumerate(iterator):
@@ -859,7 +902,7 @@ else:
 
             def _logical_and(self, *inputs):
                 if self.ndim ==0:
-                    return inputs[0].item(0) and inputs[1].item(0) 
+                    return inputs[0].item(0) and inputs[1].item(0)
                     
                 arr, itemset, iterator = self._create_empty(inputs, dtype=object)
                 for i, (a, b) in enumerate(iterator):
@@ -892,7 +935,7 @@ else:
 
             def _isinf(self, *inputs):
                 if self.ndim ==0:
-                    return not self.item(0) 
+                    return _isinf(self.item(0))
                     
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, item in enumerate(iterator):
@@ -901,7 +944,7 @@ else:
 
             def _isnan(self, *inputs):
                 if self.ndim ==0:
-                    return _isnan( self.item(0) ) 
+                    return _isnan( self.item(0) )
                     
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, item in enumerate(iterator):
@@ -911,7 +954,7 @@ else:
             def _isfinite(self, *inputs):
                 # TODO: is this correct? It doesn't match the array case below.
                 if self.ndim ==0:
-                    return _isinf( self.item(0) ) 
+                    return _isinf( self.item(0) )
                     
                 arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
                 for i, item in enumerate(iterator):
@@ -920,7 +963,7 @@ else:
 
             def _reciprocal(self, *inputs):
                 if self.ndim ==0:
-                    return 1.0 / ( self.item(0) ) 
+                    return 1.0 / ( self.item(0) )
                     
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, item in enumerate(iterator):
@@ -929,7 +972,7 @@ else:
 
             def _absolute(self, *inputs):
                 if self.ndim ==0:
-                    return abs( self.item(0) ) 
+                    return abs( self.item(0) )
                     
                 arr, itemset, iterator = self._create_empty(inputs)
                 for i, item in enumerate(iterator):
@@ -955,29 +998,17 @@ else:
 
             def sum(self, *args, **kwargs):
                 result = np.asarray(self).sum(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
-            # `numpy.average` uses `dtype` and `.size` attributes 
-            # on the result returned by `mean`. It will use `mean` as 
-            # defined in a subclass if available. 
-            # In our single element case an uncertain number is 
-            # returned, which does not have these attributes. 
-            # Numpy has its own scalar classes for float, etc, that 
-            # have these extra attributes. Hence, it does not look 
-            # like we can make `average` work the way numpy does 
-            # when the mean is a single element (as it usually will be).
-            # A way to fix this is to add the `.ndim` and `.size` attributes 
-            # to the result returned by `mean`, but we would then have 
-            # cast Python scalar types to numpy ones too.
             def mean(self, *args, **kwargs):
                 result = np.asarray(self).mean(*args, **kwargs)
-                if result.shape != ():
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
-                    return _asscalar(result)
+                    return result
             
             def std(self, *args, **kwargs):
                 raise TypeError(
@@ -993,63 +1024,63 @@ else:
 
             def max(self, *args, **kwargs):
                 result = np.asarray(self).max(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def min(self, *args, **kwargs):
                 result = np.asarray(self).min(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def trace(self, *args, **kwargs):
                 result = np.asarray(self).trace(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def cumprod(self, *args, **kwargs):
                 result = np.asarray(self).cumprod(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def cumsum(self, *args, **kwargs):
                 result = np.asarray(self).cumsum(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def prod(self, *args, **kwargs):
                 result = np.asarray(self).prod(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def ptp(self, *args, **kwargs):
                 result = np.asarray(self).ptp(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def any(self, *args, **kwargs):
                 result = np.asarray(self, dtype=bool).any(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
 
             def all(self, *args, **kwargs):
                 result = np.asarray(self, dtype=bool).all(*args, **kwargs)
-                if hasattr(result,'ndim'):
+                if hasattr(result,'shape') and result.shape != ():
                     return UncertainArray(result)
                 else: 
                     return result
