@@ -1,7 +1,7 @@
 """
 The proper way to create an uncertain array is by calling uarray(...)
 
-This module was written in the following way so that numpy >= 1.13.0
+This module was written so that numpy >= 1.13.0
 does not have to be installed in order for someone to use GTC.
 """
 from __future__ import division
@@ -17,6 +17,8 @@ try:
 except ImportError:
     izip = zip
     xrange = range
+
+from GTC import is_sequence 
 
 from GTC.core import (
     value,
@@ -282,7 +284,7 @@ else:
                     >>> a = la.uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2)),
                     ...                ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5))])
                     >>> a.r
-                    array([0.26515152, 0.2962963 ])
+                    uarray([0.26515152, 0.2962963 ])
 
                 :rtype: :class:`UncertainArray`
                 """
@@ -302,7 +304,7 @@ else:
 
                     >>> a = la.uarray([0.57, ureal(0.45, 0.12), ucomplex(1.1+0.68j, 0.19)])
                     >>> a.x
-                    array([0.57, 0.45, (1.1+0.68j)])
+                    uarray([0.57, 0.45, (1.1+0.68j)])
                 
                 :rtype: :class:`UncertainArray`
                 
@@ -316,9 +318,9 @@ else:
 
                     >>> a = la.uarray([0.57, ureal(0.45, 0.12), ucomplex(1.1+0.68j, 0.19)])
                     >>> a.value()
-                    array([0.57, 0.45, (1.1+0.68j)], dtype=object)
+                    uarray([0.57, 0.45, (1.1+0.68j)])
                     >>> a.value(complex)
-                    array([0.57+0.j  , 0.45+0.j  , 1.1 +0.68j])
+                    uarray([0.57+0.j  , 0.45+0.j  , 1.1 +0.68j])
 
                 :param dtype: The data type of the returned array.
                 :type dtype: :class:`numpy.dtype`
@@ -327,7 +329,7 @@ else:
                 if self.shape == ():
                     return value(self.item(0)) 
                     
-                arr, itemset, iterator = self._create_empty(dtype=None)
+                arr, itemset, iterator = self._create_empty(dtype=dtype)
                 for i, item in enumerate(iterator):
                     itemset(i, value(item) )
                 return UncertainArray(arr)
@@ -340,10 +342,10 @@ else:
 
                     >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
                     >>> r.u
-                    array([0.18, 0.12, 0.19])
+                    uarray([0.18, 0.12, 0.19])
                     >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> c.u
-                    array([StandardUncertainty(real=0.6, imag=0.6),
+                    uarray([StandardUncertainty(real=0.6, imag=0.6),
                            StandardUncertainty(real=1.4, imag=0.2),
                            StandardUncertainty(real=0.9, imag=0.9)])
 
@@ -358,12 +360,12 @@ else:
 
                     >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
                     >>> r.uncertainty(float)
-                    array([0.18, 0.12, 0.19])
+                    uarray([0.18, 0.12, 0.19])
                     >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> c.uncertainty()
-                    array([StandardUncertainty(real=0.6, imag=0.6),
+                    uarray([StandardUncertainty(real=0.6, imag=0.6),
                            StandardUncertainty(real=1.4, imag=0.2),
-                           StandardUncertainty(real=0.9, imag=0.9)], dtype=object)
+                           StandardUncertainty(real=0.9, imag=0.9)])
 
                 :param dtype: The data type of the returned array.
                 :type dtype: :class:`numpy.dtype`
@@ -371,7 +373,8 @@ else:
                 """
                 if self.shape == ():
                     return uncertainty(self.item(0))
-                arr, itemset, iterator = self._create_empty(dtype=None)
+                    
+                arr, itemset, iterator = self._create_empty(dtype=dtype)
                 for i, item in enumerate(iterator):
                     itemset(i, uncertainty(item))
                 return UncertainArray(arr)
@@ -384,12 +387,12 @@ else:
 
                     >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
                     >>> r.v
-                    array([0.0324, 0.0144, 0.0361])
+                    uarray([0.0324, 0.0144, 0.0361])
                     >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.5, 0.5)), ucomplex(1.5j, 0.9)])
                     >>> c.v
-                    array([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
-                           VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
-                           VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)])
+                    uarray([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
+                            VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
+                            VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)])
 
                 :rtype: :class:`UncertainArray`
                 """
@@ -402,12 +405,12 @@ else:
 
                     >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
                     >>> r.variance(float)
-                    array([0.0324, 0.0144, 0.0361])
+                    uarray([0.0324, 0.0144, 0.0361])
                     >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.5, 0.5)), ucomplex(1.5j, 0.9)])
                     >>> c.variance()
-                    array([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
-                           VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
-                           VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)], dtype=object)
+                    uarray([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
+                            VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
+                            VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)])
 
                 :param dtype: The data type of the returned array.
                 :type dtype: :class:`numpy.dtype`
@@ -415,7 +418,8 @@ else:
                 """
                 if self.shape == ():
                     return variance(self.item(0))
-                arr, itemset, iterator = self._create_empty(dtype=None)
+                    
+                arr, itemset, iterator = self._create_empty(dtype=dtype)
                 for i, item in enumerate(iterator):
                     itemset(i, variance(item))
                 return UncertainArray(arr)
@@ -428,7 +432,7 @@ else:
 
                     >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
                     >>> a.df
-                    array([ 3.,  4.,  7., inf])
+                    uarray([3.0, 4.0, 7.0, inf])
 
                 :rtype: :class:`UncertainArray`
                 
@@ -442,7 +446,7 @@ else:
 
                     >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
                     >>> a.dof()
-                    array([ 3.,  4.,  7., inf])
+                    uarray([3.0, 4.0, 7.0, inf])
 
                 :rtype: :class:`numpy.ndarray`
                 """
@@ -455,6 +459,9 @@ else:
                 return UncertainArray(arr)
 
             def sensitivity(self, x):
+                """The result of :func:`~.reporting.sensitivity` for each element in the array.
+                
+                """
                 if self.shape == ():
                     if hasattr(x,'item'):
                         return self.item(0).sensitivity(x.item(0))
@@ -471,6 +478,9 @@ else:
                 return UncertainArray(arr)
 
             def u_component(self, x):
+                """The result of :func:`~.reporting.u_component` for each element in the array.
+                
+                """
                 if self.shape == ():
                     if hasattr(x,'item'):
                         return self.item(0).u_component(x.item(0))
@@ -798,9 +808,16 @@ else:
                         itemset( i, result(x)) 
                 else:
                     # `_create_empty()` handles only ndarray-like sequences
-                    if not isinstance(labels,np.ndarray):
+                    if self.size>1 and not is_sequence(labels):
+                        # Add index notation to the label base 
+                        labels = [
+                            "{}[{}]".format(labels,i) 
+                                for i in range(self.size)
+                        ]
                         labels = np.asarray(labels)
-                        
+                    else:   
+                        labels = np.asarray(labels)
+                                            
                     if self.shape == ():
                         return result( self.item(0), labels.item(0) )
             
