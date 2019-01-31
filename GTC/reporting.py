@@ -305,6 +305,10 @@ def sensitivity(y,x):
         JacobianMatrix(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
         
     """
+    # There are three types that define a `sensitivity` method: UncertainArray,
+    # UncertainReal and UncertainComplex. These are all potential types for `y`. 
+    # The types for `x` include these three as well as numbers.
+    # 
     if hasattr(y,'sensitivity'):
         return y.sensitivity(x)
     else:
