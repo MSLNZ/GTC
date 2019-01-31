@@ -50,7 +50,7 @@ from GTC import (
 )
 
 LOG10_E = math.log10(math.e)
-
+  
 #----------------------------------------------------------------------------
 def _is_uncertain_real_constant(x):
     if isinstance(x,UncertainReal):
@@ -469,9 +469,12 @@ class UncertainReal(object):
             
         elif isinstance(x,numbers.Complex):
             return JacobianMatrix(0.0,0.0,0.0,0.0)
-            
+
+        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            return self.sensitivity( x.item(0) )
+                        
         else:
-            assert False, 'unexpected'
+            assert False, 'unexpected: {!r}'.format(x)
     #------------------------------------------------------------------------
     def u_component(self,x):
         """
@@ -548,8 +551,11 @@ class UncertainReal(object):
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
             
+        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            return self.u_component( x.item(0) )
+                        
         else:
-            assert False, 'unexpected'
+            assert False, 'unexpected: {!r}'.format(x)
             
     # #---------------------------------------------------------------------------
     # def component(self,x):
@@ -2708,9 +2714,15 @@ class UncertainComplex(object):
                 raise TypeError(
                     "invalid argument {!r}".format(x)
                 )
+
+        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            return self.sensitivity( x.item(0) )
             
         elif isinstance(x,numbers.Complex):
             return JacobianMatrix(0.0,0.0,0.0,0.0)
+
+        else:
+            assert False, 'unexpected: {!r}'.format(x)
             
     #------------------------------------------------------------------------
     def u_component(self,x):
@@ -2782,6 +2794,12 @@ class UncertainComplex(object):
             
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
+ 
+        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            return self.u_component( x.item(0) )
+            
+        else:
+            assert False, 'unexpected: {!r}'.format(x) 
             
     # #---------------------------------------------------------------------------
     # def component(self,x):
@@ -4789,4 +4807,5 @@ def complex_ensemble(seq,df):
     for pair in seq:
         for x in (pair.real,pair.imag):
             x._node.ensemble = ensemble
-        
+            
+  
