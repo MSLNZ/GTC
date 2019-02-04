@@ -16,13 +16,13 @@ The function :func:`~.linear_algebra.uarray`, which is available by default in t
 
 :ref:`numpy-uarray` provides more information and some examples using :class:`.UncertainArray`.
 
-
-.. autoclass:: uncertain_array.UncertainArray
-   :members: value, uncertainty, variance, dof, label, real, imag, r, conjugate
-
 The shorter name ``la`` has been defined as an alias for ``linear_algebra``,
 to resolve the names of objects defined in this module.
 
 .. automodule:: linear_algebra
 	:members: 
 	:inherited-members:
+
+.. autoclass:: uncertain_array.UncertainArray
+   :members: value, uncertainty, variance, dof, label, real, imag, r, conjugate
+
