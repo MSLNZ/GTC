@@ -3,6 +3,7 @@ The proper way to create an uncertain array is by calling uarray(...)
 
 This module was written so that numpy >= 1.13.0
 does not have to be installed in order for someone to use GTC.
+
 """
 from __future__ import division
 
@@ -81,34 +82,34 @@ else:
                 raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
 
         # Note numpy defines its own numeric types, instead of bool, int,
-        # float, complex, that have additional attributes. These are assumed by  
+        # float, complex, that have additional attributes. These types are needed by  
         # functions like `numpy.average`. (Uses `dtype` and `.size` attributes 
         # on the result returned by `mean`, as defined in a subclass if available.) 
 
         # One way to fix this is to add the required attributes 
         # to all the return values from `UncertainArray` methods.
         
-        # Another option is to ensure that array elements of 
-        # are always numpy-compatible. We need all uncertain 
-        # number objects to be initialised with  
+        # Another option is to ensure that array elements 
+        # are always numpy-compatible and to ensure that all  
+        # uncertain number objects are initialised with  
         #           a.dtype = np.dtype('O')
         #           a.size = 1
         #           a.shape = ()
         # 
-        # However, our use of dtype==object for the arrays means that numeric  
-        # elements are not cast to numpy types when they are loaded into an array. 
+        # Our use of `dtype=object` for arrays means that numeric  
+        # elements are not cast to numpy types when loaded into an array. 
         # To fix this would require iteration through all arrays as they 
         # are being created!        
 
         #--------------------------------------------------------------------
         class UncertainArray(np.ndarray):
-            """Base: :class:`numpy.ndarray`
-
-            An :class:`UncertainArray` can contain elements that are of type
+            """An :class:`UncertainArray` can contain elements of type
             :class:`int`, :class:`float`, :class:`complex`,
             :class:`.UncertainReal` or :class:`.UncertainComplex`.
 
             Do not instantiate this class directly. Use :func:`~.uarray` instead.
+
+            Base: :class:`numpy.ndarray`
 
             """
             def __new__(cls, array, dtype=None, label=None):
@@ -311,8 +312,10 @@ else:
                 """
                 return self.value()
                 
-            def value(self, dtype=None):
+            def value(self):
                 """The result of :func:`~.core.value` for each element in the array.
+                
+                
 
                 **Example**::
 
@@ -322,10 +325,15 @@ else:
                     >>> a.value(complex)
                     uarray([0.57+0.j  , 0.45+0.j  , 1.1 +0.68j])
 
-                :param dtype: The data type of the returned array.
-                :type dtype: :class:`numpy.dtype`
-                :rtype: :class:`numpy.ndarray`
+                :rtype: :class:`UncertainArray`
                 """
+                # Note: in future we might allow different `dtype` values. 
+                # However, this needs some thought. Should `dtype=float` 
+                # return complex numbers as a pair of reals, for example?
+                # What are the most likely use-cases?
+                # :param dtype: The data type of the returned array.
+                # :type dtype: :class:`numpy.dtype`
+                dtype=None
                 if self.shape == ():
                     return value(self.item(0)) 
                     
@@ -353,7 +361,7 @@ else:
                 """
                 return self.uncertainty()
                 
-            def uncertainty(self, dtype=None):
+            def uncertainty(self):
                 """The result of :func:`~.core.uncertainty` for each element in the array.
 
                 **Example**::
@@ -367,10 +375,14 @@ else:
                            StandardUncertainty(real=1.4, imag=0.2),
                            StandardUncertainty(real=0.9, imag=0.9)])
 
-                :param dtype: The data type of the returned array.
-                :type dtype: :class:`numpy.dtype`
-                :rtype: :class:`numpy.ndarray`
+                :rtype: :class:`UncertainArray`
+
                 """
+                # Note: in future we might allow different `dtype` values. 
+                # However, we need to consider the use-cases carefully.
+                # :param dtype: The data type of the returned array.
+                # :type dtype: :class:`numpy.dtype`
+                dtype=None
                 if self.shape == ():
                     return uncertainty(self.item(0))
                     
@@ -398,7 +410,7 @@ else:
                 """
                 return self.variance()
                 
-            def variance(self, dtype=None):
+            def variance(self):
                 """The result of :func:`~.core.variance` for each element in the array.
 
                 **Example**::
@@ -411,11 +423,15 @@ else:
                     uarray([VarianceCovariance(rr=0.36, ri=0.0, ir=0.0, ii=0.36),
                             VarianceCovariance(rr=2.25, ri=0.0, ir=0.0, ii=0.25),
                             VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)])
-
-                :param dtype: The data type of the returned array.
-                :type dtype: :class:`numpy.dtype`
-                :rtype: :class:`numpy.ndarray`
+                            
+                :rtype: :class:`UncertainArray`
+                
                 """
+                # Note: in future we might allow different `dtype` values. 
+                # However, we need to consider the use-cases carefully.
+                # :param dtype: The data type of the returned array.
+                # :type dtype: :class:`numpy.dtype`
+                dtype=None
                 if self.shape == ():
                     return variance(self.item(0))
                     
@@ -439,7 +455,7 @@ else:
                 """
                 return self.dof()
                 
-            def dof(self,dtype=None):
+            def dof(self):
                 """The result of :func:`~.core.dof` for each element in the array.
 
                 **Example**::
@@ -448,8 +464,10 @@ else:
                     >>> a.dof()
                     uarray([3.0, 4.0, 7.0, inf])
 
-                :rtype: :class:`numpy.ndarray`
+                :rtype: :class:`UncertainArray`
+                
                 """
+                dtype=None
                 if self.shape == ():
                     return dof(self.item(0))
                     
@@ -461,7 +479,11 @@ else:
             def sensitivity(self, x):
                 """The result of :func:`~.reporting.sensitivity` for each element in the array.
                 
+                :rtype: :class:`UncertainArray`
+
                 """
+                # Note, there is a case for introducing `dtype` or some other parameter.
+                # The return types for complex cases may be multivariate.
                 if self.shape == ():
                     if hasattr(x,'item'):
                         return self.item(0).sensitivity(x.item(0))
@@ -480,7 +502,11 @@ else:
             def u_component(self, x):
                 """The result of :func:`~.reporting.u_component` for each element in the array.
                 
+                :rtype: :class:`UncertainArray`
+
                 """
+                # Note, there is a case for introducing `dtype` or some other parameter.
+                # The return types for complex cases may be multivariate.
                 if self.shape == ():
                     if hasattr(x,'item'):
                         return self.item(0).u_component(x.item(0))
@@ -508,6 +534,7 @@ else:
                             ucomplex((0-1.5j), u=[0.9,0.9], r=0.0, df=inf)])
 
                 :rtype: :class:`UncertainArray`
+                
                 """
                 # override this method because I wanted to create a custom __doc__
                 return self._conjugate()
