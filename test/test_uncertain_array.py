@@ -3849,11 +3849,11 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(z[1] is a[1][5])
         self.assertTrue(z.label == 'apple')
 
-        # dtype gets precedence over names
-        ua = uarray([(ureal(1, 1), ureal(2, 2))],
-                    names=['a', 'b'],
-                    dtype=([('x', np.object), ('y', np.object)]))
-        self.assertTrue(ua.dtype.names == ('x', 'y'))
+        # # dtype gets precedence over names
+        # ua = uarray([(ureal(1, 1), ureal(2, 2))],
+                    # names=['a', 'b'],
+                    # dtype=([('x', np.object), ('y', np.object)]))
+        # self.assertTrue(ua.dtype.names == ('x', 'y'))
 
     def test_example1(self):
         v = [ureal(4.937, 0.012), ureal(5.013, 0.008), ureal(4.986, 0.014)]
