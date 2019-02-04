@@ -76,25 +76,22 @@ __all__ = (
     'transpose'
 )
 
-def uarray(array, label=None, dtype=None, names=None):
+def uarray(array, label=None, names=None):
     """Create an array of uncertain numbers.
 
     For an overview on how to use an :class:`.UncertainArray` see :ref:`numpy-uarray`.
 
     .. attention::
 
-       This function requires that numpy :math:`\geq` v1.13.0 is installed.
+       Requires numpy :math:`\geq` v1.13.0 to be installed.
 
     :param array: An array-like object containing :class:`int`, :class:`float`, :class:`complex`
                   :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` elements.
     :param label: A label to assign to the `array`. This `label` does not
                   change labels previously assigned to array elements.
     :type label: str
-    :param dtype: The data type to use to create the array [default=`object`].
-    :type dtype: :class:`numpy.dtype`
     :param names: The field `names` to use to create a
-                  :ref:`structured array <structured_arrays>`. If `dtype` is
-                  specified then it gets precedence.
+                  :ref:`structured array <structured_arrays>`. 
     :type names: list[str]
 
     :return: An :class:`.UncertainArray`.
@@ -112,7 +109,7 @@ def uarray(array, label=None, dtype=None, names=None):
                 ureal(18.52941176470588,5.883187720636909,inf)])
 
         Create a :ref:`Structured array <structured_arrays>`, with the names ``'amps'`` and ``'volts'``,
-        and then calculate the `resistances`
+        and then calculate the `resistances`. If `dtype` is specified then it gets precedence over names.
 
         >>> data = la.uarray([(ureal(0.57, 0.18), ureal(10.3, 1.3)),
         ...                (ureal(0.45, 0.12), ureal(9.5, 0.8)),
@@ -123,11 +120,16 @@ def uarray(array, label=None, dtype=None, names=None):
                 ureal(21.11111111111111,5.903661880050747,inf),
                 ureal(18.52941176470588,5.883187720636909,inf)])
 
+    
     """
+    # :param dtype: The data type to use to create the array [default=`object`].
+    # :type dtype: :class:`numpy.dtype`
+    dtype = None
     if UncertainArray is None:
         raise ImportError('Requires numpy >= v1.13.0 to be installed')
 
-    if (dtype is None) and (names is not None):
+    # if (dtype is None) and (names is not None):
+    if names is not None:
         try:
             a_len = len(array[0])
             values = array[0]
@@ -278,7 +280,7 @@ def det(a):
     return LU.ludet(a_lu,p)
 
 #---------------------------------------------------------------------------
-def identity(n,dtype=None):
+def identity(n):
     """Return an identity array with ``n`` dimensions
     
     **Example**::
@@ -289,10 +291,11 @@ def identity(n,dtype=None):
                 [0, 0, 1]])
         
     """    
-    if dtype is None: dtype=object
+    dtype=None
+    # if dtype is None: dtype=object
     return uarray( np.identity(n,dtype=dtype) )
 
-def empty(shape,dtype=None):
+def empty(shape):
     """Return an array of shape ``shape`` containing ``None`` elements
     
     **Example**::
@@ -302,11 +305,12 @@ def empty(shape,dtype=None):
                 [None, None, None]])
         
     """
-    if dtype is None: dtype=object
+    dtype=None
+    # if dtype is None: dtype=object
     return uarray( np.empty(shape,dtype=dtype) )
 
 
-def zeros(shape,dtype=None):
+def zeros(shape):
     """Return an array of shape ``shape`` containing ``0`` elements
     
     **Example**::
@@ -316,10 +320,11 @@ def zeros(shape,dtype=None):
                 [0, 0, 0]])
         
     """
-    if dtype is None: dtype=object
+    dtype=None
+    # if dtype is None: dtype=object
     return uarray( np.zeros(shape,dtype=dtype) )
 
-def ones(shape,dtype=None):
+def ones(shape):
     """Return an array of shape ``shape`` containing ``1`` elements
 
     **Example**::
@@ -328,10 +333,11 @@ def ones(shape,dtype=None):
         uarray([[1, 1, 1], [1, 1, 1]])
     
     """
-    if dtype is None: dtype=object
+    dtype=None
+    # if dtype is None: dtype=object
     return uarray( np.ones(shape,dtype=dtype) )
     
-def full(shape,fill_value,dtype=None):
+def full(shape,fill_value):
     """Return an array of shape ``shape`` containing ``fill_value`` elements
 
     **Example**::
@@ -341,7 +347,8 @@ def full(shape,fill_value,dtype=None):
                  ureal(2.0,1.0,inf)]])
     
     """
-    if dtype is None: dtype=object
+    dtype=None
+    # if dtype is None: dtype=object
     return uarray( np.full(shape,fill_value,dtype=dtype) )
 
 #============================================================================    
