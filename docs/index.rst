@@ -26,8 +26,14 @@ GTC Modules
     Reporting <API/reporting_functions>
     Storage <API/persistence>
     Named tuples <API/named_tuples>
-    Uncertain-number arrays <API/uarray.rst>
     Linear algebra <API/linear_algebra.rst>
+
+Examples
+--------
+.. toctree::
+   :maxdepth: 1
+   
+    Examples<API/examples_section.rst>
 
 Release Notes
 -------------

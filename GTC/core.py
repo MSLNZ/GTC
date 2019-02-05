@@ -421,20 +421,24 @@ def constant(x,label=None):
 def result(un,label=None):
     """
     Define an uncertain number as an intermediate result
+
+    :arg un: an uncertain number or :class:`~core.UncertainArray`
+    :arg label: a string or sequence of strings
     
-    `un` - an uncertain number or :class:`~core.UncertainArray`
-    `label` - a string or sequence of strings
+    When ``un`` is an array, an :class:`~core.UncertainArray` is returned  
+    containing the intermediate uncertain number objects.
     
     .. note::
     
-        This function defines a new object to represent the intermediate result.
-        The object ``un`` is not changed into the intermediate result. So, 
-        this function is best applied to a temporary object, as shown
-        in the example below.
+        This function is best applied to a temporary object,
+        because a new intermediate result object is created.
+        The original object ``un`` is not affected.
     
-    The component of uncertainty of an uncertain number with respect to 
-    an intermediate result can be evaluated. Declaring intermediate results 
-    also enables the dependencies of uncertain numbers to be stored in an archive.
+    The component of uncertainty, or the sensitivity, of an uncertain number 
+    with respect to an intermediate result can be evaluated. 
+    
+    Declaring intermediate results also enables the dependencies of uncertain 
+    numbers to be stored in an archive.
 
     :arg un: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray`
     :arg label: str or a sequence of str

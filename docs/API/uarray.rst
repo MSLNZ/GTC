@@ -1,32 +1,9 @@
 .. _numpy-uarray:
 
-================================
-Collections of Uncertain Numbers
-================================
+=============================
+Examples using UncertainArray
+=============================
 
-The :class:`.UncertainArray` array object is a convenient container for uncertain-number objects based on :class:`numpy.ndarray`, which provides excellent support 
-for manipulating stored data (see numpy :ref:`array indexing<arrays.indexing>` ). An :class:`.UncertainArray` can contain a mixture of :class:`~.lib.UncertainReal`, 
-:class:`~.lib.UncertainComplex` or Python numbers (:class:`int`, :class:`float` and :class:`complex`).  
-The usual mathematical operations can be applied to :class:`.UncertainArray` objects, producing an :class:`.UncertainArray` 
-containing the results of the operation. For instance, if :code:`A` and :code:`B` are arrays of the same size, they can be added :code:`A + B`, subtracted :code:`A - B`, etc; or a function like :code:`sqrt(A)` applied. This vectorisation provides a succinct expression for repetitive operations 
-but it does not offer a significant speed advantage over iteration in Python. 
-
-The function :func:`~.linear_algebra.uarray` is used to create an  :class:`.UncertainArray` array object.
-
-.. note::
-
-    To evaluate the product of two-dimensional arrays, the 
-    function :func:`~linear_algebra.matmul` should be used (for Python 3.5 and above the 
-    built-in binary operator ``@`` is an alternative). For example::
-    
-        >>> a = la.uarray([[1.1,.5],[ureal(3,1),.5]])
-        >>> b = la.uarray([[5.2,ucomplex(4,1)],[.1,.1+3j]])
-        >>> la.matmul(a,b)
-        uarray([[5.7700000000000005,
-                 ucomplex((4.45+1.5j), u=[1.1,1.1], r=0.0, df=inf)],
-                [ureal(15.650000000000002,5.2,inf),
-                 ucomplex((12.05+1.5j), u=[5.0,3.0], r=0.0, df=inf)]])
-    
 .. _uarray-example-1:
 
 Example 1. Creating an UncertainArray
@@ -75,7 +52,7 @@ A better calculation in this case uses :func:`.function.mean`, which will propag
    >>> fn.mean(resistances)
    ureal(121.96586792024915,16.939155846751817,inf)
 
-This obtains an uncertain number with a standard uncertainty of 16.939155846751817, which is the combined uncertainty of the mean of AC resistance values according to the GUM calculation
+This obtains an uncertain number with a standard uncertainty of 16.939155846751817 that is the combined uncertainty of the mean of AC resistance values. We could also calculate this as
 
 .. code-block:: pycon
 
@@ -97,6 +74,12 @@ This obtains an uncertain number with a standard uncertainty of 16.9391558467518
     the input uncertainties through the calculation of the mean value. There is no reason to expect 
     these two different calculations to yield the same result.    
 
+The uncertain array object has a method that calculates the mean, which performs the same calculation as :func:`.function.mean` in this case
+
+    .. code-block:: pycon
+
+           >>> resistances.mean()
+           ureal(121.96586792024915,16.939155846751817,inf)
 
 .. _uarray-example-2:
 

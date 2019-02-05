@@ -5,7 +5,7 @@ Classes
    
 Arithmetic operations
 ---------------------
-    Arithmetic operations are defined for both arrays and matrices 
+    Arithmetic operations are defined for arrays  
     (unary ``+`` and ``-``, and binary ``+``, ``-`` and ``*``).
     The multiplication  operator ``*`` is implemented element-wise. 
     For two-dimensional arrays, matrix multiplication is performed
@@ -16,6 +16,14 @@ Arithmetic operations
     When one argument is a scalar, it is applied to each element 
     of the array in turn.
 
+Mathematical operations 
+-----------------------
+
+    The standard mathematical operations defined in :mod:`.core` 
+    can be applied directly to an array. This fills an 
+    :class:`.UncertainArray` with results generated 
+    by applying the function to each element of the array.
+
 Functions
 ---------
     The functions :func:`inv`, :func:`transpose`, :func:`solve` 
@@ -24,6 +32,17 @@ Functions
     The functions :func:`identity`, :func:`empty`, :func:`zeros`
     :func:`full` and :func:`ones` create simple arrays.
 
+Reporting functions 
+-------------------
+
+    The reporting functions :func:`~.reporting.u_component` and     
+    :func:`~.reporting.sensitivity` can be applied directly to 
+    an array. They produce an :class:`.UncertainArray` containing 
+    the result for each element. 
+    
+    The core `GTC` function :func:`~.core.result` can be used to  
+    define elements of an array as intermediate uncertain numbers. 
+        
 Array broadcasting
 ------------------
     When binary arithmetic operations are used on arrays, the shape
@@ -291,8 +310,7 @@ def identity(n):
                 [0, 0, 1]])
         
     """    
-    dtype=None
-    # if dtype is None: dtype=object
+    dtype=object
     return uarray( np.identity(n,dtype=dtype) )
 
 def empty(shape):
@@ -305,8 +323,7 @@ def empty(shape):
                 [None, None, None]])
         
     """
-    dtype=None
-    # if dtype is None: dtype=object
+    dtype=object
     return uarray( np.empty(shape,dtype=dtype) )
 
 
@@ -320,8 +337,7 @@ def zeros(shape):
                 [0, 0, 0]])
         
     """
-    dtype=None
-    # if dtype is None: dtype=object
+    dtype=object
     return uarray( np.zeros(shape,dtype=dtype) )
 
 def ones(shape):
@@ -333,8 +349,7 @@ def ones(shape):
         uarray([[1, 1, 1], [1, 1, 1]])
     
     """
-    dtype=None
-    # if dtype is None: dtype=object
+    dtype=object
     return uarray( np.ones(shape,dtype=dtype) )
     
 def full(shape,fill_value):
@@ -347,8 +362,7 @@ def full(shape,fill_value):
                  ureal(2.0,1.0,inf)]])
     
     """
-    dtype=None
-    # if dtype is None: dtype=object
+    dtype=object
     return uarray( np.full(shape,fill_value,dtype=dtype) )
 
 #============================================================================    

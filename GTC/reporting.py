@@ -21,6 +21,10 @@ Uncertainty functions
     *   The function :func:`u_component` returns the signed 
         component of uncertainty in one uncertain number 
         due to uncertainty in another.
+        
+    *   The function :func:`sensitivity` returns the partial 
+        derivative of one uncertain number with respect to another.
+        This is ofetn called the sensitivity coefficient.
 
 Type functions
 --------------
@@ -279,13 +283,21 @@ def k_to_dof(k,p=95):
 #----------------------------------------------------------------------------
 def sensitivity(y,x):
     """Return the first partial derivative of ``y`` with respect to ``x``
+
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
+    :arg x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
     
     If ``x`` and ``y`` are uncertain real numbers, return a float. 
 
     If ``y`` or ``x`` is an uncertain complex number, return 
     a 4-element sequence of float, representing the Jacobian matrix.
 
+    When ``x`` and ``y`` are arrays, an :class:`.UncertainArray` 
+    is returned containing the results of applying this function 
+    to the array elements.
+
     Otherwise, return 0.
+    
 
     **Example**::
 
@@ -320,11 +332,18 @@ def sensitivity(y,x):
 def u_component(y,x):
     """Return the component of uncertainty in ``y`` due to ``x``
     
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
+    :arg x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
+    
     If ``x`` and ``y`` are uncertain real numbers, return a float. 
 
     If ``y`` or ``x`` is an uncertain complex number, return 
     a 4-element sequence of float, containing the
     components of uncertainty.
+
+    When ``x`` and ``y`` are arrays, an :class:`.UncertainArray` 
+    is returned containing the results of applying this function 
+    to the array elements.
 
     Otherwise, return 0.
 

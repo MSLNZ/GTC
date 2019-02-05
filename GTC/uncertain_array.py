@@ -5,6 +5,10 @@ This module was written so that numpy >= 1.13.0
 does not have to be installed in order for someone to use GTC.
 
 """
+# The adding numpy arrays to GTC is not an easy exercise. Numpy 
+# is really a whole platform for array-based manipulation of numbers. 
+# So, our need to simply provide convenient containers for uncertain numbers 
+# is somewhat at odds with numpy's design.  
 from __future__ import division
 
 import warnings
@@ -322,8 +326,6 @@ else:
                     >>> a = la.uarray([0.57, ureal(0.45, 0.12), ucomplex(1.1+0.68j, 0.19)])
                     >>> a.value()
                     uarray([0.57, 0.45, (1.1+0.68j)])
-                    >>> a.value(complex)
-                    uarray([0.57+0.j  , 0.45+0.j  , 1.1 +0.68j])
 
                 :rtype: :class:`UncertainArray`
                 """
@@ -367,7 +369,7 @@ else:
                 **Example**::
 
                     >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
-                    >>> r.uncertainty(float)
+                    >>> r.uncertainty()
                     uarray([0.18, 0.12, 0.19])
                     >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.4, 0.2)), ucomplex(1.5j, 0.9)])
                     >>> c.uncertainty()
@@ -416,7 +418,7 @@ else:
                 **Example**::
 
                     >>> r = la.uarray([ureal(0.57, 0.18), ureal(0.45, 0.12), ureal(0.68, 0.19)])
-                    >>> r.variance(float)
+                    >>> r.variance()
                     uarray([0.0324, 0.0144, 0.0361])
                     >>> c = la.uarray([ucomplex(1.2-0.5j, 0.6), ucomplex(3.2+1.2j, (1.5, 0.5)), ucomplex(1.5j, 0.9)])
                     >>> c.variance()
@@ -1055,12 +1057,26 @@ else:
                     return result
             
             def std(self, *args, **kwargs):
+                # If this is to be implemented we need to be clear about 
+                # what is calculated. This will not be an uncertain-number 
+                # calculation, it will take the values of a sample of uncertain 
+                # numbers and evaluate the SD. This will probably be clearer 
+                # if the function is in the `type_a` module. 
+                # Note we would also want a similar function to calculate 
+                # the standard error (ie the type-A uncertainty).
                 raise TypeError(
                     "`std` is not defined for `UncertainArray`"
                 )
                 # return UncertainArray(np.asarray(self).std(*args, **kwargs))
 
             def var(self, *args, **kwargs):
+                # If this is to be implemented we need to be clear about 
+                # what is calculated. This will not be an uncertain-number 
+                # calculation, it will take the values of a sample of uncertain 
+                # numbers and evaluate the SD. This will probably be clearer
+                # if the function is in the `type_a` module. 
+                # Note we would also want a similar function to calculate 
+                # the standard variance (ie the type-A uncertainty squared).
                 raise TypeError(
                     "`var` is not defined for `UncertainArray`"
                 )
