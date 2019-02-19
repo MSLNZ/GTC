@@ -110,71 +110,71 @@ class TestSensitivity(unittest.TestCase):
                 rp.sensitivity(z,z4)
         ))
 
-    def test_uarray_singles_ureal(self):
-        """
-        When uarray has just one element 
+    # def test_uarray_singles_ureal(self):
+        # """
+        # When uarray has just one element 
         
-        """
-        x1 = uarray(ureal(2,1))
-        x2 = uarray(ureal(5,1))
-        x3 = uarray(ureal(7,1))
+        # """
+        # x1 = uarray(ureal(2,1))
+        # x2 = uarray(ureal(5,1))
+        # x3 = uarray(ureal(7,1))
 
-        y = x3 ** x1 * x2
+        # y = x3 ** x1 * x2
         
-        dy_dx = rp.sensitivity(y,x1)
-        uy_x = rp.u_component(y,x1)       
-        self.assertTrue( equivalent(dy_dx,uy_x) ) 
+        # dy_dx = rp.sensitivity(y,x1)
+        # uy_x = rp.u_component(y,x1)       
+        # self.assertTrue( equivalent(dy_dx,uy_x) ) 
 
-        dy_dx = rp.sensitivity(y,x2)
-        uy_x = rp.u_component(y,x2)        
-        self.assertTrue( equivalent(dy_dx,uy_x) ) 
+        # dy_dx = rp.sensitivity(y,x2)
+        # uy_x = rp.u_component(y,x2)        
+        # self.assertTrue( equivalent(dy_dx,uy_x) ) 
 
-        dy_dx = rp.sensitivity(y,x3)
-        uy_x = rp.u_component(y,x3)        
-        self.assertTrue( equivalent(dy_dx,uy_x) ) 
+        # dy_dx = rp.sensitivity(y,x3)
+        # uy_x = rp.u_component(y,x3)        
+        # self.assertTrue( equivalent(dy_dx,uy_x) ) 
         
-        x4 = result( y )
-        y = sin(x4)
-        # Do the differentiation by hand
-        self.assertTrue(
-            equivalent(math.cos(x4.x),rp.sensitivity(y,x4))
-        )
+        # x4 = result( y )
+        # y = sin(x4)
+        # # Do the differentiation by hand
+        # self.assertTrue(
+            # equivalent(math.cos(x4.x),rp.sensitivity(y,x4))
+        # )
         
-    def test_uarray_singles_ucomplex(self):
-        """
-        When uarray has just one element 
+    # def test_uarray_singles_ucomplex(self):
+        # """
+        # When uarray has just one element 
         
-        """
-        x1 = uarray(ucomplex(1+2j,1))
-        x2 = uarray(ucomplex(2-1.5j,1))
-        x3 = uarray(ucomplex(.1+1.8j,1))
+        # """
+        # x1 = uarray(ucomplex(1+2j,1))
+        # x2 = uarray(ucomplex(2-1.5j,1))
+        # x3 = uarray(ucomplex(.1+1.8j,1))
 
-        z = x1**x2 * x3
+        # z = x1**x2 * x3
         
-        dz_dx = rp.sensitivity(z,x1)
-        uz_x = rp.u_component(z,x1)       
-        self.assertTrue( equivalent_sequence(dz_dx,uz_x) )
+        # dz_dx = rp.sensitivity(z,x1)
+        # uz_x = rp.u_component(z,x1)       
+        # self.assertTrue( equivalent_sequence(dz_dx,uz_x) )
         
-        dz_dx = rp.sensitivity(z,x2)
-        uz_x = rp.u_component(z,x2)       
-        self.assertTrue( equivalent_sequence(dz_dx,uz_x) )
+        # dz_dx = rp.sensitivity(z,x2)
+        # uz_x = rp.u_component(z,x2)       
+        # self.assertTrue( equivalent_sequence(dz_dx,uz_x) )
         
-        dz_dx = rp.sensitivity(z,x3)
-        uz_x = rp.u_component(z,x3)       
-        self.assertTrue( equivalent_sequence(dz_dx,uz_x) )
+        # dz_dx = rp.sensitivity(z,x3)
+        # uz_x = rp.u_component(z,x3)       
+        # self.assertTrue( equivalent_sequence(dz_dx,uz_x) )
       
-        x4 = result( z )
-        z = sqrt(x4)
-        # Do the differentiation by hand
-        dz_dx4 = fn.complex_to_seq(
-            1.0/(2 * cmath.sqrt(x4.x))
-        )
+        # x4 = result( z )
+        # z = sqrt(x4)
+        # # Do the differentiation by hand
+        # dz_dx4 = fn.complex_to_seq(
+            # 1.0/(2 * cmath.sqrt(x4.x))
+        # )
 
-        self.assertTrue(
-            equivalent_sequence(
-                dz_dx4,
-                rp.sensitivity(z,x4)
-        ))
+        # self.assertTrue(
+            # equivalent_sequence(
+                # dz_dx4,
+                # rp.sensitivity(z,x4)
+        # ))
         
     def test_uarray_ureal(self):
         """

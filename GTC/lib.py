@@ -93,9 +93,9 @@ class UncertainReal(object):
     ,   'is_elementary'         
     ,   'is_intermediate'       
     ,   '_node'                 # May refer to a node
-    ,   'size'                  # for numpy
-    ,   'dtype'                 # for numpy
-    ,   'shape'                 # for numpy
+    # ,   'size'                  # for numpy
+    # ,   'dtype'                 # for numpy
+    # ,   'shape'                 # for numpy
     ]            
 
     #-------------------------------------------------------------------------
@@ -107,10 +107,10 @@ class UncertainReal(object):
         self._i_components = i_comp
         self._node = node
  
-        if np:
-            self.dtype = np.dtype('O')
-            self.size = 1
-            self.shape = ()
+        # if np:
+            # self.dtype = np.dtype('O')
+            # self.size = 1
+            # self.shape = ()
 
         if node is None:
             self.is_elementary = False 
@@ -470,8 +470,8 @@ class UncertainReal(object):
         elif isinstance(x,numbers.Complex):
             return JacobianMatrix(0.0,0.0,0.0,0.0)
 
-        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            return self.sensitivity( x.item(0) )
+        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            # return self.sensitivity( x.item(0) )
                         
         else:
             assert False, 'unexpected: {!r}'.format(x)
@@ -551,8 +551,8 @@ class UncertainReal(object):
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
             
-        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            return self.u_component( x.item(0) )
+        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            # return self.u_component( x.item(0) )
                         
         else:
             assert False, 'unexpected: {!r}'.format(x)
@@ -2363,10 +2363,10 @@ class UncertainComplex(object):
         z = complex(r.x,i.x)
         self._value = np.complex_( z ) if np else z
 
-        if np:
-            self.dtype = np.dtype('O')
-            self.size = 1
-            self.shape = ()
+        # if np:
+            # self.dtype = np.dtype('O')
+            # self.size = 1
+            # self.shape = ()
         
         self.is_elementary = r.is_elementary or i.is_elementary
         self.is_intermediate = r.is_intermediate
@@ -2715,8 +2715,8 @@ class UncertainComplex(object):
                     "invalid argument {!r}".format(x)
                 )
 
-        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            return self.sensitivity( x.item(0) )
+        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            # return self.sensitivity( x.item(0) )
             
         elif isinstance(x,numbers.Complex):
             return JacobianMatrix(0.0,0.0,0.0,0.0)
@@ -2795,8 +2795,8 @@ class UncertainComplex(object):
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
  
-        elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            return self.u_component( x.item(0) )
+        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
+            # return self.u_component( x.item(0) )
             
         else:
             assert False, 'unexpected: {!r}'.format(x) 
