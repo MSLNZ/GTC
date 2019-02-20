@@ -5,7 +5,7 @@ in real and complex quantities.
 The method of uncertainty propagation is compatible with the approach described 
 in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
-Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
+Copyright (c) 2019, Measurement Standards Laboratory of New Zealand.
 
 """
 from __future__ import division
@@ -29,6 +29,8 @@ inf = float('inf')
 nan = float('nan') 
 
 # Do not consider strings as sequences
+# Note numpy arrays are not detected as sequences
+# by this function. 
 def is_sequence(obj):
     if isinstance(obj, basestring):
         return False

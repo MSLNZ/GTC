@@ -74,13 +74,6 @@ This obtains an uncertain number with a standard uncertainty of 16.9391558467518
     the input uncertainties through the calculation of the mean value. There is no reason to expect 
     these two different calculations to yield the same result.    
 
-The uncertain array object has a method that calculates the mean, which performs the same calculation as :func:`.function.mean` in this case
-
-    .. code-block:: pycon
-
-           >>> resistances.mean()
-           ureal(121.96586792024915,16.939155846751817,inf)
-
 .. _uarray-example-2:
 
 Example 2. Creating a Structured UncertainArray

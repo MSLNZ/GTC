@@ -835,7 +835,7 @@ else:
                         itemset( i, result(x)) 
                 else:
                     # `_create_empty()` handles only ndarray-like sequences
-                    if self.size>1 and not is_sequence(labels):
+                    if not is_sequence(labels):
                         # Add index notation to the label base 
                         labels = [
                             "{}[{}]".format(labels,i) 
@@ -1041,11 +1041,14 @@ else:
                 return UncertainArray(arr)
 
             def sum(self, *args, **kwargs):
-                result = np.asarray(self).sum(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`sum` is not defined for `UncertainArray`"
+                )
+                # result = np.asarray(self).sum(*args, **kwargs)
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def mean(self, *args, **kwargs):
                 raise TypeError(
@@ -1084,67 +1087,98 @@ else:
                 # return UncertainArray(np.asarray(self).var(*args, **kwargs))
 
             def max(self, *args, **kwargs):
-                result = np.asarray(self).max(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`max` is not defined for `UncertainArray`"
+                )
+                # result = np.asarray(self).max(*args, **kwargs)
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def min(self, *args, **kwargs):
-                result = np.asarray(self).min(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`min` is not defined for `UncertainArray`"
+                )
+                # result = np.asarray(self).min(*args, **kwargs)
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def trace(self, *args, **kwargs):
-                result = np.asarray(self).trace(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`trace` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self).trace(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def cumprod(self, *args, **kwargs):
-                result = np.asarray(self).cumprod(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                # numpy catches ``TypeError`` and uses its 
+                # internal implementation of this method
+                raise RuntimeError(
+                    "`cumprod` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self).cumprod(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def cumsum(self, *args, **kwargs):
-                result = np.asarray(self).cumsum(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                # numpy catches ``TypeError`` and uses its 
+                # internal implementation of this method
+                raise RuntimeError(
+                    "`cumsum` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self).cumsum(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def prod(self, *args, **kwargs):
-                result = np.asarray(self).prod(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`prod` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self).prod(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def ptp(self, *args, **kwargs):
-                result = np.asarray(self).ptp(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`ptp` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self).ptp(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def any(self, *args, **kwargs):
-                result = np.asarray(self, dtype=bool).any(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`any` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self, dtype=bool).any(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
 
             def all(self, *args, **kwargs):
-                result = np.asarray(self, dtype=bool).all(*args, **kwargs)
-                if hasattr(result,'shape') and result.shape != ():
-                    return UncertainArray(result)
-                else: 
-                    return result
+                raise TypeError(
+                    "`all` is not defined for `UncertainArray`"
+                )
+                # result = ( np.asarray(self, dtype=bool).all(*args, **kwargs) )
+                # if hasattr(result,'shape') and result.shape != ():
+                    # return UncertainArray(result)
+                # else: 
+                    # return result
                 
         # Allows pickle to understand the class name 'uarray'         
         uarray = UncertainArray

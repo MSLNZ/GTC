@@ -14,6 +14,13 @@ Module contents
 from __future__ import division
 
 import math
+import numpy as np 
+
+try:
+    import builtins    # Python 3
+except ImportError: 
+    import __builtin__ as builtins
+    
 try:
     from collections.abc import Iterable  # Python 3
 except ImportError:
@@ -26,12 +33,34 @@ __all__ = (
     'seq_to_complex',
     'mean'
 )
-        
+ 
 #---------------------------------------------------------------------------
-def mean(seq):
+def sum(seq,*args,**kwargs):
+    """Return the sum of elements in `seq`
+    
+    :arg seq: a sequence, :class:`~numpy.ndarray`, or iterable, of numbers or uncertain numbers
+    :arg args: optional arguments when ``seq`` is an :class:`~numpy.ndarray`
+    :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
+    
+    """
+    if isinstance(seq,np.ndarray):
+        return np.asarray(seq).sum(*args, **kwargs)
+        
+    elif is_sequence(seq) or isinstance(seq,Iterable):
+        return builtins.sum(seq)
+        
+    else:
+        raise RuntimeError(
+            "{!r} is not iterable".format(seq)
+        )    
+ 
+#---------------------------------------------------------------------------
+def mean(seq,*args,**kwargs):
     """Return the arithmetic mean of the elements in `seq`
     
-    :arg seq: a sequence, or iterable, of numbers or uncertain numbers
+    :arg seq: a sequence, :class:`~numpy.ndarray`, or iterable, of numbers or uncertain numbers
+    :arg args: optional arguments when ``seq`` is an :class:`~numpy.ndarray`
+    :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
     
     If the elements of ``seq`` are uncertain numbers, 
     an uncertain number is returned.
@@ -45,9 +74,18 @@ def mean(seq):
     """
     if is_sequence(seq):
         return sum(seq)/len(seq)
+        
+    elif isinstance(seq,np.ndarray):
+        return np.asarray(seq).mean(*args, **kwargs)
+        
     elif isinstance(seq,Iterable):
-        seq = list(seq)
-        return sum(seq)/len(seq)
+        count = 0
+        total = 0
+        for i in seq:
+            total += i
+            count += 1
+        return total/count
+        
     else:
         raise RuntimeError(
             "{!r} is not iterable".format(seq)

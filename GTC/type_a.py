@@ -34,6 +34,7 @@ from __future__ import division
 import sys
 import math
 import numbers
+import numpy as np
 from functools import reduce
 
 try:
@@ -43,7 +44,9 @@ except ImportError:
     xrange = range
 
 from GTC.context import _context 
-
+from GTC import (
+    function,
+)
 from GTC.lib import (
     UncertainReal, 
     UncertainComplex,
@@ -237,9 +240,13 @@ def estimate(seq,label=None,context=_context):
         )
 
 #-----------------------------------------------------------------------------------------
-def mean(seq):
+def mean(seq,*args,**kwargs):
     """Return the arithmetic mean of data in ``seq``
 
+    :arg seq: a sequence, :class:`~numpy.ndarray`, or iterable, of numbers or uncertain numbers
+    :arg args: optional arguments when ``seq`` is an :class:`~numpy.ndarray`
+    :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
+    
     If ``seq`` contains real or uncertain real numbers,
     a real number is returned.
 
@@ -253,15 +260,10 @@ def mean(seq):
         7.0
             
     """
-    mu = sum(seq) / len(seq)
-    if isinstance(mu,(numbers.Real,UncertainReal) ):
-        return _as_value(mu)
-    elif isinstance(mu,(numbers.Complex,UncertainComplex)):
-        return _as_value(mu)
+    if isinstance(seq,np.ndarray):
+        return _as_value( np.asarray(seq).mean(*args, **kwargs) )   
     else:
-        raise TypeError(
-            "Unexpected type: '%s'" % repr(mu)
-        )
+        return _as_value( function.mean(seq) )
 
 #-----------------------------------------------------------------------------------------
 def standard_deviation(seq,mu=None):
@@ -311,7 +313,7 @@ def standard_deviation(seq,mu=None):
     if mu is None:
         mu = mean(seq)
 
-    # `mean` returns either a real or complex
+    # `type_a.mean` returns either a real or complex
     if isinstance(mu,numbers.Real):
         accum = lambda psum,x: psum + (_as_value(x)-mu)**2
         variance = reduce(accum, seq, 0.0) / (N - 1)
@@ -339,7 +341,9 @@ def standard_deviation(seq,mu=None):
         return StandardDeviation(sd_re,sd_im), r
         
     else:
-        assert False,"unexpected"
+        raise RuntimeError(
+            "unexpected type for mean value: {!r}".format(mu)
+        )
 
 #-----------------------------------------------------------------------------------------
 def standard_uncertainty(seq,mu=None):
