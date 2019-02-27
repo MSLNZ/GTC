@@ -127,7 +127,7 @@ def uarray(array, label=None, names=None):
                 ureal(18.52941176470588,5.883187720636909,inf)])
 
         Create a :ref:`Structured array <structured_arrays>`, with the names ``'amps'`` and ``'volts'``,
-        and then calculate the `resistances`. If `dtype` is specified then it gets precedence over names.
+        and then calculate the `resistances`.
 
         >>> data = la.uarray([(ureal(0.57, 0.18), ureal(10.3, 1.3)),
         ...                (ureal(0.45, 0.12), ureal(9.5, 0.8)),
