@@ -829,11 +829,10 @@ class UncertainArray(np.ndarray):
                 # Add index notation to the label base
                 labels = [
                     "{}[{}]".format(labels,i)
-                        for i in range(self.size)
+                        for i in xrange(self.size)
                 ]
-                labels = np.asarray(labels)
-            else:
-                labels = np.asarray(labels)
+
+            labels = np.asarray(labels)
 
             # if self.shape == ():
                 # return result( self.item(0), labels.item(0) )
