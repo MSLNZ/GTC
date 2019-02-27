@@ -103,7 +103,7 @@ def run():
 
     # test a bunch of different dimensions
     test_dims = [
-        [(), ()],
+        #[(), ()],
         [(0,), (1, 3)],
         [(1,), (1, 3)],
         [(4,), (4, 3)],

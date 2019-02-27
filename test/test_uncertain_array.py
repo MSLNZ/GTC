@@ -101,7 +101,7 @@ class TestUncertainArray(unittest.TestCase):
 
     def test_value_uncertainty_variance_r_dof_ureal(self):
         # make sure that a uarray of size==1 is okay
-        a = uarray(ureal(1.2, 0.3, df=4.2))
+        a = uarray([ureal(1.2, 0.3, df=4.2)])
         self.assertTrue(a.dtype == np.object)
         self.assertTrue(equivalent(value(a), 1.2))
         self.assertTrue(equivalent(uncertainty(a), 0.3))
@@ -2924,7 +2924,7 @@ class TestUncertainArray(unittest.TestCase):
 
             # test a bunch of different dimensions
             test_dims = [
-                [(), ()],
+                #[(), ()],
                 [(0,), (1, 3)],
                 [(1,), (1, 3)],
                 [(4,), (4, 3)],
@@ -3790,7 +3790,7 @@ class TestUncertainArray(unittest.TestCase):
         with self.assertRaises(TypeError):
             _ = uarray([], names=['a', 'b', 'c'])
         with self.assertRaises(TypeError):
-            _ = uarray(ureal(1, 1), names=['a', 'b', 'c'])
+            _ = uarray([ureal(1, 1)], names=['a', 'b', 'c'])
         with self.assertRaises(TypeError):
             _ = uarray([ureal(1, 1), ureal(2, 2), ureal(3, 3)], names=['a', 'b', 'c'])
 
@@ -3923,6 +3923,33 @@ class TestUncertainArray(unittest.TestCase):
             for j in range(3):
                 self.assertTrue(equivalent(got[i, j].x, expect[i, j].x))
                 self.assertTrue(equivalent(got[i, j].u, expect[i, j].u))
+
+    def test_scalar_uarray(self):
+        # a scalar uarray is not allowed
+        self.assertRaises(ValueError, uarray, 1)
+        self.assertRaises(ValueError, uarray, 1.0)
+        self.assertRaises(ValueError, uarray, 1j)
+        self.assertRaises(ValueError, uarray, None)
+        self.assertRaises(ValueError, uarray, True)
+        self.assertRaises(ValueError, uarray, {})
+        self.assertRaises(ValueError, uarray, 'hello')
+        self.assertRaises(ValueError, uarray, ureal(1, 1))
+        self.assertRaises(ValueError, uarray, ucomplex(1+1j, 1))
+        self.assertRaises(ValueError, uarray, (ureal(1, 1)))
+        self.assertRaises(ValueError, uarray, (ucomplex(1+1j, 1)))
+        self.assertRaises(ValueError, uarray, np.array(1))
+        self.assertRaises(ValueError, uarray, np.array(ureal(1, 1)))
+
+        # the following are okay
+        for ua in [uarray([]), uarray(()), np.array([])]:
+            self.assertTrue(ua.size == 0)
+            self.assertTrue(ua.ndim == 1)
+            self.assertTrue(ua.shape == (0,))
+
+        for ua in [uarray((ureal(1, 1),)), uarray([ureal(1, 1)]), uarray([1]), np.array([ureal(1, 1)])]:
+            self.assertTrue(ua.size == 1)
+            self.assertTrue(ua.ndim == 1)
+            self.assertTrue(ua.shape == (1,))
 
     #
     # The following is a list of all ufuncs
