@@ -1756,10 +1756,6 @@ class TestUncertainArray(unittest.TestCase):
         # ux = log10(a)
         # self.assertTrue( isinstance(ux,UncertainReal) )
         # self.assertTrue( equivalent(ux.x,math.log10(x)) )
-    
-        n = len(self.x)
-        z = [log(x) for x in self.x]
-        zc = [log(x) for x in self.xc]
 
         n = len(self.x)
         z = [log10(x) for x in self.x]
