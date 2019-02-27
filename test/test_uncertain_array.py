@@ -1856,10 +1856,6 @@ class TestUncertainArray(unittest.TestCase):
         # ux = cosh(a)
         # self.assertTrue( isinstance(ux,UncertainReal) )
         # self.assertTrue( equivalent(ux.x,math.cosh(x)) )
-    
-        n = len(self.x)
-        z = [sinh(x) for x in self.x]
-        zc = [sinh(x) for x in self.xc]
 
         n = len(self.x)
         z = [cosh(x) for x in self.x]
