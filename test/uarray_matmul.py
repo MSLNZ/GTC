@@ -34,6 +34,12 @@ def run():
     assert equivalent(z.x, za.value())
     assert equivalent(z.u, za.uncertainty())
 
+    # switch lhs and rhs
+    z = 1 * b[0] + 2 * b[1] + 3 * b[2]
+    za = [1, 2, 3] @ ba
+    assert equivalent(z.x, za.value())
+    assert equivalent(z.u, za.uncertainty())
+
     try:
         ba @ [1, 2]
     except ValueError:  # Expect this error -> shapes (3,) and (2,) not aligned: 3 (dim 0) != 2 (dim 0)
@@ -93,6 +99,14 @@ def run():
             assert equivalent(na[ii, jj], ua[ii, jj].x)
             assert equivalent(nb[ii, jj], ub[ii, jj].x)
             assert equivalent(nc[ii, jj], uc[ii, jj].x, tol=1e-10)
+
+    # switch the ndarray and uarray order and also use a regular Python list
+    for mix in [na @ ub, ua @ nb, na.tolist() @ ub, ua @ nb.tolist()]:
+        assert mix.shape == nc.shape
+        i, j = mix.shape
+        for ii in range(i):
+            for jj in range(j):
+                assert equivalent(mix[ii, jj].x, nc[ii, jj], tol=1e-10)
 
     try:
         ma @ np.arange(4*4).reshape(4, 4)
