@@ -144,8 +144,9 @@ def uarray(array, label=None, names=None):
     # :param dtype: The data type to use to create the array [default=`object`].
     # :type dtype: :class:`numpy.dtype`
     dtype = None
-    if UncertainArray is None:
-        raise ImportError('Requires numpy >= v1.13.0 to be installed')
+    if np.__version__ < '1.13.0':
+        # the __array_ufunc__ method was not introduced until version 1.13.0
+        raise ValueError('creating an UncertainArray requires numpy >= 1.13.0')
 
     # if (dtype is None) and (names is not None):
     if names is not None:
