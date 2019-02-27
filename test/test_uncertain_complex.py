@@ -846,9 +846,7 @@ class ArithmeticTestsComplex(unittest.TestCase):
         ,   TOL
         )
 
-        # numpy raises a different error
-        self.assertRaises(FloatingPointError,div,y,0)
-        # self.assertRaises(ZeroDivisionError,div,y,0)
+        self.assertRaises(ZeroDivisionError,div,y,0)
 
         # Test for _d_component 
         y = self.un1b / self.un2

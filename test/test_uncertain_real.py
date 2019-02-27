@@ -715,9 +715,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         y = 1.0 / self.w
         self.assertTrue( y is not self.w )
         
-        # numpy raises a different error!
-        self.assertRaises(FloatingPointError,UncertainReal.__div__, self.z, 0)
-        # self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
+        self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
 
         newy = y/(1.0+0j)
         self.assertFalse( newy is y )
