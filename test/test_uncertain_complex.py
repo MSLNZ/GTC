@@ -1,6 +1,5 @@
 import re
 import unittest
-import numpy 
 
 try:
     from operator import div  # Python 2
