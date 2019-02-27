@@ -81,7 +81,6 @@ except ImportError:
 
 import numpy as np
 
-from GTC.uncertain_array import UncertainArray
 from GTC import LU
 
 __all__ = (
@@ -183,42 +182,38 @@ def matmul(lhs, rhs):
     :rtype: :class:`.UncertainArray`
     
     """
-    try:
-        # first, see if support for dtype=object was added
-        return UncertainArray(np.matmul(lhs, rhs))
-    except TypeError:
-        # Must re-implement matrix multiplication because np.matmul
-        # does not currently (as of v1.15.3) support dtype=object arrays.
-        # A fix is planned for v1.16.0
+    # Must implement matrix multiplication because np.matmul does not
+    # support dtype=object arrays in versions <= 1.15.4. Support for
+    # np.matmul was added in numpy 1.16.0 as a ufunc.
 
-        if not isinstance(lhs, np.ndarray):
-            lhs = np.asarray(lhs)
-        if not isinstance(rhs, np.ndarray):
-            rhs = np.asarray(rhs)
+    if not isinstance(lhs, np.ndarray):
+        lhs = np.asarray(lhs)
+    if not isinstance(rhs, np.ndarray):
+        rhs = np.asarray(rhs)
 
-        nd1, nd2 = lhs.ndim, rhs.ndim
-        if nd1 == 0 or nd2 == 0:
-            raise ValueError("Scalar operands are not allowed, use '*' instead")
+    nd1, nd2 = lhs.ndim, rhs.ndim
+    if nd1 == 0 or nd2 == 0:
+        raise ValueError("Scalar operands are not allowed, use '*' instead")
 
-        if nd1 <= 2 and nd2 <= 2:
-            return UncertainArray(lhs.dot(rhs))
+    if nd1 <= 2 and nd2 <= 2:
+        return UncertainArray(lhs.dot(rhs))
 
-        broadcast = np.broadcast(np.empty(lhs.shape[:-2]), np.empty(rhs.shape[:-2]))
-        ranges = [np.arange(s) for s in broadcast.shape]
-        grid = np.meshgrid(*ranges, sparse=False, indexing='ij')
-        indices = np.array([item.ravel() for item in grid]).transpose()
+    broadcast = np.broadcast(np.empty(lhs.shape[:-2]), np.empty(rhs.shape[:-2]))
+    ranges = [np.arange(s) for s in broadcast.shape]
+    grid = np.meshgrid(*ranges, sparse=False, indexing='ij')
+    indices = np.array([item.ravel() for item in grid]).transpose()
 
-        i1 = indices.copy()
-        i2 = indices.copy()
-        for i in range(len(indices[0])):
-            i1[:, i] = indices[:, i].clip(max=lhs.shape[i] - 1)
-            i2[:, i] = indices[:, i].clip(max=rhs.shape[i] - 1)
+    i1 = indices.copy()
+    i2 = indices.copy()
+    for i in range(len(indices[0])):
+        i1[:, i] = indices[:, i].clip(max=lhs.shape[i] - 1)
+        i2[:, i] = indices[:, i].clip(max=rhs.shape[i] - 1)
 
-        slices = np.array([[slice(None), slice(None)]]).repeat(len(indices), axis=0)
-        i1 = np.hstack((i1, slices))
-        i2 = np.hstack((i2, slices))
-        out = np.array([matmul(lhs[tuple(a)], rhs[tuple(b)]) for a, b in izip(i1, i2)])
-        return UncertainArray(out.reshape(list(broadcast.shape) + [lhs.shape[-2], rhs.shape[-1]]))
+    slices = np.array([[slice(None), slice(None)]]).repeat(len(indices), axis=0)
+    i1 = np.hstack((i1, slices))
+    i2 = np.hstack((i2, slices))
+    out = np.array([matmul(lhs[tuple(a)], rhs[tuple(b)]) for a, b in izip(i1, i2)])
+    return UncertainArray(out.reshape(list(broadcast.shape) + [lhs.shape[-2], rhs.shape[-1]]))
 
 
 def dot(lhs, rhs):
@@ -365,6 +360,10 @@ def full(shape,fill_value):
     """
     dtype=object
     return uarray( np.full(shape,fill_value,dtype=dtype) )
+
+
+# import here to avoid circular imports when importing the matmul function in uncertain_array.py
+from GTC.uncertain_array import UncertainArray
 
 #============================================================================    
 if __name__ == "__main__":

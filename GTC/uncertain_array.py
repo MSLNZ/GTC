@@ -20,7 +20,8 @@ except ImportError:
 
 import numpy as np
 
-from GTC import is_sequence 
+from GTC import is_sequence
+from GTC.linear_algebra import matmul
 
 from GTC.core import (
     value,
@@ -188,15 +189,15 @@ class UncertainArray(np.ndarray):
 
     def __matmul__(self, other):
         # Implements the protocol used by the '@' operator defined in PEP 465.
-        # import here to avoid circular imports
-        from GTC.linear_algebra import matmul
         return matmul(self, other)
 
     def __rmatmul__(self, other):
         # Implements the protocol used by the '@' operator defined in PEP 465.
-        # import here to avoid circular imports
-        from GTC.linear_algebra import matmul
         return matmul(other, self)
+
+    def _matmul(self, *inputs):
+        # np.matmul became a ufunc in version 1.16.0
+        return matmul(*inputs)
 
     def _create_empty(self, inputs=None, dtype=None, order='C'):
         if dtype is None:
