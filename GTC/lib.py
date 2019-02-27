@@ -9,14 +9,14 @@ import math
 import cmath
 import numbers
 
-try:
-    import numpy as np
-except ImportError:
-    np = None
-else:
-    if np.__version__ < '1.13.0':
-        # The __array_ufunc__ method was not introduced until v1.13.0
-        np = None
+# try:
+#     import numpy as np
+# except ImportError:
+#     np = None
+# else:
+#     if np.__version__ < '1.13.0':
+#         # The __array_ufunc__ method was not introduced until v1.13.0
+#         np = None
 
 try:
     from itertools import izip  # Python 2
@@ -101,7 +101,8 @@ class UncertainReal(object):
     #-------------------------------------------------------------------------
     def __init__(self,x,u_comp,d_comp,i_comp,node=None):
 
-        self._x = np.float_(x) if np else float(x)
+        #self._x = np.float_(x) if np else float(x)
+        self._x = float(x)
         self._u_components = u_comp
         self._d_components = d_comp
         self._i_components = i_comp
@@ -2360,8 +2361,9 @@ class UncertainComplex(object):
         self.real = r  #: :class:`UncertainReal`: The real component.
         self.imag = i  #: :class:`UncertainReal`: The imaginary component.
         
-        z = complex(r.x,i.x)
-        self._value = np.complex_( z ) if np else z
+        #z = complex(r.x,i.x)
+        #self._value = np.complex_( z ) if np else z
+        self._value = complex(r.x,i.x)
 
         # if np:
             # self.dtype = np.dtype('O')
