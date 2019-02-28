@@ -3938,12 +3938,12 @@ class TestUncertainArray(unittest.TestCase):
         self.assertRaises(ValueError, uarray, np.array(ureal(1, 1)))
 
         # the following are okay
-        for ua in [uarray([]), uarray(()), np.array([])]:
+        for ua in [uarray([]), uarray(()), uarray(np.array([]))]:
             self.assertTrue(ua.size == 0)
             self.assertTrue(ua.ndim == 1)
             self.assertTrue(ua.shape == (0,))
 
-        for ua in [uarray((ureal(1, 1),)), uarray([ureal(1, 1)]), uarray([1]), np.array([ureal(1, 1)])]:
+        for ua in [uarray((ureal(1, 1),)), uarray([ureal(1, 1)]), uarray([1]), uarray(np.array([ureal(1, 1)]))]:
             self.assertTrue(ua.size == 1)
             self.assertTrue(ua.ndim == 1)
             self.assertTrue(ua.shape == (1,))
