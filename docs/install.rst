@@ -46,7 +46,7 @@ Once you have a copy of the source code, you can install it by running
 
 Dependencies
 ------------
-* Python 2.7, 3.4+
+* Python 2.7, 3.5+
 * scipy_
 
 .. _PyPI package: https://pypi.org/project/GTC/
