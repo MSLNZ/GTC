@@ -8,6 +8,7 @@ from __future__ import division
 import math
 import cmath
 import numbers
+import warnings
 
 # try:
 #     import numpy as np
@@ -300,12 +301,30 @@ class UncertainReal(object):
                 # Assume that it has been registered, perhaps the 
                 # user has repeated the registration process.
 
-        # else:
+        else:
             # There should be no harm in ignoring elementary UNs.
             # They will be archived properly and they are not dependent
             # on anything. It is convenient for the user not to worry
             # whether or not something is elementary or not. 
             
+            # The only surprising behaviour to a user would be that 
+            # the `label` is not applied to the elementary uncertain number 
+            # if it already has been assigned. 
+            # Note that this code ripples through other types, because
+            # UncertainComplex and UncertainArray use this class method.
+            if label is not None:
+                n = self._node 
+                if n.label is None:
+                    # Assign a label when there is none to begin with  
+                    n.label = label
+                elif label != n.label:
+                    warnings.warn(
+                        "Label `{}` ignored in `result()`".format(label),
+                        RuntimeWarning
+                    )
+                else:
+                    assert label == n.label, 'unexpected'
+                    
         return self 
         
     #-------------------------------------------------------------------------
@@ -389,7 +408,7 @@ class UncertainReal(object):
                 u_digits = "({})".format(u_digits)
             )
             
-        elif _is_uncertain_real_constant(self):
+        elif _is_uncertain_real_constant(self) or self.u == 0.0:
             # Use default fixed-point precision
             return GroomedUncertainReal(
                 x = self.x,

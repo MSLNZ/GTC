@@ -453,7 +453,7 @@ def result(un,label=None):
         >>> P = V**2/R
         >>> component(P,V)
         3.505784505642068e-05  
-        
+    
     """
     if hasattr(un,'_intermediate'):
         return un._intermediate(label)

@@ -1,4 +1,5 @@
 import unittest
+import warnings 
 
 from GTC import *
 
@@ -216,7 +217,38 @@ class TestAPIFunctions(unittest.TestCase):
             self.assertEqual( len(z.imag._i_components)+1, len(z_.imag._i_components)) 
             self.assertTrue( equivalent_sequence(z.real._u_components.values(),z_.real._u_components.values()) )
             self.assertTrue( equivalent_sequence(z.imag._u_components.values(),z_.imag._u_components.values()) )
-    
+
+            # When applied to an elementary uncertain number nothing will happen 
+            # unless the `label` argument is used. In that case, if the elementary 
+            # uncertain number label is already set a warning is issued, 
+            # otherwise label is assigned to the uncertain number.
+            x = ureal(1.5,1)
+            xx = result(x)
+            self.assertTrue( x is xx )
+            
+            xx = result(x,label = 'x')
+            self.assertTrue( x is xx )
+            self.assertEqual( x.label, 'x' )
+            
+            x = ureal(1.5,1,label='x')
+            xx = result(x,label='x')
+            self.assertTrue( x is xx )
+            self.assertEqual( x.label, 'x' )
+ 
+            # From warnings documentation 2.7.16
+            # Note that with Python 3 there is `assertWarns`
+            with warnings.catch_warnings(record=True) as w:            
+                # Cause all warnings to always be triggered.
+                warnings.simplefilter("always")
+                
+                # Trigger a warning.
+                xx = result(x,'xx')
+
+                self.assertTrue( len(w) == 1 )
+                self.assertTrue( issubclass(w[-1].category, RuntimeWarning) )
+                self.assertTrue( x is xx )
+                self.assertEqual( x.label, 'x' )
+                
 #----------------------------------------------------------------------------
 class TestMultipleUN(unittest.TestCase):
 
