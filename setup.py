@@ -3,6 +3,11 @@ import sys
 from distutils.cmd import Command
 from setuptools import setup, find_packages
 
+if sys.version_info[:2] == (2, 7):
+    install_requires = ['numpy>=1.13.0,<=1.16.3', 'scipy<=1.2.1']
+else:
+    install_requires = ['numpy>=1.13.0', 'scipy']
+
 
 class ApiDocs(Command):
     """
@@ -93,6 +98,7 @@ pytest_runner = ['pytest-runner'] if testing else []
 needs_sphinx = {'doc', 'docs', 'apidoc', 'apidocs', 'build_sphinx'}.intersection(sys.argv)
 sphinx = ['sphinx', 'sphinx_rtd_theme'] if needs_sphinx else []
 
+
 setup(
     name='GTC',
     version=fetch_init('version'),
@@ -117,7 +123,7 @@ setup(
     ],
     setup_requires=sphinx + pytest_runner,
     tests_require=['pytest-cov', 'pytest>=3.0'],
-    install_requires=['numpy>=1.13', 'scipy'],
+    install_requires=install_requires,
     cmdclass={'docs': BuildDocs, 'apidocs': ApiDocs},
     packages=find_packages(include=('GTC*',)),
 )
