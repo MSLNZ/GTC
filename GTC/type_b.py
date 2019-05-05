@@ -39,12 +39,13 @@ A table of distributions
 
     Keys to :obj:`distribution` are (case-sensitive):
     
-    *   'gaussian'
-    *   'uniform'
-    *   'triangular'
-    *   'arcsine' or 'u_shaped'
-    *   'uniform_ring'
-    *   'uniform_disk'
+    *   `gaussian`
+    *   `uniform`
+    *   `triangular`
+    *   `arcsine`
+    *   `u_shaped`
+    *   `uniform_ring`
+    *   `uniform_disk`
     
 Module contents
 ---------------

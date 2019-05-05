@@ -2,13 +2,14 @@
 Release Notes
 =============
 
-Version 1.1.0 (????.??.??)
+Version 1.1.0 (2019.05.??)
 ==========================
 
-    There is a new array-like class to hold collections of uncertain numbers. :class:`~uncertain_array.UncertainArray` is based on :class:`numpy.ndarray`, which provides excellent support 
-    for manipulating stored data. Standard mathematical operations can be applied to :class:`~uncertain_array.UncertainArray` objects. However, while this vectorisation succinctly represents repetitive operations, it does not provide a significant speed advantage over Python iteration.
+    * Mathematical functions in the :mod:`core` module (``sin``, ``sqrt``, etc) can be applied to Python numbers as well as uncertain numbers (previously these functions raised an exception when applied to Python numbers).
     
-    The standard mathematical functions (``sin``, ``sqrt``, etc) can be applied to Python numbers and to :class:`~uncertain_array.UncertainArray` objects, as well as to the uncertain-number types.
+    * There is a new array-like class to hold collections of uncertain numbers. :class:`~uncertain_array.UncertainArray` is based on :class:`numpy.ndarray`, which provides excellent support for manipulating stored data. Standard mathematical operations in the :mod:`core` module can be applied to :class:`~uncertain_array.UncertainArray` objects. 
+    
+    * A function :func:`reporting.sensitivity` calculates partial derivatives (sensitivity coefficients).
 
 Version 1.0.0 (2018.11.16)
 ==========================

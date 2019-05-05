@@ -317,6 +317,7 @@ def ureal(x,u,df=inf,label=None,independent=True):
         )
         
 #---------------------------------------------------------------------------
+# TODO: think of a better name! Perhaps `ureal_ensemble`
 def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     """Return a sequence of related elementary uncertain real numbers
 
@@ -423,10 +424,10 @@ def result(un,label=None):
     """
     Define an uncertain number as an intermediate result
 
-    :arg un: an uncertain number or :class:`~core.UncertainArray`
+    :arg un: an uncertain number or :class:`.UncertainArray`
     :arg label: a string or sequence of strings
     
-    When ``un`` is an array, an :class:`~core.UncertainArray` is returned  
+    When ``un`` is an array, an :class:`.UncertainArray` is returned  
     containing the intermediate uncertain number objects.
     
     .. note::
@@ -441,9 +442,9 @@ def result(un,label=None):
     Declaring intermediate results also enables the dependencies of uncertain 
     numbers to be stored in an archive.
 
-    :arg un: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray`
+    :arg un: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`.UncertainArray`
     :arg label: str or a sequence of str
-    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray`
+    :rtype: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`.UncertainArray`
     
     **Example**::
 
@@ -579,6 +580,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
         )
         
 #---------------------------------------------------------------------------
+# TODO: think of a better name! Perhaps `ucomplex_ensemble`
 def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     """Return a sequence of uncertain complex numbers
 
@@ -1223,9 +1225,6 @@ def mag_squared(x):
 # import here to avoid circular imports
 from GTC import linear_algebra
 la = linear_algebra
-# uarray = linear_algebra.uarray
-# dot = linear_algebra.dot
-# matmul = linear_algebra.matmul
 
 #============================================================================    
 if __name__ == "__main__":

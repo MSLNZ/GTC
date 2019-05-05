@@ -1,5 +1,8 @@
 """
-The proper way to create an uncertain array is by calling uarray(...)
+The proper way to create an uncertain array is by calling :func:`.uarray`
+
+.. versionadded:: 1.1
+
 """
 # The adding numpy arrays to GTC is not an easy exercise.  
 # Our need is to provide convenient containers for uncertain numbers 

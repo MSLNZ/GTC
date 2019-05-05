@@ -1,18 +1,18 @@
 ===================
 GUM Tree Calculator
 ===================
+..  (Remove image)
+    .. image:: images/GTCwin.png
+        :align: left
+        :scale: 108%
 
-.. image:: images/GTCwin.png
-    :align: left
-    :scale: 108%
-
-Measurement and uncertainty
----------------------------
+Introduction
+------------
 .. toctree::
    :maxdepth: 1
 
-    Introduction <API/uncertain_numbers>
     Installing GTC <install>
+    Introduction <API/uncertain_numbers>
 
 GTC Modules
 -----------

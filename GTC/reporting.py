@@ -284,8 +284,8 @@ def k_to_dof(k,p=95):
 def sensitivity(y,x):
     """Return the first partial derivative of ``y`` with respect to ``x``
 
-    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
-    :arg x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`.UncertainArray` 
+    :arg x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`.UncertainArray` 
     
     If ``x`` and ``y`` are uncertain real numbers, return a float. 
 
@@ -298,6 +298,7 @@ def sensitivity(y,x):
 
     Otherwise, return 0.
     
+    .. versionadded:: 1.1
 
     **Example**::
 
@@ -317,8 +318,9 @@ def sensitivity(y,x):
         JacobianMatrix(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
         
     """
-    # There are three types that define a `sensitivity` method: UncertainArray,
-    # UncertainReal and UncertainComplex. These are all potential types for `y`. 
+    # There are three types that define a `sensitivity` method: 
+    # ~uncertain_array.UncertainArray, UncertainReal and UncertainComplex. 
+    # These are all potential types for `y`. 
     # The types for `x` include these three as well as numbers.
     # 
     if hasattr(y,'sensitivity'):
@@ -332,8 +334,8 @@ def sensitivity(y,x):
 def u_component(y,x):
     """Return the component of uncertainty in ``y`` due to ``x``
     
-    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
-    :arg x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`UncertainArray` 
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`.UncertainArray` 
+    :arg x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` or :class:`.UncertainArray` 
     
     If ``x`` and ``y`` are uncertain real numbers, return a float. 
 
@@ -341,7 +343,7 @@ def u_component(y,x):
     a 4-element sequence of float, containing the
     components of uncertainty.
 
-    When ``x`` and ``y`` are arrays, an :class:`.UncertainArray` 
+    When ``x`` and ``y`` are arrays, an :class:`uncertain_array.UncertainArray` 
     is returned containing the results of applying this function 
     to the array elements.
 

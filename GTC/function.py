@@ -42,6 +42,8 @@ def sum(seq,*args,**kwargs):
     :arg args: optional arguments when ``seq`` is an :class:`~numpy.ndarray`
     :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
     
+    .. versionadded:: 1.1
+
     """
     if isinstance(seq,np.ndarray):
         return np.asarray(seq).sum(*args, **kwargs)

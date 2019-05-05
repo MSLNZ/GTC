@@ -12,8 +12,9 @@ Core Functions and Classes
 Core Functions
 ==============
 
-Functions that create elementary uncertain numbers and functions that can be used to access uncertain-number attributes, are defined in the :mod:`core` module. A set of standard mathematical functions (like :func:`~core.sqrt`, :func:`~core.sin`, :func:`~core.log10`, etc) is also defined for uncertain numbers and can be applied to the numeric Python types as well.
-All these functions are imported automatically into the ``GTC`` namespace, so they are available after performing ``from GTC import *``.
+Functions that create elementary uncertain numbers and functions that access uncertain-number attributes, are defined in the :mod:`core` module. There is also a set of standard mathematical functions (e.g.: :func:`~core.sqrt`, :func:`~core.sin`, :func:`~core.log10`, etc) for uncertain numbers. These functions can be applied to the numeric Python types too.
+
+All :mod:`core` functions are automatically imported into the ``GTC`` namespace (i.e., they are available after ``from GTC import *``).
 
 .. automodule:: core
 	:members: 
@@ -31,8 +32,8 @@ There are two types of uncertain number, one to represent real-valued quantities
 Uncertain Real Numbers
 ----------------------
 
-    The :class:`~lib.UncertainReal` class defines an uncertain-number object with the attributes ``x``, ``u``, ``v`` and ``df``, 
-    to obtain the value, uncertainty, variance and degrees-of-freedom for the uncertain number, respectively. 
+    :class:`~lib.UncertainReal` defines an uncertain-number object with attributes ``x``, ``u``, ``v`` and ``df``, 
+    for the value, uncertainty, variance and degrees-of-freedom, respectively, of the uncertain number. 
 
     The function :func:`~core.ureal` creates elementary :class:`~lib.UncertainReal` objects. For example, ::
     
@@ -40,7 +41,7 @@ Uncertain Real Numbers
         >>> x
         ureal(1.414141,0.01,inf)
 
-    All logical comparison operations (e.g., <, >, ==, etc) are applied to the *value* of an uncertain number. For example, ::
+    All logical comparison operations (e.g., <, >, ==, etc) applied to uncertain-number objects use the *value* attribute. For example, ::
     
         >>> un = ureal(2.5,1)
         >>> un > 3
@@ -48,7 +49,7 @@ Uncertain Real Numbers
         >>> un == 2.5
         True
     
-    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by :class:`str`, or by :func:`print`), the precision depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string in parentheses.    
+    When the value of an :class:`~lib.UncertainReal` is converted to a string (e.g., by :class:`str`, or by :func:`print`), the precision displayed depends on the uncertainty. The two least significant digits of the value correspond to the two most significant digits of the standard uncertainty. The value of standard uncertainty is appended to the string between parentheses.    
     
     For example, ::
 	
@@ -58,7 +59,7 @@ Uncertain Real Numbers
         >>> print(x)
         1.414(10)
 	
-    When an :class:`~lib.UncertainReal` is converted to its Python *representation* (e.g., by :func:`repr`) a string is returned that shows  the representation of the elements that define the uncertain number.  
+    When an :class:`~lib.UncertainReal` is converted to its Python *representation* (e.g., by :func:`repr`) a string is returned that shows the representation of the elements that define the uncertain number.  
     
     For example, ::
 
@@ -72,22 +73,22 @@ Uncertain Real Numbers
 Uncertain Complex Numbers
 -------------------------
 	
-    The class :class:`~lib.UncertainComplex` defines an uncertain-number object with the attributes ``x``, ``u``, ``v`` and ``df``, 
-    to obtain the value, uncertainty, variance-covariance matrix and degrees-of-freedom, respectively.
+    :class:`~lib.UncertainComplex` defines an uncertain-number object with attributes ``x``, ``u``, ``v`` and ``df``, 
+    for the value, uncertainty, variance-covariance matrix and degrees-of-freedom, respectively.
 
     The function :func:`~core.ucomplex` creates elementary :class:`~lib.UncertainComplex` objects, 
     for example ::  
     
         >>> z = ucomplex(1.333-0.121212j,(0.01,0.01))
         
-    Equality comparison operations (``==`` and ``!=``) are applied to the *value* of uncertain complex numbers. 
+    Equality comparison operations (``==`` and ``!=``) applied to uncertain-complex-number objects use the *value* attribute. 
     For example, ::
     
         >>> uc = ucomplex(3+3j,(1,1))
         >>> uc == 3+3j
         True
     
-    The built-in function :func:`abs` returns the magnitude of the *value* of the uncertain number (use :func:`~core.magnitude` if uncertainty propagation is required). For example, ::
+    The built-in function :func:`abs` returns the magnitude of the *value* as a Python ``float`` (use :func:`~core.magnitude` if uncertainty propagation is required). For example, ::
 
         >>> uc = ucomplex(1+1j,(1,1))
         >>> abs(uc)
@@ -98,7 +99,7 @@ Uncertain Complex Numbers
                    
     When an :class:`~lib.UncertainComplex` is converted to a string (e.g., by the :class:`str` function or by :func:`print`), the precision depends on the uncertainty. 
     
-    The lesser of the uncertainties in the real and imaginary components is used for formatting. The two least significant digits of the formated component values will correspond to the two most significant digits of this standard uncertainty. Values of standard uncertainty are appended to the component values in parentheses.
+    The lesser of the uncertainties in the real and imaginary components will determine the precision displayed. The two least significant digits of the formated component values will correspond to the two most significant digits of this standard uncertainty. Values of standard uncertainty are appended to the component values between parentheses.
     
     For example, ::
 	

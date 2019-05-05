@@ -161,21 +161,5 @@ GroomedUncertainComplex = namedtuple(
     'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
 )
 
-# TypeA = namedtuple('type_a','x u df r')
-# ExpandedUncertainty = namedtuple('expanded_uncertainty','lower upper')
-# RadialTangentialUncertainty = namedtuple('rt_uncertainty','radial, tangent')
-# PolarCoordinates = namedtuple('polar','magnitude, phase')
-
-# SimulatedRealInput = namedtuple('simulated_real_input','x,u,df')
-
-# SimulatedComplexInput = namedtuple(
-        # 'simulated_complex_input',
-        # 'z cv df'
-    # )
-# SimulatedVectorInput = namedtuple(
-        # 'simulated_vector_input',
-        # 'x cv df'
-    # )
-# InterceptSlope = namedtuple('intercept_slope','a b')
 
 

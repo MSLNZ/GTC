@@ -1,4 +1,6 @@
 """
+.. versionadded:: 1.1
+
 Classes
 -------
     * :class:`.UncertainArray` 
@@ -20,9 +22,9 @@ Mathematical operations
 -----------------------
 
     The standard mathematical operations defined in :mod:`.core` 
-    can be applied directly to an array. This fills an 
-    :class:`.UncertainArray` with results generated 
-    by applying the function to each element of the array.
+    can be applied directly to an :class:`.UncertainArray`. An 
+    :class:`.UncertainArray` is returned, containing the result 
+    of the function applied to each element.
 
 Functions
 ---------
@@ -35,17 +37,18 @@ Functions
 Reporting functions 
 -------------------
 
-    The reporting functions :func:`~.reporting.u_component` and     
+    Reporting functions :func:`~.reporting.u_component` and     
     :func:`~.reporting.sensitivity` can be applied directly to 
-    an array. They produce an :class:`.UncertainArray` containing 
-    the result for each element. 
+    a pair of arrays. An :class:`.UncertainArray` containing 
+    the result of applying the function to pairs of elements 
+    will be returned. 
     
     The core `GTC` function :func:`~.core.result` can be used to  
     define elements of an array as intermediate uncertain numbers. 
         
 Array broadcasting
 ------------------
-    When binary arithmetic operations are used on arrays, the shape
+    When binary arithmetic operations are applied to arrays, the shape
     of the array may be changed for the purposes of the
     calculation. The rules are as follows:
 
@@ -143,9 +146,6 @@ def uarray(array, label=None, names=None):
 
     
     """
-    # :param dtype: The data type to use to create the array [default=`object`].
-    # :type dtype: :class:`numpy.dtype`
-
     if np.__version__ < '1.13.0':
         # the __array_ufunc__ method was not introduced until version 1.13.0
         raise ValueError('creating an UncertainArray requires numpy >= 1.13.0')
@@ -156,7 +156,6 @@ def uarray(array, label=None, names=None):
 
     dtype = None
 
-    # if (dtype is None) and (names is not None):
     if names is not None:
         try:
             a_len = len(array[0])
