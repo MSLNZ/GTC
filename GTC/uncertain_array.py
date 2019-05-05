@@ -4,9 +4,9 @@ The proper way to create an uncertain array is by calling :func:`.uarray`
 .. versionadded:: 1.1
 
 """
-# The adding numpy arrays to GTC is not an easy exercise.  
-# Our need is to provide convenient containers for uncertain numbers 
-# we do not try to integrate uncertain numbers in numpy's design.  
+# Adding numpy arrays to GTC is not an easy exercise.
+# Our need is to provide convenient containers for uncertain numbers.
+# We do not try to integrate uncertain numbers in numpy's design.
 from __future__ import division
 
 import warnings
@@ -59,6 +59,7 @@ from GTC.lib import (
     UncertainComplex
 )
 
+
 def _isnan(number):
     val = value(number)
     if isinstance(val, Real):
@@ -67,6 +68,7 @@ def _isnan(number):
         return cisnan(val)
     else:
         raise TypeError('cannot calculate isnan of type {}'.format(type(number)))
+
 
 def _isinf(number):
     val = value(number)
@@ -113,7 +115,7 @@ class UncertainArray(np.ndarray):
         # with a definite numpy number type. This could be done
         # by wrapping a call to uarray() around an ndarray.
         # Without this, the type gets converted back to Python.
-        if type(array) == np.ndarray:
+        if isinstance(array, np.ndarray):
             dtype = array.dtype
         elif dtype is None:
             dtype = np.dtype('O')
@@ -123,7 +125,9 @@ class UncertainArray(np.ndarray):
         return obj
 
     def __array_finalize__(self, obj):
-        if obj is None: return
+        if obj is None:
+            return
+
         self._label = getattr(obj, 'label', None)
 
         # numpy looks at type().__name__ when preparing
@@ -244,8 +248,6 @@ class UncertainArray(np.ndarray):
 
         :rtype: :class:`UncertainArray`
         """
-        # if self.shape == ():
-            # return self.item(0).real
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, item.real)
@@ -265,8 +267,6 @@ class UncertainArray(np.ndarray):
 
         :rtype: :class:`UncertainArray`
         """
-        # if self.shape == ():
-            # return self.item(0).imag
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, item.imag)
@@ -281,13 +281,11 @@ class UncertainArray(np.ndarray):
             >>> a = la.uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2)),
             ...                ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5))])
             >>> a.r
-            uarray([0.26515152, 0.2962963 ])
+            uarray([0.2651515151515152, 0.29629629629629634])
 
         :rtype: :class:`UncertainArray`
         """
-        # if self.shape == ():
-            # return self.item(0).r
-        arr, itemset, iterator = self._create_empty(dtype=float)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
             itemset(i, item.r)
         return UncertainArray(arr)
@@ -303,14 +301,11 @@ class UncertainArray(np.ndarray):
             uarray([0.57, 0.45, (1.1+0.68j)])
 
         :rtype: :class:`UncertainArray`
-
         """
         return self.value()
 
     def value(self):
         """The result of :func:`~.core.value` for each element in the array.
-
-
 
         **Example**::
 
@@ -320,19 +315,15 @@ class UncertainArray(np.ndarray):
 
         :rtype: :class:`UncertainArray`
         """
-        # Note: in future we might allow different `dtype` values.
+        # Note: in the future we might allow different `dtype` values.
         # However, this needs some thought. Should `dtype=float`
         # return complex numbers as a pair of reals, for example?
         # What are the most likely use-cases?
         # :param dtype: The data type of the returned array.
         # :type dtype: :class:`numpy.dtype`
-        dtype=None
-        # if self.shape == ():
-            # return value(self.item(0))
-
-        arr, itemset, iterator = self._create_empty(dtype=dtype)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
-            itemset(i, value(item) )
+            itemset(i, value(item))
         return UncertainArray(arr)
 
     @property
@@ -369,17 +360,12 @@ class UncertainArray(np.ndarray):
                    StandardUncertainty(real=0.9, imag=0.9)])
 
         :rtype: :class:`UncertainArray`
-
         """
-        # Note: in future we might allow different `dtype` values.
+        # Note: in the future we might allow different `dtype` values.
         # However, we need to consider the use-cases carefully.
         # :param dtype: The data type of the returned array.
         # :type dtype: :class:`numpy.dtype`
-        dtype=None
-        # if self.shape == ():
-            # return uncertainty(self.item(0))
-
-        arr, itemset, iterator = self._create_empty(dtype=dtype)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
             itemset(i, uncertainty(item))
         return UncertainArray(arr)
@@ -418,17 +404,12 @@ class UncertainArray(np.ndarray):
                     VarianceCovariance(rr=0.81, ri=0.0, ir=0.0, ii=0.81)])
 
         :rtype: :class:`UncertainArray`
-
         """
-        # Note: in future we might allow different `dtype` values.
+        # Note: in the future we might allow different `dtype` values.
         # However, we need to consider the use-cases carefully.
         # :param dtype: The data type of the returned array.
         # :type dtype: :class:`numpy.dtype`
-        dtype=None
-        # if self.shape == ():
-            # return variance(self.item(0))
-
-        arr, itemset, iterator = self._create_empty(dtype=dtype)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
             itemset(i, variance(item))
         return UncertainArray(arr)
@@ -444,7 +425,6 @@ class UncertainArray(np.ndarray):
             uarray([3.0, 4.0, 7.0, inf])
 
         :rtype: :class:`UncertainArray`
-
         """
         return self.dof()
 
@@ -458,13 +438,8 @@ class UncertainArray(np.ndarray):
             uarray([3.0, 4.0, 7.0, inf])
 
         :rtype: :class:`UncertainArray`
-
         """
-        dtype=None
-        # if self.shape == ():
-            # return dof(self.item(0))
-
-        arr, itemset, iterator = self._create_empty(dtype=dtype)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
             itemset(i, dof(item))
         return UncertainArray(arr)
@@ -473,18 +448,12 @@ class UncertainArray(np.ndarray):
         """The result of :func:`~.reporting.sensitivity` for each element in the array.
 
         :rtype: :class:`UncertainArray`
-
         """
         # Note, there is a case for introducing `dtype` or some other parameter.
         # The return types for complex cases may be multivariate.
-        # if self.shape == ():
-            # if hasattr(x,'item'):
-                # return self.item(0).sensitivity(x.item(0))
-            # else:
-                # return self.item(0).sensitivity(x)
 
         # `_create_empty()` handles only ndarray-like sequences
-        if not isinstance(x,np.ndarray):
+        if not isinstance(x, np.ndarray):
             x = np.asarray(x)
 
         arr, itemset, iterator = self._create_empty((self, x))
@@ -496,18 +465,12 @@ class UncertainArray(np.ndarray):
         """The result of :func:`~.reporting.u_component` for each element in the array.
 
         :rtype: :class:`UncertainArray`
-
         """
         # Note, there is a case for introducing `dtype` or some other parameter.
         # The return types for complex cases may be multivariate.
-        # if self.shape == ():
-            # if hasattr(x,'item'):
-                # return self.item(0).u_component(x.item(0))
-            # else:
-                # return self.item(0).u_component(x)
 
         # `_create_empty()` handles only ndarray-like sequences
-        if not isinstance(x,np.ndarray):
+        if not isinstance(x, np.ndarray):
             x = np.asarray(x)
 
         arr, itemset, iterator = self._create_empty((self, x))
@@ -527,150 +490,101 @@ class UncertainArray(np.ndarray):
                     ucomplex((0-1.5j), u=[0.9,0.9], r=0.0, df=inf)])
 
         :rtype: :class:`UncertainArray`
-
         """
         # override this method because I wanted to create a custom __doc__
         return self._conjugate()
 
     def _conjugate(self, *ignore):
-        # if self.shape == ():
-            # return self.item(0).conjugate()
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, item.conjugate())
         return UncertainArray(arr)
 
     def _positive(self, *ignore):
-        # if self.shape == ():
-            # return +self.item(0)
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, +item)
         return UncertainArray(arr)
 
     def _negative(self, *ignore):
-        # if self.shape == ():
-            # return -self.item(0)
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, -item)
         return UncertainArray(arr)
 
     def _add(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) + inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
-            itemset(i, a + b )
+            itemset(i, a + b)
         return UncertainArray(arr)
 
     def _subtract(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) - inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a - b)
         return UncertainArray(arr)
 
     def _multiply(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) * inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a * b)
         return UncertainArray(arr)
 
     def _divide(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) / inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a / b)
         return UncertainArray(arr)
 
     def _true_divide(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) / inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a / b)
         return UncertainArray(arr)
 
     def _power(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) ** inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a ** b)
         return UncertainArray(arr)
 
     def _exp(self, *ignore):
-        # if self.shape == ():
-            # return exp( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, exp(item))
         return UncertainArray(arr)
 
     def _log(self, *ignore):
-        # if self.shape == ():
-            # return log( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, log(item))
         return UncertainArray(arr)
 
     def _log10(self, *ignore):
-        # if self.shape == ():
-            # return log10( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, log10(item))
         return UncertainArray(arr)
 
     def _sqrt(self, *ignore):
-        # if self.shape == ():
-            # return sqrt( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, sqrt(item))
         return UncertainArray(arr)
 
     def _cos(self, *ignore):
-        # if self.shape == ():
-            # return cos( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, cos(item))
         return UncertainArray(arr)
 
     def _sin(self, *ignore):
-        # if self.shape == ():
-            # return sin( self.item(0))
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, sin(item))
         return UncertainArray(arr)
 
     def _tan(self, *ignore):
-        # if self.shape == ():
-            # return tan( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, tan(item))
@@ -680,9 +594,6 @@ class UncertainArray(np.ndarray):
         return self._acos()
 
     def _acos(self):
-        # if self.shape == ():
-            # return acos( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, acos(item))
@@ -692,9 +603,6 @@ class UncertainArray(np.ndarray):
         return self._asin()
 
     def _asin(self):
-        # if self.shape == ():
-            # return asin( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, asin(item))
@@ -704,9 +612,6 @@ class UncertainArray(np.ndarray):
         return self._atan()
 
     def _atan(self):
-        # if self.shape == ():
-            # return atan( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, atan(item))
@@ -716,36 +621,24 @@ class UncertainArray(np.ndarray):
         return self._atan2(inputs[1])
 
     def _atan2(self, *inputs):
-        # if self.ndim ==0:
-            # return atan2(self.item(0),inputs[0].item(0))
-
         arr, itemset, iterator = self._create_empty((self, inputs[0]))
         for i, (a, b) in enumerate(iterator):
             itemset(i, atan2(a, b))
         return UncertainArray(arr)
 
     def _sinh(self, *ignore):
-        # if self.shape == ():
-            # return sinh( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, sinh(item))
         return UncertainArray(arr)
 
     def _cosh(self, *ignore):
-        # if self.shape == ():
-            # return cosh( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, cosh(item))
         return UncertainArray(arr)
 
     def _tanh(self, *ignore):
-        # if self.shape == ():
-            # return tanh( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, tanh(item))
@@ -755,9 +648,6 @@ class UncertainArray(np.ndarray):
         return self._acosh()
 
     def _acosh(self):
-        # if self.shape == ():
-            # return acosh( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, acosh(item))
@@ -767,9 +657,6 @@ class UncertainArray(np.ndarray):
         return self._asinh()
 
     def _asinh(self):
-        # if self.shape == ():
-            # return asinh( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, asinh(item))
@@ -779,9 +666,6 @@ class UncertainArray(np.ndarray):
         return self._atanh()
 
     def _atanh(self):
-        # if self.shape == ():
-            # return atanh( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, atanh(item))
@@ -791,121 +675,82 @@ class UncertainArray(np.ndarray):
         return self._mag_squared()
 
     def _mag_squared(self):
-        # if self.shape == ():
-            # return mag_squared( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, mag_squared(item))
         return UncertainArray(arr)
 
     def _magnitude(self):
-        # if self.shape == ():
-            # return magnitude( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, magnitude(item))
         return UncertainArray(arr)
 
     def _phase(self):
-        # if self.shape == ():
-            # return phase( self.item(0) )
-
         arr, itemset, iterator = self._create_empty()
         for i, item in enumerate(iterator):
             itemset(i, phase(item))
         return UncertainArray(arr)
 
-    def _intermediate(self,labels):
+    def _intermediate(self, labels):
         # Default second argument of calling function is `None`
         if labels is None:
-            # if self.shape == ():
-                # return result( self.item(0) )
-
             arr, itemset, iterator = self._create_empty()
             for i, x in enumerate(iterator):
-                itemset( i, result(x))
+                itemset(i, result(x))
         else:
             # `_create_empty()` handles only ndarray-like sequences
             if not is_sequence(labels):
                 # Add index notation to the label base
                 labels = [
-                    "{}[{}]".format(labels,i)
-                        for i in xrange(self.size)
+                    "{}[{}]".format(labels, i)
+                    for i in xrange(self.size)
                 ]
 
             labels = np.asarray(labels)
-
-            # if self.shape == ():
-                # return result( self.item(0), labels.item(0) )
-
             arr, itemset, iterator = self._create_empty((self, labels))
             for i, (x, lbl) in enumerate(iterator):
-                itemset(i, result(x,lbl))
+                itemset(i, result(x, lbl))
 
         return UncertainArray(arr)
 
     def _equal(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) == inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a == b)
         return arr
 
     def _not_equal(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) != inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a != b)
         return arr
 
     def _less(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) < inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a < b)
         return arr
 
     def _less_equal(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) <= inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a <= b)
         return arr
 
     def _greater(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) > inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a > b)
         return arr
 
     def _greater_equal(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) >= inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a >= b)
         return arr
 
     def _maximum(self, *inputs):
-        # if self.ndim ==0:
-            # a = inputs[0].item(0)
-            # b = inputs[1].item(0)
-            # return a if a > b else b
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             if _isnan(a):
@@ -919,11 +764,6 @@ class UncertainArray(np.ndarray):
         return UncertainArray(arr)
 
     def _minimum(self, *inputs):
-        # if self.ndim ==0:
-            # a = inputs[0].item(0)
-            # b = inputs[1].item(0)
-            # return a if a < b else b
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             if _isnan(a):
@@ -937,21 +777,15 @@ class UncertainArray(np.ndarray):
         return UncertainArray(arr)
 
     def _logical_and(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) and inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=object)
         for i, (a, b) in enumerate(iterator):
-            itemset(i, a and b )
+            itemset(i, a and b)
         return UncertainArray(arr)
 
     def _logical_or(self, *inputs):
-        # if self.ndim ==0:
-            # return inputs[0].item(0) or inputs[1].item(0)
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=object)
         for i, (a, b) in enumerate(iterator):
-            itemset(i, a or b )
+            itemset(i, a or b)
         return UncertainArray(arr)
 
     def _logical_xor(self, *inputs):
@@ -970,46 +804,30 @@ class UncertainArray(np.ndarray):
         return arr
 
     def _isinf(self, *inputs):
-        # if self.ndim ==0:
-            # return _isinf(self.item(0))
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, item in enumerate(iterator):
             itemset(i, _isinf(item))
         return arr
 
     def _isnan(self, *inputs):
-        # if self.ndim ==0:
-            # return _isnan( self.item(0) )
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, item in enumerate(iterator):
             itemset(i, _isnan(item))
         return arr
 
     def _isfinite(self, *inputs):
-        # TODO: is this correct? It doesn't match the array case below.
-        # if self.ndim ==0:
-            # return _isinf( self.item(0) )
-
         arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         for i, item in enumerate(iterator):
             itemset(i, not (_isnan(item) or _isinf(item)))
         return arr
 
     def _reciprocal(self, *inputs):
-        # if self.ndim ==0:
-            # return 1.0 / ( self.item(0) )
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, item in enumerate(iterator):
             itemset(i, 1.0/item)
         return UncertainArray(arr)
 
     def _absolute(self, *inputs):
-        # if self.ndim ==0:
-            # return abs( self.item(0) )
-
         arr, itemset, iterator = self._create_empty(inputs)
         for i, item in enumerate(iterator):
             itemset(i, abs(item))
@@ -1036,21 +854,13 @@ class UncertainArray(np.ndarray):
         raise TypeError(
             "`sum` is not defined for `UncertainArray`"
         )
-        # result = np.asarray(self).sum(*args, **kwargs)
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).sum(*args, **kwargs))
 
     def mean(self, *args, **kwargs):
         raise TypeError(
             "`mean` is not defined for `UncertainArray`"
         )
-        # result = np.asarray(self).mean(*args, **kwargs)
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).mean(*args, **kwargs))
 
     def std(self, *args, **kwargs):
         # If this is to be implemented we need to be clear about
@@ -1082,31 +892,19 @@ class UncertainArray(np.ndarray):
         raise TypeError(
             "`max` is not defined for `UncertainArray`"
         )
-        # result = np.asarray(self).max(*args, **kwargs)
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).max(*args, **kwargs))
 
     def min(self, *args, **kwargs):
         raise TypeError(
             "`min` is not defined for `UncertainArray`"
         )
-        # result = np.asarray(self).min(*args, **kwargs)
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).min(*args, **kwargs))
 
     def trace(self, *args, **kwargs):
         raise TypeError(
             "`trace` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self).trace(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).trace(*args, **kwargs))
 
     def cumprod(self, *args, **kwargs):
         # numpy catches ``TypeError`` and uses its
@@ -1114,11 +912,7 @@ class UncertainArray(np.ndarray):
         raise RuntimeError(
             "`cumprod` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self).cumprod(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).cumprod(*args, **kwargs))
 
     def cumsum(self, *args, **kwargs):
         # numpy catches ``TypeError`` and uses its
@@ -1126,51 +920,32 @@ class UncertainArray(np.ndarray):
         raise RuntimeError(
             "`cumsum` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self).cumsum(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).cumsum(*args, **kwargs))
 
     def prod(self, *args, **kwargs):
         raise TypeError(
             "`prod` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self).prod(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).prod(*args, **kwargs))
 
     def ptp(self, *args, **kwargs):
         raise TypeError(
             "`ptp` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self).ptp(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self).ptp(*args, **kwargs))
 
     def any(self, *args, **kwargs):
         raise TypeError(
             "`any` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self, dtype=bool).any(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self, dtype=bool).any(*args, **kwargs))
 
     def all(self, *args, **kwargs):
         raise TypeError(
             "`all` is not defined for `UncertainArray`"
         )
-        # result = ( np.asarray(self, dtype=bool).all(*args, **kwargs) )
-        # if hasattr(result,'shape') and result.shape != ():
-            # return UncertainArray(result)
-        # else:
-            # return result
+        # return UncertainArray(np.asarray(self, dtype=bool).all(*args, **kwargs))
+
 
 # Allows pickle to understand the class name 'uarray'
 uarray = UncertainArray
