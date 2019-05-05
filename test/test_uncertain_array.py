@@ -137,12 +137,14 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1], 0.64))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(isinstance(df, np.ndarray))
+            self.assertTrue(df.dtype == np.float_)
             self.assertTrue(equivalent(df[0], 3.3))
             self.assertTrue(equivalent(df[1], 7.0))
 
         corr = a.r
-        self.assertTrue(df.dtype == np.object)
+        self.assertTrue(isinstance(corr, np.ndarray))
+        self.assertTrue(df.dtype == np.float_)
         self.assertTrue(equivalent(corr[0], 0.0))
         self.assertTrue(equivalent(corr[1], 0.0))
 
@@ -189,14 +191,16 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1, 1], 0.0025))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(isinstance(df, np.ndarray))
+            self.assertTrue(df.dtype == np.float_)
             self.assertTrue(equivalent(df[0, 0], 1.0))
             self.assertTrue(equivalent(df[0, 1], 2.0))
             self.assertTrue(equivalent(df[1, 0], 3.0))
             self.assertTrue(equivalent(df[1, 1], 4.0))
 
         corr = a.r
-        self.assertTrue(df.dtype == np.object)
+        self.assertTrue(isinstance(corr, np.ndarray))
+        self.assertTrue(df.dtype == np.float_)
         self.assertTrue(equivalent(corr[0, 0], 0.0))
         self.assertTrue(equivalent(corr[0, 1], 0.0))
         self.assertTrue(equivalent(corr[1, 0], 0.0))
@@ -272,12 +276,14 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1].ii, 1.5))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(isinstance(df, np.ndarray))
+            self.assertTrue(df.dtype == np.float_)
             self.assertTrue(equivalent(df[0], 4.2))
             self.assertTrue(equivalent(df[1], 2.6))
 
         r = a.r
-        self.assertTrue(r.dtype == np.object)
+        self.assertTrue(isinstance(r, np.ndarray))
+        self.assertTrue(r.dtype == np.float_)
         self.assertTrue(equivalent(r[0], 0.2651515151515152))
         self.assertTrue(equivalent(r[1], 0.29629629629629634))
 
@@ -378,14 +384,16 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1, 1].ii, 1.8))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(isinstance(df, np.ndarray))
+            self.assertTrue(df.dtype == np.float_)
             self.assertTrue(equivalent(df[0, 0], 4.2))
             self.assertTrue(equivalent(df[0, 1], 2.6))
             self.assertTrue(equivalent(df[1, 0], 10.3))
             self.assertTrue(equivalent(df[1, 1], 8.8))
 
         r = a.r
-        self.assertTrue(r.dtype == np.object)
+        self.assertTrue(isinstance(r, np.ndarray))
+        self.assertTrue(r.dtype == np.float_)
         self.assertTrue(equivalent(r[0, 0], 0.2651515151515152))
         self.assertTrue(equivalent(r[0, 1], 0.29629629629629634))
         self.assertTrue(equivalent(r[1, 0], 0.026854219948849102))
@@ -440,6 +448,8 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[6], 0))
 
         for df in (a.dof(), dof(a), a.df):
+            self.assertTrue(isinstance(df, np.ndarray))
+            self.assertTrue(df.dtype == np.float_)
             self.assertTrue(equivalent(df[0], 7))
             self.assertTrue(equivalent(df[1], 4))
             self.assertTrue(math.isinf(df[2]))
@@ -447,6 +457,10 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(math.isinf(df[4]))
             self.assertTrue(math.isnan(df[5]))
             self.assertTrue(math.isinf(df[6]))
+
+        # builtin Python types (int, float, complex) do not have a '.r' attribute
+        with self.assertRaises(AttributeError):
+            r = a.r
 
     def test_label(self):
         # no label

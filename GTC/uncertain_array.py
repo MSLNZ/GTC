@@ -281,14 +281,14 @@ class UncertainArray(np.ndarray):
             >>> a = la.uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2)),
             ...                ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5))])
             >>> a.r
-            uarray([0.2651515151515152, 0.29629629629629634])
+            array([0.26515152, 0.2962963 ])
 
-        :rtype: :class:`UncertainArray`
+        :rtype: :class:`numpy.ndarray`
         """
-        arr, itemset, iterator = self._create_empty(dtype=None)
+        arr, itemset, iterator = self._create_empty(dtype=float)
         for i, item in enumerate(iterator):
             itemset(i, item.r)
-        return UncertainArray(arr)
+        return arr
 
     @property
     def x(self):
@@ -422,9 +422,9 @@ class UncertainArray(np.ndarray):
 
             >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
             >>> a.df
-            uarray([3.0, 4.0, 7.0, inf])
+            array([ 3., 4., 7., inf])
 
-        :rtype: :class:`UncertainArray`
+        :rtype: :class:`numpy.ndarray`
         """
         return self.dof()
 
@@ -435,14 +435,14 @@ class UncertainArray(np.ndarray):
 
             >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
             >>> a.dof()
-            uarray([3.0, 4.0, 7.0, inf])
+            array([ 3., 4., 7., inf])
 
-        :rtype: :class:`UncertainArray`
+        :rtype: :class:`numpy.ndarray`
         """
-        arr, itemset, iterator = self._create_empty(dtype=None)
+        arr, itemset, iterator = self._create_empty(dtype=float)
         for i, item in enumerate(iterator):
             itemset(i, dof(item))
-        return UncertainArray(arr)
+        return arr
 
     def sensitivity(self, x):
         """The result of :func:`~.reporting.sensitivity` for each element in the array.
