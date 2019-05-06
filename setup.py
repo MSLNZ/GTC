@@ -111,7 +111,8 @@ setup(
     license='MIT',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Environment :: Console',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2',
@@ -120,6 +121,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Topic :: Software Development',
+        'Topic :: Scientific/Engineering',
     ],
     setup_requires=sphinx + pytest_runner + install_requires,
     tests_require=['pytest-cov', 'pytest>=3.0'],
