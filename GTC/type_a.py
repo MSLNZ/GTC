@@ -507,7 +507,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
         
         >>> r = v/i*cos(p)
         >>> r
-        ureal(127.73216992810208,0.0710714073969954,4.0)
+        ureal(127.732169928102...,0.071071407396995...,4.0)
         
     """
     M = len(seq_of_seq)
@@ -616,9 +616,9 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
 
         >>> z = v/i*exp(p)
         >>> z.real
-        ureal(127.73216992810208,0.0710714073969954,4.0)
+        ureal(127.732169928102...,0.071071407396995...,4.0)
         >>> get_correlation(z.real,z.imag)
-        -0.5884297844235157
+        -0.588429784423515...
         
     """
     M = len(seq_of_seq)

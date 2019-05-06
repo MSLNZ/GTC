@@ -142,7 +142,7 @@ The complex impedance is ::
 We see that our best estimate of the impedance is the complex value :math:`(127.73 +\mathrm{j}219.85) \,\Omega`. The standard uncertainty in the real component is :math:`0.19 \,\Omega` and the standard uncertainty in the imaginary component is :math:`0.20 \,\Omega`. There is also a small correlation between our estimates of the real and imaginary components ::
 
     >>> get_correlation(z)
-    0.05820381031583993
+    0.0582038103158399...
     
 If a polar representation of the impedance is preferred, ::
 

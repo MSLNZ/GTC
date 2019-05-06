@@ -350,7 +350,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
 
         >>> r = v/i*cos(phi)
         >>> r
-        ureal(127.73216992810208,0.06997872798837172,4.0)
+        ureal(127.732169928102...,0.0699787279883717...,4.0)
 
     """
     if len(x_seq) != len(u_seq):
@@ -610,8 +610,10 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         >>> set_correlation(-0.65,i.real,phi.imag)
         
         >>> z = v * exp(phi)/ i
-        >>> z
-        ucomplex((127.7321699281021+219.8465119126384j), u=[0.06997872798837172,0.29571682684612355], r=-28.582576088518298, df=4.999999999999997)
+        >>> str(z)
+        '(127.732(70)+219.847(296)j)'
+        >>> z.r
+        -28.5825760885182...
 
     """
     if len(x_seq) != len(u_seq):
