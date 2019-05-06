@@ -169,9 +169,9 @@ Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` obtain
 Alternatively, there are functions that return the same attributes ::
 
     >>> value(H)
-    11.719284397600761
+    11.71928439760076...
     >>> uncertainty(H)
-    0.843532951107579
+    0.84353295110757...
     >>> dof(H)
     inf
 
