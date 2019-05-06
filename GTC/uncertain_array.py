@@ -281,14 +281,14 @@ class UncertainArray(np.ndarray):
             >>> a = la.uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2)),
             ...                ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5))])
             >>> a.r
-            array([0.26515152, 0.2962963 ])
+            uarray([0.2651515151515152, 0.29629629629629634])
 
-        :rtype: :class:`numpy.ndarray`
+        :rtype: :class:`UncertainArray`
         """
-        arr, itemset, iterator = self._create_empty(dtype=float)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
             itemset(i, item.r)
-        return arr
+        return UncertainArray(arr)
 
     @property
     def x(self):
@@ -422,9 +422,9 @@ class UncertainArray(np.ndarray):
 
             >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
             >>> a.df
-            array([ 3., 4., 7., inf])
+            uarray([3.0, 4.0, 7.0, inf])
 
-        :rtype: :class:`numpy.ndarray`
+        :rtype: :class:`UncertainArray`
         """
         return self.dof()
 
@@ -435,14 +435,14 @@ class UncertainArray(np.ndarray):
 
             >>> a = la.uarray([ureal(6, 2, df=3), ureal(4, 1, df=4), ureal(5, 3, df=7), ureal(1, 1)])
             >>> a.dof()
-            array([ 3., 4., 7., inf])
+            uarray([3.0, 4.0, 7.0, inf])
 
-        :rtype: :class:`numpy.ndarray`
+        :rtype: :class:`UncertainArray`
         """
-        arr, itemset, iterator = self._create_empty(dtype=float)
+        arr, itemset, iterator = self._create_empty(dtype=None)
         for i, item in enumerate(iterator):
             itemset(i, dof(item))
-        return arr
+        return UncertainArray(arr)
 
     def sensitivity(self, x):
         """The result of :func:`~.reporting.sensitivity` for each element in the array.
@@ -531,10 +531,7 @@ class UncertainArray(np.ndarray):
         return UncertainArray(arr)
 
     def _divide(self, *inputs):
-        arr, itemset, iterator = self._create_empty(inputs)
-        for i, (a, b) in enumerate(iterator):
-            itemset(i, a / b)
-        return UncertainArray(arr)
+        return self._true_divide(*inputs)
 
     def _true_divide(self, *inputs):
         arr, itemset, iterator = self._create_empty(inputs)
@@ -794,7 +791,7 @@ class UncertainArray(np.ndarray):
         )
         # arr, itemset, iterator = self._create_empty(inputs, dtype=bool)
         # for i, (a, b) in enumerate(iterator):
-            # itemset(i, bool(a) ^ bool(b))
+        #     itemset(i, bool(a) ^ bool(b))
         # return arr
 
     def _logical_not(self, *inputs):
@@ -847,7 +844,10 @@ class UncertainArray(np.ndarray):
             try:
                 itemset(i, item._round(digits, df_decimals))
             except AttributeError:
-                itemset(i, round(item, digits))
+                try:
+                    itemset(i, round(item, digits))
+                except TypeError:
+                    itemset(i, complex(round(item.real, digits), round(item.imag, digits)))
         return UncertainArray(arr)
 
     def sum(self, *args, **kwargs):
