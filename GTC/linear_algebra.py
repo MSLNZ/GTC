@@ -182,7 +182,7 @@ def uarray(array, label=None, names=None):
 def matmul(lhs, rhs):
     """Matrix product of a pair of two-dimensional arrays.
 
-    For more details see :func:`numpy.matmul`.
+    For more details see :data:`numpy.matmul`.
 
     :param lhs: 2D array-like object.
     :param rhs: 2D array-like object.
