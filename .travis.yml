@@ -34,7 +34,7 @@ before_install: |
     export PYENV_VERSION=$PYTHON
     export PATH="/Users/travis/.pyenv/versions/${PYTHON}:${PATH}"
     pyenv virtualenv venv
-    source venv/bin/activate
+    source /Users/travis/.pyenv/versions/${PYTHON}/venv/bin/activate
     python --version
   fi
 
