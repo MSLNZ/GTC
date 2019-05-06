@@ -121,7 +121,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    setup_requires=sphinx + pytest_runner,
+    setup_requires=sphinx + pytest_runner + install_requires,
     tests_require=['pytest-cov', 'pytest>=3.0'],
     install_requires=install_requires,
     cmdclass={'docs': BuildDocs, 'apidocs': ApiDocs},
