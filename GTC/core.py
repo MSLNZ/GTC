@@ -610,8 +610,8 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         >>> set_correlation(-0.65,i.real,phi.imag)
         
         >>> z = v * exp(phi)/ i
-        >>> str(z)
-        '(127.732(70)+219.847(296)j)'
+        >>> print(z)
+        (127.732(70)+219.847(296)j)
         >>> z.r
         -28.5825760885182...
 
