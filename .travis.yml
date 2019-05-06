@@ -32,6 +32,7 @@ before_install:
       brew outdated pyenv || brew upgrade pyenv
       brew install pyenv-virtualenv
       pyenv install $PYTHON
+      export PYENV_VERSION=$PYTHON
       pyenv virtualenv venv
       source /Users/travis/.pyenv/versions/${PYTHON}/envs/venv/bin/activate
     fi
