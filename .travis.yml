@@ -33,7 +33,7 @@ before_install: |
     pyenv install $PYTHON
     export PYENV_VERSION=$PYTHON
     export PATH="/Users/travis/.pyenv/versions/${PYTHON}:${PATH}"
-    pyenv-virtualenv venv
+    pyenv virtualenv venv
     source venv/bin/activate
     python --version
   fi
