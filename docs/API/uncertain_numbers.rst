@@ -160,9 +160,9 @@ Uncertain number objects have attributes that provide access to: the measured va
 Continuing with the flagpole example, the attributes ``x``, ``u``, ``df`` obtain the value, the uncertainty and the degrees-of-freedom (which is infinity), respectively ::
 
     >>> H.x
-    11.719284397600761
+    11.71928439760076...
     >>> H.u
-    0.843532951107579
+    0.84353295110757...
     >>> H.df
     inf
 
