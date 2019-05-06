@@ -6,43 +6,36 @@ matrix:
   include:
     - os: linux
       python: 2.7
-      env: PYENV=py27
     - os: linux
       python: 3.5
-      env: PYENV=py35
     - os: linux
       python: 3.6
-      env: PYENV=py36
     - os: linux
       python: 3.7
-      env: PYENV=py37
     - os: osx
       language: generic
-      env: PYENV=py27
+      env: PYTHON=2.7
     - os: osx
       language: generic
-      env: PYENV=py35
+      env: PYTHON=3.5
     - os: osx
       language: generic
-      env: PYENV=py36
+      env: PYTHON=3.6
     - os: osx
       language: generic
-      env: PYENV=py37
+      env: PYTHON=3.7
 
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        brew update;
-        brew install pyenv-virtualenv;
-        if [[ "$PYENV" == "py27" ]]; then
-            brew install python;
-            virtualenv venv -p python;
-            source venv/bin/activate;
-        else
-            brew install python3;
-            virtualenv venv -p python3;
-            source venv/bin/activate;
-        fi
-    fi
+before_install: |
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    brew update
+    brew install openssl readline
+    brew outdated pyenv || brew upgrade pyenv
+    brew install pyenv-virtualenv
+    pyenv install $PYTHON
+    pyenv-virtualenv venv
+    source venv/bin/activate
+    python --version
+  fi
 
 script:
   - python setup.py tests
