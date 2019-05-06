@@ -46,7 +46,7 @@ from GTC.core import (
 )
 
 from GTC import inf, nan
-from GTC.uncertain_array import UncertainArray
+from GTC.uncertain_array import UncertainArray, _isinf, _isnan
 from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
 from GTC import type_a, function
@@ -137,14 +137,14 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1], 0.64))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(isinstance(df, np.ndarray))
-            self.assertTrue(df.dtype == np.float_)
+            self.assertTrue(isinstance(df, UncertainArray))
+            self.assertTrue(df.dtype == np.object)
             self.assertTrue(equivalent(df[0], 3.3))
             self.assertTrue(equivalent(df[1], 7.0))
 
         corr = a.r
-        self.assertTrue(isinstance(corr, np.ndarray))
-        self.assertTrue(df.dtype == np.float_)
+        self.assertTrue(isinstance(corr, UncertainArray))
+        self.assertTrue(df.dtype == np.object)
         self.assertTrue(equivalent(corr[0], 0.0))
         self.assertTrue(equivalent(corr[1], 0.0))
 
@@ -191,16 +191,16 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1, 1], 0.0025))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(isinstance(df, np.ndarray))
-            self.assertTrue(df.dtype == np.float_)
+            self.assertTrue(isinstance(df, UncertainArray))
+            self.assertTrue(df.dtype == np.object)
             self.assertTrue(equivalent(df[0, 0], 1.0))
             self.assertTrue(equivalent(df[0, 1], 2.0))
             self.assertTrue(equivalent(df[1, 0], 3.0))
             self.assertTrue(equivalent(df[1, 1], 4.0))
 
         corr = a.r
-        self.assertTrue(isinstance(corr, np.ndarray))
-        self.assertTrue(df.dtype == np.float_)
+        self.assertTrue(isinstance(corr, UncertainArray))
+        self.assertTrue(df.dtype == np.object)
         self.assertTrue(equivalent(corr[0, 0], 0.0))
         self.assertTrue(equivalent(corr[0, 1], 0.0))
         self.assertTrue(equivalent(corr[1, 0], 0.0))
@@ -276,14 +276,14 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1].ii, 1.5))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(isinstance(df, np.ndarray))
-            self.assertTrue(df.dtype == np.float_)
+            self.assertTrue(isinstance(df, UncertainArray))
+            self.assertTrue(df.dtype == np.object)
             self.assertTrue(equivalent(df[0], 4.2))
             self.assertTrue(equivalent(df[1], 2.6))
 
         r = a.r
-        self.assertTrue(isinstance(r, np.ndarray))
-        self.assertTrue(r.dtype == np.float_)
+        self.assertTrue(isinstance(r, UncertainArray))
+        self.assertTrue(r.dtype == np.object)
         self.assertTrue(equivalent(r[0], 0.2651515151515152))
         self.assertTrue(equivalent(r[1], 0.29629629629629634))
 
@@ -384,16 +384,16 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[1, 1].ii, 1.8))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(isinstance(df, np.ndarray))
-            self.assertTrue(df.dtype == np.float_)
+            self.assertTrue(isinstance(df, UncertainArray))
+            self.assertTrue(df.dtype == np.object)
             self.assertTrue(equivalent(df[0, 0], 4.2))
             self.assertTrue(equivalent(df[0, 1], 2.6))
             self.assertTrue(equivalent(df[1, 0], 10.3))
             self.assertTrue(equivalent(df[1, 1], 8.8))
 
         r = a.r
-        self.assertTrue(isinstance(r, np.ndarray))
-        self.assertTrue(r.dtype == np.float_)
+        self.assertTrue(isinstance(r, UncertainArray))
+        self.assertTrue(r.dtype == np.object)
         self.assertTrue(equivalent(r[0, 0], 0.2651515151515152))
         self.assertTrue(equivalent(r[0, 1], 0.29629629629629634))
         self.assertTrue(equivalent(r[1, 0], 0.026854219948849102))
@@ -448,8 +448,8 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(v[6], 0))
 
         for df in (a.dof(), dof(a), a.df):
-            self.assertTrue(isinstance(df, np.ndarray))
-            self.assertTrue(df.dtype == np.float_)
+            self.assertTrue(isinstance(df, UncertainArray))
+            self.assertTrue(df.dtype == np.object)
             self.assertTrue(equivalent(df[0], 7))
             self.assertTrue(equivalent(df[1], 4))
             self.assertTrue(math.isinf(df[2]))
@@ -1118,18 +1118,19 @@ class TestUncertainArray(unittest.TestCase):
         
         n = len(self.x)
 
+        za = self.xa / self.ya
+
         # x / y
         z = [x / y for x, y in izip(self.x, self.y)]
-        za = self.xa / self.ya
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
             self.assertTrue(equivalent(z[i].u, za[i].u))
 
-        # true_divide
-        np.true_divide(self.xa, self.ya)
-        for i in range(n):
-            self.assertTrue(equivalent(z[i].x, za[i].x))
-            self.assertTrue(equivalent(z[i].u, za[i].u))
+        # np.divide and np.true_divide
+        for z in (np.divide(self.xa, self.ya), np.true_divide(self.xa, self.ya)):
+            for i in range(n):
+                self.assertTrue(equivalent(z[i].x, za[i].x))
+                self.assertTrue(equivalent(z[i].u, za[i].u))
 
     def test_comparisons(self):
         # Single element case
@@ -3274,14 +3275,17 @@ class TestUncertainArray(unittest.TestCase):
         # self.assertTrue(value( function.sum( ptp[3, :] ) ) == 9)
 
     def test_round(self):
-        a = uarray([[ureal(0.378384871, 0.1831984, df=12.44649822), ureal(1.649863876, 1.28794362876, df=9.2184761424)],
-                    [ureal(64.17441638, 2.4987163, df=inf), ureal(-472.974793166, 7.812474106, df=87.1683249)]])
+        a = uarray([
+            [ureal(0.378384871, 0.1831984, df=12.44649822), ureal(1.649863876, 1.28794362, df=9.218476), 9.31222357j],
+            [ureal(64.17441638, 2.4987163, df=inf), ureal(-472.974793166, 7.812474106, df=87.1683249), -1.23456789]
+        ])
 
         self.assertTrue(isinstance(a, UncertainArray))
         self.assertTrue(isinstance(a[0], UncertainArray))
-        self.assertTrue(isinstance(a[0,0], UncertainReal))
+        self.assertTrue(isinstance(a[0, 0], UncertainReal))
 
-        # `decimals` parameter for np.round is really the `digits` parameter of UncertainReal._round
+        # the `decimals` parameter for np.round is really the `digits` parameter of
+        # UncertainReal._round and UncertainComplex._round
         for i in range(3):
             if i == 0:
                 out = np.round(a, decimals=2)
@@ -3300,12 +3304,18 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(out[0, 1].x, 1.6))
             self.assertTrue(equivalent(out[0, 1].u, 1.3))
             self.assertTrue(equivalent(out[0, 1].df, 9.21))
+            self.assertTrue(equivalent_complex(value(out[0, 2]), 9.31j))
+            self.assertTrue(equivalent(uncertainty(out[0, 2]), 0.0))
+            self.assertTrue(math.isinf(dof(out[0, 2])))
             self.assertTrue(equivalent(out[1, 0].x, 64.2))
             self.assertTrue(equivalent(out[1, 0].u, 2.5))
             self.assertTrue(math.isinf(out[1, 0].df))
             self.assertTrue(equivalent(out[1, 1].x, -473.0))
             self.assertTrue(equivalent(out[1, 1].u, 7.8))
             self.assertTrue(equivalent(out[1, 1].df, 87.16))
+            self.assertTrue(equivalent(value(out[1, 2]), -1.23))
+            self.assertTrue(equivalent(uncertainty(out[1, 2]), 0.0))
+            self.assertTrue(math.isinf(dof(out[0, 2])))
 
         out = a.round(digits=4, df_decimals=0)
         self.assertTrue(equivalent(out[0, 0].x, 0.3784))
@@ -3314,12 +3324,18 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(out[0, 1].x, 1.650))
         self.assertTrue(equivalent(out[0, 1].u, 1.2880))
         self.assertTrue(equivalent(out[0, 1].df, 9))
+        self.assertTrue(equivalent_complex(value(out[0, 2]), 9.3122j))
+        self.assertTrue(equivalent(uncertainty(out[0, 2]), 0))
+        self.assertTrue(math.isinf(dof(out[0, 2])))
         self.assertTrue(equivalent(out[1, 0].x, 64.174))
         self.assertTrue(equivalent(out[1, 0].u, 2.499))
         self.assertTrue(math.isinf(out[1, 0].df))
         self.assertTrue(equivalent(out[1, 1].x, -472.975))
         self.assertTrue(equivalent(out[1, 1].u, 7.812))
         self.assertTrue(equivalent(out[1, 1].df, 87))
+        self.assertTrue(equivalent(value(out[1, 2]), -1.2346))
+        self.assertTrue(equivalent(uncertainty(out[1, 2]), 0.0))
+        self.assertTrue(math.isinf(dof(out[1, 2])))
 
     # # TODO the partition and argpartition tests do not produce the expected results
     # # https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.ndarray.partition.html?highlight=partition#numpy.ndarray.partition
@@ -3518,7 +3534,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(out[1, 1].x == inf)
 
     def test_logical_or(self):
-        # Python logical 'and' applied to numbers returns 
+        # Python logical 'or' applied to numbers returns
         # a number. Eg, a = 0, b = 1: `a or b` evaluates to 1.
         # So with uncertain numbers we do the same
         self.assertTrue(all(np.logical_or(self.xa, self.ya)))
@@ -3614,30 +3630,32 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(out[3])
         self.assertTrue(out[4])
 
-    # def test_logical_xor(self):
-    #     c = np.logical_xor(uarray(ureal(1, 0)), uarray(ureal(0, 1)))
-    #     self.assertTrue(not isinstance(c, UncertainArray))
-    #     self.assertTrue(c)
-    #
-    #     a = uarray([ucomplex(1, 0), ucomplex(2, 0), ucomplex(0, 1), ucomplex(0, 2)])
-    #     b = uarray([ucomplex(1, 0), ucomplex(0, 0), ucomplex(1, 1), ucomplex(0, 2)])
-    #     c = np.logical_xor(a, b)
-    #     self.assertTrue(not isinstance(c, UncertainArray))
-    #     self.assertTrue(not c[0])
-    #     self.assertTrue(c[1])
-    #     self.assertTrue(c[2])
-    #     self.assertTrue(not c[3])
-    #
-    #     a = uarray(np.eye(5) * ureal(1, 1))
-    #     b = uarray(np.zeros((5, 5)) * ureal(1, 1))
-    #     c = np.logical_xor(a, b)
-    #     self.assertTrue(not isinstance(c, UncertainArray))
-    #     for i in range(5):
-    #         for j in range(5):
-    #             if i == j:
-    #                 self.assertTrue(c[i, j])
-    #             else:
-    #                 self.assertTrue(not c[i, j])
+    def test_logical_xor(self):
+        self.assertRaises(TypeError, np.logical_xor, self.xa, self.ya)
+
+        # c = np.logical_xor(uarray(ureal(1, 0)), uarray(ureal(0, 1)))
+        # self.assertTrue(not isinstance(c, UncertainArray))
+        # self.assertTrue(c)
+        #
+        # a = uarray([ucomplex(1, 0), ucomplex(2, 0), ucomplex(0, 1), ucomplex(0, 2)])
+        # b = uarray([ucomplex(1, 0), ucomplex(0, 0), ucomplex(1, 1), ucomplex(0, 2)])
+        # c = np.logical_xor(a, b)
+        # self.assertTrue(not isinstance(c, UncertainArray))
+        # self.assertTrue(not c[0])
+        # self.assertTrue(c[1])
+        # self.assertTrue(c[2])
+        # self.assertTrue(not c[3])
+        #
+        # a = uarray(np.eye(5) * ureal(1, 1))
+        # b = uarray(np.zeros((5, 5)) * ureal(1, 1))
+        # c = np.logical_xor(a, b)
+        # self.assertTrue(not isinstance(c, UncertainArray))
+        # for i in range(5):
+        #     for j in range(5):
+        #         if i == j:
+        #             self.assertTrue(c[i, j])
+        #         else:
+        #             self.assertTrue(not c[i, j])
 
     def test_any(self):
         self.assertRaises(TypeError, self.xa.any)
@@ -3967,6 +3985,61 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(ua.size == 1)
             self.assertTrue(ua.ndim == 1)
             self.assertTrue(ua.shape == (1,))
+
+    def test_isnan_isinf_functions(self):
+        self.assertTrue(_isinf(inf))
+        self.assertTrue(_isinf(-inf))
+        self.assertTrue(not _isinf(0))
+        self.assertTrue(not _isinf(nan))
+        self.assertTrue(not _isinf(1e99))
+        self.assertTrue(_isinf(inf + 1j))
+        self.assertTrue(_isinf(inf * 1j))
+        self.assertTrue(_isinf(self._ureal(inf, inf, inf)))
+        self.assertTrue(not _isinf(self._ureal(1, inf, inf)))
+        self.assertTrue(not _isinf(self._ureal(nan, nan, inf)))
+        self.assertTrue(_isinf(self._ucomplex(inf, inf, inf)))
+        self.assertTrue(_isinf(self._ucomplex(7 + inf*1j, inf, inf)))
+        self.assertTrue(not _isinf(self._ucomplex(1j, inf, inf)))
+        self.assertTrue(not _isinf(self._ucomplex(nan*1j, inf, inf)))
+        self.assertTrue(not _isinf(self._ucomplex(nan, inf, inf)))
+        with self.assertRaises(TypeError):
+            _isinf('not a numeric type')
+
+        self.assertTrue(_isnan(nan))
+        self.assertTrue(not _isnan(0))
+        self.assertTrue(not _isnan(inf))
+        self.assertTrue(not _isnan(-inf))
+        self.assertTrue(not _isnan(1e99))
+        self.assertTrue(_isnan(nan + 1j))
+        self.assertTrue(_isnan(nan * 1j))
+        self.assertTrue(_isnan(self._ureal(nan, inf, inf)))
+        self.assertTrue(not _isnan(self._ureal(inf, inf, inf)))
+        self.assertTrue(not _isnan(self._ureal(7, nan, inf)))
+        self.assertTrue(_isnan(self._ucomplex(nan, inf, inf)))
+        self.assertTrue(_isnan(self._ucomplex(7 + nan*1j, nan, inf)))
+        self.assertTrue(not _isnan(self._ucomplex(1j, nan, inf)))
+        self.assertTrue(_isnan(self._ucomplex(nan + inf*1j, nan, inf)))
+        self.assertTrue(not _isnan(self._ucomplex(inf, nan, inf)))
+        self.assertTrue(_isnan(self._ucomplex(nan + nan*1j, nan, inf)))
+        self.assertTrue(not _isnan(self._ucomplex(inf, nan, inf)))
+        with self.assertRaises(TypeError):
+            _isnan('not a numeric type')
+
+    def test_invalid_ufunc(self):
+        with self.assertRaises(NotImplementedError) as e:
+            np.logaddexp(self.xa, self.ya)
+        self.assertTrue("<ufunc 'logaddexp'>" in str(e.exception))
+
+        with self.assertRaises(NotImplementedError) as e:
+            np.heaviside(self.xa, self.ya)
+        self.assertTrue("<ufunc 'heaviside'>" in str(e.exception))
+
+        with self.assertRaises(NotImplementedError) as e:
+            self.xa ^ self.ya
+        self.assertTrue("<ufunc 'bitwise_xor'>" in str(e.exception))
+
+    def test_repr(self):
+        self.assertTrue(repr(self.xa).startswith('uarray(['))
 
     #
     # The following is a list of all ufuncs
