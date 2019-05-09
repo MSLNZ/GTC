@@ -11,7 +11,7 @@ quantities. Calculations of derived quantities that involve uncertain numbers wi
 information automatically. So, data processing results are always accompanied by uncertainties. 
 
 GTC follows international guidelines on the evaluation of measurement data and measurement
-uncertainty (the so-called `GUM <https://www.bipm.org/utils/common/documents/jcgm/JCGM_100_2008_E.pdf>`_.
+uncertainty (the so-called `GUM <https://www.bipm.org/utils/common/documents/jcgm/JCGM_100_2008_E.pdf>`_).
 It has been developed for use in the context of metrology, test and calibration work.
 
 Example: an electrical circuit
