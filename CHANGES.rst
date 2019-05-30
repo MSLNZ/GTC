@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 1.1.0 (2019.05.??)
+Version 1.1.0 (2019.05.30)
 ==========================
 
     * Mathematical functions in the :mod:`core` module (``sin``, ``sqrt``, etc) can be applied to Python numbers as well as uncertain numbers (previously these functions raised an exception when applied to Python numbers).
