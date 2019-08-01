@@ -156,6 +156,18 @@ CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
 
    """
    
+InterceptSlope = namedtuple('intercept_slope','a b')
+""":obj:`~collections.namedtuple`: Values for intercept ``a`` and slope ``b``
+ 
+.. attribute:: a
+  
+   :class:`float`: intercept
+  
+.. attribute:: b
+  
+   :class:`float`: slope
+ """  
+ 
 GroomedUncertainReal = namedtuple('ureal','x u df label precision df_decimals u_digits')
 GroomedUncertainComplex = namedtuple(
     'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
