@@ -3,10 +3,14 @@ import sys
 from distutils.cmd import Command
 from setuptools import setup, find_packages
 
+tests_require = ['pytest-cov']
+
 if sys.version_info[:2] == (2, 7):
-    install_requires = ['numpy>=1.13.0,<=1.16.3', 'scipy<=1.2.1']
+    install_requires = ['numpy>=1.13.0,<=1.16.4', 'scipy<=1.2.2']
+    tests_require.append('pytest>=3.0,<=4.6.4')
 else:
     install_requires = ['numpy>=1.13.0', 'scipy']
+    tests_require.append('pytest>=3.0')
 
 
 class ApiDocs(Command):
@@ -125,7 +129,7 @@ setup(
         'Topic :: Scientific/Engineering',
     ],
     setup_requires=sphinx + pytest_runner + install_requires,
-    tests_require=['pytest-cov', 'pytest>=3.0'],
+    tests_require=tests_require,
     install_requires=install_requires,
     cmdclass={'docs': BuildDocs, 'apidocs': ApiDocs},
     packages=find_packages(include=('GTC*',)),
