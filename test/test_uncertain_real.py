@@ -14,6 +14,7 @@ from GTC.lib import (
     set_correlation_real,
     get_correlation_real,
     real_ensemble,
+    append_real_ensemble,
     _is_uncertain_real_constant
 )
 
@@ -2232,6 +2233,71 @@ class TestMultipleUNsWithRealConstants(unittest.TestCase):
         self.assertRaises(RuntimeError,set_correlation,0.1,phi,i)
         set_correlation(0.1,phi,v)
 
+
+#-----------------------------------------------------
+class TestRealEnsemble(unittest.TestCase):
+
+    def test_append_real_ensemble(self):
+
+        df = 4
+        x1 = ureal(0,1,df,independent=False)
+        x2 = ureal(0,1,df,independent=False)
+        
+        real_ensemble([x1,x2],df=df)
+        self.assertEqual(x1._node.ensemble,x2._node.ensemble)
+        
+        x3 = ureal(0,1,df,independent=False)
+        self.assertNotEqual(x1._node.ensemble,x3._node.ensemble)
+        append_real_ensemble(x1,x3)
+        self.assertEqual(x1._node.ensemble,x3._node.ensemble)
+        
+        _ensemble = x1._node.ensemble 
+        
+        self.assert_( x3._node.uid in _ensemble )
+        self.assert_( x2._node.uid in _ensemble )
+        self.assert_( x1._node.uid in _ensemble )
+        
+        self.assertEqual(x1._node.ensemble,x2._node.ensemble)
+        self.assertEqual(x1._node.ensemble,x3._node.ensemble)
+
+        del x3
+        
+        self.assertEqual(x1._node.ensemble,x2._node.ensemble)
+        
+    def test_illegal_real_ensemble(self):
+    
+        # influences with different DoF 
+        x1 = ureal(0,1,3,independent=False)
+        x2 = ureal(0,1,4,independent=False)
+                
+        self.assertRaises(
+            AssertionError,
+            real_ensemble,
+            [x1,x2], 
+            4
+        )
+        
+        x3 = ureal(0,1,4,independent=False)
+        real_ensemble([x2,x3],4)
+        self.assertRaises(
+            AssertionError,
+            append_real_ensemble,
+            x2,x1
+        )
+        
+        # non-elementary influences 
+        y = x1+ureal(0,1,3,independent=False) 
+        self.assertRaises(
+            AssertionError,
+            real_ensemble,
+            [x1,y], 3
+        )
+  
+        self.assertRaises(
+            AssertionError,
+            append_real_ensemble,
+            x1,y
+        )
 #============================================================================
 if(__name__== '__main__'):
 
