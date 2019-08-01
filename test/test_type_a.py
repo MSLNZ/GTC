@@ -9,10 +9,19 @@ import numpy
 
 from GTC import *
 
+from GTC.lib import (
+    UncertainReal, 
+    UncertainComplex,
+    set_correlation_real,
+    real_ensemble,
+    complex_ensemble,
+    append_real_ensemble
+)
+
 from testing_tools import *
 
 TOL = 1E-13 
-                
+            
 #---------------------------------------------------------
 class StdDataSets(object):
     """
@@ -608,7 +617,417 @@ class TestEnsembleWSComplex(unittest.TestCase):
         self.assertRaises(RuntimeError,type_a.multi_estimate_complex,data)
         data = (V,I,phi[:-1])
         self.assertRaises(RuntimeError,type_a.multi_estimate_complex,data)
+    
+#-----------------------------------------------------
+def simple_sigma_abr(x,y,u_y=None):
+    """
+    The uncertainty in `a` and `b` as well as `r`
+    
+    eqn 15.2.9 from NR, p 663
+    
+    """
+    if u_y is None:
+        weights = False
+        u_y = [1.0] * len(x)
+    else:
+        weights = True
         
+    N = len(x)
+    v = [ u_i*u_i for u_i in u_y ]
+        
+    S = sum( 1.0/v_i for v_i in v)
+    S_x = sum( x_i/v_i for x_i,v_i in izip(x,v) )
+    S_xx = sum( x_i**2/v_i for x_i,v_i in izip(x,v) )
+
+    S_y = sum( y_i/v_i for y_i,v_i in izip(y,v) )
+
+    k = S_x / S
+    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+
+    S_tt = sum( t_i*t_i for t_i in t )
+
+    b = sum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    a = (S_y - b*S_x)/S
+
+    delta = S*S_xx - S_x**2
+    sigma_a = math.sqrt( S_xx/delta ) 
+    sigma_b = math.sqrt( S/delta )
+    r = -S_x/(delta*sigma_a*sigma_b)
+
+    if not weights:
+        # Need chi-square to adjust the values
+        f = lambda x_i,y_i,u_y_i: ((y_i - a - b*x_i))**2 
+        chisq = sum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
+        data_u = math.sqrt( chisq/(N-2) )
+        sigma_a *= data_u
+        sigma_b *= data_u
+
+    return sigma_a, sigma_b, r
+
+#-----------------------------------------------------
+class TestLineFit(unittest.TestCase):
+
+    """
+    Tests of the type_a.line_fit function
+
+    NB, these tests call the routine twice (once internally)
+    and go though the chi-square calculation in the first call.
+    """
+
+    TOL = 1E-5
+    
+    def test_integer_x_values(self):
+        """
+        The integer arithmetic of Python can be a problem
+        when the `x` data are integers.
+        """
+        # Data - independent variable
+        # NB these are integers and will cause
+        # fn.line_fit to fail if the extended division is not implemented
+        x_short = [2,4,8,16,32]
+
+        # x will simply repeat each values 3 times, i.e.: [2,2,2,4,4,4,...]
+        # This way we don't need to use weighted LS
+        x = []
+        for x_i in x_short:
+            x.extend( 3*[x_i] )
+
+        # Data - dependent variable
+        y = (1032.,	1021.,	1016., 3012.,	3001.,	3022., 7089.,	7111.,	
+        7080., 15102.,	15087.,	15105., 30469.,	30461.,	30481.)
+
+        result_1 = type_a.line_fit(x,y)
+   
+        # Alternatively, group the data into repeated observations
+        # and create uncertain numbers for each. Propagate the
+        # uncertainty to `a` and `b`.
+        # This is not equivalent to the first method in terms of uncertainty!
+        y = [(1032.,1021.,1016.),
+             (3012.,3001.,3022.),
+             (7089.,7111.,7080.),
+             (15102.,15087.,15105.),
+             (30469.,30461.,30481.)
+        ]
+
+        y_est = [ ta.estimate(y_i) for y_i in y]
+        result_2 = fn.line_fit(x_short,y_est)
+
+        self.assertTrue( equivalent( value(result_1.a_b.a), value(result_2.a_b.a), tol=1E-10 ) )
+        self.assertTrue( equivalent( value(result_1.a_b.b), value(result_2.a_b.b), tol=1E-10 ) )
+        
+    def test_walpole(self):
+        """
+        Example from Walpole + Myers, but the numerical results
+        were done using R, because Walpole made an error with
+        their t-distribution 'k' factor.
+        
+        In R:
+            fit <- lm(y~x)
+            summary(fit)
+            vcov(fit)
+            
+        """
+        x = [3.,7.,11.,15.,18.,27.,29.,30.,30.,31.,31.,32.,33.,33.,34.,36.,36.,
+             36.,37.,38.,39.,39.,39.,40.,41.,42.,42.,43.,44.,45.,46.,47.,50.]
+        y = [5.,11.,21.,16.,16.,28.,27.,25.,35.,30.,40.,32.,34.,32.,34.,37.,38.,
+             34.,36.,38.,37.,36.,45.,39.,41.,40.,44.,37.,44.,46.,46.,49.,51.]
+
+        TOL = 1E-5
+        a,b = type_a.line_fit(x,y).a_b
+        self.assertTrue( equivalent( value(a), 3.82963, self.TOL) )
+        self.assertTrue( equivalent( uncertainty(a), 1.768447, self.TOL) )
+        self.assertTrue( equivalent( value(b), 0.90364, self.TOL) )
+        self.assertTrue( equivalent( uncertainty(b), 0.05011898, self.TOL) )
+
+        # prediction would be based on 31 dof, but the std uncertainty is key
+        x_0 = 20.0
+        y_0 = a + b*x_0
+        self.assertTrue( equivalent( value(y_0), 21.9025, self.TOL) )
+        self.assertTrue( equivalent( uncertainty(y_0), 0.877939, self.TOL) )
+
+    def test_bevington(self):
+        """
+        Example from Bevington Table 6.1
+        Some calculations done in R
+
+        In R:
+            fit <- lm(y~x)
+            summary(fit)
+            vcov(fit)
+        
+        """
+        x = [4.,8.,12.5,16.,20.,25.,31.,36.,40.,40.]
+        y = [3.7,7.8,12.1,15.6,19.8,24.5,30.7,35.5,39.4,39.5]
+        a,b = type_a.line_fit(x,y).a_b
+        
+        self.assertTrue( equivalent( value(a), -0.222142, self.TOL) )
+        self.assertTrue( equivalent( uncertainty(a), 0.06962967, self.TOL) )
+        self.assertTrue( equivalent( value(b), 0.992780, self.TOL) )
+        self.assertTrue( equivalent( uncertainty(b), 0.002636608, self.TOL) )
+        self.assertTrue( equivalent( a.u*b.u*get_correlation(a,b), -0.0001616271, self.TOL) )
+
+        a_u,b_u,r_ = simple_sigma_abr(x,y)
+        self.assertTrue( equivalent( uncertainty(a), a_u, self.TOL) )
+        self.assertTrue( equivalent( uncertainty(b), b_u, self.TOL) )
+        self.assertTrue( equivalent( get_correlation(a,b), r_, self.TOL) )
+
+    def test_H3(self):
+        """H3 from the GUM
+        """
+        t_k = (21.521,22.012,22.512,23.003,23.507,23.999,24.513,25.002,25.503,26.010,26.511)
+        b_k = (-0.171,-0.169,-0.166,-0.159,-0.164,-0.165,-0.156,-0.157,-0.159,-0.161,-0.160)
+        theta = [ t_k_i - 20 for t_k_i in t_k ]
+
+        a,b = type_a.line_fit(theta,b_k).a_b
+
+        # Compare with GUM values
+
+        self.assertTrue( equivalent(value(a),-0.1712,1E-4) )
+        self.assertTrue( equivalent(value(b),0.00218,1E-5) )
+        self.assertTrue( equivalent(get_correlation(a,b),-0.930,1E-3) )
+        
+        b_30 = a + b*(30 - 20)
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
+        self.assertTrue( equivalent(b_30.df,9,1E-13) )
+
+    def test_A5(self):
+        """CITAC 3rd edition
+
+        Test the calibration curve aspect
+        """
+        x_data = [0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.7, 0.7, 0.7, 0.9, 0.9, 0.9]
+        y_data = [0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131, 0.133, 0.180,
+                  0.181, 0.183, 0.215, 0.230, 0.216]
+
+        fit = ta.line_fit(x_data,y_data)
+        c_0 = fit.x_from_y( [0.0712, 0.0716] )
+        a, b = fit.a_b
+
+        # The classical uncertainty
+        N = len(x_data)
+        xmean = type_a.mean(x_data)
+        sxx = sum( (x_i-xmean)**2 for x_i in x_data )
+        S = math.sqrt(fit.ssr/(N-2))
+
+        _x = c_0.x
+        u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
+
+        self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
+        self.assertEqual(c_0.df,N-2)
+
+        # Now in the opposite sense
+        y_0 = fit.y_from_x(_x)
+        u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
+        
+        self.assertTrue(equivalent(value(y_0),0.0714,TOL))
+        self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
+        self.assertEqual(y_0.df,N-2)
+   
+#-----------------------------------------------------
+class TestCombineComponents(unittest.TestCase):
+
+    def test_mean(self):
+        """
+        Using the type_a functions should always
+        return number types.
+
+        Generate a sequence of uncertain reals
+        for V and then do a type_a and type_b
+        analysis.
+
+        Combine the results to merge both
+        types of uncertainty.
+        
+        """
+        TOL = 1E-13
+        
+        V = [5.007,4.994,5.005,4.990,4.999]
+        mu_V = math.fsum(V)/len(V)
+        sd = type_a.standard_uncertainty(V)
+
+        u = 0.01
+        x = [ ureal(v_i,u) for v_i in V ]
+
+        mean = type_a.mean(x)
+
+        self.assertTrue( isinstance(mean,float) )
+        self.assertTrue( equivalent(mean,mu_V, TOL) )
+        
+        mu_a = type_a.estimate(x)
+        self.assertTrue( equivalent(mu_a.x,mu_V, TOL) )
+        self.assertTrue( equivalent(mu_a.u,sd, TOL) )
+
+        mu_b = result( sum(x)/len(x) )
+        self.assertTrue( rp.is_ureal(mu_b) )
+        self.assertTrue( equivalent(mu_b.u,u/math.sqrt(len(x)), TOL) )
+
+        mu = result( type_a.merge(mu_a,mu_b) )
+        
+        u_c = math.sqrt(mu_a.v + mu_b.v)
+        self.assertTrue( equivalent(mu.u,u_c, TOL) )
+        self.assertTrue( equivalent(component(mu,mu_a),mu_a.u, TOL) )
+        self.assertTrue( equivalent(component(mu,mu_b),mu_b.u, TOL) )
+
+        # Now try again with a systematic error
+        e_sys = ureal(0,u,label="e_sys")
+        x = [ v_i + e_sys for v_i in V ]
+
+        mean = type_a.mean(x)
+
+        self.assertTrue( isinstance(mean,float) )
+        self.assertTrue( equivalent(mean,mu_V, TOL) )
+
+        mu_a = type_a.estimate(x)
+        self.assertTrue( equivalent(mu_a.x,mu_V, TOL) )
+        self.assertTrue( equivalent(mu_a.u,sd, TOL) )
+
+        mu_b = result( sum(x)/len(x) )
+        self.assertTrue( rp.is_ureal(mu_b) )
+        self.assertTrue( equivalent(mu_b.u,u, TOL) )
+
+        mu = result( type_a.merge(mu_a,mu_b) )
+        
+        u_c = math.sqrt(mu_a.v + mu_b.v)
+        self.assertTrue( equivalent(mu.u,u_c, TOL) )
+        self.assertTrue( equivalent(component(mu,mu_a),mu_a.u, TOL) )
+        self.assertTrue( equivalent(component(mu,mu_b),mu_b.u, TOL) )
+        self.assertTrue( equivalent(component(mu,e_sys),u, TOL) )
+
+    def test_line_fit(self):
+        """
+        This is based on H3 in the GUM
+        
+        """
+        TOL = 1E-13
+
+        # Thermometer readings (degrees C)
+        t = (21.521,22.012,22.512,23.003,23.507,23.999,24.513,25.002,25.503,26.010,26.511)
+
+        # Observed differences with calibration standard (degrees C)
+        b = (-0.171,-0.169,-0.166,-0.159,-0.164,-0.165,-0.156,-0.157,-0.159,-0.161,-0.160)
+
+        # Arbitrary offset temperature (degrees C)
+        t_0 = 20.0
+        
+        # Calculate the temperature relative to t_0
+        t_rel = [ t_k - t_0 for t_k in t ]
+
+        #--------------------------------------------------------
+        # Case 1: each b_k is independent, but with known uncertainty
+        u_b = 0.01
+        b_b1 = [ ureal(b_k,u_b) for b_k in b ]
+
+        # Type-A least-squares regression
+        
+        slope_intercept = type_a.line_fit(t_rel,b_b1).a_b
+        
+        y_1_a = result( slope_intercept[0] )
+        y_2_a = result( slope_intercept[1])
+
+        # Type-B least-squares regression
+        slope_intercept = fn.line_fit(t_rel,b_b1).a_b
+        
+        y_1_b = result( slope_intercept[0] )
+        y_2_b = result( slope_intercept[1])
+
+        self.assertTrue( equivalent(y_1_a.x,y_1_b.x,TOL) )
+        self.assertTrue( equivalent(y_2_a.x,y_2_b.x,TOL) )
+
+        y_1 = result( type_a.merge(y_1_a,y_1_b) )
+        y_2 = result( type_a.merge(y_2_a,y_2_b) )
+
+        uc_y1 = math.sqrt(y_1_a.v + y_1_b.v)
+        uc_y2 = math.sqrt(y_2_a.v + y_2_b.v)
+
+        self.assertTrue( equivalent(y_1.u,uc_y1,TOL) )
+        self.assertTrue( equivalent(y_2.u,uc_y2,TOL) )
+
+        self.assertTrue( equivalent(component(y_1,y_1_a),y_1_a.u, TOL) )
+        self.assertTrue( equivalent(component(y_1,y_1_b),y_1_b.u, TOL) )
+        
+        self.assertTrue( equivalent(component(y_2,y_2_a),y_2_a.u, TOL) )
+        self.assertTrue( equivalent(component(y_2,y_2_b),y_2_b.u, TOL) )
+
+        #--------------------------------------------------------
+        # Case 2: a common systematic error
+        e_sys = ureal(0,u_b)
+        b_b2 = [ b_k + e_sys for b_k in b ]
+
+        # Type-A least-squares regression
+        slope_intercept = type_a.line_fit(t_rel,b_b2).a_b
+        
+        y_1_a = result( slope_intercept[0] )
+        y_2_a = result( slope_intercept[1])
+
+        # Type-B least-squares regression
+        slope_intercept = fn.line_fit(t_rel,b_b2).a_b
+        
+        y_1_b = result( slope_intercept[0] )
+        y_2_b = result( slope_intercept[1])
+
+        self.assertTrue( equivalent(y_1_a.x,y_1_b.x,TOL) )
+        self.assertTrue( equivalent(y_2_a.x,y_2_b.x,TOL) )
+
+        y_1 = result( type_a.merge(y_1_a,y_1_b) )
+        y_2 = result( type_a.merge(y_2_a,y_2_b) )
+
+        uc_y1 = math.sqrt(y_1_a.v + y_1_b.v)
+        uc_y2 = math.sqrt(y_2_a.v + y_2_b.v)
+
+        self.assertTrue( equivalent(y_1.u,uc_y1,TOL) )
+        self.assertTrue( equivalent(y_2.u,uc_y2,TOL) )
+
+        self.assertTrue( equivalent(component(y_1,y_1_a),y_1_a.u, TOL) )
+        self.assertTrue( equivalent(component(y_1,y_1_b),y_1_b.u, TOL) )
+        self.assertTrue( equivalent(component(y_1,e_sys),e_sys.u, TOL) )
+        
+        self.assertTrue( equivalent(component(y_2,y_2_a),y_2_a.u, TOL) )
+        self.assertTrue( equivalent(component(y_2,e_sys),0.0, TOL) )
+
+    def test_complex(self):
+        """
+        It should be possible to merge complex results too
+        """
+        TOL = 1E-13
+        
+        e_r = ureal(0,.5)
+        e_i = ureal(0,0.25)
+        
+        data = (
+            (1.1 + e_r) + (3.5j + 1j* e_i),
+            (2.1 + e_r) + (2.9j + 1j* e_i),
+            (1.9 + e_r) + (3.0j + 1j* e_i),
+            (1.5 + e_r) + (2.5j + 1j* e_i)
+        )
+        
+        mu = type_a.estimate(data)
+        
+        mean = sum(data)/len(data)
+
+        m = type_a.merge(mu,mean)
+
+        self.assertTrue( equivalent(m.real.v,mu.real.v+mean.real.v,TOL) )
+        self.assertTrue( equivalent(m.imag.v,mu.imag.v+mean.imag.v,TOL) )
+
+    def test_illegal(self):
+        """
+        Can't merge uncrtain numbers with different values 
+        """
+        val = 0
+        x1 = ureal(val,1)
+        x2 = ucomplex(val-1j,1)
+
+        self.assertRaises(RuntimeError,type_a.merge,x1,x2)
+        self.assertRaises(RuntimeError,type_a.merge,x2,x1)   
+  
+        val = 0.1
+        x1 = ureal(val,1)
+        x2 = ucomplex(val,1)
+        # This should be OK even though they are different types
+        x = type_a.merge(x1,x2)
+        self.assertTrue( equivalent(val,value(x)) )
+  
 #============================================================================
 if(__name__== '__main__'):
 
