@@ -20,10 +20,10 @@ matrix:
       env: PYTHON=3.5.7
     - os: osx
       language: generic
-      env: PYTHON=3.6.8
+      env: PYTHON=3.6.9
     - os: osx
       language: generic
-      env: PYTHON=3.7.3
+      env: PYTHON=3.7.4
 
 before_install:
   - |
