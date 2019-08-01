@@ -17,6 +17,12 @@ import math
 import numpy as np 
 
 try:
+    from itertools import izip  # Python 2
+except ImportError:
+    izip = zip
+    xrange = range
+
+try:
     import builtins    # Python 3
 except ImportError: 
     import __builtin__ as builtins
@@ -27,12 +33,170 @@ except ImportError:
     from collections import Iterable
 
 from GTC import is_sequence
+from GTC.named_tuples import InterceptSlope
 
+def value(x):
+    try:
+        return x.x
+    except AttributeError:
+        return x
+        
 __all__ = (
     'complex_to_seq',
     'seq_to_complex',
-    'mean'
+    'mean',
+    'line_fit',    
 )
+
+#-----------------------------------------------------------------------------------------
+class LineFit(object):
+    
+    """
+    Base class for the results of regression to a line.
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        self._a_b = InterceptSlope(a,b)
+        self._ssr = ssr
+        self._N = N
+        
+    def __repr__(self):
+        return """{}(
+  a={!r},
+  b={!r},
+  ssr={},
+  N={}
+)""".format(
+            self.__class__.__name__,
+            self._a_b[0],
+            self._a_b[1],
+            self._ssr,
+            self._N
+        )
+
+    @property
+    def a_b(self):
+        """Return the intercept and slope as uncertain numbers
+        """
+        return self._a_b
+
+    @property
+    def ssr(self):
+        """Sum of the squared residuals
+        
+        The sum of the squared deviations between values 
+        predicted by the model and the actual data.
+        
+        If weights are used during the fit, the squares of 
+        weighted deviations are summed.
+        
+        """
+        return self._ssr  
+
+    @property
+    def N(self):
+        """The number of points in the sample"""
+        return self._N
+
+    def __str__(self):
+        a, b = self.a_b
+        return '''
+  Intercept: {}
+  Slope: {}
+  Correlation: {:.2G}
+  Sum of the squared residuals: {}
+  Number of points: {}
+'''.format(
+    a.s,
+    b.s,
+    get_correlation_real(a,b),
+    self._ssr,
+    self.N
+)
+ 
+#-----------------------------------------------------------------------------------------
+class LineFitOLS(LineFit):
+    
+    """
+    Class to hold results from an ordinary linear regression to data.
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        LineFit.__init__(self,a,b,ssr,N)
+
+    def __str__(self):
+        header = '''
+Ordinary Least-Squares Results:
+'''
+        return header + LineFit.__str__(self)
+
+#--------------------------------------------------------------------
+#
+def line_fit(x,y):
+    """Least-squares fit intercept and slope 
+    
+    :arg x:     sequence of independent variable data 
+    :arg y:     sequence of dependent variable data
+
+    Returns a :class:`~function.LineFitOLS` object
+    
+    ``y`` must be a sequence of uncertain real numbers.
+
+    Performs an ordinary least-squares regression. 
+    
+    .. note::
+
+        Uncertainty in the parameter estimates is found
+        by propagation *through* the regression
+        formulae. This does **not** take residuals into account.
+        
+        The function :func:`type_a.line_fit` performs a regression 
+        analysis that evaluates uncertainty in 
+        the parameter estimates using the residuals.
+        
+        If appropriate, the results from both type-A and type-B 
+        analyses can be merged (see :func:`type_a.merge_components`).
+        
+    **Example**::
+
+        >>> a0 =10
+        >>> b0 = -3
+        >>> u0 = .2
+
+        >>> x = [ float(x_i) for x_i in xrange(10) ]
+        >>> y = [ ureal(b0*x_i + a0,u0) for x_i in x ]
+
+        >>> a,b = fn.line_fit(x,y).a_b
+        >>> a
+        ureal(10,0.1175507627290518,inf)
+        >>> b
+        ureal(-3,0.022019275302527213,inf)
+        
+    """  
+    S = len(x) 
+    S_x = sum( x ) 
+    S_y = sum( y )
+
+    k = S_x / S
+    t = [ x_i - k for x_i in x ]
+
+    S_tt = sum( t_i*t_i for t_i in t )
+    
+    b = sum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
+    a = (S_y - b*S_x)/S
+    
+    float_a = value(a)
+    float_b = value(b)
+    f2 = lambda x_i,y_i: (
+        (y_i - float_a - float_b*x_i)
+    )**2 
+    
+    ssr =  math.fsum( 
+        f2( value(x_i), value(y_i) ) 
+            for x_i,y_i in izip(x,y) 
+    )
+
+    return LineFitOLS(a,b,ssr,S)
  
 #---------------------------------------------------------------------------
 def sum(seq,*args,**kwargs):
