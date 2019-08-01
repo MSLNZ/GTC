@@ -2276,13 +2276,14 @@ def real_ensemble(seq,df):
     """
     # TODO: assertions not required in release version
     # have been declared independent=False 
+    # They will raise AssertionError
+    # ensemble members must be elementary
+    assert all( s_i.is_elementary for s_i in seq )
+
     assert all( s_i._node.independent == False for s_i in seq )
 
     # ensemble members must have the same degrees of freedom
     assert all( s_i.df == df for s_i in seq )
-
-    # ensemble members must be elementary
-    assert all( s_i.is_elementary for s_i in seq )
             
     ensemble = set( x._node.uid for x in seq )
     for s_i in seq:
@@ -2307,7 +2308,7 @@ def append_real_ensemble(member,x):
     # All Leaf nodes refer to the same ensemble object 
     # So by adding a member here, all the other Leaf nodes 
     # see the change.
-    member._node.ensemble.add(x._node)
+    member._node.ensemble.add(x._node.uid)
     x._node.ensemble = member._node.ensemble
 
 #---------------------------------------------------------------------------
