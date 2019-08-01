@@ -7,6 +7,13 @@ complex numbers and Python :obj:`complex`.
 
 The function :func:`mean` evaluates the mean of a sequence.
 
+Least-squares regression
+------------------------
+
+:func:`line_fit` implements an ordinary least-squares 
+straight-line regression calculation that accepts uncertain 
+real numbers for the independent and dependent variables.
+
 Module contents
 ---------------
 
