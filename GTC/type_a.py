@@ -18,13 +18,28 @@ Sample estimates
     *   :func:`variance_covariance_complex` evaluates the variance
         and covariance associated with the mean real component 
         and mean imaginary component of the data.
-      
+    
+Least squares regression
+------------------------
+    *   :func:`line_fit` performs an ordinary least-squares straight 
+        line fit to a sample of data.  
+ 
+Merging uncertain components
+----------------------------
+    *   :func:`merge` combines the results from type-A and type-B analyses. 
+ 
 .. note::
 
     Many functions in :mod:`type_a` treat  data as pure numbers. 
     Sequences of uncertain numbers can be passed to these 
     functions, but only the uncertain-number values will be used.
     
+    :func:`merge` is provided so that the results of 
+    type-A and type-B analyses on the same data sequence can be 
+    combined. Note, however, that doing so may over-emphasize
+    uncertainty components that contribute to variability in 
+    the observations.
+
 Module contents
 ---------------
 
@@ -43,7 +58,8 @@ except ImportError:
     izip = zip
     xrange = range
 
-from GTC.context import _context 
+from GTC.context import _context
+ 
 from GTC import (
     function,
 )
@@ -52,14 +68,24 @@ from GTC.lib import (
     UncertainComplex,
     set_correlation_real,
     real_ensemble,
-    complex_ensemble
+    complex_ensemble,
+    append_real_ensemble
+)
+ureal = UncertainReal._elementary
+ucomplex = UncertainComplex._elementary
+
+from GTC.function import (
+    LineFit, 
 )
 
 from GTC.named_tuples import (
     VarianceCovariance,
     StandardUncertainty,
-    StandardDeviation
+    StandardDeviation,
+    InterceptSlope
 )
+
+EPSILON = sys.float_info.epsilon 
 
 __all__ = (
     'estimate',
@@ -70,15 +96,177 @@ __all__ = (
     'standard_deviation',
     'standard_uncertainty',
     'variance_covariance_complex',
+    'line_fit',
+    'LineFitOLS', 
+    'merge',
 )
 
 #-----------------------------------------------------------------------------------------
-def _as_value(x):
+def value(x):
     try:
         return x.x 
     except AttributeError:
         return x 
         
+#-----------------------------------------------------------------------------------------
+#
+class LineFitOLS(LineFit):
+    
+    """
+    Class to hold the results of an ordinary least-squares regression to data.
+
+    It can also be used to apply the results of a regression analysis. 
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        LineFit.__init__(self,a,b,ssr,N)
+            
+    def __str__(self):
+        header = '''
+Ordinary Least-Squares Results:
+'''
+        return header + LineFit.__str__(self)
+
+    def x_from_y(self,yseq,label=None):
+        """Estimate the stimulus ``x`` that caused the response ``yseq``.
+
+        :arg yseq: a sequence of ``y`` observations 
+        :arg label: a label for the estimate of `y` based on ``yseq``
+
+        **Example** ::
+        
+            >>> x_data = [0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5,
+            ...                 0.7, 0.7, 0.7, 0.9, 0.9, 0.9]
+            >>> y_data = [0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131,
+            ...                 0.133, 0.180, 0.181, 0.183, 0.215, 0.230, 0.216]
+
+            >>> fit = type_a.line_fit(x_data,y_data)
+            
+            >>> x0 = fit.x_from_y( [0.0712, 0.0716] )            
+            >>> summary(x0)
+            '0.260, u=0.018, df=13'
+
+        """
+        df = self._N - 2       
+        a, b = self._a_b
+
+        p = len(yseq)
+        y = math.fsum( yseq ) / p
+        
+        y = ureal(
+            y,
+            math.sqrt( self._ssr/df/p ),
+            df,
+            label=label,
+            independent=False
+        )  
+
+        append_real_ensemble(a,y)
+        
+        x = (y - a)/b
+
+        return x
+        
+    def y_from_x(self,x,label=None):
+        """Return an uncertain number ``y`` for the response to ``x``
+
+        :arg x: a real number, or an uncertain real number
+
+        Estimates the response ``y`` that might be observed for a stimulus ``x``
+        
+        An uncertain real number can be used for ``x``, in which
+        case the associated uncertainty is also propagated into ``y``.
+        
+        """
+        a, b = self._a_b   
+                
+        df = self._N - 2
+        u = math.sqrt( self._ssr/df )
+        noise = ureal(0,u,df,label=None,independent=False)
+        
+        append_real_ensemble(a,noise)
+                  
+        y = a + b*x + noise
+        
+        if label is not None:
+            y.label = label
+
+        return y
+
+#-----------------------------------------------------------------------------------------
+def line_fit(x,y,label=None):
+    """Return a least-squares straight-line fit to the data
+     
+    :arg x:     sequence of stimulus data (independent-variable)  
+    :arg y:     sequence of response data (dependent-variable)  
+    :arg label: suffix to label the uncertain numbers `a` and `b`
+
+    :returns:   an object containing regression results
+    :rtype:     :class:`~type_a.LineFitOLS`
+
+    Performs an ordinary least-squares regression of ``y`` to ``x``.
+        
+    **Example**::
+    
+        >>> x = [1,2,3,4,5,6,7,8,9]
+        >>> y = [15.6,17.5,36.6,43.8,58.2,61.6,64.2,70.4,98.8]
+        >>> result = type_a.line_fit(x,y)
+        >>> a,b = result.a_b
+        >>> a
+        ureal(4.81388888888888,4.88620631218336,7)
+        >>> b
+        ureal(9.408333333333335,0.868301647656361,7)
+
+        >>> y_p = a + b*5.5
+        >>> dof(y_p)
+        7.0
+            
+    """
+    N = len(x)
+
+    df = N-2
+
+    v = u_y = [1.0] * N
+    S = N
+    S_x = math.fsum( value(x_i) for x_i in x )
+    S_y = math.fsum( value(y_i) for y_i in y )
+        
+    k = S_x / S
+    t = [ (float(x_i) - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+
+    S_tt =  math.fsum( t_i*t_i for t_i in t )
+
+    b_ =  math.fsum( t_i*value(y_i)/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    a_ = (S_y - b_*S_x)/S
+
+    siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
+    sigb = math.sqrt( 1.0/S_tt )
+    r_ab = -S_x/(S*S_tt*siga*sigb)
+    
+    # Chi-square calculation
+    float_a = value(a_)
+    float_b = value(b_)
+
+    # Need to estimate sigma to correctly calculate parameter uncertainties
+    f = lambda x_i,y_i: (y_i - float_a - float_b*x_i)**2 
+    ssr =  math.fsum( f(value(x_i),value(y_i)) for x_i,y_i in izip(x,y) )
+
+    data_u = math.sqrt( ssr/df )
+    siga *= data_u
+    sigb *= data_u
+            
+    a = ureal(a_,siga,df=df,label=None,independent=False)
+    b = ureal(b_,sigb,df=df,label=None,independent=False)
+    
+    if label is not None:
+        a.label = 'a_%s' % label
+        b.label = 'b_%s' % label
+    
+    real_ensemble( (a,b), df )
+    a.set_correlation(r_ab,b)
+
+    return LineFitOLS(a,b,ssr,N)
+
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     """
@@ -177,7 +365,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     if truncate:
         mean += delta/2.0
         
-    return UncertainReal._elementary(mean,u,N-1,label,independent=True)
+    return ureal(mean,u,N-1,label,independent=True)
     
 #-----------------------------------------------------------------------------------------
 def estimate(seq,label=None,context=_context):
@@ -227,7 +415,7 @@ def estimate(seq,label=None,context=_context):
     
     if isinstance(mu,complex):
         u,r = standard_uncertainty(seq,mu)
-        return UncertainComplex._elementary(
+        return ucomplex(
             mu,u[0],u[1],r,df,
             label,
             independent = (r == 0.0)
@@ -235,7 +423,7 @@ def estimate(seq,label=None,context=_context):
         
     else:
         u = standard_uncertainty(seq,mu)
-        return UncertainReal._elementary(
+        return ureal(
             mu,u,df,label,independent=True
         )
 
@@ -261,9 +449,9 @@ def mean(seq,*args,**kwargs):
             
     """
     if isinstance(seq,np.ndarray):
-        return _as_value( np.asarray(seq).mean(*args, **kwargs) )   
+        return value( np.asarray(seq).mean(*args, **kwargs) )   
     else:
-        return _as_value( function.mean(seq) )
+        return value( function.mean(seq) )
 
 #-----------------------------------------------------------------------------------------
 def standard_deviation(seq,mu=None):
@@ -315,7 +503,7 @@ def standard_deviation(seq,mu=None):
 
     # `type_a.mean` returns either a real or complex
     if isinstance(mu,numbers.Real):
-        accum = lambda psum,x: psum + (_as_value(x)-mu)**2
+        accum = lambda psum,x: psum + (value(x)-mu)**2
         variance = reduce(accum, seq, 0.0) / (N - 1)
         
         return math.sqrt( variance )
@@ -453,7 +641,7 @@ def variance_covariance_complex(seq,mu=None):
     """
     N = len(seq)
     
-    zseq = [ _as_value(x) for x in seq ]
+    zseq = [ value(x) for x in seq ]
     
     if mu is None:
         mu = mean(zseq)        
@@ -546,8 +734,6 @@ def multi_estimate_real(seq_of_seq,labels=None):
                         for d_i,d_j in izip(seq_i,seq_j)
                 )/N_N_1
             )
-
-    ureal = UncertainReal._elementary
 
     # Create a list of elementary uncertain numbers
     # to return a list of standard uncertainties
@@ -655,8 +841,6 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
             )
         )
     # 3. Define uncertain M complex numbers
-    ucomplex = UncertainComplex._elementary
-
     x_influences = []
     rtn = []
     for i in xrange(M):
@@ -688,7 +872,82 @@ def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
     complex_ensemble( rtn, N_1 )
     
     return rtn
+        
+#--------------------------------------------------------------------
+def merge(a,b):
+    """Combine the uncertainty components of ``a`` and ``b``
 
+    :arg a: an uncertain real or complex number
+    :arg b: an uncertain real or complex number
+
+    :returns:   an uncertain number that combines
+                the uncertainty components of
+                ``a`` and ``b``
+
+    The values of ``a`` and ``b`` must be equal
+    and the components of uncertainty associated with
+    ``a`` and ``b`` must be distinct, otherwise
+    a :class:`RuntimeError` will be raised.
+
+    Use this function to combine results from
+    type-A and type-B uncertainty analyses 
+    performed on a common sequence of data.
+
+    .. note::
+
+        Some judgement will be required as to
+        when it is appropriate to merge 
+        uncertainty components.
+
+        There is a risk of 'double-counting'
+        uncertainty if type-B components
+        are contributing to the variability
+        observed in the data, and therefore
+        assessed in a type-A analysis.
+
+    **Example**::
+
+        # From Appendix H3 in the GUM
+        
+        # Thermometer readings (degrees C)
+        t = (21.521,22.012,22.512,23.003,23.507,
+            23.999,24.513,25.002,25.503,26.010,26.511)
+
+        # Observed differences with calibration standard (degrees C)
+        b = (-0.171,-0.169,-0.166,-0.159,-0.164,
+            -0.165,-0.156,-0.157,-0.159,-0.161,-0.160)
+
+        # Arbitrary offset temperature (degrees C)
+        t_0 = 20.0
+        
+        # Calculate the temperature relative to t_0
+        t_rel = [ t_k - t_0 for t_k in t ]
+
+        # A common systematic error in all differences
+        e_sys = ureal(0,0.01)
+        
+        b_type_b = [ b_k + e_sys for b_k in b ]
+
+        # Type-A least-squares regression
+        y_1_a, y_2_a = type_a.line_fit(t_rel,b_type_b).a_b
+
+        # Type-B least-squares regression
+        y_1_b, y_2_b = function.line_fit(t_rel,b_type_b)
+
+        # `y_1` and `y_2` have uncertainty components  
+        # related to the type-A analysis as well as the 
+        # type-B systematic error
+        y_1 = type_a.merge(y_1_a,y_1_b)
+        y_2 = type_a.merge(y_2_a,y_2_b)
+
+    """
+    if abs( value(a) - value(b) ) > EPSILON:
+        raise RuntimeError(
+            "a != b: {!r} != {!r}".format(a,b)
+        )
+    else:
+        return a + (b - value(b))
+    
 #============================================================================    
 if __name__ == "__main__":
     import doctest
