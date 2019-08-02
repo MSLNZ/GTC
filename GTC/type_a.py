@@ -448,7 +448,7 @@ def line_fit_rwls(x,y,s_y,label=None):
         >>> fit = type_a.line_fit_rwls(x,y,s_y)
         >>> a, b = fit.a_b
         >>>
-        >>> print fit
+        >>> print(fit)
         <BLANKLINE>
         Relative Weighted Least-Squares Results:
         <BLANKLINE>
