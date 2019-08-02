@@ -176,7 +176,7 @@ html_show_copyright = False
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'GUMTreeCalculatordoc'
+htmlhelp_basename = 'GUMTreeCalculatorDoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
