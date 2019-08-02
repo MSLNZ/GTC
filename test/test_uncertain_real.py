@@ -2253,9 +2253,9 @@ class TestRealEnsemble(unittest.TestCase):
         
         _ensemble = x1._node.ensemble 
         
-        self.assert_( x3._node.uid in _ensemble )
-        self.assert_( x2._node.uid in _ensemble )
-        self.assert_( x1._node.uid in _ensemble )
+        self.assertTrue( x3._node.uid in _ensemble )
+        self.assertTrue( x2._node.uid in _ensemble )
+        self.assertTrue( x1._node.uid in _ensemble )
         
         self.assertEqual(x1._node.ensemble,x2._node.ensemble)
         self.assertEqual(x1._node.ensemble,x3._node.ensemble)
