@@ -618,53 +618,12 @@ class TestEnsembleWSComplex(unittest.TestCase):
         data = (V,I,phi[:-1])
         self.assertRaises(RuntimeError,type_a.multi_estimate_complex,data)
     
-#-----------------------------------------------------
-def simple_sigma_abr(x,y,u_y=None):
-    """
-    The uncertainty in `a` and `b` as well as `r`
     
-    eqn 15.2.9 from NR, p 663
-    
-    """
-    if u_y is None:
-        weights = False
-        u_y = [1.0] * len(x)
-    else:
-        weights = True
-        
-    N = len(x)
-    v = [ u_i*u_i for u_i in u_y ]
-        
-    S = sum( 1.0/v_i for v_i in v)
-    S_x = sum( x_i/v_i for x_i,v_i in izip(x,v) )
-    S_xx = sum( x_i**2/v_i for x_i,v_i in izip(x,v) )
-
-    S_y = sum( y_i/v_i for y_i,v_i in izip(y,v) )
-
-    k = S_x / S
-    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
-
-    S_tt = sum( t_i*t_i for t_i in t )
-
-    b = sum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
-    a = (S_y - b*S_x)/S
-
-    delta = S*S_xx - S_x**2
-    sigma_a = math.sqrt( S_xx/delta ) 
-    sigma_b = math.sqrt( S/delta )
-    r = -S_x/(delta*sigma_a*sigma_b)
-
-    if not weights:
-        # Need chi-square to adjust the values
-        f = lambda x_i,y_i,u_y_i: ((y_i - a - b*x_i))**2 
-        chisq = sum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
-        data_u = math.sqrt( chisq/(N-2) )
-        sigma_a *= data_u
-        sigma_b *= data_u
-
-    return sigma_a, sigma_b, r
 
 #-----------------------------------------------------
+#
+from test_fitting import simple_sigma_abr
+
 class TestLineFit(unittest.TestCase):
 
     """
