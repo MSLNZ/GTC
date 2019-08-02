@@ -156,7 +156,7 @@ CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
 
    """
    
-InterceptSlope = namedtuple('intercept_slope','a b')
+InterceptSlope = namedtuple('InterceptSlope','a b')
 """:obj:`~collections.namedtuple`: Values for intercept ``a`` and slope ``b``
  
 .. attribute:: a
