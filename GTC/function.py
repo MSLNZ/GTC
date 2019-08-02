@@ -67,7 +67,7 @@ __all__ = (
     'seq_to_complex',
     'mean',
     'line_fit','line_fit_wls','line_fit_wtls',
-    'LineFit'
+    'LineFitOLS', 'LineFitWLS', 'LineFitWTLS'
 )
 
 HALF_PI = math.pi / 2.0
