@@ -65,8 +65,6 @@ except ImportError:
     izip = zip
     xrange = range
 
-from GTC.context import _context
- 
 from GTC import (
     inf, 
     function,
@@ -106,6 +104,7 @@ __all__ = (
     'standard_uncertainty',
     'variance_covariance_complex',
     'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls',
+    'LineFitOLS','LineFitRWLS','LineFitWTLS',
     'merge',
 )
 
@@ -289,7 +288,7 @@ def line_fit(x,y,label=None):
     :arg label: suffix to label the uncertain numbers `a` and `b`
 
     :returns:   an object containing regression results
-    :rtype:     :class:`~type_a.LineFitOLS`
+    :rtype:     :class:`.LineFitOLS`
 
     Performs an ordinary least-squares regression of ``y`` to ``x``.
         
@@ -396,7 +395,7 @@ def line_fit_wls(x,y,u_y,label=None):
     :arg label: suffix to label the uncertain numbers `a` and `b`
 
     :returns:   an object containing regression results
-    :rtype:     :class:`~type_a.LineFitWLS`
+    :rtype:     :class:`.LineFitWLS`
 
     **Example**::
     
@@ -438,7 +437,7 @@ def line_fit_rwls(x,y,s_y,label=None):
     :arg label: suffix to label the uncertain numbers `a` and `b`
 
     :returns:   an object containing regression results
-    :rtype:     :class:`~type_a.LineFitRWLS`
+    :rtype:     :class:`.LineFitRWLS`
 
     **Example**::
 
@@ -499,7 +498,7 @@ def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
     :arg label: suffix labeling the uncertain numbers `a` and `b`
 
     :returns:   an object containing the fitting results
-    :rtype:     :class:`~type_a.LineFitWTLS`
+    :rtype:     :class:`.LineFitWTLS`
 
     Based on paper by M Krystek and M Anton,
     *Meas. Sci. Technol.* **22** (2011) 035101 (9pp)
@@ -560,7 +559,7 @@ def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
     return LineFitWTLS(a,b,ssr,N)
     
 #-----------------------------------------------------------------------------------------
-def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
+def estimate_digitized(seq,delta,label=None,truncate=False):
     """
     Return an uncertain number for the mean of digitized data
 
@@ -660,7 +659,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     return ureal(mean,u,N-1,label,independent=True)
     
 #-----------------------------------------------------------------------------------------
-def estimate(seq,label=None,context=_context):
+def estimate(seq,label=None):
     """Return an uncertain number for the mean of the data 
 
     :arg seq:   a sequence of data
@@ -1057,7 +1056,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
     return rtn
 
 #-----------------------------------------------------------------------------------------
-def multi_estimate_complex(seq_of_seq,labels=None,context=_context):
+def multi_estimate_complex(seq_of_seq,labels=None):
     """
     Return a sequence of uncertain complex numbers
 
