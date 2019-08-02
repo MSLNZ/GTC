@@ -37,7 +37,7 @@ A table of distributions
         >>> ureal( 1, type_b.distribution['arcsine'](a) )
         ureal(1.0,1.0606601717798212,inf)
 
-    Keys to :obj:`distribution` are (case-sensitive):
+    Keys to :obj:`.distribution` are (case-sensitive):
     
     *   `gaussian`
     *   `uniform`
@@ -212,16 +212,23 @@ def unknown_phase_product(u1,u2):
     return _root_2 * u1 * u2
    
 #---------------------------------------------------------------------------
-distribution = {
-    'gaussian'  : lambda x: x,
-    'uniform'   : uniform,
-    'triangular': triangular,
-    'arcsine'   : arcsine,
-    'u_shaped'  : u_shaped,
-    'uniform_ring'  : uniform_ring,
-    'uniform_disk'  : uniform_disk,
+#
+distribution = dict(
+    gaussian = lambda x: x,
+    uniform = uniform,
+    triangular = triangular,
+    arcsine = arcsine,
+    u_shaped = u_shaped,
+    uniform_ring = uniform_ring,
+    uniform_disk = uniform_disk,
     # 'uncertain_ring': uncertain_ring
-}
+)
+"""Maps ``distribution[name]`` -> `function` for standard uncertainty
+
+    **Example**::
+        >>> type_b.distribution['arcsine'](1.5)
+        1.06066017177982...
+"""
    
 #============================================================================
 if __name__ == "__main__":
