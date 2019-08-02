@@ -23,6 +23,13 @@ Least squares regression
 ------------------------
     *   :func:`line_fit` performs an ordinary least-squares straight 
         line fit to a sample of data.  
+    *   :func:`line_fit_wls` performs a weighted least-squares straight 
+        line fit to a sample of data. 
+    *   :func:`line_fit_rwls` performs a weighted least-squares  
+        straight line fit to a sample of data. In this case, the weights
+        are used to normalise the variability of observations.
+    *   :func:`line_fit_wtls` performs a weighted total least-squares straight 
+        line fit to a sample of data.   
  
 Merging uncertain components
 ----------------------------
@@ -61,6 +68,7 @@ except ImportError:
 from GTC.context import _context
  
 from GTC import (
+    inf, 
     function,
 )
 from GTC.lib import (
@@ -75,7 +83,7 @@ ureal = UncertainReal._elementary
 ucomplex = UncertainComplex._elementary
 
 from GTC.function import (
-    LineFit, 
+    LineFit, LineFitWLS, LineFitWTLS
 )
 
 from GTC.named_tuples import (
@@ -86,6 +94,7 @@ from GTC.named_tuples import (
 )
 
 EPSILON = sys.float_info.epsilon 
+HALF_PI = math.pi/2.0
 
 __all__ = (
     'estimate',
@@ -96,8 +105,7 @@ __all__ = (
     'standard_deviation',
     'standard_uncertainty',
     'variance_covariance_complex',
-    'line_fit',
-    'LineFitOLS', 
+    'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls',
     'merge',
 )
 
@@ -143,8 +151,8 @@ Ordinary Least-Squares Results:
             >>> fit = type_a.line_fit(x_data,y_data)
             
             >>> x0 = fit.x_from_y( [0.0712, 0.0716] )            
-            >>> summary(x0)
-            '0.260, u=0.018, df=13'
+            >>> x0
+            ureal(0.2601659751037...,0.01784461112558...,13.0)
 
         """
         df = self._N - 2       
@@ -194,6 +202,85 @@ Ordinary Least-Squares Results:
         return y
 
 #-----------------------------------------------------------------------------------------
+#
+class LineFitRWLS(LineFit):
+    
+    """
+    Class to hold the the results of a relative weighted least-squares regression.
+    The weight factors provided normalise the variability of observations.
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        LineFit.__init__(self,a,b,ssr,N)
+
+    def __str__(self):
+        header = '''
+Relative Weighted Least-Squares Results:
+'''
+        return header + LineFit.__str__(self)
+
+    def x_from_y(self,yseq,s_y,label=None):
+        """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
+
+        :arg yseq: a sequence of further observations of ``y``
+        :arg s_y: a scale factor for the uncertainty of the ``yseq``
+        :arg label: a label for the estimate of `y` based on ``yseq``
+
+        """
+        df = self._N - 2       
+        a, b = self._a_b
+        
+        p = len(yseq)
+        y = math.fsum( yseq ) / p
+        
+        y = ureal(
+            y,
+            u_y * math.sqrt( self._ssr/df/p ),
+            df,
+            label=label
+        )            
+
+        append_real_ensemble(a,y)
+        
+        x = (y - a)/b
+
+        return x
+
+    def y_from_x(self,x,s_y,label=None):
+        """Return an uncertain number ``y`` for the response to ``x``
+
+        :arg x: a real number, or an uncertain real number
+        :arg s_y: a scale factor for the response uncertainty
+
+        Estimates the response ``y`` that might be generated 
+        by a stimulus ``x``.
+
+        Because there is different variability in 
+        the response to different stimuli, the
+        scale factor ``s_y`` is required. It is assumed 
+        that the standard deviation in the ``y`` value is 
+        proportional to ``s_y``.
+        
+        An uncertain real number can be used for ``x``, in which
+        case the associated uncertainty is also propagated into ``y``.
+        
+        """
+        a, b = self._a_b   
+        
+        df = self._N - 2
+        u = math.sqrt( s_y*self._ssr/df )
+        noise = ureal(0,u,df,label=None)
+
+        append_real_ensemble(a,noise)
+                  
+        y = a + b*x + noise
+        
+        if label is not None:
+            y.label = label
+
+        return y
+        
+#-----------------------------------------------------------------------------------------
 def line_fit(x,y,label=None):
     """Return a least-squares straight-line fit to the data
      
@@ -213,9 +300,9 @@ def line_fit(x,y,label=None):
         >>> result = type_a.line_fit(x,y)
         >>> a,b = result.a_b
         >>> a
-        ureal(4.81388888888888,4.88620631218336,7)
+        ureal(4.8138888888888...,4.8862063121833...,7)
         >>> b
-        ureal(9.408333333333335,0.868301647656361,7)
+        ureal(9.4083333333333...,0.8683016476563...,7)
 
         >>> y_p = a + b*5.5
         >>> dof(y_p)
@@ -232,7 +319,7 @@ def line_fit(x,y,label=None):
     S_y = math.fsum( value(y_i) for y_i in y )
         
     k = S_x / S
-    t = [ (float(x_i) - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+    t = [ (value(x_i) - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
@@ -259,14 +346,219 @@ def line_fit(x,y,label=None):
     b = ureal(b_,sigb,df=df,label=None,independent=False)
     
     if label is not None:
-        a.label = 'a_%s' % label
-        b.label = 'b_%s' % label
+        a.label = 'a_{}'.format(label)
+        b.label = 'b_{}'.format(label)
     
     real_ensemble( (a,b), df )
     a.set_correlation(r_ab,b)
 
     return LineFitOLS(a,b,ssr,N)
 
+#-----------------------------------------------------------------------------------------
+def _line_fit_wls(x,y,u_y):
+    """Utility function"""
+    N = len(x)
+
+    v = [ u_y_i*u_y_i for u_y_i in u_y ]
+    S =  math.fsum( 1.0/v_i for v_i in v)
+
+    S_x =  math.fsum( value(x_i)/v_i for x_i,v_i in izip(x,v) )
+    S_y =  math.fsum( value(y_i)/v_i for y_i,v_i in izip(y,v) )
+
+    k = S_x / S
+    t = [ (value(x_i) - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+
+    S_tt =  math.fsum( t_i*t_i for t_i in t )
+
+    b_ =  math.fsum( t_i*value(y_i)/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    a_ = (S_y - b_*S_x)/S
+
+    siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
+    sigb = math.sqrt( 1.0/S_tt )
+    r_ab = -S_x/(S*S_tt*siga*sigb)
+    
+    # Chi-square calculation
+    float_a = value(a_)
+    float_b = value(b_)
+
+    f = lambda x_i,y_i,u_y_i: ((y_i - float_a - float_b*x_i)/u_y_i)**2 
+    ssr =  math.fsum( f(value(x_i),value(y_i),u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
+
+    return a_,b_,siga,sigb,r_ab,ssr,N
+
+#-----------------------------------------------------------------------------------------
+def line_fit_wls(x,y,u_y,label=None):
+    """Return a weighted least-squares straight-line fit
+     
+    :arg x:     sequence of stimulus data (independent-variable)  
+    :arg y:     sequence of response data (dependent-variable)  
+    :arg u_y:   sequence of uncertainties in the response data 
+    :arg label: suffix to label the uncertain numbers `a` and `b`
+
+    :returns:   an object containing regression results
+    :rtype:     :class:`~type_a.LineFitWLS`
+
+    **Example**::
+    
+        >>> x = [1,2,3,4,5,6]
+        >>> y = [3.2, 4.3, 7.6, 8.6, 11.7, 12.8]
+        >>> u_y = [0.5,0.5,0.5,1.0,1.0,1.0]
+        
+        >>> fit = type_a.line_fit_wls(x,y,u_y)
+        >>> fit.a_b     
+         InterceptSlope(a=ureal(0.8852320675105...,0.5297081435088...,inf),
+         b=ureal(2.056962025316...,0.177892016741...,inf))
+        
+    """
+    a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,u_y)
+    
+    if label is None:
+        a = ureal(a_,siga,float('inf'),label=None,independent=False)
+        b = ureal(b_,sigb,float('inf'),label=None,independent=False)
+    else:
+        a = ureal(a_,siga,float('inf'),label='a_{}'.format(label),independent=False)
+        b = ureal(b_,sigb,float('inf'),label='b_{}'.format(label),independent=False)
+    
+    a.set_correlation(r_ab,b)
+
+    return LineFitWLS(a,b,ssr,N)
+
+#-----------------------------------------------------------------------------------------
+def line_fit_rwls(x,y,s_y,label=None):
+    """Return a relative weighted least-squares straight-line fit
+    
+    The ``s_y`` values are used to scale variability in the ``y`` data.
+    It is assumed that the standard deviation of each ``y`` value is 
+    proportional to the corresponding ``s_y`` scale factor.
+    The unknown common factor in the uncertainties is estimated from the residuals.
+    
+    :arg x:     sequence of stimulus data (independent-variable)  
+    :arg y:     sequence of response data (dependent-variable)  
+    :arg s_y:   sequence of scale factors
+    :arg label: suffix to label the uncertain numbers `a` and `b`
+
+    :returns:   an object containing regression results
+    :rtype:     :class:`~type_a.LineFitRWLS`
+
+    **Example**::
+
+        >>> x = [1,2,3,4,5,6]
+        >>> y = [3.014,5.225,7.004,9.061,11.201,12.762]
+        >>> s_y = [0.2,0.2,0.2,0.4,0.4,0.4]
+        >>> fit = type_a.line_fit_rwls(x,y,s_y)
+        >>> a, b = fit.a_b
+        >>>
+        >>> print fit
+        <BLANKLINE>
+        Relative Weighted Least-Squares Results:
+        <BLANKLINE>
+          Intercept: 1.14(12)
+          Slope: 1.973(41)
+          Correlation: -0.87
+          Sum of the squared residuals: 1.33952179589
+          Number of points: 6
+        <BLANKLINE>
+          
+    """
+    N = len(x)
+    if N < 3:
+        raise RuntimeError(
+            "At least three data points are required, got {}".format(N)
+        )
+        
+    a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,s_y)
+
+    df = N-2
+    sigma_hat = math.sqrt(ssr/df)
+    siga *= sigma_hat
+    sigb *= sigma_hat
+    
+    if label is None:
+        a = ureal(a_,siga,df,label=None,independent=False)
+        b = ureal(b_,sigb,df,label=None,independent=False)
+    else:
+        a = ureal(a_,siga,df,label='a_{}'.format(label),independent=False)
+        b = ureal(b_,sigb,df,label='b_{}'.format(label),independent=False)
+    
+    real_ensemble( (a,b), df )
+    a.set_correlation(r_ab,b)
+
+    return LineFitRWLS(a,b,ssr,N)
+    
+#--------------------------------------------------------------------
+#
+def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
+    """Return a total least-squares straight-line fit 
+
+    :arg a0_b0: initial line intercept and slope
+    :arg x:     sequence of independent-variable data 
+    :arg y:     sequence of dependent-variable data 
+    :arg u_x:   sequence of uncertainties in ``x``
+    :arg u_y:   sequence of uncertainties in ``y``
+    :arg r_xy:  correlation between x-y pairs
+    :arg label: suffix labeling the uncertain numbers `a` and `b`
+
+    :returns:   an object containing the fitting results
+    :rtype:     :class:`~type_a.LineFitWTLS`
+
+    Based on paper by M Krystek and M Anton,
+    *Meas. Sci. Technol.* **22** (2011) 035101 (9pp)
+    
+    **Example**::
+
+        # Pearson-York test data see, e.g., 
+        # Lybanon, M. in Am. J. Phys 52 (1) 1984 
+        >>> x=[0.0,0.9,1.8,2.6,3.3,4.4,5.2,6.1,6.5,7.4]
+        >>> wx=[1000.0,1000.0,500.0,800.0,200.0,80.0,60.0,20.0,1.8,1.0]
+
+        >>> y=[5.9,5.4,4.4,4.6,3.5,3.7,2.8,2.8,2.4,1.5]
+        >>> wy=[1.0,1.8,4.0,8.0,20.0,20.0,70.0,70.0,100.0,500.0]
+        
+        # initial estimates are needed
+        >>> a0_b0 = type_a.line_fit(x,y).a_b
+
+        # standard uncertainties required for weighting
+        >>> ux=[1./math.sqrt(wx_i) for wx_i in wx ]
+        >>> uy=[1./math.sqrt(wy_i) for wy_i in wy ]
+
+        >>> result = type_a.line_fit_wtls(a0_b0,x,y,ux,uy)
+        >>> result.a_b
+        InterceptSlope(a=ureal(5.4799101832830...,0.2919334989452...,8), 
+        b=ureal(-0.480533399108...,0.05761674075939...,8))
+    
+    """
+    independent = r_xy is None
+
+    x_u = [ ureal( value(x_i),u_i,inf,None,independent=independent)
+        for x_i, u_i in izip(x,u_x)
+    ]
+    y_u = [ ureal( value(y_i),u_i,inf,None,independent=independent)
+        for y_i, u_i in izip(y,u_y)
+    ]
+    if not independent:
+        for x_i,y_i,r_i in izip(x_u,y_u,r_xy):
+            x_i.set_correlation(r_i,y_i)
+
+    result = function.line_fit_wtls(a0_b0,x_u,y_u)
+    a, b = result.a_b
+    N = result.N
+    ssr = result.ssr
+    r_ab = a.get_correlation(b)
+    
+    df = N-2
+    
+    a = ureal(a.x,a.u,df=df,label=None,independent=False)
+    b = ureal(b.x,b.u,df=df,label=None,independent=False)
+    
+    if label is not None:
+        a.label = 'a_{}'.formt(label)
+        b.label = 'b_{}'.format(label)
+
+    real_ensemble( (a,b), df )
+    a.set_correlation(r_ab,b)
+
+    return LineFitWTLS(a,b,ssr,N)
+    
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
     """
@@ -300,24 +592,24 @@ def estimate_digitized(seq,delta,label=None,truncate=False,context=_context):
         >>> seq = (-0.0056,-0.0055,-0.0056,-0.0056,-0.0056, 
         ...      -0.0057,-0.0057,-0.0056,-0.0056,-0.0057,-0.0057)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.005627272727272727,1.9497827808661157e-05,10)
+        ureal(-0.005627272727272...,1.9497827808661...e-05,10)
 
         # LSD = 0.0001, data varies between -0.0056 and -0.0057
         >>> seq = (-0.0056,-0.0056,-0.0056,-0.0056,-0.0056,
         ... -0.0057,-0.0057,-0.0056,-0.0056,-0.0057,-0.0057)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.005636363636363636,1.5212000482437775e-05,10)
+        ureal(-0.005636363636363...,1.52120004824377...e-05,10)
 
         # LSD = 0.0001, no spread in data values
         >>> seq = (-0.0056,-0.0056,-0.0056,-0.0056,-0.0056,
         ... -0.0056,-0.0056,-0.0056,-0.0056,-0.0056,-0.0056)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.0056,2.886751345948129e-05,10)
+        ureal(-0.0056,2.8867513459481...e-05,10)
         
         # LSD = 0.0001, no spread in data values, fewer points
         >>> seq = (-0.0056,-0.0056,-0.0056)
         >>> type_a.estimate_digitized(seq,0.0001)
-        ureal(-0.0056,3.291402943021917e-05,2)
+        ureal(-0.0056,3.2914029430219...e-05,2)
         
     """
     N = len(seq)
