@@ -10,15 +10,6 @@ import cmath
 import numbers
 import warnings
 
-# try:
-#     import numpy as np
-# except ImportError:
-#     np = None
-# else:
-#     if np.__version__ < '1.13.0':
-#         # The __array_ufunc__ method was not introduced until v1.13.0
-#         np = None
-
 try:
     from itertools import izip  # Python 2
     PY2 = True
@@ -94,26 +85,17 @@ class UncertainReal(object):
     ,   'is_elementary'         
     ,   'is_intermediate'       
     ,   '_node'                 # May refer to a node
-    # ,   'size'                  # for numpy
-    # ,   'dtype'                 # for numpy
-    # ,   'shape'                 # for numpy
     ]            
 
     #-------------------------------------------------------------------------
     def __init__(self,x,u_comp,d_comp,i_comp,node=None):
 
-        #self._x = np.float_(x) if np else float(x)
         self._x = float(x)
         self._u_components = u_comp
         self._d_components = d_comp
         self._i_components = i_comp
         self._node = node
  
-        # if np:
-            # self.dtype = np.dtype('O')
-            # self.size = 1
-            # self.shape = ()
-
         if node is None:
             self.is_elementary = False 
             self.is_intermediate = False
@@ -571,58 +553,8 @@ class UncertainReal(object):
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
             
-        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            # return self.u_component( x.item(0) )
-                        
         else:
             assert False, 'unexpected: {!r}'.format(x)
-            
-    # #---------------------------------------------------------------------------
-    # def component(self,x):
-        # """
-        # Return the magnitude of the component of uncertainty 
-        # due to uncertainty in ``x``.
-
-        # :arg x: an uncertain number
-        # :type x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
-
-        # :rtype: float
-        
-        # If ``x`` is uncertain real, the function calls 
-        # :func:`reporting.u_component` and returns the magnitude 
-        # of the result. 
-        
-        # If ``x`` is uncertain complex,
-        # the returned value represents the magnitude 
-        # of the component of uncertainty matrix (this is 
-        # obtained by applying :func:`reporting.u_bar`    
-        # to the result obtained from :func:`reporting.u_component`).
-
-        # If ``x`` is a number, zero is returned.
-        
-        # ``component`` can also e used in conjunction with :func:`~core.result` 
-        # to evaluate a component of uncertainty with respect to an 
-        # intermediate uncertain number. 
-        
-        # **Examples**::
-        
-            # >>> x1 = ureal(2,1)
-            # >>> x2 = ureal(5,1)
-            # >>> y = x1/x2
-            # >>> reporting.u_component(y,x2)
-            # -0.08
-            # >>> component(y,x2)
-            # 0.08
-            
-            # >>> I = ureal(1E-3,1E-5)
-            # >>> R = ureal(1E3,1)
-            # >>> V = result( I*R )
-            # >>> P = V**2/R  
-            # >>> component(P,V)   
-            # 2.0099751242241783e-05
-            
-        # """
-        # return reporting.u_bar( self.u_component(x) )
 
     #------------------------------------------------------------------------
     def set_correlation(self,r,x):
@@ -1105,7 +1037,6 @@ class UncertainReal(object):
             ,   vector.scale_vector(self._d_components,dy_dx)
             ,   vector.scale_vector(self._i_components,dy_dx)
         )
-    #sqrt = _sqrt  # used by UncertainArray.std
 
     #------------------------------------------------------------------------
     def _sin(self):
@@ -2343,9 +2274,9 @@ class UncertainComplex(object):
     ,   '_label'
     ,   'is_elementary'         
     ,   'is_intermediate'       
-    ,   'size'                  # for numpy
-    ,   'dtype'                 # for numpy
-    ,   'shape'                 # for numpy
+    # ,   'size'                  # for numpy
+    # ,   'dtype'                 # for numpy
+    # ,   'shape'                 # for numpy
     )
 
     #------------------------------------------------------------------------
@@ -2737,9 +2668,6 @@ class UncertainComplex(object):
                     "invalid argument {!r}".format(x)
                 )
 
-        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            # return self.sensitivity( x.item(0) )
-            
         elif isinstance(x,numbers.Complex):
             return JacobianMatrix(0.0,0.0,0.0,0.0)
 
@@ -2817,47 +2745,9 @@ class UncertainComplex(object):
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
  
-        # elif np is not None and isinstance(x,np.ndarray) and x.shape == ():
-            # return self.u_component( x.item(0) )
-            
         else:
             assert False, 'unexpected: {!r}'.format(x) 
             
-    # #---------------------------------------------------------------------------
-    # def component(self,x):
-        # """
-        # Return the magnitude of the component of uncertainty 
-        # due to uncertainty in ``x``.
-
-        # :arg x: an uncertain number
-        # :type x: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
-
-        # :rtype: float
-               
-        # The returned value represents the magnitude 
-        # of the component of uncertainty matrix (this is 
-        # obtained by applying :func:`reporting.u_bar`    
-        # to the result obtained from :func:`reporting.u_component`).
-
-        # If ``x`` is a number, zero is returned.
-        
-        # ``component`` can also be used in conjunction with :func:`~core.result` 
-        # to evaluate a component of uncertainty with respect to an 
-        # intermediate uncertain number. 
-        
-        # **Example**::
-        
-            # >>> z1 = ucomplex(1+2j,1)
-            # >>> z2 = ucomplex(3-2j,1)
-            # >>> y = z1 - z2
-            # >>> reporting.u_component(y,z2)
-            # ComponentOfUncertainty(rr=-1.0, ri=0.0, ir=0.0, ii=-1.0)
-            # >>> component(y,z2)
-            # 1.0
-            
-        # """
-        # return reporting.u_bar( self.u_component(x) )
-        
     #------------------------------------------------------------------------
     def get_correlation(self,arg=None):
         """
