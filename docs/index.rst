@@ -35,6 +35,13 @@ Examples
    
     Examples<API/examples_section.rst>
 
+Other topics
+------------
+.. toctree::
+   :maxdepth: 1
+
+    Conventional vs uncertain-number fitting <API/regression_functions.rst>
+
 Release Notes
 -------------
 .. toctree::
