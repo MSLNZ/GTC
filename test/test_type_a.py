@@ -76,6 +76,8 @@ class TestTypeA(unittest.TestCase):
         seq = [ ureal(x_i,1) for x_i in data_.seq() ]
         self.assertTrue( equivalent( type_a.mean(seq) , data_.mean(), TOL) )
         
+        useq = la.uarray(seq)
+        self.assertTrue( equivalent( type_a.mean(useq) , data_.mean(), TOL) )
 
     def testStd(self):
         TOL = 1E-13
@@ -85,12 +87,12 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             seq = data_.seq(k)
             
-            # numpy.std divides the variance by len(seq), not len(seq)-1,
-            # unless ddof=1
             N = float(len(seq))
             root_N = math.sqrt(N)
             
+            # numpy.std divides the variance by len(seq), not len(seq)-1, unless ddof=1
             self.assertTrue( equivalent( numpy.std(seq,ddof=1) , data_.std(), TOL) )
+            
             self.assertTrue( equivalent(
                 root_N * type_a.standard_uncertainty(seq) ,
                 data_.std(), TOL)
@@ -100,6 +102,12 @@ class TestTypeA(unittest.TestCase):
                 numpy.std(seq,ddof=1), TOL )
             )            
 
+            useq = la.uarray(seq)
+            self.assertTrue( equivalent(
+                root_N * type_a.standard_uncertainty(useq) ,
+                data_.std(), TOL)
+            )
+    
     def testUNStd(self):
         TOL = 1E-13
         
@@ -114,10 +122,12 @@ class TestTypeA(unittest.TestCase):
             root_N * type_a.standard_uncertainty(seq) ,
             data_.std(), TOL)
         )
+
+        useq = la.uarray(seq)
         self.assertTrue( equivalent(
-            root_N * type_a.standard_uncertainty(seq) ,
-            data_.std(), TOL )
-        )            
+            root_N * type_a.standard_uncertainty(useq) ,
+            data_.std(), TOL)
+        )
 
     def testComplexMean(self):
         TOL = 1E-12
@@ -158,7 +168,13 @@ class TestTypeA(unittest.TestCase):
             TOL
         )
 
-            
+        uzseq = la.uarray(zseq)
+        equivalent_complex(
+            type_a.mean(uzseq),
+            complex( re_data_.mean(),im_data_.mean() ),
+            TOL
+        )
+        
     def testComplexUncertainties(self):
         TOL = 1E-12
 
@@ -200,6 +216,12 @@ class TestTypeA(unittest.TestCase):
         self.assertTrue( equivalent( root_N * u_re , re_data_.std(), TOL) )
         self.assertTrue( equivalent( root_N * u_im , im_data_.std(), TOL) )
 
+        uzseq = la.uarray(zseq)
+        (u_re,u_im), r = type_a.standard_uncertainty(uzseq)
+
+        self.assertTrue( equivalent(r,1.0,TOL) )
+        self.assertTrue( equivalent( root_N * u_re , re_data_.std(), TOL) )
+        self.assertTrue( equivalent( root_N * u_im , im_data_.std(), TOL) )
 
     def testTypeAComplex(self):
         TOL = 1E-12
