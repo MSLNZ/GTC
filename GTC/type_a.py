@@ -68,6 +68,7 @@ except ImportError:
 from GTC import (
     inf, 
     function,
+    is_sequence
 )
 from GTC.lib import (
     UncertainReal, 
@@ -114,7 +115,18 @@ def value(x):
         return x.x 
     except AttributeError:
         return x 
-        
+#-----------------------------------------------------------------------------------------
+def value_seq(x):
+    if is_sequence(x):
+        rtn = tuple(
+            value(x_i) for x_i in x 
+        )
+    else:
+        # uarray defines value()
+        # but other types will generate an AttributeError
+        rtn = value(x)
+
+    return rtn    
 #-----------------------------------------------------------------------------------------
 #
 class LineFitOLS(LineFit):
@@ -309,44 +321,51 @@ def line_fit(x,y,label=None):
             
     """
     N = len(x)
+    
+    x = value_seq(x)
+    y = value_seq(y)
 
     df = N-2
 
     v = u_y = [1.0] * N
     S = N
-    S_x = math.fsum( value(x_i) for x_i in x )
-    S_y = math.fsum( value(y_i) for y_i in y )
+    S_x = math.fsum( x )
+    S_y = math.fsum( y )
         
     k = S_x / S
-    t = [ (value(x_i) - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
-    b_ =  math.fsum( t_i*value(y_i)/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    b_ =  math.fsum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
     a_ = (S_y - b_*S_x)/S
 
     siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
     sigb = math.sqrt( 1.0/S_tt )
     r_ab = -S_x/(S*S_tt*siga*sigb)
     
-    # Chi-square calculation
-    float_a = value(a_)
-    float_b = value(b_)
-
-    # Need to estimate sigma to correctly calculate parameter uncertainties
-    f = lambda x_i,y_i: (y_i - float_a - float_b*x_i)**2 
-    ssr =  math.fsum( f(value(x_i),value(y_i)) for x_i,y_i in izip(x,y) )
+    # Sum of squared residuals needed to correctly calculate parameter uncertainties
+    f = lambda x_i,y_i: (y_i - a_ - b_*x_i)**2 
+    ssr =  math.fsum( f(x_i,y_i) for x_i,y_i in izip(x,y) )
 
     data_u = math.sqrt( ssr/df )
     siga *= data_u
     sigb *= data_u
             
-    a = ureal(a_,siga,df=df,label=None,independent=False)
-    b = ureal(b_,sigb,df=df,label=None,independent=False)
-    
-    if label is not None:
-        a.label = 'a_{}'.format(label)
-        b.label = 'b_{}'.format(label)
+    a = ureal(
+        a_,
+        siga,
+        df=df,
+        label='a_{}'.format(label) if label is not None else None,
+        independent=False
+    )
+    b = ureal(
+        b_,
+        sigb,
+        df=df,
+        label='b_{}'.format(label) if label is not None else None,
+        independent=False
+    )
     
     real_ensemble( (a,b), df )
     a.set_correlation(r_ab,b)
@@ -355,33 +374,32 @@ def line_fit(x,y,label=None):
 
 #-----------------------------------------------------------------------------------------
 def _line_fit_wls(x,y,u_y):
-    """Utility function"""
+    """Utility function
+    
+    NB client must supply sequences `x` and `y` of pure numbers
+    """
     N = len(x)
 
     v = [ u_y_i*u_y_i for u_y_i in u_y ]
     S =  math.fsum( 1.0/v_i for v_i in v)
 
-    S_x =  math.fsum( value(x_i)/v_i for x_i,v_i in izip(x,v) )
-    S_y =  math.fsum( value(y_i)/v_i for y_i,v_i in izip(y,v) )
+    S_x =  math.fsum( x_i/v_i for x_i,v_i in izip(x,v) )
+    S_y =  math.fsum( y_i/v_i for y_i,v_i in izip(y,v) )
 
     k = S_x / S
-    t = [ (value(x_i) - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
-    b_ =  math.fsum( t_i*value(y_i)/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    b_ =  math.fsum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
     a_ = (S_y - b_*S_x)/S
 
     siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
     sigb = math.sqrt( 1.0/S_tt )
     r_ab = -S_x/(S*S_tt*siga*sigb)
     
-    # Chi-square calculation
-    float_a = value(a_)
-    float_b = value(b_)
-
-    f = lambda x_i,y_i,u_y_i: ((y_i - float_a - float_b*x_i)/u_y_i)**2 
-    ssr =  math.fsum( f(value(x_i),value(y_i),u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
+    f = lambda x_i,y_i,u_y_i: ((y_i - a_ - b_*x_i)/u_y_i)**2 
+    ssr =  math.fsum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
 
     return a_,b_,siga,sigb,r_ab,ssr,N
 
@@ -409,14 +427,25 @@ def line_fit_wls(x,y,u_y,label=None):
          b=ureal(2.056962025316...,0.177892016741...,inf))
         
     """
+    x = value_seq(x)
+    y = value_seq(y)
+
     a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,u_y)
     
-    if label is None:
-        a = ureal(a_,siga,float('inf'),label=None,independent=False)
-        b = ureal(b_,sigb,float('inf'),label=None,independent=False)
-    else:
-        a = ureal(a_,siga,float('inf'),label='a_{}'.format(label),independent=False)
-        b = ureal(b_,sigb,float('inf'),label='b_{}'.format(label),independent=False)
+    a = ureal(
+        a_,
+        siga,
+        inf,
+        label='a_{}'.format(label) if label is not None else None,
+        independent=False
+    )
+    b = ureal(
+        b_,
+        sigb,
+        inf,
+        label='b_{}'.format(label) if label is not None else None,
+        independent=False
+    )
     
     a.set_correlation(r_ab,b)
 
@@ -465,6 +494,9 @@ def line_fit_rwls(x,y,s_y,label=None):
             "At least three data points are required, got {}".format(N)
         )
         
+    x = value_seq(x)
+    y = value_seq(y)
+    
     a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,s_y)
 
     df = N-2
@@ -472,12 +504,20 @@ def line_fit_rwls(x,y,s_y,label=None):
     siga *= sigma_hat
     sigb *= sigma_hat
     
-    if label is None:
-        a = ureal(a_,siga,df,label=None,independent=False)
-        b = ureal(b_,sigb,df,label=None,independent=False)
-    else:
-        a = ureal(a_,siga,df,label='a_{}'.format(label),independent=False)
-        b = ureal(b_,sigb,df,label='b_{}'.format(label),independent=False)
+    a = ureal(
+        a_,
+        siga,
+        df,
+        label='a_{}'.format(label) if label is not None else None,
+        independent=False
+    )
+    b = ureal(
+        b_,
+        sigb,
+        df,
+        label='b_{}'.format(label) if label is not None else None,
+        independent=False
+    )
     
     real_ensemble( (a,b), df )
     a.set_correlation(r_ab,b)
@@ -546,12 +586,20 @@ def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
     
     df = N-2
     
-    a = ureal(a.x,a.u,df=df,label=None,independent=False)
-    b = ureal(b.x,b.u,df=df,label=None,independent=False)
-    
-    if label is not None:
-        a.label = 'a_{}'.formt(label)
-        b.label = 'b_{}'.format(label)
+    a = ureal(
+        a.x,
+        a.u,
+        df,
+        label='a_{}'.format(label) if label is not None else None,
+        independent=False
+    )
+    b = ureal(
+        b.x,
+        b.u,
+        df,
+        label='b_{}'.format(label) if label is not None else None,
+        independent=False
+    )
 
     real_ensemble( (a,b), df )
     a.set_correlation(r_ab,b)
@@ -617,16 +665,12 @@ def estimate_digitized(seq,delta,label=None,truncate=False):
             "digitized data sequence must have more than one element"
         )
 
-    try:
-        seq = [ float(x_i) for x_i in seq ]
-    except TypeError:
-        # If not a float then an uncertain number?
-        seq = [ x_i.x for x_i in seq ]
+    seq = value_seq(seq)
     
     x_max = max(seq)
     x_min = min(seq)
     
-    mean = math.fsum(seq)/N
+    mu = mean(seq)
         
     if x_max == x_min:
         # No scatter in the data
@@ -641,22 +685,22 @@ def estimate_digitized(seq,delta,label=None,truncate=False):
             
         u = root_c_12*delta
     else:
-        accum = lambda psum,x: psum + (x-mean)**2
+        accum = lambda psum,x: psum + (x-mu)**2
         var = reduce(accum, seq, 0.0) / (N - 1)
 
         if abs(x_max - x_min - delta) < 10*sys.float_info.epsilon:
             # Scatter is LSD only
             x_mid = (x_max + x_min)/2.0
             u = math.sqrt(
-                max(var/N,(x_mid - mean)**2/3.0)
+                max(var/N,(x_mid - mu)**2/3.0)
             )
         else:
             u = math.sqrt(var/N)
 
     if truncate:
-        mean += delta/2.0
+        mu += delta/2.0
         
-    return ureal(mean,u,N-1,label,independent=True)
+    return ureal(mu,u,N-1,label,independent=True)
     
 #-----------------------------------------------------------------------------------------
 def estimate(seq,label=None):
@@ -702,6 +746,9 @@ def estimate(seq,label=None):
 
     """
     df = len(seq)-1
+    
+    seq = value_seq(seq)
+    
     mu = mean(seq)
     
     if isinstance(mu,complex):
@@ -711,7 +758,7 @@ def estimate(seq,label=None):
             label,
             independent = (r == 0.0)
         )
-        
+       
     else:
         u = standard_uncertainty(seq,mu)
         return ureal(
@@ -739,11 +786,12 @@ def mean(seq,*args,**kwargs):
         7.0
             
     """
-    if isinstance(seq,np.ndarray):
-        return value( np.asarray(seq).mean(*args, **kwargs) )   
-    else:
-        return value( function.mean(seq) )
-
+    mu = sum(seq)/len(seq)
+    
+    # If `seq` has uncertain number elements then `mu` will 
+    # be an uncertain number.     
+    return value(mu)
+    
 #-----------------------------------------------------------------------------------------
 def standard_deviation(seq,mu=None):
     """Return the sample standard deviation
@@ -826,7 +874,7 @@ def standard_deviation(seq,mu=None):
 
 #-----------------------------------------------------------------------------------------
 def standard_uncertainty(seq,mu=None):
-    """Return the standard uncertainty of the sample mean
+    """Return the standard uncertainty associated with the sample mean
 
     :arg seq: sequence of data
     :arg mu: the arithmetic mean of ``seq``
@@ -931,22 +979,22 @@ def variance_covariance_complex(seq,mu=None):
 
     """
     N = len(seq)
+    df = N-1
     
-    zseq = [ value(x) for x in seq ]
+    zseq = value_seq(seq)
     
     if mu is None:
-        mu = mean(zseq)        
-    else:
-        mu = complex( mu )
-
-            
+        mu = mean(zseq)         
+        
+    mu = complex( mu )
+           
     accum_vr = lambda psum,z: psum + (z.real - mu.real)**2
     accum_vi = lambda psum,z: psum + (z.imag - mu.imag)**2
     accum_cv = lambda psum,z: psum + (z.imag - mu.imag)*(z.real - mu.real)
     
-    cv_11 = reduce(accum_vr,zseq,0.0) / (N-1) 
-    cv_22 = reduce(accum_vi,zseq,0.0) / (N-1)
-    cv_12 = reduce(accum_cv,zseq,0.0) / (N-1)
+    cv_11 = reduce(accum_vr,zseq,0.0) / df 
+    cv_22 = reduce(accum_vi,zseq,0.0) / df
+    cv_12 = reduce(accum_cv,zseq,0.0) / df
 
     return VarianceCovariance(cv_11,cv_12,cv_12,cv_22)
 
@@ -978,11 +1026,11 @@ def multi_estimate_real(seq_of_seq,labels=None):
         >>> phi = [1.0456,1.0438,1.0468,1.0428,1.0433]
         >>> v,i,p = type_a.multi_estimate_real((V,I,phi),labels=('V','I','phi'))
         >>> v
-        ureal(4.999,0.0032093613071761794,4, label='V')
+        ureal(4.999000...,0.0032093613071761...,4, label='V')
         >>> i
-        ureal(0.019661,9.471008394041335e-06,4, label='I')
+        ureal(0.019661,9.471008394041335...e-06,4, label='I')
         >>> p
-        ureal(1.04446,0.0007520638270785368,4, label='phi')
+        ureal(1.044460...,0.0007520638270785...,4, label='phi')
         
         >>> r = v/i*cos(p)
         >>> r
@@ -1004,9 +1052,9 @@ def multi_estimate_real(seq_of_seq,labels=None):
         if len(seq_i) != N:
             raise RuntimeError( "{:d}th sequence length inconsistent".format(i) )
 
-        mu_i =  math.fsum(seq_i) / N
+        mu_i =  value( sum(seq_i) / N )
         means.append( mu_i )
-        dev.append([ float(x_j)-mu_i for x_j in seq_i])
+        dev.append( tuple( value(x_j)-mu_i for x_j in seq_i ) )
 
     # calculate the covariance matrix
     N_N_1 = N*(N-1)
@@ -1109,8 +1157,8 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     # 1. Create a 2M sequence of sequences of real values
     x = []
     for i in xrange(M):
-        x.append( [ float(z_i.real) for z_i in seq_of_seq[i] ] )
-        x.append( [ float(z_i.imag) for z_i in seq_of_seq[i] ] )
+        x.append( [ value(z_i.real) for z_i in seq_of_seq[i] ] )
+        x.append( [ value(z_i.imag) for z_i in seq_of_seq[i] ] )
         if len(x[-1]) != N:
             raise RuntimeError(
                 "{:d}th sequence length is incorrect".format(i)
@@ -1121,7 +1169,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     N_N_1 = N*N_1
 
     # 2. Evaluate the means and uncertainties (keep the deviation sequences)
-    x_mean = [ math.fsum(seq_i) / N for seq_i in x ]
+    x_mean = [ value( math.fsum(seq_i) / N ) for seq_i in x ]
     x_u = []
     for i in xrange(TWOM):
         mu_i = x_mean[i]
