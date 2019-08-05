@@ -51,7 +51,11 @@ try:
 except ImportError:
     from collections import Iterable
 
-from GTC import is_sequence
+from GTC import (
+    is_sequence,
+    inf 
+)
+
 from GTC.named_tuples import InterceptSlope
 from GTC.lib import UncertainReal
 from GTC.vector import scale_vector
@@ -234,6 +238,7 @@ def line_fit(x,y):
         
     """  
     S = len(x) 
+    
     S_x = sum( x ) 
     S_y = sum( y )
 
@@ -245,8 +250,10 @@ def line_fit(x,y):
     b = sum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
     a = (S_y - b*S_x)/S
     
+    # The sum of squared residuals is calculated but not used 
     float_a = value(a)
     float_b = value(b)
+    
     f2 = lambda x_i,y_i: (
         (y_i - float_a - float_b*x_i)
     )**2 
@@ -324,6 +331,7 @@ def line_fit_wls(x,y,u_y=None):
     b = sum( t_i*y_i/u_i/S_tt for t_i,y_i,u_i in izip(t,y,u) )
     a = (S_y - b*S_x)/S
     
+    # The sum of squared residuals is calculated but not used 
     float_a = value(a)
     float_b = value(b)
     
@@ -448,13 +456,12 @@ def seq_to_complex(seq):
         (1+2j)
 
     """
-    TOL = 1E-16
     if hasattr(seq,'shape'):
         if seq.shape != (2,2):
             raise RuntimeError("array shape illegal: {}".format(seq))
         elif (
-            math.fabs( seq[0,0] - seq[1,1] ) > TOL
-        or  math.fabs( seq[1,0] + seq[0,1] ) > TOL ):
+            math.fabs( seq[0,0] - seq[1,1] ) > EPSILON
+        or  math.fabs( seq[1,0] + seq[0,1] ) > EPSILON ):
             raise RuntimeError("ill-conditioned sequence: {}".format(seq))
         else:
             seq = list( seq.flat )
@@ -463,8 +470,8 @@ def seq_to_complex(seq):
         if len(seq) != 4:
             raise RuntimeError("sequence must have 4 elements: {}".format(seq))
         elif (
-            math.fabs( seq[0] - seq[3] ) > TOL
-        or  math.fabs( seq[1] + seq[2] ) > TOL ):
+            math.fabs( seq[0] - seq[3] ) > EPSILON
+        or  math.fabs( seq[1] + seq[2] ) > EPSILON ):
             raise RuntimeError("ill-conditioned sequence: {}".format(seq))
     
     else:
@@ -495,7 +502,7 @@ def _dbrent(ax,bx,cx,fn,tol=math.sqrt(EPSILON)):
 
     deriv = lambda y,x: y.sensitivity(x)
     ureal = lambda x,u: UncertainReal._elementary(
-            x,u,float('inf'),None,True
+            x,u,inf,None,True
     )    
     e = 0.0 # The distance moved on the step before last
     
@@ -899,7 +906,7 @@ def line_fit_wtls(a_b,x,y,u_x=None,u_y=None,r_xy=None):
 
     """
     ureal = lambda x,u: UncertainReal._elementary(
-            x,u,float('inf'),None,True
+            x,u,inf,None,True
     )    
 
     if (u_x is not None or u_y is not None):
