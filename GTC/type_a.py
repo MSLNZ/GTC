@@ -483,7 +483,7 @@ def line_fit_rwls(x,y,s_y,label=None):
           Intercept: 1.14(12)
           Slope: 1.973(41)
           Correlation: -0.87
-          Sum of the squared residuals: 1.33952179588...
+          Sum of the squared residuals: 1.3395217958...
           Number of points: 6
         <BLANKLINE>
           
