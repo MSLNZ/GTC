@@ -482,7 +482,11 @@ class UncertainLineTests(unittest.TestCase):
         x = [ float(x_i) for x_i in xrange(10) ]
         y = [ ureal(y_i,1) for y_i in x ]
 
-        a,b = function.line_fit(x,y).a_b # default weight is unity
+        fit = function.line_fit(x,y)
+        a,b = fit.a_b # default weight is unity
+
+        self.assertTrue(a is fit.intercept)
+        self.assertTrue(b is fit.slope)
 
         equivalent( value(a) ,0.0,TOL)
         equivalent( value(b) ,1.0,TOL)

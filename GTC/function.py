@@ -105,6 +105,18 @@ class LineFit(object):
         return self._a_b
 
     @property
+    def intercept(self):
+        """Return the intercept as an uncertain number.
+        """
+        return self._a_b[0]
+
+    @property
+    def slope(self):
+        """Return the slope as an uncertain number.
+        """
+        return self._a_b[1]
+
+    @property
     def ssr(self):
         """Sum of the squared residuals
         
