@@ -884,7 +884,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
     with non-zero uncertainties. The uncertainties of the ``x`` 
     and ``y`` sequences are used to calculate weights 
     for the regression unless the optional arguments
-    ``u_x`` and ``u_y`` are not specified. 
+    ``u_x`` and ``u_y`` are specified.
     
     Implements a Weighted Total Least Squares algorithm
     that allows for correlation between x-y pairs. See reference: 
