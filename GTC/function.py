@@ -244,7 +244,7 @@ def line_fit(x,y):
     b = sum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
     a = (S_y - b*S_x)/S
     
-    # The sum of squared residuals is calculated but not used 
+    # The sum of squared residuals is now calculated but not used
     float_a = value(a)
     float_b = value(b)
     
@@ -325,7 +325,7 @@ def line_fit_wls(x,y,u_y=None):
     b = sum( t_i*y_i/u_i/S_tt for t_i,y_i,u_i in izip(t,y,u) )
     a = (S_y - b*S_x)/S
     
-    # The sum of squared residuals is calculated but not used 
+    # The sum of squared residuals is now calculated but not used
     float_a = value(a)
     float_b = value(b)
     
