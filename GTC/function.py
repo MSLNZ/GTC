@@ -449,9 +449,6 @@ def seq_to_complex(seq):
 
     :arg seq:   a 4-element sequence
     :raises RuntimeError: if ``seq`` is ill-conditioned
-    
-    If ``z = x + yj``, then an array of the form ``[[x,-y],[y,x]]`` 
-    can be used to represent ``z`` in matrix computations. 
 
     **Examples**::
 
