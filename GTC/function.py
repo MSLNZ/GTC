@@ -35,21 +35,15 @@ import sys
 import math
 import numpy as np 
 
-try:
-    from itertools import izip  # Python 2
+try:  # Python 2
+    import __builtin__ as builtins
+    from collections import Iterable
+    from itertools import izip
 except ImportError:
+    import builtins
+    from collections.abc import Iterable
     izip = zip
     xrange = range
-
-try:
-    import builtins    # Python 3
-except ImportError: 
-    import __builtin__ as builtins
-    
-try:
-    from collections.abc import Iterable  # Python 3
-except ImportError:
-    from collections import Iterable
 
 from GTC import (
     is_sequence,
