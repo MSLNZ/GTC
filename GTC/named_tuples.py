@@ -12,7 +12,7 @@ VarianceAndDof = namedtuple('VarianceAndDof','cv, df')
    :class:`float`: Degrees of freedom.
  
 """
-    
+
 VarianceCovariance = namedtuple('VarianceCovariance','rr, ri, ir, ii')
 """:obj:`~collections.namedtuple`: Values of variance-covariance for a complex quantity
  
@@ -33,7 +33,7 @@ VarianceCovariance = namedtuple('VarianceCovariance','rr, ri, ir, ii')
    :class:`float`:  variance in the imaginary component
 
    """
-   
+
 StandardUncertainty = namedtuple('StandardUncertainty','real,imag')
 """:obj:`~collections.namedtuple`: Standard uncertainty values of a complex quantity
  
@@ -101,7 +101,7 @@ JacobianMatrix = namedtuple('JacobianMatrix','rr, ri, ir, ii')
    :class:`float`: imaginary component with respect to imaginary component
 
    """
-   
+
 Influence = namedtuple('Influence','label, u')
 """:obj:`~collections.namedtuple`: label and value of a component of uncertainty
  
@@ -134,7 +134,7 @@ CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")
    :class:`float`: correlation between ``x.imag`` and ``y.imag``
 
    """
-   
+
 CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
 """:obj:`~collections.namedtuple`: Values of covariance for a pair of quantities ``x`` and ``y``
  
@@ -155,19 +155,19 @@ CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
    :class:`float`: covariance between ``x.imag`` and ``y.imag``
 
    """
-   
+
 InterceptSlope = namedtuple('InterceptSlope','a b')
 """:obj:`~collections.namedtuple`: Values for intercept ``a`` and slope ``b``
  
 .. attribute:: a
   
-   :class:`float`: intercept
+   :class:`~.lib.UncertainReal`: intercept
   
 .. attribute:: b
   
-   :class:`float`: slope
- """  
- 
+   :class:`~.lib.UncertainReal`: slope
+ """
+
 GroomedUncertainReal = namedtuple('ureal','x u df label precision df_decimals u_digits')
 GroomedUncertainComplex = namedtuple(
     'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
