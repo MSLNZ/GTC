@@ -960,7 +960,7 @@ class TestLineFitTLS(unittest.TestCase):
         a_b = function.line_fit(x,y).a_b
 
         a0, b0 = a_b
-        fit = function.line_fit_wtls(a_b,x,y)
+        fit = function.line_fit_wtls(x,y,a_b=a_b)
         a, b = fit.a_b
         
         TOL = 0.004
@@ -985,7 +985,7 @@ class TestLineFitTLS(unittest.TestCase):
         a_b = function.line_fit(x,y).a_b
 
         a0, b0 = a_b
-        fit = type_a.line_fit_wtls(a_b,x,y,[u_x]*6,u_y)
+        fit = type_a.line_fit_wtls(x,y, a0_b0=a_b, u_x=[u_x]*6, u_y=u_y)
         a, b = fit.a_b
         
         TOL = 0.004
@@ -1020,7 +1020,7 @@ class TestLineFitTLS(unittest.TestCase):
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
         a0, b0 = fn.line_fit(x,y).a_b
-        result = fn.line_fit_wtls((a0,b0),x,y)
+        result = fn.line_fit_wtls(x,y,a_b=(a0,b0))
 
         a,b = result.a_b
         
@@ -1079,7 +1079,7 @@ class TestLineFitTLS(unittest.TestCase):
         y = [ ureal(yin_i,1) for yin_i in yin ]
 
         a0, b0 = fn.line_fit(x,y).a_b
-        result = fn.line_fit_wtls((a0,b0),x,y,uxin,uyin)
+        result = fn.line_fit_wtls(x,y,a_b=(a0,b0),u_x=uxin,u_y=uyin)
 
         a,b = result.a_b
         
@@ -1126,7 +1126,7 @@ class TestLineFitTLS(unittest.TestCase):
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
         a0, b0 = fn.line_fit(x,y).a_b
-        result = ta.line_fit_wtls((a0,b0),x,y,uxin,uyin)
+        result = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0))
         a,b = result.a_b
 
         # 'exact' values of a and b from 
@@ -1175,7 +1175,7 @@ class TestLineFitTLS(unittest.TestCase):
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
         a0, b0 = fn.line_fit(x,y).a_b
-        result = fn.line_fit_wtls((a0,b0),x,y)
+        result = fn.line_fit_wtls(x,y,a_b=(a0,b0))
         a,b = result.a_b
 
         # Now test what we get...
@@ -1221,7 +1221,7 @@ class TestLineFitTLS(unittest.TestCase):
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
         a0, b0 = ta.line_fit(x,y).a_b
-        a,b = ta.line_fit_wtls((a0,b0),x,y,uxin,uyin).a_b
+        a,b = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0)).a_b
 
         # Now test what we get...
         a0 = 5.47991022
@@ -1284,7 +1284,7 @@ class TestLineFitTLS(unittest.TestCase):
         x_data = [ ureal(x,u) for x,u in t ]
 
         a0, b0 = function.line_fit(x_data,y_data).a_b
-        a,b = function.line_fit_wtls((a0,b0),x_data,y_data).a_b
+        a,b = function.line_fit_wtls(x_data,y_data,a_b=(a0,b0)).a_b
         self.assertTrue( equivalent(a.x,0.0991,1E-4) )
         self.assertTrue( equivalent(a.u,0.0123,1E-4) )
         self.assertTrue( equivalent(b.x,0.97839,1E-5))
@@ -1325,7 +1325,7 @@ class TestLineFitTLS(unittest.TestCase):
         
         result_1 = type_a.line_fit(x,y)         # OLS initial estimate
 
-        result_2 = function.line_fit_wtls(result_1.a_b,un_x,un_y)
+        result_2 = function.line_fit_wtls(un_x,un_y,a_b=result_1.a_b)
         a,b = result_2.a_b
         
         self.assertTrue( equivalent(a.x,9.23517,1E-4) )

@@ -868,14 +868,14 @@ class dChiSq_dalpha(object):
         return dy_dx
      
 #--------------------------------------------------------------------
-def line_fit_wtls(a_b,x,y,u_x=None,u_y=None,r_xy=None):
+def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
     """Perform straight-line regression with uncertainty in ``x`` and ``y``
 
-    :arg a_b:   a pair of initial estimates for ``a`` and ``b``
     :arg x: list of uncertain real numbers for the independent variable
     :arg y: list of uncertain real numbers for the dependent variable
     :arg u_x: a sequence of uncertainties for the ``x`` data
     :arg u_y: a sequence of uncertainties for the ``y`` data
+    :arg a_b: a pair of initial estimates for the intercept and slope
     :arg r_xy: correlation between x-y pairs [default: 0]
 
     Returns a :class:`~function.LineFitWTLS` object
@@ -895,25 +895,25 @@ def line_fit_wtls(a_b,x,y,u_x=None,u_y=None,r_xy=None):
 
         # Pearson-York test data
         # see, e.g., Lybanon, M. in Am. J. Phys 52 (1), January 1984 
-        xin=[0.0,0.9,1.8,2.6,3.3,4.4,5.2,6.1,6.5,7.4]
-        wx=[1000.0,1000.0,500.0,800.0,200.0,80.0,60.0,20.0,1.8,1.0]
-        
-        yin=[5.9,5.4,4.4,4.6,3.5,3.7,2.8,2.8,2.4,1.5]
-        wy=[1.0,1.8,4.0,8.0,20.0,20.0,70.0,70.0,100.0,500.0]
+        >>> xin=[0.0,0.9,1.8,2.6,3.3,4.4,5.2,6.1,6.5,7.4]
+        >>> wx=[1000.0,1000.0,500.0,800.0,200.0,80.0,60.0,20.0,1.8,1.0]
+        >>> yin=[5.9,5.4,4.4,4.6,3.5,3.7,2.8,2.8,2.4,1.5]
+        >>> wy=[1.0,1.8,4.0,8.0,20.0,20.0,70.0,70.0,100.0,500.0]
 
         # Convert weights to standard uncertainties 
-        uxin=[1./math.sqrt(wx_i) for wx_i in wx ]
-        uyin=[1./math.sqrt(wy_i) for wy_i in wy ]
+        >>> uxin=[1./math.sqrt(wx_i) for wx_i in wx ]
+        >>> uyin=[1./math.sqrt(wy_i) for wy_i in wy ]
 
         # Define uncertain numbers
-        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in zip(xin,uxin) ]
-        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
-
-        # initial estimate
-        a_b = function.line_fit(x,y).a_b
+        >>> x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in zip(xin,uxin) ]
+        >>> y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
 
         # TLS returns uncertain numbers
-        a,b = function.line_fit_wtls(a_b,x,y).a_b
+        >>> a,b = function.line_fit_wtls(x,y).a_b
+        >>> a
+        ureal(5.4799101832830...,0.2919334989452...,inf)
+        >>> b
+        ureal(-0.480533399108...,0.05761674075939...,inf)
 
     """
     ureal = lambda x,u: UncertainReal._elementary(
@@ -932,6 +932,9 @@ def line_fit_wtls(a_b,x,y,u_x=None,u_y=None,r_xy=None):
     for x_i,y_i in izip(x,y):
         assert isinstance(x_i,UncertainReal), 'uncertain real required'
         assert isinstance(y_i,UncertainReal), 'uncertain real required'
+
+    if a_b is None:
+        a_b = line_fit(x, y).a_b
 
     a0 = value(a_b[0])
     b0 = value(a_b[1])

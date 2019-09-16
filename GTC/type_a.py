@@ -526,14 +526,14 @@ def line_fit_rwls(x,y,s_y,label=None):
     
 #--------------------------------------------------------------------
 #
-def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
+def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
     """Return a total least-squares straight-line fit 
 
-    :arg a0_b0: initial line intercept and slope
-    :arg x:     sequence of independent-variable data 
+    :arg x:     sequence of independent-variable data
     :arg y:     sequence of dependent-variable data 
     :arg u_x:   sequence of uncertainties in ``x``
     :arg u_y:   sequence of uncertainties in ``y``
+    :arg a0_b0: a pair of initial estimates for the intercept and slope
     :arg r_xy:  correlation between x-y pairs
     :arg label: suffix labeling the uncertain numbers `a` and `b`
 
@@ -552,15 +552,12 @@ def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
 
         >>> y=[5.9,5.4,4.4,4.6,3.5,3.7,2.8,2.8,2.4,1.5]
         >>> wy=[1.0,1.8,4.0,8.0,20.0,20.0,70.0,70.0,100.0,500.0]
-        
-        # initial estimates are needed
-        >>> a0_b0 = type_a.line_fit(x,y).a_b
 
         # standard uncertainties required for weighting
         >>> ux=[1./math.sqrt(wx_i) for wx_i in wx ]
         >>> uy=[1./math.sqrt(wy_i) for wy_i in wy ]
 
-        >>> result = type_a.line_fit_wtls(a0_b0,x,y,ux,uy)
+        >>> result = type_a.line_fit_wtls(x,y,ux,uy)
         >>> result.a_b
         InterceptSlope(a=ureal(5.4799101832830...,0.2919334989452...,8), 
         b=ureal(-0.480533399108...,0.05761674075939...,8))
@@ -578,7 +575,10 @@ def line_fit_wtls(a0_b0,x,y,u_x,u_y,r_xy=None,label=None):
         for x_i,y_i,r_i in izip(x_u,y_u,r_xy):
             x_i.set_correlation(r_i,y_i)
 
-    result = function.line_fit_wtls(a0_b0,x_u,y_u)
+    if a0_b0 is None:
+        a0_b0 = line_fit(x, y).a_b
+
+    result = function.line_fit_wtls(x_u,y_u,a_b=a0_b0)
     a, b = result.a_b
     N = result.N
     ssr = result.ssr
