@@ -161,7 +161,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( abs(a.u-0.21188326) > 1E-8)
         self.assertTrue( abs(b.u-0.07115681) > 1E-8)
         self.assertTrue( abs(a.u*b.u*a.get_correlation(b)+0.01316456) > 1E-7)
-        
+
 #-----------------------------------------------------
 class TestLineFitWeighted(unittest.TestCase):
 
@@ -461,7 +461,15 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent( uncertainty(a), a_u, TOL) )
         self.assertTrue( equivalent( uncertainty(b), b_u, TOL) )
         self.assertTrue( equivalent( a.get_correlation(b), r_, TOL) )
-        
+
+    def test_fn_line_fit_wls_not_uncertain_real(self):
+        # function.line_fit_wls should raise ValueError if y is not a
+        # sequence of uncertain real numbers
+        x = list(range(10))
+        y = list(range(10))
+        u_y = [1.0] * 10
+        self.assertRaises(ValueError, fn.line_fit_wls, x, y, u_y)
+
 #---------------------------------------------------------------
 class UncertainLineTests(unittest.TestCase):
 
@@ -603,6 +611,14 @@ class UncertainLineTests(unittest.TestCase):
         )
         equivalent(uncertainty(b),sig_b,TOL)
         equivalent(uncertainty(a),sig_a,TOL)
+
+    def test_fn_line_fit_not_uncertain_real(self):
+        # function.line_fit should raise ValueError if y is not a
+        # sequence of uncertain real numbers
+        x = list(range(10))
+        y = list(range(10))
+        self.assertRaises(ValueError, fn.line_fit, x, y)
+
 
 class DoFLineTest(unittest.TestCase):
     """
