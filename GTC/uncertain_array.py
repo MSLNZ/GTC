@@ -1,8 +1,5 @@
 """
 The proper way to create an uncertain array is by calling :func:`.uarray`
-
-.. versionadded:: 1.1
-
 """
 # Adding numpy arrays to GTC is not an easy exercise.
 # Our need is to provide convenient containers for uncertain numbers.
@@ -108,6 +105,8 @@ class UncertainArray(np.ndarray):
     Do not instantiate this class directly. Use :func:`~.uarray` instead.
 
     Base: :class:`numpy.ndarray`
+
+    .. versionadded:: 1.1
 
     """
     def __new__(cls, array, dtype=None, label=None):
