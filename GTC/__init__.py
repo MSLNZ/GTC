@@ -1,8 +1,8 @@
 """
-A Python package for evaluating measurement uncertainty 
+A Python package for evaluating measurement uncertainty
 in real and complex quantities.
 
-The method of uncertainty propagation is compatible with the approach described 
+The method of uncertainty propagation is compatible with the approach described
 in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
 Copyright (c) 2019, Measurement Standards Laboratory of New Zealand.
@@ -23,20 +23,20 @@ except NameError:
 # Global constants, etc
 
 # The degrees of freedom is considered infinite above `inf_dof`
-inf_dof = 1E5               
+inf_dof = 1E5
 
 inf = float('inf')
-nan = float('nan') 
+nan = float('nan')
 
 # Do not consider strings as sequences
 # Note numpy arrays are not detected as sequences
-# by this function. 
+# by this function.
 def is_sequence(obj):
     if isinstance(obj, basestring):
         return False
     else:
         return isinstance(obj, Sequence)
-    
+
 #----------------------------------------------------------------------------
 
 __all__ = (
@@ -90,9 +90,9 @@ __all__ = (
     ,   'inf'
     ,   'nan'
 )
- 
+
 #----------------------------------------------------------------------------
-version = "1.1.1 develop"
+version = "1.2.0.develop"
 copyright = """Copyright (c) 2019, \
 Measurement Standards Laboratory of New Zealand"""
 
