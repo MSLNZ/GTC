@@ -260,7 +260,7 @@ def line_fit(x,y):
     :arg x:     sequence of independent variable data 
     :arg y:     sequence of dependent variable data
 
-    :rtype:     a :class:`~function.LineFitOLS`
+    :rtype:     a :class:`~type_b.LineFitOLS`
     
     ``y`` must be a sequence of uncertain real numbers.
 
@@ -288,7 +288,7 @@ def line_fit(x,y):
         >>> x = [ float(x_i) for x_i in xrange(10) ]
         >>> y = [ ureal(b0*x_i + a0,u0) for x_i in x ]
 
-        >>> a,b = fn.line_fit(x,y).a_b
+        >>> a,b = tb.line_fit(x,y).a_b
         >>> a
         ureal(10.0,0.1175507627290...,inf)
         >>> b
@@ -338,7 +338,7 @@ def line_fit_wls(x,y,u_y=None):
     :arg y:     sequence of dependent variable data
     :arg u_y:   sequence of uncertainties in ``y``
 
-    :rtype:    :class:`~function.LineFitWLS` 
+    :rtype:    :class:`~type_b.LineFitWLS` 
     
     ``y`` must be a sequence of uncertain real numbers.
 
@@ -368,7 +368,7 @@ def line_fit_wls(x,y,u_y=None):
         >>> u_y = [0.5,0.5,0.5,1.0,1.0,1.0]
         >>> y = [ ureal(y_i,u_y_i) for y_i, u_y_i in zip(y,u_y) ]
         
-        >>> fit = function.line_fit_wls(x,y)
+        >>> fit = type_b.line_fit_wls(x,y)
         >>> a, b = fit.a_b
         >>> a
         ureal(0.8852320675105...,0.5297081435088...,inf)
@@ -808,7 +808,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
     :arg a_b: a pair of initial estimates for the intercept and slope
     :arg r_xy: correlation between x-y pairs [default: 0]
 
-    Returns a :class:`~function.LineFitWTLS` object
+    Returns a :class:`~type_b.LineFitWTLS` object
 
     The elements of ``x`` and ``y`` must be uncertain numbers
     with non-zero uncertainties. The uncertainties of the ``x`` 
@@ -839,7 +839,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         >>> y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
 
         # TLS returns uncertain numbers
-        >>> a,b = function.line_fit_wtls(x,y).a_b
+        >>> a,b = type_b.line_fit_wtls(x,y).a_b
         >>> a
         ureal(5.4799101832830...,0.2919334989452...,inf)
         >>> b
