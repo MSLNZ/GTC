@@ -121,7 +121,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
                 [0.2,0.2,0.2,0.4,0.4,0.4]
             ) 
         ]
-        fit = fn.line_fit_wls(x,y)
+        fit = tb.line_fit_wls(x,y)
         a, b = fit.a_b
 
         self.assertTrue( equivalent(a.x,1.13754,1E-5))
@@ -139,7 +139,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
                 u_y
             ) 
         ]
-        fit = fn.line_fit_wls(x,y,u_y)
+        fit = tb.line_fit_wls(x,y,u_y)
         a, b = fit.a_b
 
         self.assertTrue( equivalent(a.x,1.13754,1E-5))
@@ -153,7 +153,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         y = [ 
             ureal(y_i,1.0) for y_i in [3.014,5.225,7.004,9.061,11.201,12.762] 
             ]
-        fit = fn.line_fit_wls(x,y,u_y)
+        fit = tb.line_fit_wls(x,y,u_y)
         a, b = fit.a_b
 
         self.assertTrue( equivalent(a.x,1.13754,1E-5))
@@ -183,7 +183,7 @@ class TestLineFitWeighted(unittest.TestCase):
         x = [1,2,3,4,5,6]
         y = [ ureal(y_i,u_y) for y_i in (3.3,5.6,7.1,9.3,10.7,12.1) ]
 
-        fit = function.line_fit_wls(x,y)
+        fit = type_b.line_fit_wls(x,y)
         a, b = fit.a_b
 
         TOL = 1E-6
@@ -256,7 +256,7 @@ class TestLineFitWeighted(unittest.TestCase):
         
         y = [ ureal(y_i,u_y_i) for y_i, u_y_i in zip(y,u_y) ]
 
-        fit = function.line_fit_wls(x,y)
+        fit = type_b.line_fit_wls(x,y)
         a, b = fit.a_b
 
         self.assertTrue( equivalent(a.x,0.8852,1E-4) )
@@ -284,7 +284,7 @@ class TestLineFitWeighted(unittest.TestCase):
         
         y = [ ureal(y_i,u_y_i) for y_i, u_y_i in zip(y,u_y_dummy) ]
 
-        fit = function.line_fit_wls(x,y,u_y)
+        fit = type_b.line_fit_wls(x,y,u_y)
         a, b = fit.a_b
 
         TOL = 0.001
@@ -343,7 +343,7 @@ class TestLineFitWeighted(unittest.TestCase):
         x = [ float(x_i) for x_i in xrange(10) ]
         y = [ ureal(b0*x_i + a0,u0) for x_i in x ]
 
-        a,b = function.line_fit_wls(x,y,u).a_b
+        a,b = type_b.line_fit_wls(x,y,u).a_b
 
         equivalent(a.x,a0,TOL)
         equivalent(b.x,b0,TOL)
@@ -406,7 +406,7 @@ class TestLineFitWeighted(unittest.TestCase):
         uy=[1./math.sqrt(wy_i) for wy_i in wy ]
         y = [ ureal(y_i,u_i) for y_i, u_i in zip(y,uy) ]
 
-        initial = function.line_fit_wls(x,y)
+        initial = type_b.line_fit_wls(x,y)
         a,b = initial.a_b
         
         self.assertTrue( equivalent(a.x,9.4302,1E-4) )
@@ -463,12 +463,12 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent( a.get_correlation(b), r_, TOL) )
 
     def test_fn_line_fit_wls_not_uncertain_real(self):
-        # function.line_fit_wls should raise ValueError if y is not a
+        # type_b.line_fit_wls should raise ValueError if y is not a
         # sequence of uncertain real numbers
         x = list(range(10))
         y = list(range(10))
         u_y = [1.0] * 10
-        self.assertRaises(ValueError, fn.line_fit_wls, x, y, u_y)
+        self.assertRaises(ValueError, tb.line_fit_wls, x, y, u_y)
 
 #---------------------------------------------------------------
 class UncertainLineTests(unittest.TestCase):
@@ -482,7 +482,7 @@ class UncertainLineTests(unittest.TestCase):
         x = [ float(x_i) for x_i in xrange(10) ]
         y = [ ureal(y_i,1) for y_i in x ]
 
-        fit = function.line_fit(x,y)
+        fit = type_b.line_fit(x,y)
         a,b = fit.a_b # default weight is unity
 
         self.assertTrue(a is fit.intercept)
@@ -512,7 +512,7 @@ class UncertainLineTests(unittest.TestCase):
         y = [ ureal(y_i,1) for y_i in xrange(N) ]
         x = [ ureal(x_i,1) for x_i in xrange(N) ]
 
-        a,b = function.line_fit( x,y ).a_b
+        a,b = type_b.line_fit( x,y ).a_b
         equivalent( value(a) ,0.0,TOL)
         equivalent( value(b) ,1.0,TOL)
 
@@ -526,7 +526,7 @@ class UncertainLineTests(unittest.TestCase):
 
         equivalent(r,a.get_correlation(b),TOL)        
 
-        a,b = function.line_fit_wls( x,y ).a_b
+        a,b = type_b.line_fit_wls( x,y ).a_b
         equivalent( value(a) ,0.0,TOL)
         equivalent( value(b) ,1.0,TOL)
 
@@ -555,7 +555,7 @@ class UncertainLineTests(unittest.TestCase):
         x = [ value(x_i) for x_i in xrange(10) ]
         y = [ ureal(b0*x_i + a0,u_i) for x_i,u_i in izip(x,u) ]
 
-        a,b = function.line_fit_wls(x,y).a_b
+        a,b = type_b.line_fit_wls(x,y).a_b
 
         equivalent( value(a),a0,TOL)
         equivalent( value(b),b0,TOL)
@@ -588,7 +588,7 @@ class UncertainLineTests(unittest.TestCase):
 
         u = [uncertainty(y_i - b0*x_i) for x_i,y_i in izip(x,y)]
 
-        a,b = function.line_fit_wls(x,y).a_b
+        a,b = type_b.line_fit_wls(x,y).a_b
 
         equivalent( value(a),a0,TOL)
         equivalent( value(b),b0,TOL)
@@ -617,11 +617,11 @@ class UncertainLineTests(unittest.TestCase):
         equivalent(uncertainty(a),sig_a,TOL)
 
     def test_fn_line_fit_not_uncertain_real(self):
-        # function.line_fit should raise ValueError if y is not a
+        # type_b.line_fit should raise ValueError if y is not a
         # sequence of uncertain real numbers
         x = list(range(10))
         y = list(range(10))
-        self.assertRaises(ValueError, fn.line_fit, x, y)
+        self.assertRaises(ValueError, tb.line_fit, x, y)
 
 
 class DoFLineTest(unittest.TestCase):
@@ -642,7 +642,7 @@ class DoFLineTest(unittest.TestCase):
         x = [ value(x_i) for x_i in [-1,0,1] ]
         y = [ ureal(y_i,u,df=nu) for y_i in x ]
 
-        a,b = function.line_fit(x,y).a_b # default weight is unity
+        a,b = type_b.line_fit(x,y).a_b # default weight is unity
 
         equivalent( value(a) ,0.0,TOL)
         equivalent( value(b) ,1.0,TOL)
@@ -736,7 +736,7 @@ def brent(a,b,c,fn,tol=math.sqrt(EPSILON)):
 
     raise RuntimeError("Exceeded iteration limit in 'brent'")
 
-from GTC.function import _arrays
+from GTC.type_b import _arrays
 # #------------------------------------------------------------------
 # def _arrays(sin_a,cos_a,sin_2a,cos_2a,x,y,u2_x,u2_y,cov):
     # """Returns the set of arrays needed for the Chi-sq calculation
@@ -957,10 +957,10 @@ class TestLineFitTLS(unittest.TestCase):
         u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
         y = [ ureal(y_i,u_y_i) for y_i, u_y_i in zip(y,u_y) ]
 
-        a_b = function.line_fit(x,y).a_b
+        a_b = type_b.line_fit(x,y).a_b
 
         a0, b0 = a_b
-        fit = function.line_fit_wtls(x,y,a_b=a_b)
+        fit = type_b.line_fit_wtls(x,y,a_b=a_b)
         a, b = fit.a_b
         
         TOL = 0.004
@@ -982,7 +982,7 @@ class TestLineFitTLS(unittest.TestCase):
         u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
         y = [ ureal(y_i,u_y_i) for y_i, u_y_i in zip(y,u_y) ]
 
-        a_b = function.line_fit(x,y).a_b
+        a_b = type_b.line_fit(x,y).a_b
 
         a0, b0 = a_b
         fit = type_a.line_fit_wtls(x,y, a0_b0=a_b, u_x=[u_x]*6, u_y=u_y)
@@ -1019,8 +1019,8 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = fn.line_fit(x,y).a_b
-        result = fn.line_fit_wtls(x,y,a_b=(a0,b0))
+        a0, b0 = tb.line_fit(x,y).a_b
+        result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
 
         a,b = result.a_b
         
@@ -1078,8 +1078,8 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,1) for xin_i in xin ]
         y = [ ureal(yin_i,1) for yin_i in yin ]
 
-        a0, b0 = fn.line_fit(x,y).a_b
-        result = fn.line_fit_wtls(x,y,a_b=(a0,b0),u_x=uxin,u_y=uyin)
+        a0, b0 = tb.line_fit(x,y).a_b
+        result = tb.line_fit_wtls(x,y,a_b=(a0,b0),u_x=uxin,u_y=uyin)
 
         a,b = result.a_b
         
@@ -1125,7 +1125,7 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = fn.line_fit(x,y).a_b
+        a0, b0 = tb.line_fit(x,y).a_b
         result = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0))
         a,b = result.a_b
 
@@ -1174,8 +1174,8 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = fn.line_fit(x,y).a_b
-        result = fn.line_fit_wtls(x,y,a_b=(a0,b0))
+        a0, b0 = tb.line_fit(x,y).a_b
+        result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
         a,b = result.a_b
 
         # Now test what we get...
@@ -1283,8 +1283,8 @@ class TestLineFitTLS(unittest.TestCase):
         y_data = [ ureal(x,u) for x,u in t_r ]
         x_data = [ ureal(x,u) for x,u in t ]
 
-        a0, b0 = function.line_fit(x_data,y_data).a_b
-        a,b = function.line_fit_wtls(x_data,y_data,a_b=(a0,b0)).a_b
+        a0, b0 = type_b.line_fit(x_data,y_data).a_b
+        a,b = type_b.line_fit_wtls(x_data,y_data,a_b=(a0,b0)).a_b
         self.assertTrue( equivalent(a.x,0.0991,1E-4) )
         self.assertTrue( equivalent(a.u,0.0123,1E-4) )
         self.assertTrue( equivalent(b.x,0.97839,1E-5))
@@ -1325,7 +1325,7 @@ class TestLineFitTLS(unittest.TestCase):
         
         result_1 = type_a.line_fit(x,y)         # OLS initial estimate
 
-        result_2 = function.line_fit_wtls(un_x,un_y,a_b=result_1.a_b)
+        result_2 = type_b.line_fit_wtls(un_x,un_y,a_b=result_1.a_b)
         a,b = result_2.a_b
         
         self.assertTrue( equivalent(a.x,9.23517,1E-4) )

@@ -664,7 +664,7 @@ class TestLineFit(unittest.TestCase):
         """
         # Data - independent variable
         # NB these are integers and will cause
-        # fn.line_fit to fail if the extended division is not implemented
+        # type_b.line_fit to fail if the extended division is not implemented
         x_short = [2,4,8,16,32]
 
         # x will simply repeat each values 3 times, i.e.: [2,2,2,4,4,4,...]
@@ -691,7 +691,7 @@ class TestLineFit(unittest.TestCase):
         ]
 
         y_est = [ ta.estimate(y_i) for y_i in y]
-        result_2 = fn.line_fit(x_short,y_est)
+        result_2 = type_b.line_fit(x_short,y_est)
 
         self.assertTrue( equivalent( value(result_1.a_b.a), value(result_2.a_b.a), tol=1E-10 ) )
         self.assertTrue( equivalent( value(result_1.a_b.b), value(result_2.a_b.b), tol=1E-10 ) )
@@ -907,7 +907,7 @@ class TestCombineComponents(unittest.TestCase):
         y_2_a = result( slope_intercept[1])
 
         # Type-B least-squares regression
-        slope_intercept = fn.line_fit(t_rel,b_b1).a_b
+        slope_intercept = type_b.line_fit(t_rel,b_b1).a_b
         
         y_1_b = result( slope_intercept[0] )
         y_2_b = result( slope_intercept[1])
@@ -942,7 +942,7 @@ class TestCombineComponents(unittest.TestCase):
         y_2_a = result( slope_intercept[1])
 
         # Type-B least-squares regression
-        slope_intercept = fn.line_fit(t_rel,b_b2).a_b
+        slope_intercept = type_b.line_fit(t_rel,b_b2).a_b
         
         y_1_b = result( slope_intercept[0] )
         y_2_b = result( slope_intercept[1])

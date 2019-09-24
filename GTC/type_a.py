@@ -76,13 +76,16 @@ from GTC.lib import (
     set_correlation_real,
     real_ensemble,
     complex_ensemble,
-    append_real_ensemble
+    append_real_ensemble,
+    value,
+    value_seq
 )
 ureal = UncertainReal._elementary
 ucomplex = UncertainComplex._elementary
 
-from GTC.function import (
-    LineFit, LineFitWLS, LineFitWTLS
+import type_b
+from GTC.type_b import (
+    LineFit, LineFitWLS, LineFitWTLS,
 )
 
 from GTC.named_tuples import (
@@ -109,24 +112,6 @@ __all__ = (
     'merge',
 )
 
-#-----------------------------------------------------------------------------------------
-def value(x):
-    try:
-        return x.x 
-    except AttributeError:
-        return x 
-#-----------------------------------------------------------------------------------------
-def value_seq(x):
-    if is_sequence(x):
-        rtn = tuple(
-            value(x_i) for x_i in x 
-        )
-    else:
-        # uarray defines value()
-        # but other types will generate an AttributeError
-        rtn = value(x)
-
-    return rtn    
 #-----------------------------------------------------------------------------------------
 #
 class LineFitOLS(LineFit):
@@ -578,7 +563,7 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
     if a0_b0 is None:
         a0_b0 = line_fit(x, y).a_b
 
-    result = function.line_fit_wtls(x_u,y_u,a_b=a0_b0)
+    result = type_b.line_fit_wtls(x_u,y_u,a_b=a0_b0)
     a, b = result.a_b
     N = result.N
     ssr = result.ssr
@@ -1271,7 +1256,7 @@ def merge(a,b):
         y_1_a, y_2_a = type_a.line_fit(t_rel,b_type_b).a_b
 
         # Type-B least-squares regression
-        y_1_b, y_2_b = function.line_fit(t_rel,b_type_b)
+        y_1_b, y_2_b = type_b.line_fit(t_rel,b_type_b)
 
         # `y_1` and `y_2` have uncertainty components  
         # related to the type-A analysis as well as the 

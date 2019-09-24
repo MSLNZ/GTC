@@ -66,7 +66,26 @@ def _is_uncertain_complex_constant(z):
         raise TypeError(
             "UncertainComplex required: {!r}".format(z)
         )
-          
+
+#-----------------------------------------------------------------------------------------
+def value(x):
+    try:
+        return x.x 
+    except AttributeError:
+        return x 
+#-----------------------------------------------------------------------------------------
+def value_seq(x):
+    if is_sequence(x):
+        rtn = tuple(
+            value(x_i) for x_i in x 
+        )
+    else:
+        # uarray defines value()
+        # but other types will generate an AttributeError
+        rtn = value(x)
+
+    return rtn    
+    
 #----------------------------------------------------------------------------
 class UncertainReal(object):
     

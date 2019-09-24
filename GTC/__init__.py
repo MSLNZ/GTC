@@ -12,6 +12,8 @@ from __future__ import division
 
 import math
 import cmath
+import sys 
+
 try:
     basestring  # Python 2
     from collections import Sequence
@@ -27,6 +29,8 @@ inf_dof = 1E5
 
 inf = float('inf')
 nan = float('nan')
+
+EPSILON = sys.float_info.epsilon 
 
 # Do not consider strings as sequences
 # Note numpy arrays are not detected as sequences
@@ -89,6 +93,7 @@ __all__ = (
     ,   'cmath'
     ,   'inf'
     ,   'nan'
+    ,   'EPSILON'
 )
 
 #----------------------------------------------------------------------------
