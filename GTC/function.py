@@ -36,12 +36,6 @@ from GTC import (
 from GTC.named_tuples import InterceptSlope
 from GTC.lib import UncertainReal
 from GTC.vector import scale_vector
-
-def value(x):
-    try:
-        return x.x
-    except AttributeError:
-        return x
         
 __all__ = (
     'complex_to_seq',

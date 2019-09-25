@@ -9,6 +9,19 @@ names of objects in this module.
 
 .. automodule:: type_b
 
+.. autofunction:: type_b.line_fit
+.. autofunction:: type_b.line_fit_wls
+.. autofunction:: type_b.line_fit_wtls
+
+.. autoclass:: type_b.LineFitOLS
+    :members:
+
+.. autoclass:: type_b.LineFitWLS
+    :members:
+
+.. autoclass:: type_b.LineFitWTLS
+    :members:
+
 .. autofunction:: type_b.uniform
 .. autofunction:: type_b.triangular
 .. autofunction:: type_b.u_shaped

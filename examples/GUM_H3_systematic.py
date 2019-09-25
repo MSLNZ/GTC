@@ -23,7 +23,7 @@ t_0 = 20.0
 t_rel = [ t_k - t_0 for t_k in t ]
 
 # Least-squares regression for type-B
-cal_b = fn.line_fit(t_rel,b_sys)
+cal_b = tb.line_fit(t_rel,b_sys)
 print( cal_b )
 print
 

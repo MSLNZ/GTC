@@ -30,6 +30,8 @@ ta = type_a
 fn = function
 pr = persistence
 
+value = type_b.value
+
 UncertainReal = lib.UncertainReal
 UncertainComplex = lib.UncertainComplex
 
@@ -84,29 +86,30 @@ __all__ = (
     ,   'cmath'
 )
 
-#----------------------------------------------------------------------------
-def value(x):
-    """Return the value 
-    
-    Returns a complex number if ``x`` is an uncertain complex number
-    
-    Returns a real number if ``x`` is an uncertain real number
-    
-    Returns ``x`` otherwise.
 
-    **Example**::
+# #----------------------------------------------------------------------------
+# def value(x):
+    # """Return the value 
+    
+    # Returns a complex number if ``x`` is an uncertain complex number
+    
+    # Returns a real number if ``x`` is an uncertain real number
+    
+    # Returns ``x`` otherwise.
 
-        >>> un = ureal(3,1)
-        >>> value(un)
-        3.0
-        >>> un.x
-        3.0
+    # **Example**::
 
-    """
-    try:
-        return x.x
-    except AttributeError:
-        return x
+        # >>> un = ureal(3,1)
+        # >>> value(un)
+        # 3.0
+        # >>> un.x
+        # 3.0
+
+    # """
+    # try:
+        # return x.x
+    # except AttributeError:
+        # return x
     
 #----------------------------------------------------------------------------
 def uncertainty(x):

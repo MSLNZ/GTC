@@ -2,16 +2,16 @@
 Least-squares regression
 ------------------------
 
-:func:`line_fit` implements an ordinary least-squares 
+:func:`~type_b.line_fit` implements an ordinary least-squares 
 straight-line regression calculation that accepts uncertain 
 real numbers for the independent and dependent variables.
 
-:func:`line_fit_wls` implements a weighted least-squares 
+:func:`~type_b.line_fit_wls` implements a weighted least-squares 
 straight-line regression calculation. It accepts uncertain 
 real numbers for the independent and dependent variables.
 It is also possible to specify weights for the regression.
 
-:func:`line_fit_wtls` implements a total least-squares 
+:func:`~type_b.line_fit_wtls` implements a total least-squares 
 algorithm for a straight-line fitting that can perform a 
 weighted least-squares regression when both `y` and `x` data  
 are uncertain real numbers, it also handles correlation 
@@ -144,7 +144,7 @@ class LineFit(object):
 
     @property
     def a_b(self):
-        """Return the intercept and slope as uncertain numbers
+        """Return the intercept ``a`` and slope ``b`` as a tuple of uncertain numbers
         """
         return self._a_b
 

@@ -10,15 +10,15 @@ Some comments about ``GTC`` fitting functions
 Overview
 ========
    
-``GTC`` has straight-line regression functions in both the :mod:`type_a` and :mod:`function` modules. 
+``GTC`` has straight-line regression functions in both the :mod:`type_a` and :mod:`type_b` modules. 
 
 Functions in :mod:`type_a` implement a variety of least-squares straight line fitting algorithms that provide results in the form of uncertain numbers. When used, the input data (the sequences ``x`` and ``y``) are treated as pure numbers (if sequences of uncertain numbers are provided, only the values are used in calculations).
 
-Functions defined in :mod:`function`, on the other hand, expect input sequences of uncertain numbers. These functions estimate the slope and intercept of a line by applying the same type of regression algorithms, but uncertainties are propagated through the equations and the residuals are ignored.  
+Functions defined in :mod:`type_b`, on the other hand, expect input sequences of uncertain numbers. These functions estimate the slope and intercept of a line by applying the same type of regression algorithms, but uncertainties are propagated through the equations and the residuals are ignored.  
 
-The distinction between functions that evaluate the uncertainty of estimates from residuals (:mod:`type_a`) and functions that evaluate uncertainty using uncertain numbers (:mod:`function`) is useful. There will be circumstances that require the use of a function in :mod:`function`, such as when systematic errors contribute to uncertainty but cannot be estimated properly using conventional regression. Without the methods available in :mod:`function`, such components of uncertainty could not be propagated. On the other hand, functions in :mod:`type_a` implement conventional regression methods.
+The distinction between functions that evaluate the uncertainty of estimates from residuals (:mod:`type_a`) and functions that evaluate uncertainty using uncertain numbers (:mod:`type_b`) is useful. There will be circumstances that require the use of a function in :mod:`type_b`, such as when systematic errors contribute to uncertainty but cannot be estimated properly using conventional regression. Without the methods available in :mod:`type_b`, such components of uncertainty could not be propagated. On the other hand, functions in :mod:`type_a` implement conventional regression methods.
 
-Discretion will be needed if it is believed that variability in a sample of data is due, in part, to errors not fully accounted for in an uncertain-number description of the data. The question is then: just how much of that variability can be explained by components of uncertainty already defined as uncertain number influences? If the answer is 'very little' then it will be appropriate to use a function from :mod:`type_a` to estimate the additional contribution to uncertainty from the sample variability. At the same time, components of uncertainty associated with the uncertain-number data should be propagated using a function from :mod:`function` that performs the same type of regression. The two result values will be identical (the estimates of the slope and intercept will be the same) but the uncertainties will differ. :func:`type_a.merge` can then be used to merge the results. 
+Discretion will be needed if it is believed that variability in a sample of data is due, in part, to errors not fully accounted for in an uncertain-number description of the data. The question is then: just how much of that variability can be explained by components of uncertainty already defined as uncertain number influences? If the answer is 'very little' then it will be appropriate to use a function from :mod:`type_a` to estimate the additional contribution to uncertainty from the sample variability. At the same time, components of uncertainty associated with the uncertain-number data should be propagated using a function from :mod:`type_b` that performs the same type of regression. The two result values will be identical (the estimates of the slope and intercept will be the same) but the uncertainties will differ. :func:`type_a.merge` can then be used to merge the results. 
 
 Clearly, this approach could potentially over-estimate the effect of some influences and inflate the combined uncertainty of results. It is a matter of judgement as to whether to merge type-A and type-B results in a particular procedure. 
 
@@ -55,31 +55,31 @@ Weighted total least-squares
 
 As in the case of :func:`type_a.line_fit_wls`, the uncertainties provided for the `x` and `y` data are assumed exact. When calculating the uncertainty in the slope and intercept, the residuals are ignored and the uncertain numbers returned have infinite degrees of freedom.
 
-The ``function`` module regression functions
-============================================
+The ``type_b`` module regression functions
+==========================================
 
 Ordinary least-squares
 ----------------------
-:func:`function.line_fit` implements the conventional ordinary least-squares straight-line regression to obtain estimates of the slope and intercept of a line through the data. The `y` data is a sequence of uncertain numbers. The uncertainty of the slope and intercept is found by propagating uncertainty from the input data; the residuals are ignored.
+:func:`type_b.line_fit` implements the conventional ordinary least-squares straight-line regression to obtain estimates of the slope and intercept of a line through the data. The `y` data is a sequence of uncertain numbers. The uncertainty of the slope and intercept is found by propagating uncertainty from the input data; the residuals are ignored.
 
 Weighted least-squares
 ----------------------
-:func:`function.line_fit_wls` implements a weighted least-squares straight-line regression to estimate the slope and intercept of a line through the data. The `y` data is a sequence of uncertain numbers. An explicit sequence of uncertainties for the data points may also be provided. If so, these uncertainties are used as weights in the algorithm when estimating the slope and intercept. Otherwise, the uncertainty of each uncertain number for `y` is used. In either case, uncertainty in the estimates of slope and intercept is obtained by propagating the uncertainty associated with the input data through the estimate equations (the residuals are ignored).
+:func:`type_b.line_fit_wls` implements a weighted least-squares straight-line regression to estimate the slope and intercept of a line through the data. The `y` data is a sequence of uncertain numbers. An explicit sequence of uncertainties for the data points may also be provided. If so, these uncertainties are used as weights in the algorithm when estimating the slope and intercept. Otherwise, the uncertainty of each uncertain number for `y` is used. In either case, uncertainty in the estimates of slope and intercept is obtained by propagating the uncertainty associated with the input data through the estimate equations (the residuals are ignored).
 
 .. note::
 
-    :func:`type_a.line_fit_wls` and :func:`function.line_fit_wls` yield the same results when a sequence of elementary uncertain numbers is defined for `y` and used with :func:`type_a.line_fit_wls` and the values and uncertainties of that sequence are used with :func:`type_a.line_fit_wls`.
+    :func:`type_a.line_fit_wls` and :func:`type_b.line_fit_wls` yield the same results when a sequence of elementary uncertain numbers is defined for `y` and used with :func:`type_a.line_fit_wls` and the values and uncertainties of that sequence are used with :func:`type_a.line_fit_wls`.
 
 .. note::
 
-    There is no need for a 'relative weighted least-squares' function in the :mod:`function` module. Using a sequence of ``u_y`` values with :func:`function.line_fit_wls` will perform this calculation.
+    There is no need for a 'relative weighted least-squares' function in the :mod:`type_b` module. Using a sequence of ``u_y`` values with :func:`type_b.line_fit_wls` will perform this calculation.
 
 Weighted total least-squares
 ----------------------------
 
-:func:`function.line_fit_wtls` implements a form of least-squares straight-line regression that takes account of errors in both the `x` and `y` data. [#Krystek]_.
+:func:`type_b.line_fit_wtls` implements a form of least-squares straight-line regression that takes account of errors in both the `x` and `y` data. [#Krystek]_.
 
-As with :func:`function.line_fit_wls`, sequences of uncertainties for the `x` and `y` data may be supplied in addition to sequences of the `x` and `y` data. When the optional uncertainty sequences are provided, estimates of the slope and intercept use those uncertainties as weights in the regression process. Otherwise, the input data uncertainties are used as weights in the regression process.  In either case, uncertainty in the estimates of slope and intercept is calculated by propagating uncertainty from the input data through the regression equations (residuals are ignored).
+As with :func:`type_b.line_fit_wls`, sequences of uncertainties for the `x` and `y` data may be supplied in addition to sequences of the `x` and `y` data. When the optional uncertainty sequences are provided, estimates of the slope and intercept use those uncertainties as weights in the regression process. Otherwise, the input data uncertainties are used as weights in the regression process.  In either case, uncertainty in the estimates of slope and intercept is calculated by propagating uncertainty from the input data through the regression equations (residuals are ignored).
 
 .. rubric:: Footnotes
 

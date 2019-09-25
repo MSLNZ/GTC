@@ -120,6 +120,8 @@ class LineFitOLS(LineFit):
     Class to hold the results of an ordinary least-squares regression to data.
 
     It can also be used to apply the results of a regression analysis. 
+    
+    .. versionadded:: 1.2
     """
     
     def __init__(self,a,b,ssr,N):
@@ -204,6 +206,8 @@ class LineFitRWLS(LineFit):
     """
     Class to hold the the results of a relative weighted least-squares regression.
     The weight factors provided normalise the variability of observations.
+    
+    .. versionadded:: 1.2
     """
     
     def __init__(self,a,b,ssr,N):
@@ -280,6 +284,8 @@ Relative Weighted Least-Squares Results:
 def line_fit(x,y,label=None):
     """Return a least-squares straight-line fit to the data
      
+    .. versionadded:: 1.2
+    
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
     :arg label: suffix to label the uncertain numbers `a` and `b`
@@ -391,6 +397,8 @@ def _line_fit_wls(x,y,u_y):
 #-----------------------------------------------------------------------------------------
 def line_fit_wls(x,y,u_y,label=None):
     """Return a weighted least-squares straight-line fit
+    
+    .. versionadded:: 1.2
      
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
@@ -439,6 +447,8 @@ def line_fit_wls(x,y,u_y,label=None):
 #-----------------------------------------------------------------------------------------
 def line_fit_rwls(x,y,s_y,label=None):
     """Return a relative weighted least-squares straight-line fit
+    
+    .. versionadded:: 1.2
     
     The ``s_y`` values are used to scale variability in the ``y`` data.
     It is assumed that the standard deviation of each ``y`` value is 
@@ -513,6 +523,8 @@ def line_fit_rwls(x,y,s_y,label=None):
 #
 def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
     """Return a total least-squares straight-line fit 
+    
+    .. versionadded:: 1.2
 
     :arg x:     sequence of independent-variable data
     :arg y:     sequence of dependent-variable data 
