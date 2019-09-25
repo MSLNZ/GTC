@@ -83,7 +83,7 @@ from GTC.lib import (
 ureal = UncertainReal._elementary
 ucomplex = UncertainComplex._elementary
 
-import type_b
+from GTC import type_b
 from GTC.type_b import (
     LineFit, LineFitWLS, LineFitWTLS,
 )
