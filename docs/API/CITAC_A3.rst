@@ -92,6 +92,8 @@ The calculation of :math:`c_\mathrm{NaOH}` is now ::
     >>> c_HCl = R * (1000 * m_KHP * P_KHP * V_T2)/(M_KHP * V_T1 * V_HCl)
     >>> print(c_HCl)
     0.10139(18)
+    >>> print( uncertainty(c_HCl) )  
+    0.0001843...
     
 The contribution from different influences can be examined ::
 
@@ -168,15 +170,17 @@ We can adapt our calculations above by defining two elementary uncertain numbers
     0.0336883837546
 
     >>> print( uncertainty(V_T2) )
-    0.0332102393849
+    0.033210...
 
 The uncertainties are roughly twice the previous values.
 
 The concentration of HCl can then be re-calculated using the same measurement equation ::
 
     >>> c_HCl = R * (1000 * m_KHP * P_KHP * V_T2)/(M_KHP * V_T1 * V_HCl)
+    >>> print( c_HCl )
+    0.10132(31)
     >>> print( uncertainty(c_HCl) )  
-    0.000320501672797
+    0.0003096...
 
 The combined uncertainty is now about twice as large (in mol/L).
 
