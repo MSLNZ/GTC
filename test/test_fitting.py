@@ -971,6 +971,17 @@ class TestLineFitTLS(unittest.TestCase):
         self.assertTrue( equivalent(get_correlation(a,b)*b.u*a.u,-0.0577,TOL) )
         self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
 
+        # Test default initial estimate
+        fit = type_b.line_fit_wtls(x,y)
+        a, b = fit.a_b
+        
+        self.assertTrue( equivalent(a.x,0.5788,TOL) )
+        self.assertTrue( equivalent(a.u,0.4764,TOL) )  # This is the critical case for TOL
+        self.assertTrue( equivalent(b.x,2.1597,TOL) )
+        self.assertTrue( equivalent(b.u,0.1355,TOL) )
+        self.assertTrue( equivalent(get_correlation(a,b)*b.u*a.u,-0.0577,TOL) )
+        self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
+
     def test_iso_ts28037_2010_ta(self):
         """p21 of the standard
         """
@@ -996,6 +1007,16 @@ class TestLineFitTLS(unittest.TestCase):
         self.assertTrue( equivalent(a.get_correlation(b)*b.u*a.u,-0.0577,TOL) )
         self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
   
+        # Test default initial estimate
+        fit = type_a.line_fit_wtls(x,y, u_x=[u_x]*6, u_y=u_y)
+        a, b = fit.a_b
+        
+        self.assertTrue( equivalent(a.x,0.5788,TOL) )
+        self.assertTrue( equivalent(a.u,0.4764,TOL) )  # This is the critical case for TOL
+        self.assertTrue( equivalent(b.x,2.1597,TOL) )
+        self.assertTrue( equivalent(b.u,0.1355,TOL) )
+        self.assertTrue( equivalent(a.get_correlation(b)*b.u*a.u,-0.0577,TOL) )
+        self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
   
     def test_Lybanon_fn(self):
         """
@@ -1019,9 +1040,11 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = tb.line_fit(x,y).a_b
-        result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
-
+        # a0, b0 = tb.line_fit(x,y).a_b
+        # result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
+        
+        # Use default estimate to start
+        result = tb.line_fit_wtls(x,y)
         a,b = result.a_b
         
         # 'exact' values of a and b from 
@@ -1078,9 +1101,10 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,1) for xin_i in xin ]
         y = [ ureal(yin_i,1) for yin_i in yin ]
 
-        a0, b0 = tb.line_fit(x,y).a_b
-        result = tb.line_fit_wtls(x,y,a_b=(a0,b0),u_x=uxin,u_y=uyin)
+        # a0, b0 = tb.line_fit(x,y).a_b
+        # result = tb.line_fit_wtls(x,y,a_b=(a0,b0),u_x=uxin,u_y=uyin)
 
+        result = tb.line_fit_wtls(x,y,u_x=uxin,u_y=uyin)
         a,b = result.a_b
         
         # 'exact' values of a and b from 
@@ -1125,10 +1149,11 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = tb.line_fit(x,y).a_b
-        result = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0))
-        a,b = result.a_b
+        # a0, b0 = tb.line_fit(x,y).a_b
+        # result = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0))
 
+        result = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin)
+        a,b = result.a_b
         # 'exact' values of a and b from 
         # Neri et al J Phys E 22(1989) 215-217
         a0 = 5.47991022
@@ -1174,8 +1199,10 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = tb.line_fit(x,y).a_b
-        result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
+        # a0, b0 = tb.line_fit(x,y).a_b
+        # result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
+
+        result = tb.line_fit_wtls(x,y)
         a,b = result.a_b
 
         # Now test what we get...
@@ -1220,8 +1247,10 @@ class TestLineFitTLS(unittest.TestCase):
         x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
         y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
 
-        a0, b0 = ta.line_fit(x,y).a_b
-        a,b = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0)).a_b
+        # a0, b0 = ta.line_fit(x,y).a_b
+        # a,b = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0)).a_b
+
+        a,b = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin).a_b
 
         # Now test what we get...
         a0 = 5.47991022
@@ -1283,8 +1312,10 @@ class TestLineFitTLS(unittest.TestCase):
         y_data = [ ureal(x,u) for x,u in t_r ]
         x_data = [ ureal(x,u) for x,u in t ]
 
-        a0, b0 = type_b.line_fit(x_data,y_data).a_b
-        a,b = type_b.line_fit_wtls(x_data,y_data,a_b=(a0,b0)).a_b
+        # a0, b0 = type_b.line_fit(x_data,y_data).a_b
+        # a,b = type_b.line_fit_wtls(x_data,y_data,a_b=(a0,b0)).a_b
+
+        a,b = type_b.line_fit_wtls(x_data,y_data).a_b
         self.assertTrue( equivalent(a.x,0.0991,1E-4) )
         self.assertTrue( equivalent(a.u,0.0123,1E-4) )
         self.assertTrue( equivalent(b.x,0.97839,1E-5))
@@ -1302,17 +1333,17 @@ class TestLineFitTLS(unittest.TestCase):
      
     def test_tromans(self):
         """
-        This data came from Andrew Tromans and caused a failure in
-        the brent routine that searches for a root.
+        This data came from an example that caused a failure in
+        the brent routine while searching for a root.
         
-        The results are not important, it is just that it returns
+        The results are not important, just that the 
+        routine returns
         
         """
         x = [0.1,0.2,0.5,1.0,2 ]
         ux = [0.007421502, 0.014840599, 0.037099814, 0.074199146, 0.148398052 ]
         y = [2319.00,4620.00,12784.00,21705.00,45952.00 ]
         uy = [ 150.00,340.71,553.54,956.76,1649.68 ]
-    
     
         un_x = [
             ureal(x_i,u_i,label="x_{}".format(i) ) 
@@ -1323,10 +1354,13 @@ class TestLineFitTLS(unittest.TestCase):
                 for i,y_i,u_i in zip(xrange(len(y)),y,uy)
         ]
         
-        result_1 = type_a.line_fit(x,y)         # OLS initial estimate
+        # OLS initial estimate
+        # NB the default method of obtaining an estimate returns 
+        # different results!
+        initial = type_a.line_fit(x,y)         
+        result = type_b.line_fit_wtls(un_x,un_y,a_b=initial.a_b)
 
-        result_2 = type_b.line_fit_wtls(un_x,un_y,a_b=result_1.a_b)
-        a,b = result_2.a_b
+        a,b = result.a_b
         
         self.assertTrue( equivalent(a.x,9.23517,1E-4) )
         self.assertTrue( equivalent(a.u,279.577,1E-3) )
