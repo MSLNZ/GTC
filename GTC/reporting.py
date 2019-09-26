@@ -509,6 +509,12 @@ def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
                         if n_i.label is not None else "{}".format(n_i.uid) 
                            for n_i in nodes ]
             values = [ math.fabs( u ) for u in y._u_components.itervalues() ]
+            
+            nodes = y._d_components.keys()
+            labels += [ n_i.label 
+                        if n_i.label is not None else "{}".format(n_i.uid) 
+                           for n_i in nodes ]
+            values += [ math.fabs( u ) for u in y._d_components.itervalues() ]
         else:
             labels = []
             values = []
@@ -536,8 +542,13 @@ def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         if influences is None:
             
             # Ensure that the influence vectors have the same keys
-            re = extend_vector(y.real._u_components,y.imag._u_components)    
-            im = extend_vector(y.imag._u_components,y.real._u_components)
+            re = extend_vector(y.real._u_components, y.real._d_components)
+            re = extend_vector(re,y.imag._u_components)
+            re = re = extend_vector(re,y.imag._d_components)
+    
+            im = extend_vector(y.imag._u_components, y.imag._d_components)
+            im = extend_vector(im,y.real._u_components)
+            im = extend_vector(im,y.real._d_components)
 
             try:
                 labels = []
