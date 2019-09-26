@@ -154,7 +154,7 @@ A reduction in the uncertainty attributed to repeatability, by a factor of :math
      P_KHP: 2.9268E-05
      M_KHP: 1.86931E-06
     
-The new results show that the combined uncertainty is not much changed when the repeatability is improved. ::
+The new results show that the combined uncertainty is not much changed when the repeatability is improved.
  
 Another consideration is that a bias may be introduced by the use of phenolphthalein as an indicator. The excess volume in this case is about 0.05 mL with a standard uncertainty of 0.03 mL.
 
