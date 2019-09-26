@@ -7,9 +7,9 @@ Straight-line calibration functions
 .. contents::
    :local:
 
-This section uses straight-line least-squares regression algorithms to obtain and use calibration functions. Each example consists of a small sample of *x-y* observation pairs, together with information about the variability of the data. No measurement context is given, but these examples have been selected from a draft standard on the use of straight-line calibration functions [#BSI]_. 
+This section uses straight-line least-squares regression algorithms to obtain calibration functions and then shows some uses of those functions. Each example uses a small sample of *x-y* observation pairs for regression to obtain a calibration function, together with information about the variability of the data. No context is given about the measurement; these examples have been selected from a draft British standard on the use of straight-line calibration functions [#BSI]_. 
 
-In some of the examples, we show how results can be used to estimate either a stimulus value ``x``, when given further observations of the response ``y``, or a future response ``y`` to a stimulus ``x``.
+In some examples, we show how results can be used to estimate a stimulus value ``x``, when given additional observations of the response ``y``, or a future response ``y`` to a given stimulus ``x``.
 
 Example 1: equal weights
 ========================
@@ -60,12 +60,12 @@ These results agree with published values [#]_ ::
 
 The value of ``chi-squared`` can be compared with the ``Sum of the squared residuals`` above and the degrees of freedom is the ``Number of points`` less 2.    
     
-Application: an future `y` observation
---------------------------------------
+Application: an additional `y` observation after regression
+-----------------------------------------------------------
 
-The regression results may be used to find a value of ``x`` that corresponds to another observation ``y``. This is a typical application of a calibration curve.
+The results may be used to find a value for ``x`` that corresponds to another observation ``y`` made following the regression. This is a typical application of a calibration curve.
 
-For example, if there is an additional  :math:`y_1 = 10.5`, with :math:`u(y_1) = 0.5`, we can evaluate an uncertain number for the corresponding stimulus :math:`x_1`::
+For example, if an additional observation :math:`y_1 = 10.5` has been made, with :math:`u(y_1) = 0.5`, we can evaluate an uncertain number for the corresponding stimulus :math:`x_1`::
 
     y1 = ureal(10.5,0.5)
     x1 = (y1-a)/b
@@ -75,12 +75,12 @@ giving ::
 
     x1=4.91327913279133, u=0.32203556012891
 
-This result includes components of uncertainty for the estimates of slope and intercept.
+This uncertain number has components of uncertainty for the estimates of slope and intercept. So the combined uncertainty takes account of uncertainty in the parameter estimates for the calibration curve, and correlation between them.
   
 Forward evaluation: an additional `x` value
 -------------------------------------------
 
-The regression results can also be used to estimate the response :math:`y` to a stimulus :math:`x`. 
+The results can also be used to estimate the response :math:`y_2` to a stimulus :math:`x_2`. 
 
 For example, if  :math:`x_2 = 3.5`, and :math:`u(x_2) = 0.2`, we can evaluate an uncertain number for :math:`y_2` as follows ::
 
@@ -92,19 +92,19 @@ giving ::
 
     y2=8.01666666666667, u=0.406409531732455
 
-Again, the uncertain number for :math:`y_2` includes uncertainty in the estimates of slope and intercept.
+This is an uncertain number representing the mean, or underlying true, response to :math:`x_2`.  Again, the uncertain number for :math:`y_2` has components of uncertainty for the estimates of slope and intercept.
     
 Example 2: unequal weights
 ==========================
 A series of six pairs of ``x-y`` observations have been collected. 
 
-The data sequences for ``x`` and ``y`` with uncertainties are ::
+The data sequences for ``x`` and ``y``, with uncertainties in ``y``, are ::
 
     x = [1,2,3,4,5,6]
     y = [3.2, 4.3, 7.6, 8.6, 11.7, 12.8]
     u_y = [0.5,0.5,0.5,1.0,1.0,1.0]
 
-Again, a weighted least-squares regression can be used. This implies that the uncertainties in ``y`` values are exactly known (i.e., infinite degrees of freedom) ::
+Again, a weighted least-squares regression can be used, which assumes that the uncertainties in ``y`` values are exactly known (i.e., infinite degrees of freedom) ::
 
     fit = type_a.line_fit_wls(x,y,u_y)
     print( fit )
@@ -132,22 +132,22 @@ These results agree with published values [#]_ ::
     cov(a,b) = -0.082
     chi-squared = 4.131, with 4 degrees of freedom
       
-Application: an additional `y` observation
-------------------------------------------
+Application: an additional `y` observation after regression
+-----------------------------------------------------------
 
-After regression, the uncertain numbers representing the intercept and slope can be used to calculate the stimulus :math:`x` when a further observation of :math:`y` is available. For example, if :math:`y_1 = 10.5` and :math:`u(y_1) = 1.0`, :math:`x_1` is obtained in the same way as Example 1 ::
+After regression, the uncertain numbers for the intercept and slope can be used to estimate the stimulus :math:`x_1` for a further observation :math:`y_1`. For example, if :math:`y_1 = 10.5` and :math:`u(y_1) = 1.0`, :math:`x_1` is obtained in the same way as Example 1 ::
 
     y1 = ureal(10.5,1)
     x1 = (y1-a)/b
-    print( "x={:.15G}, u={:.15G}".format(value(x1),uncertainty(x1))
+    print( "x1={:.15G}, u={:.15G}".format(value(x1),uncertainty(x1))
 
 giving ::
   
-    x=4.67425641025641, u=0.533180902231294
+    x1=4.67425641025641, u=0.533180902231294
   
-Example 3: uncertainty in *x* and *y*
+Example 3: uncertainty in `x` and `y`
 =====================================
-A series of six pairs of ``x-y`` observations have been collected.  
+A series of six pairs of observations have been collected.  
 
 The data sequences for ``x``, ``y``, each with uncertainties are ::
 
@@ -156,35 +156,20 @@ The data sequences for ``x``, ``y``, each with uncertainties are ::
     y = [3.4,4.4,7.2,8.5,10.8,13.5]
     u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
 
-We use total least-squares regression in this case, because there is uncertainty in both the dependent and independent variables. Weighted least-squares can be used initially to obtain an estimate of the slope and intercept::
+We use total least-squares regression in this case, because there is uncertainty in both the dependent and independent variablest ::
 
-    fit_i = ta.line_fit_wls(x,y,u_y)
-    print( fit_i )
-
-which produces ::
-
-    Weighted Least-Squares Results:
-
-      Number of points: 6
-      Intercept: 0.66, u=0.22, df=inf
-      Slope: 2.148, u=0.076, df=inf
-      Correlation: -0.89
-      Sum of the squared residuals: 9.70522
-  
-The weighted total least-squares regression algorithm uses these estimates of slope and intercept ::
-
-    fit = type_a.line_fit_wtls(fit_i.a_b,x,y,u_x,u_y)
+    fit = type_a.line_fit_wtls(x,y,u_x,u_y,fit_i.a_b)
     print( fit )
 
-giving ::
+which gives ::
 
     Weighted Total Least-Squares Results:
 
-      Number of points: 6
-      Intercept: 0.58, u=0.48, df=4.0
-      Slope: 2.16, u=0.14, df=4.0
+      Intercept: 0.58(48)
+      Slope: 2.16(14)
       Correlation: -0.9
-      Sum of the squared residuals: 2.74268
+      Sum of the squared residuals: 2.74267678973
+  Number of points: 6
  
 Again, more figures can be obtained using the same commands as in Example 1 ::
 
@@ -203,7 +188,7 @@ These results agree with the published values [#]_ ::
 
 Example 4: relative uncertainty in *y*
 ======================================
-A series of six pairs of ``x-y`` observations values has been collected. The uncertainties in the :math:`y` values are not known. However, a scale factor :math:`s_y` is given and it is assumed that, for every observation :math:`y`, the associated uncertainty :math:`u(y) = s_y \sigma`. The common factor :math:`\sigma` is not known, but can be estimated from the residuals. This is done by the function :func:`type_a.line_fit_rwls`.
+A series of six pairs of ``x-y`` observations are used. The uncertainties in the :math:`y` values are not known. However, a scale factor :math:`s_y` is given and it is assumed that, for every observation :math:`y`, the associated uncertainty :math:`u(y) = s_y \sigma`. The common factor :math:`\sigma` is not known, but can be estimated from the residuals. This is done by the function :func:`type_a.line_fit_rwls`.
 
 We proceed as above ::
 
@@ -218,11 +203,11 @@ which displays ::
 
     Relative Weighted Least-Squares Results:
 
-      Number of points: 6
-      Intercept: 1.17, u=0.16, df=4.0
-      Slope: 1.964, u=0.041, df=4.0
+      Intercept: 1.17(16)
+      Slope: 1.964(41)
       Correlation: -0.9
-      Sum of the squared residuals: 0.116498
+      Sum of the squared residuals: 0.116498285714
+      Number of points: 6
 
 More precise values of the fitted parameters are ::
 
@@ -239,11 +224,11 @@ These results agree with the published values [#]_ ::
 
 .. note::
 
-    In our solution, 4 degrees of freedom are associated with :math:`u(a)` and :math:`u(b)`. This is the usual statistical treatment. However, a trend in recent uncertainty guidelines is to dispense with the notion of degrees of freedom. So, in a final step, reference [#BSI]_ multiplies :math:`u(a)` and :math:`u(b)` by an additional factor of 2. We do not agree with this last step. ``GTC`` uses the finite degrees of freedom associated with :math:`u(a)` and :math:`u(b)` when calculating the coverage factor required for an expanded uncertainty.
+    In our solution, 4 degrees of freedom are associated with estimates of the intercept and slope. This is the usual statistical treatment. However, a trend in recent uncertainty guidelines is to dispense with the notion of degrees of freedom. So, in a final step, reference [#BSI]_ multiplies :math:`u(a)` and :math:`u(b)` by an additional factor of 2. We do not agree with this last step. ``GTC`` uses the finite degrees of freedom associated with the intercept and slope to calculate the coverage factor required for an expanded uncertainty.
 
-Example 5: unknown uncertainty in *y*
+Example 5: unknown uncertainty in `y`
 =====================================
-The data in previous example could also have been processed by an 'ordinary' least-squares algorithm, because the scale factor for each observation of `y` was unity. In effect, a series of six pairs of ``x-y`` observations were collected and the variance associated with each observation was assumed the same.
+The data in previous example could also have been processed by an 'ordinary' least-squares regression algorithm, because the scale factor for each observation of `y` was unity. In effect, a series of six values for the dependent and independent variables were collected, and the variance associated with each observation was assumed to be the same.
     
 We proceed as follows. The data sequences are defined and the ordinary least-squares function is applied ::
 
@@ -257,11 +242,11 @@ which displays ::
 
     Ordinary Least-Squares Results:
 
-      Number of points: 6
-      Intercept: 1.17, u=0.16, df=4.0
-      Slope: 1.964, u=0.041, df=4.0
+      Intercept: 1.17(16)
+      Slope: 1.964(41)
       Correlation: -0.9
-      Sum of the squared residuals: 0.116498
+      Sum of the squared residuals: 0.116498285714
+      Number of points: 6
 
 More precise values of the fitted parameters are ::
 
@@ -275,7 +260,7 @@ Application: an additional response
 -----------------------------------
 After regression, if a further observation of :math:`y` becomes available, or a set of observations, then the corresponding stimulus can be estimated. 
 
-For example, if we wish to know the stimulus :math:`x` that gave rise to a response :math:`y_1 = 10.5`, we can use the object ``fit`` returned by the regression function (note that :meth:`~type_a.LineFitOLS.x_from_y` takes a sequence of `y` values) ::
+For example, if we wish to know the stimulus :math:`x_1` that gave rise to a response :math:`y_1 = 10.5`, we can use the object ``fit`` returned by the regression (note that :meth:`~type_a.LineFitOLS.x_from_y` takes a sequence of `y` values) ::
 
     y1 = 10.5
     x1 = fit.x_from_y( [y1] )
@@ -300,9 +285,9 @@ giving ::
 
     8.04(18)
 
-In this case, the uncertainty includes a component for the variability of individual responses. The method :meth:`~type_a.LineFitOLS.y_from_x` incorporates this information from the regression analysis. 
+In this case, the uncertainty reported for :math:`y_2` includes a component for the variability of individual responses. The method :meth:`~type_a.LineFitOLS.y_from_x` incorporates this information from the regression analysis. 
 
-Alternatively, the mean response to a stimulus :math:`x` can be obtained directly from the fitted parameters ::
+Alternatively, the mean response to a stimulus :math:`x_2` can be obtained directly from the fitted parameters ::
 
     x2 = 3.5
     a, b = fit.a_b 

@@ -21,6 +21,16 @@ Linear calibration
     Using the results of linear regression <linear_regression.rst>
     Straight-line calibration functions <straight_line_functions.rst>
     
+EURACHEM / CITAC Guide Examples
+===============================
+.. toctree::
+    :maxdepth: 1
+
+    Preparation of a Calibration Standard (A1) <CITAC_A1.rst>
+    Standardising a Sodium Hydroxide Solution (A2) <CITAC_A2.rst>
+    An Acid/Base Titration (A3) <CITAC_A3.rst>
+    Cadmium released from ceramic-ware (A5) <CITAC_A5.rst>
+    
 Arrays of uncertain numbers
 ===========================
 .. toctree::
