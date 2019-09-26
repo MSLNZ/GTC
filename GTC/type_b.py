@@ -811,10 +811,14 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
     Returns a :class:`~type_b.LineFitWTLS` object
 
     The elements of ``x`` and ``y`` must be uncertain numbers
-    with non-zero uncertainties. The uncertainties of the ``x`` 
-    and ``y`` sequences are used to calculate weights 
-    for the regression unless the optional arguments
-    ``u_x`` and ``u_y`` are specified.
+    with non-zero uncertainties. If specified, the optional arguments 
+    ``u_x`` and ``u_y`` will be used uncertainties to weight 
+    the data for the regression, otherwise the uncertainties of
+    the uncertain numbers in the sequences are used.
+    
+    The optional argument ``a_b`` can be used to provide a pair 
+    of initial estimates for the intercept and slope. Otherwise, 
+    initial estimates will be obtained by calling `line_fit_wls`.
     
     Implements a Weighted Total Least Squares algorithm
     that allows for correlation between x-y pairs. See reference: 
@@ -864,7 +868,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         assert isinstance(y_i,UncertainReal), 'uncertain real required'
 
     if a_b is None:
-        a_b = line_fit(x, y).a_b
+        a_b = line_fit_wls(x, y, u_y).a_b
 
     a0 = value(a_b[0])
     b0 = value(a_b[1])

@@ -82,6 +82,7 @@ from GTC.lib import (
 )
 ureal = UncertainReal._elementary
 ucomplex = UncertainComplex._elementary
+result = lambda un,label: un._intermediate(label)
 
 from GTC import type_b
 from GTC.type_b import (
@@ -133,11 +134,12 @@ Ordinary Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
 
-    def x_from_y(self,yseq,label=None):
+    def x_from_y(self,yseq,x_label=None,y_label=None):
         """Estimate the stimulus ``x`` that caused the response ``yseq``.
 
         :arg yseq: a sequence of ``y`` observations 
-        :arg label: a label for the estimate of `y` based on ``yseq``
+        :arg x_label: a label for the return uncertain number `x` 
+        :arg y_label: a label for the estimate of `y` based on ``yseq`` 
 
         **Example** ::
         
@@ -163,22 +165,26 @@ Ordinary Least-Squares Results:
             y,
             math.sqrt( self._ssr/df/p ),
             df,
-            label=label,
+            label=y_label,
             independent=False
         )  
 
         append_real_ensemble(a,y)
         
-        x = (y - a)/b
+        x = result( (y - a)/b, label=x_label )
 
         return x
         
-    def y_from_x(self,x,label=None):
+    def y_from_x(self,x,s_label=None,y_label=None):
         """Return an uncertain number ``y`` for the response to ``x``
 
         :arg x: a real number, or an uncertain real number
+        :arg s_label: a label for an elementary uncertain number associated with observation variability  
+        :arg y_label: a label for the return uncertain number `y` 
 
         Estimates the response ``y`` that might be observed for a stimulus ``x``
+        
+        The variability in observations is based on residuals obtained during regression.
         
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty is also propagated into ``y``.
@@ -188,15 +194,15 @@ Ordinary Least-Squares Results:
                 
         df = self._N - 2
         u = math.sqrt( self._ssr/df )
-        noise = ureal(0,u,df,label=None,independent=False)
+        
+        noise = ureal(
+            0,u,df,label=s_label,independent=False
+        )
         
         append_real_ensemble(a,noise)
                   
-        y = a + b*x + noise
+        y = result( a + b*x + noise, label=y_label )
         
-        if label is not None:
-            y.label = label
-
         return y
 
 #-----------------------------------------------------------------------------------------
@@ -219,12 +225,13 @@ Relative Weighted Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
 
-    def x_from_y(self,yseq,s_y,label=None):
+    def x_from_y(self,yseq,s_y,y_label=None):
         """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
 
         :arg yseq: a sequence of further observations of ``y``
         :arg s_y: a scale factor for the uncertainty of the ``yseq``
-        :arg label: a label for the estimate of `y` based on ``yseq``
+        :arg x_label: a label for the return uncertain number `x` 
+        :arg y_label: a label for the estimate of `y` based on ``yseq``
 
         """
         df = self._N - 2       
@@ -237,20 +244,22 @@ Relative Weighted Least-Squares Results:
             y,
             u_y * math.sqrt( self._ssr/df/p ),
             df,
-            label=label
+            label=y_label
         )            
 
         append_real_ensemble(a,y)
         
-        x = (y - a)/b
+        x = result( (y - a)/b, label=x_label )
 
         return x
 
-    def y_from_x(self,x,s_y,label=None):
+    def y_from_x(self,x,s_y,s_label=None,y_label=None):
         """Return an uncertain number ``y`` for the response to ``x``
 
         :arg x: a real number, or an uncertain real number
         :arg s_y: a scale factor for the response uncertainty
+        :arg s_label: a label for an elementary uncertain number associated with observation variability  
+        :arg y_label: a label for the return uncertain number `y` 
 
         Estimates the response ``y`` that might be generated 
         by a stimulus ``x``.
@@ -269,15 +278,13 @@ Relative Weighted Least-Squares Results:
         
         df = self._N - 2
         u = math.sqrt( s_y*self._ssr/df )
-        noise = ureal(0,u,df,label=None)
+        
+        noise = ureal(0,u,df,label=s_label)
 
         append_real_ensemble(a,noise)
                   
-        y = a + b*x + noise
+        y = result( a + b*x + noise, label=y_label )
         
-        if label is not None:
-            y.label = label
-
         return y
         
 #-----------------------------------------------------------------------------------------
@@ -537,6 +544,9 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
     :returns:   an object containing the fitting results
     :rtype:     :class:`.LineFitWTLS`
 
+    The optional argument ``a_b`` can be used to provide a pair 
+    of initial estimates for the intercept and slope. 
+
     Based on paper by M Krystek and M Anton,
     *Meas. Sci. Technol.* **22** (2011) 035101 (9pp)
     
@@ -572,10 +582,8 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
         for x_i,y_i,r_i in izip(x_u,y_u,r_xy):
             x_i.set_correlation(r_i,y_i)
 
-    if a0_b0 is None:
-        a0_b0 = line_fit(x, y).a_b
-
     result = type_b.line_fit_wtls(x_u,y_u,a_b=a0_b0)
+
     a, b = result.a_b
     N = result.N
     ssr = result.ssr
