@@ -564,10 +564,12 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
         >>> ux=[1./math.sqrt(wx_i) for wx_i in wx ]
         >>> uy=[1./math.sqrt(wy_i) for wy_i in wy ]
 
-        >>> result = type_a.line_fit_wtls(x,y,ux,uy)
-        >>> result.a_b
-        InterceptSlope(a=ureal(5.4799101832830...,0.2919334989452...,8), 
-        b=ureal(-0.480533399108...,0.05761674075939...,8))
+        >>> result = ta.line_fit_wtls(x,y,ux,uy)
+        >>> intercept, slope = result.a_b
+        >>> intercept
+        ureal(5.47991018...,0.29193349...,8)
+        >>> slope
+        ureal(-0.48053339...,0.057616740...,8)
     
     """
     independent = r_xy is None

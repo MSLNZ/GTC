@@ -845,9 +845,9 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         # TLS returns uncertain numbers
         >>> a,b = type_b.line_fit_wtls(x,y).a_b
         >>> a
-        ureal(5.4799101832830...,0.2919334989452...,inf)
+        ureal(5.47991018...,0.29193349...,inf)
         >>> b
-        ureal(-0.480533399108...,0.05761674075939...,inf)
+        ureal(-0.48053339...,0.057616740...,inf)
 
     """
     ureal = lambda x,u: UncertainReal._elementary(
