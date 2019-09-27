@@ -14,13 +14,16 @@ names of objects in this module.
 .. autofunction:: type_b.line_fit_wtls
 
 .. autoclass:: type_b.LineFitOLS
-    :members:
+    :members: N, a_b, intercept, slope, ssr
+    :inherited-members: x_from_y, y_from_x
 
 .. autoclass:: type_b.LineFitWLS
-    :members:
+    :members: N, a_b, intercept, slope, ssr
+    :inherited-members: x_from_y,y_from_x
 
 .. autoclass:: type_b.LineFitWTLS
-    :members:
+    :members: N, a_b, intercept, slope, ssr
+    :inherited-members: x_from_y,y_from_x
 
 .. autofunction:: type_b.uniform
 .. autofunction:: type_b.triangular

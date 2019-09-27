@@ -174,7 +174,7 @@ class TestLineFitWeighted(unittest.TestCase):
         
         Better numbers using R:
         
-            fit <- lm(y~x,wieghts=w)
+            fit <- lm(y~x,weights=w)
             fit.sum <- summary(fit)
             coef(fit)
             sqrt(diag(fit.sum$cov))
@@ -239,6 +239,13 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(x0.x,4.913,TOL) )
         self.assertTrue( equivalent(x0.u,0.322,TOL) )
         self.assertEqual( x0.df,inf )
+
+        # Same thing but using the function in LineFitWLS
+        x0 = fit.x_from_y([10.5],0.5,'x_label','y_label')
+        self.assertTrue( equivalent(x0.x,4.913,TOL) )
+        self.assertTrue( equivalent(x0.u,0.322,TOL) )
+        self.assertEqual( x0.df,inf )
+        self.assertEqual( x0.label,'x_label' )
 
     def test_iso28037_wls2(self):
         """ ISO/TS 28037:2010, p 14
@@ -328,6 +335,14 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(x0.x,4.674,TOL) )
         self.assertTrue( equivalent(x0.u,0.533,TOL) )
         self.assertEqual( x0.df,inf )
+
+        # Same thing but using the function in LineFitWLS
+        x0 = fit.x_from_y([10.5],1.0,'x_label','y_label')
+        self.assertTrue( equivalent(x0.x,4.674,TOL) )
+        self.assertTrue( equivalent(x0.u,0.533,TOL) )
+        self.assertEqual( x0.df,inf )
+        self.assertEqual( x0.label,'x_label' )
+
 
     def test_simple_scaled(self):
         """
