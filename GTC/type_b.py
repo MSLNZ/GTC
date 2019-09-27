@@ -211,10 +211,38 @@ class LineFitOLS(LineFit):
 Ordinary Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
+        
+    def x_from_y(self,yseq,u_yseq,x_label=None):
+        """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
 
+        :arg yseq: a sequence of further observations of ``y``
+        :arg x_label: a label for the return uncertain number `x` 
+
+        The items in ``yseq`` must be uncertain real numbers.
+        
+        """
+        a, b = self._a_b
+        
+        y = mean( yseq ) 
+        
+        return result( (y - a)/b, label=x_label )
+
+    def y_from_x(self,x,y_label=None):
+        """Return an uncertain number ``y`` for the response to ``x``
+
+        :arg x: an uncertain real number
+        :arg y_label: a label for the return uncertain number `y` 
+
+        Returns the expected response ``y`` for a stimulus ``x``.
+        
+        """
+        a, b = self._a_b   
+                          
+        return result( a + b*x, label=y_label )
+        
 #-----------------------------------------------------------------------------------------
 
-class LineFitWLS(LineFit):
+class LineFitWLS(LineFitOLS):
     
     """
     This object holds results from a weighted LS linear regression to data.
@@ -223,13 +251,14 @@ class LineFitWLS(LineFit):
     """
     
     def __init__(self,a,b,ssr,N):
-        LineFit.__init__(self,a,b,ssr,N)
+        LineFitOLS.__init__(self,a,b,ssr,N)
 
     def __str__(self):
         header = '''
 Weighted Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
+        
 
 #-----------------------------------------------------------------------------------------
 class LineFitWTLS(LineFit):
