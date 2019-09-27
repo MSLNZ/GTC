@@ -52,7 +52,7 @@ The uncertainty calculation
 The concentration calculation is then simply [#]_ ::
 
     >>> c_Cd = 1000 * m * P / V
-    >>> print "c_Cd={:G}, u={:G}".format(c_Cd.x,c_Cd.u)
+    >>> print( "c_Cd={:G}, u={:G}".format(c_Cd.x,c_Cd.u) )
     c_Cd=1002.7, u=0.835199 
  
 The contributions to the standard uncertainty can be itemised using :func:`reporting.budget`::

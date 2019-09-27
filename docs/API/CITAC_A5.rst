@@ -98,7 +98,7 @@ The ``GTC`` calculation uses the :func:`~type_a.line_fit` function ::
 There is correlation between these uncertain numbers (the estimates are correlated) ::
 
     >>> print( get_correlation(B_0, B_1) )
-    -0.870388279778
+    -0.87038...
     
 The object ``fit`` contains information about the regression that can be used to make predictions about cadmium concentration from subsequent observations of absorbance. In this case, two further values of absorbance are used to estimate the concentration :math:`c_0`. 
 

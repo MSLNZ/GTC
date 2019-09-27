@@ -167,7 +167,7 @@ We can adapt our calculations above by defining two elementary uncertain numbers
     >>> V_T2 = V_T2 - V_T2_excess
 
     >>> print( uncertainty(V_T1) )
-    0.0336883837546
+    0.033688...
 
     >>> print( uncertainty(V_T2) )
     0.033210...
