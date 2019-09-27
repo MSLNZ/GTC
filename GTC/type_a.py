@@ -24,16 +24,17 @@ Least squares regression
     *   :func:`line_fit` performs an ordinary least-squares straight 
         line fit to a sample of data.  
     *   :func:`line_fit_wls` performs a weighted least-squares straight 
-        line fit to a sample of data. 
+        line fit to a sample of data. The weights are assumed to be exact.
     *   :func:`line_fit_rwls` performs a weighted least-squares  
-        straight line fit to a sample of data. In this case, the weights
-        are used to normalise the variability of observations.
+        straight line fit to a sample of data. The weights
+        are only assumed normalise the variability of observations.
     *   :func:`line_fit_wtls` performs a weighted total least-squares straight 
         line fit to a sample of data.   
  
 Merging uncertain components
 ----------------------------
-    *   :func:`merge` combines the results from type-A and type-B analyses. 
+    *   :func:`merge` combines results from a type-A and type-B analysis 
+        of the same data. 
  
 .. note::
 
@@ -42,10 +43,8 @@ Merging uncertain components
     functions, but only the uncertain-number values will be used.
     
     :func:`merge` is provided so that the results of 
-    type-A and type-B analyses on the same data sequence can be 
-    combined. Note, however, that doing so may over-emphasize
-    uncertainty components that contribute to variability in 
-    the observations.
+    type-A and type-B analyses on the same data can be 
+    combined. 
 
 Module contents
 ---------------
@@ -86,7 +85,7 @@ result = lambda un,label: un._intermediate(label)
 
 from GTC import type_b
 from GTC.type_b import (
-    LineFit, LineFitWLS, LineFitWTLS,
+    LineFit, LineFitWTLS,
 )
 
 from GTC.named_tuples import (
@@ -109,7 +108,7 @@ __all__ = (
     'standard_uncertainty',
     'variance_covariance_complex',
     'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls',
-    'LineFitOLS','LineFitRWLS','LineFitWTLS',
+    'LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS',
     'merge',
 )
 
@@ -182,7 +181,7 @@ Ordinary Least-Squares Results:
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        Estimates the response ``y`` that might be observed for a stimulus ``x``
+        Estimates the expected response ``y`` for a stimulus ``x``
         
         The variability in observations is based on residuals obtained during regression.
         
@@ -210,8 +209,8 @@ Ordinary Least-Squares Results:
 class LineFitRWLS(LineFit):
     
     """
-    Class to hold the the results of a relative weighted least-squares regression.
-    The weight factors provided normalise the variability of observations.
+    Class to hold the results of a relative weighted least-squares regression.
+    The weights provided normalise the variability of observations.
     
     .. versionadded:: 1.2
     """
@@ -225,7 +224,7 @@ Relative Weighted Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
 
-    def x_from_y(self,yseq,s_y,y_label=None):
+    def x_from_y(self,yseq,s_y,x_label=None,y_label=None):
         """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
 
         :arg yseq: a sequence of further observations of ``y``
@@ -242,9 +241,10 @@ Relative Weighted Least-Squares Results:
         
         y = ureal(
             y,
-            u_y * math.sqrt( self._ssr/df/p ),
+            s_y * math.sqrt( self._ssr/df/p ),
             df,
-            label=y_label
+            label=y_label,
+            independent=False
         )            
 
         append_real_ensemble(a,y)
@@ -261,8 +261,7 @@ Relative Weighted Least-Squares Results:
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        Estimates the response ``y`` that might be generated 
-        by a stimulus ``x``.
+        Returns the expected response ``y`` for a stimulus ``x``.
 
         Because there is different variability in 
         the response to different stimuli, the
@@ -280,6 +279,86 @@ Relative Weighted Least-Squares Results:
         u = math.sqrt( s_y*self._ssr/df )
         
         noise = ureal(0,u,df,label=s_label)
+
+        append_real_ensemble(a,noise)
+                  
+        y = result( a + b*x + noise, label=y_label )
+        
+        return y
+        
+#-----------------------------------------------------------------------------------------
+#
+class LineFitWLS(LineFit):
+    
+    """
+    Class to hold the results of a weighted least-squares regression.
+    The weight factors provided are assumed to correspond exactly to the
+    variability of observations.
+    
+    .. versionadded:: 1.2
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        LineFit.__init__(self,a,b,ssr,N)
+
+    def __str__(self):
+        header = '''
+Weighted Least-Squares Results:
+'''
+        return header + LineFit.__str__(self)
+
+    def x_from_y(self,yseq,u_yseq,x_label=None,y_label=None):
+        """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
+
+        :arg yseq: a sequence of further observations of ``y``
+        :arg u_yseq: the standard uncertainty of the ``yseq`` data
+        :arg x_label: a label for the return uncertain number `x` 
+        :arg y_label: a label for the estimate of `y` based on ``yseq``
+
+        The variations in ``yseq`` values are assumed to result from 
+        independent random effects.
+        
+        """
+        a, b = self._a_b
+        
+        p = len(yseq)
+        y = math.fsum( yseq ) / p
+        
+        y = ureal(
+            y,
+            u_yseq / math.sqrt( p ),
+            inf,
+            label=y_label,
+            independent=False
+        )            
+
+        append_real_ensemble(a,y)
+        
+        x = result( (y - a)/b, label=x_label )
+
+        return x
+
+    def y_from_x(self,x,s_y,s_label=None,y_label=None):
+        """Return an uncertain number ``y`` for the response to ``x``
+
+        :arg x: a real number, or an uncertain real number
+        :arg u_y: the response uncertainty
+        :arg s_label: a label for an elementary uncertain number associated with observation variability  
+        :arg y_label: a label for the return uncertain number `y` 
+
+        Returns the expected response ``y`` for a stimulus ``x``.
+
+        The standard uncertainty ``u_y`` is assumed 
+        to be the standard deviation in the ``y`` value is 
+        proportional to ``s_y``.
+        
+        An uncertain real number can be used for ``x``, in which
+        case the associated uncertainty is also propagated into ``y``.
+        
+        """
+        a, b = self._a_b   
+        
+        noise = ureal(0,u_y,df,label=s_label)
 
         append_real_ensemble(a,noise)
                   
@@ -616,7 +695,7 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False):
     """
-    Return an uncertain number for the mean of digitized data
+    Return an uncertain number for the mean of digitized data in ``seq``
 
     :arg seq: data
     :type seq: float, :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
@@ -631,9 +710,8 @@ def estimate_digitized(seq,delta,label=None,truncate=False):
     
     This function recognises the possible interaction between truncation, or rounding,
     errors and random errors in the underlying data. The function 
-    obtains the mean of the data sequence and evaluates the uncertainty 
-    in this mean as an estimate of the mean of the process generating 
-    the data.   
+    evaluates the mean of the data and evaluates the uncertainty 
+    in this mean.   
         
     Set the argument ``truncate`` to ``True`` 
     if data have been truncated, instead of rounded.
@@ -711,7 +789,7 @@ def estimate_digitized(seq,delta,label=None,truncate=False):
     
 #-----------------------------------------------------------------------------------------
 def estimate(seq,label=None):
-    """Return an uncertain number for the mean of the data 
+    """Return an uncertain number for the mean of the data in ``seq``
 
     :arg seq:   a sequence of data
     :arg str label: a label for the returned uncertain number
@@ -721,15 +799,15 @@ def estimate(seq,label=None):
     The elements of ``seq`` may be real numbers, complex numbers, or
     uncertain real or complex numbers. Note that only the value of uncertain 
     numbers will be used.
+    
+    The function returns an :class:`~lib.UncertainReal` when 
+    the mean of the data is real, and an :class:`~lib.UncertainComplex` 
+    when the mean of the data is complex.
 
     In a type-A evaluation, the sample mean provides an estimate of the  
     quantity of interest. The uncertainty in this estimate 
     is the standard deviation of the sample mean (or the  
     sample covariance of the mean, in the complex case).    
-    
-    The function returns an :class:`~lib.UncertainReal` when 
-    the mean of the data is real, and an :class:`~lib.UncertainComplex` 
-    when the mean of the data is complex.
 
     **Examples**::
 
@@ -793,7 +871,28 @@ def mean(seq,*args,**kwargs):
         7.0
             
     """
-    mu = sum(seq)/len(seq)
+    if is_sequence(seq):
+        assert not args
+        assert not kwargs
+        mu = sum(seq)/len(seq)
+        
+    elif isinstance(seq,np.ndarray):
+        mu = np.asarray(seq).mean(*args, **kwargs)
+        
+    elif isinstance(seq,Iterable):
+        assert not args
+        assert not kwargs
+        count = 0
+        total = 0
+        for i in seq:
+            total += i
+            count += 1
+        mu = total/count
+        
+    else:
+        raise RuntimeError(
+            "{!r} is not iterable".format(seq)
+        )
     
     # If `seq` has uncertain number elements then `mu` will 
     # be an uncertain number.     
@@ -1015,13 +1114,14 @@ def multi_estimate_real(seq_of_seq,labels=None):
     :rtype: seq of :class:`~lib.UncertainReal`
 
     The sequences in ``seq_of_seq`` must all be the same length.
-    Each sequence is associated with a particular quantity and contains 
-    a sample of data. An uncertain number for the quantity will be created  
-    using the sample of data, using sample statistics. The covariance 
-    between different quantities will also be evaluated from the data.
+    Each sequence contains 
+    a sample of data associated with a particular quantity. 
+    An uncertain number will be created for the quantity
+    from sample statistics. The covariance 
+    between the different quantities will also be evaluated.
     
-    A sequence of elementary uncertain numbers are returned. The uncertain numbers 
-    are considered related, allowing a degrees-of-freedom calculations 
+    A sequence of elementary uncertain numbers is returned. These uncertain numbers 
+    are considered to be related, allowing a degrees-of-freedom calculations 
     to be performed on derived quantities. 
 
     **Example**::
@@ -1121,18 +1221,15 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     :rtype: a sequence of :class:`~lib.UncertainComplex`
         
     The sequences in ``seq_of_seq`` must all be the same length.
-    Each sequence contains a sample of data that is associated with 
-    a particular quantity. An uncertain number for the quantity will  
-    be created using this data from sample statistics. The covariance 
-    between different quantities will also be evaluated from the data.
+    Each sequence contains data that is associated with 
+    a particular quantity. An uncertain number for that quantity will  
+    be created from sample statistics. The covariance 
+    between the different quantities will also be evaluated.
     
-    A sequence of elementary uncertain complex numbers are returned. These   
-    uncertain numbers are considered related, allowing a degrees-of-freedom  
+    A sequence of elementary uncertain complex numbers is returned. These   
+    uncertain numbers are considered to be related, allowing a degrees-of-freedom  
     calculations to be performed on derived quantities. 
     
-    Defines uncertain numbers using the sample statistics, including
-    the sample covariance.  
-
     **Example**::
     
         # From Appendix H2 in the GUM
