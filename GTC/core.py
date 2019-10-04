@@ -425,7 +425,7 @@ def constant(x,label=None):
 #----------------------------------------------------------------------------
 def result(un,label=None):
     """
-    Define an uncertain number as an intermediate result
+    Declare an uncertain number to be an intermediate result
 
     :arg un: an uncertain number or :class:`.UncertainArray`
     :arg label: a string or sequence of strings
@@ -435,9 +435,9 @@ def result(un,label=None):
     
     .. note::
     
-        This function is best applied to a temporary object,
-        because a new intermediate result object is created.
-        The original object ``un`` is not affected.
+        This function does not affect the argument ``un``.
+        Rather, a new intermediate result object is created.
+        So, this function will usually be applied to a temporary object.
     
     The component of uncertainty, or the sensitivity, of an uncertain number 
     with respect to an intermediate result can be evaluated. 
