@@ -60,9 +60,11 @@ from functools import reduce
 
 try:
     from itertools import izip  # Python 2
+    from collections import Iterable
 except ImportError:
     izip = zip
     xrange = range
+    from collections.abc import Iterable
 
 from GTC import (
     inf, 
@@ -140,6 +142,10 @@ Ordinary Least-Squares Results:
         :arg x_label: a label for the return uncertain number `x` 
         :arg y_label: a label for the estimate of `y` based on ``yseq`` 
 
+        ..note::
+            When ``x_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
         **Example** ::
         
             >>> x_data = [0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5,
@@ -170,7 +176,10 @@ Ordinary Least-Squares Results:
 
         append_real_ensemble(a,y)
         
-        x = result( (y - a)/b, label=x_label )
+        if y_label is None:
+            x = (y - a)/b
+        else:
+            x = result( (y - a)/b, label=x_label )
 
         return x
         
@@ -187,11 +196,15 @@ Ordinary Least-Squares Results:
         
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty is also propagated into ``y``.
+
+        ..note::
+            When ``y_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
         
         """
         a, b = self._a_b   
-                
         df = self._N - 2
+        
         u = math.sqrt( self._ssr/df )
         
         noise = ureal(
@@ -200,7 +213,10 @@ Ordinary Least-Squares Results:
         
         append_real_ensemble(a,noise)
                   
-        y = result( a + b*x + noise, label=y_label )
+        if y_label is None:
+            y = a + b*x + noise
+        else:
+            y = result( a + b*x + noise, label=y_label )
         
         return y
 
@@ -232,6 +248,10 @@ Relative Weighted Least-Squares Results:
         :arg x_label: a label for the return uncertain number `x` 
         :arg y_label: a label for the estimate of `y` based on ``yseq``
 
+        ..note::
+            When ``x_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
         """
         df = self._N - 2       
         a, b = self._a_b
@@ -249,7 +269,10 @@ Relative Weighted Least-Squares Results:
 
         append_real_ensemble(a,y)
         
-        x = result( (y - a)/b, label=x_label )
+        if x_label is None:
+            x = (y - a)/b
+        else:
+            x = result( (y - a)/b, label=x_label )
 
         return x
 
@@ -272,17 +295,24 @@ Relative Weighted Least-Squares Results:
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty is also propagated into ``y``.
         
+        ..note::
+            When ``y_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
         """
         a, b = self._a_b   
-        
         df = self._N - 2
+        
         u = math.sqrt( s_y*self._ssr/df )
         
         noise = ureal(0,u,df,label=s_label)
 
         append_real_ensemble(a,noise)
                   
-        y = result( a + b*x + noise, label=y_label )
+        if y_label is None:
+            y = a + b*x + noise
+        else:
+            y = result( a + b*x + noise, label=y_label )
         
         return y
         
@@ -318,6 +348,10 @@ Weighted Least-Squares Results:
         The variations in ``yseq`` values are assumed to result from 
         independent random effects.
         
+        ..note::
+            When ``x_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
         """
         a, b = self._a_b
         
@@ -334,7 +368,10 @@ Weighted Least-Squares Results:
 
         append_real_ensemble(a,y)
         
-        x = result( (y - a)/b, label=x_label )
+        if x_label is None:
+            x = (y - a)/b
+        else:
+            x = result( (y - a)/b, label=x_label )
 
         return x
 
@@ -342,27 +379,34 @@ Weighted Least-Squares Results:
         """Return an uncertain number ``y`` for the response to ``x``
 
         :arg x: a real number, or an uncertain real number
-        :arg u_y: the response uncertainty
-        :arg s_label: a label for an elementary uncertain number associated with observation variability  
+        :arg s_y: response variability uncertainty
+        :arg s_label: a label for an elementary uncertain number associated with response variability  
         :arg y_label: a label for the return uncertain number `y` 
 
         Returns the expected response ``y`` for a stimulus ``x``.
 
-        The standard uncertainty ``u_y`` is assumed 
-        to be the standard deviation in the ``y`` value is 
-        proportional to ``s_y``.
+        The standard uncertainty ``s_y`` is used to create an additive
+        component of uncertainty associated with variability in the ``y`` value.
         
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty is also propagated into ``y``.
         
+        ..note::
+            When ``y_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
         """
         a, b = self._a_b   
+        df = self.N - 2
         
-        noise = ureal(0,u_y,df,label=s_label)
+        noise = ureal(0,s_y,df,label=s_label)
 
         append_real_ensemble(a,noise)
                   
-        y = result( a + b*x + noise, label=y_label )
+        if y_label is None:
+            y = a + b*x + noise
+        else:
+            y = result( a + b*x + noise, label=y_label )
         
         return y
         
@@ -871,32 +915,7 @@ def mean(seq,*args,**kwargs):
         7.0
             
     """
-    if is_sequence(seq):
-        assert not args
-        assert not kwargs
-        mu = sum(seq)/len(seq)
-        
-    elif isinstance(seq,np.ndarray):
-        mu = np.asarray(seq).mean(*args, **kwargs)
-        
-    elif isinstance(seq,Iterable):
-        assert not args
-        assert not kwargs
-        count = 0
-        total = 0
-        for i in seq:
-            total += i
-            count += 1
-        mu = total/count
-        
-    else:
-        raise RuntimeError(
-            "{!r} is not iterable".format(seq)
-        )
-    
-    # If `seq` has uncertain number elements then `mu` will 
-    # be an uncertain number.     
-    return value(mu)
+    return value( type_b.mean(seq,*args,**kwargs) )
     
 #-----------------------------------------------------------------------------------------
 def standard_deviation(seq,mu=None):
