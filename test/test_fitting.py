@@ -19,7 +19,6 @@ from GTC.lib import (
     append_real_ensemble
 )
 
-# from test_type_a import simple_sigma_abr
 from testing_tools import *
 
 TOL = 1E-13 
@@ -202,7 +201,7 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(x0.x,4.913,TOL) )
         self.assertTrue( equivalent(x0.u,0.322,TOL) )
         self.assertEqual( x0.df,inf )
-
+        
     def test_iso28037_wls1_ta(self):
         """ ISO/TS 28037:2010, p 13
         
@@ -242,10 +241,17 @@ class TestLineFitWeighted(unittest.TestCase):
 
         # Same thing but using the function in LineFitWLS
         x0 = fit.x_from_y([10.5],0.5,'x_label','y_label')
+        self.assertTrue( x0.is_intermediate )
         self.assertTrue( equivalent(x0.x,4.913,TOL) )
         self.assertTrue( equivalent(x0.u,0.322,TOL) )
         self.assertEqual( x0.df,inf )
         self.assertEqual( x0.label,'x_label' )
+
+        x0 = fit.x_from_y([10.5],0.5)
+        self.assertTrue( not x0.is_intermediate )
+        self.assertTrue( equivalent(x0.x,4.913,TOL) )
+        self.assertTrue( equivalent(x0.u,0.322,TOL) )
+        self.assertEqual( x0.df,inf )
 
     def test_iso28037_wls2(self):
         """ ISO/TS 28037:2010, p 14

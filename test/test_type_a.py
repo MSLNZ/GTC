@@ -67,6 +67,11 @@ class TestTypeA(unittest.TestCase):
             self.assertTrue( equivalent( type_a.mean(seq) , data_.mean(), TOL) )
             self.assertTrue( equivalent( type_a.mean(seq) , numpy.mean(seq), TOL) )
 
+        # takes an iterable object 
+        rng = range(100)
+        itr = iter(rng)
+        self.assertTrue( equivalent( type_a.mean(itr) , type_a.mean(rng), TOL) )
+        
     def testUNMean(self):
         """A sequence of uncertain numbers"""
         
@@ -714,7 +719,8 @@ class TestLineFit(unittest.TestCase):
              34.,36.,38.,37.,36.,45.,39.,41.,40.,44.,37.,44.,46.,46.,49.,51.]
 
         TOL = 1E-5
-        a,b = type_a.line_fit(x,y).a_b
+        fit = type_a.line_fit(x,y)
+        a,b = fit.a_b
         self.assertTrue( equivalent( value(a), 3.82963, self.TOL) )
         self.assertTrue( equivalent( uncertainty(a), 1.768447, self.TOL) )
         self.assertTrue( equivalent( value(b), 0.90364, self.TOL) )
@@ -759,7 +765,8 @@ class TestLineFit(unittest.TestCase):
         b_k = (-0.171,-0.169,-0.166,-0.159,-0.164,-0.165,-0.156,-0.157,-0.159,-0.161,-0.160)
         theta = [ t_k_i - 20 for t_k_i in t_k ]
 
-        a,b = type_a.line_fit(theta,b_k).a_b
+        fit = type_a.line_fit(theta,b_k)
+        a,b = fit.a_b
 
         # Compare with GUM values
 
@@ -772,6 +779,15 @@ class TestLineFit(unittest.TestCase):
         self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
         self.assertTrue( equivalent(b_30.df,9,1E-13) )
 
+        # `y_from_x` is the predicted single `y` response
+        # which has greater variability        
+        b_30 = fit.y_from_x(30 - 20)
+        self.assertTrue( not b_30.is_intermediate )
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        b_30 = fit.y_from_x(30 - 20,y_label='b_30')
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        self.assertTrue( b_30.is_intermediate )
+
     def test_A5(self):
         """CITAC 3rd edition
 
@@ -782,8 +798,8 @@ class TestLineFit(unittest.TestCase):
                   0.181, 0.183, 0.215, 0.230, 0.216]
 
         fit = ta.line_fit(x_data,y_data)
-        c_0 = fit.x_from_y( [0.0712, 0.0716] )
         a, b = fit.a_b
+        c_0 = fit.x_from_y( [0.0712, 0.0716] )
 
         # The classical uncertainty
         N = len(x_data)
