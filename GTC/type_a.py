@@ -136,7 +136,7 @@ Ordinary Least-Squares Results:
         return header + LineFit.__str__(self)
 
     def x_from_y(self,yseq,x_label=None,y_label=None):
-        """Estimate the stimulus ``x`` that caused the response ``yseq``.
+        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
 
         :arg yseq: a sequence of ``y`` observations 
         :arg x_label: a label for the return uncertain number `x` 
@@ -184,18 +184,18 @@ Ordinary Least-Squares Results:
         return x
         
     def y_from_x(self,x,s_label=None,y_label=None):
-        """Return an uncertain number ``y`` for the response to ``x``
+        """Return an uncertain number ``y`` that predicts the response to ``x``
 
         :arg x: a real number, or an uncertain real number
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        Estimates the expected response ``y`` for a stimulus ``x``
+        This is a prediction of a single future response ``y`` to a stimulus ``x``
         
         The variability in observations is based on residuals obtained during regression.
         
         An uncertain real number can be used for ``x``, in which
-        case the associated uncertainty is also propagated into ``y``.
+        case the associated uncertainty will also be propagated into ``y``.
 
         ..note::
             When ``y_label`` is defined, the uncertain number returned will be 
@@ -241,7 +241,7 @@ Relative Weighted Least-Squares Results:
         return header + LineFit.__str__(self)
 
     def x_from_y(self,yseq,s_y,x_label=None,y_label=None):
-        """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
+        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
 
         :arg yseq: a sequence of further observations of ``y``
         :arg s_y: a scale factor for the uncertainty of the ``yseq``
@@ -277,14 +277,14 @@ Relative Weighted Least-Squares Results:
         return x
 
     def y_from_x(self,x,s_y,s_label=None,y_label=None):
-        """Return an uncertain number ``y`` for the response to ``x``
+        """Return an uncertain number ``y`` that predicts the response to ``x``
 
         :arg x: a real number, or an uncertain real number
         :arg s_y: a scale factor for the response uncertainty
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        Returns the expected response ``y`` for a stimulus ``x``.
+        Returns a single future response ``y`` predicted for a stimulus ``x``.
 
         Because there is different variability in 
         the response to different stimuli, the
@@ -338,7 +338,7 @@ Weighted Least-Squares Results:
         return header + LineFit.__str__(self)
 
     def x_from_y(self,yseq,u_yseq,x_label=None,y_label=None):
-        """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
+        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
 
         :arg yseq: a sequence of further observations of ``y``
         :arg u_yseq: the standard uncertainty of the ``yseq`` data
@@ -376,14 +376,14 @@ Weighted Least-Squares Results:
         return x
 
     def y_from_x(self,x,s_y,s_label=None,y_label=None):
-        """Return an uncertain number ``y`` for the response to ``x``
+        """Return an uncertain number ``y`` that predicts the response to ``x``
 
         :arg x: a real number, or an uncertain real number
         :arg s_y: response variability uncertainty
         :arg s_label: a label for an elementary uncertain number associated with response variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        Returns the expected response ``y`` for a stimulus ``x``.
+        Returns a single future response ``y`` predicted for a stimulus ``x``.
 
         The standard uncertainty ``s_y`` is used to create an additive
         component of uncertainty associated with variability in the ``y`` value.

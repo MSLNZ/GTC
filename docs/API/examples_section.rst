@@ -17,9 +17,9 @@ Linear calibration
 .. toctree::
     :maxdepth: 1
 
-    Calibration of a simple pressure sensor <linear_cal_functions.rst>
     Using the results of linear regression <linear_regression.rst>
     Straight-line calibration functions <straight_line_functions.rst>
+    Calibration of a simple pressure sensor <linear_cal_functions.rst>
     
 EURACHEM / CITAC Guide Examples
 ===============================

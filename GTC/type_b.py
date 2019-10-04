@@ -255,7 +255,7 @@ Ordinary Least-Squares Results:
         return header + LineFit.__str__(self)
         
     def x_from_y(self,yseq,x_label=None):
-        """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
+        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
 
         :arg yseq: a sequence of further observations of ``y``
         :arg x_label: a label for the return uncertain number `x` 
@@ -277,12 +277,12 @@ Ordinary Least-Squares Results:
             return result( (y - a)/b, label=x_label )
 
     def y_from_x(self,x,y_label=None):
-        """Return an uncertain number ``y`` for the response to ``x``
+        """Return an uncertain number ``y`` that predicts the response to ``x``
 
         :arg x: an uncertain real number
         :arg y_label: a label for the return uncertain number `y` 
 
-        Returns the expected response ``y`` for a stimulus ``x``.
+        This is a prediction of a single future response ``y`` to a stimulus ``x``
         
         ..note::
             When ``y_label`` is defined, the uncertain number returned will be 
