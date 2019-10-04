@@ -74,6 +74,8 @@ from __future__ import division
 import sys
 import math
 
+import numpy as np
+
 try:  # Python 2
     import __builtin__ as builtins
     from collections import Iterable
@@ -86,7 +88,9 @@ except ImportError:
     
 from GTC import (
     inf ,
-    EPSILON
+    EPSILON,
+    is_sequence
+
 )
 
 from GTC.named_tuples import InterceptSlope
@@ -107,6 +111,7 @@ __all__ = (
     'uniform_disk',
     'unknown_phase_product',
     'distribution',
+    'mean',
     'line_fit','line_fit_wls','line_fit_wtls',
     'LineFitOLS', 'LineFitWLS', 'LineFitWTLS'
 )
@@ -114,6 +119,43 @@ __all__ = (
 HALF_PI = math.pi / 2.0
 MAX = sys.float_info.max 
 
+#-----------------------------------------------------------------------------------------
+def mean(seq,*args,**kwargs):
+    """Return the arithmetic mean of data in ``seq``
+
+    :arg seq: a sequence, :class:`~numpy.ndarray`, or iterable, of numbers or uncertain numbers
+    :arg args: optional arguments when ``seq`` is an :class:`~numpy.ndarray`
+    :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
+    
+    An uncertain number is returned if ``seq`` contains uncertain numbers.
+            
+    """
+    if is_sequence(seq):
+        assert not args
+        assert not kwargs
+        mu = sum(seq)/len(seq)
+        
+    elif isinstance(seq,np.ndarray):
+        mu = np.asarray(seq).mean(*args, **kwargs)
+        
+    elif isinstance(seq,Iterable):
+        assert not args
+        assert not kwargs
+        count = 0
+        total = 0
+        for i in seq:
+            total += i
+            count += 1
+        mu = total/count
+        
+    else:
+        raise RuntimeError(
+            "{!r} is not iterable".format(seq)
+        )
+    
+    # If `seq` has uncertain number elements then `mu` will 
+    # be an uncertain number.     
+    return mu
 #-----------------------------------------------------------------------------------------
 class LineFit(object):
     
@@ -212,7 +254,7 @@ Ordinary Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
         
-    def x_from_y(self,yseq,u_yseq,x_label=None):
+    def x_from_y(self,yseq,x_label=None):
         """Estimates the stimulus ``x`` that generated the response sequence ``yseq``
 
         :arg yseq: a sequence of further observations of ``y``
@@ -220,12 +262,19 @@ Ordinary Least-Squares Results:
 
         The items in ``yseq`` must be uncertain real numbers.
         
+        ..note::
+            When ``x_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+        
         """
         a, b = self._a_b
         
         y = mean( yseq ) 
         
-        return result( (y - a)/b, label=x_label )
+        if x_label is None:
+            return (y - a)/b
+        else:
+            return result( (y - a)/b, label=x_label )
 
     def y_from_x(self,x,y_label=None):
         """Return an uncertain number ``y`` for the response to ``x``
@@ -235,10 +284,17 @@ Ordinary Least-Squares Results:
 
         Returns the expected response ``y`` for a stimulus ``x``.
         
+        ..note::
+            When ``y_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+        
         """
         a, b = self._a_b   
                           
-        return result( a + b*x, label=y_label )
+        if x_label is None:
+            return a + b*x
+        else:
+            return result( a + b*x, label=y_label )
         
 #-----------------------------------------------------------------------------------------
 
