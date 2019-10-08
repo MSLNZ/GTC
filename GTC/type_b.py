@@ -291,7 +291,7 @@ Ordinary Least-Squares Results:
         """
         a, b = self._a_b   
                           
-        if x_label is None:
+        if y_label is None:
             return a + b*x
         else:
             return result( a + b*x, label=y_label )

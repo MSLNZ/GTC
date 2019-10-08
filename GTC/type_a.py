@@ -176,7 +176,7 @@ Ordinary Least-Squares Results:
 
         append_real_ensemble(a,y)
         
-        if y_label is None:
+        if x_label is None:
             x = (y - a)/b
         else:
             x = result( (y - a)/b, label=x_label )
