@@ -14,9 +14,6 @@ environment:
 install:
   - "%PYTHON%\\python.exe -m pip install --upgrade pip"
   - "%PYTHON%\\python.exe -m pip install --upgrade setuptools wheel"
-  - "%PYTHON%\\python.exe --version"
-  - "%PYTHON%\\python.exe -c \"import numpy; print('numpy ' + numpy.__version__)\""
-  - "%PYTHON%\\python.exe -c \"import scipy; print('scipy ' + scipy.__version__)\""
 
 build: off
 
@@ -24,6 +21,9 @@ test_script:
   - "%PYTHON%\\python.exe setup.py tests"
 
 after_test:
+  - "%PYTHON%\\python.exe --version"
+  - "%PYTHON%\\python.exe -c \"import numpy; print('numpy ' + numpy.__version__)\""
+  - "%PYTHON%\\python.exe -c \"import scipy; print('scipy ' + scipy.__version__)\""
   - "%PYTHON%\\python.exe setup.py sdist bdist_wheel"
 
 artifacts:
