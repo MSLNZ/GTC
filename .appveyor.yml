@@ -12,9 +12,11 @@ environment:
     - PYTHON: "C:\\Python38-x64"
 
 install:
-  - "%PYTHON%\\python.exe --version"
   - "%PYTHON%\\python.exe -m pip install --upgrade pip"
   - "%PYTHON%\\python.exe -m pip install --upgrade setuptools wheel"
+  - "%PYTHON%\\python.exe --version"
+  - "%PYTHON%\\python.exe -c \"import numpy; print('numpy ' + numpy.__version__)\""
+  - "%PYTHON%\\python.exe -c \"import scipy; print('scipy ' + scipy.__version__)\""
 
 build: off
 
