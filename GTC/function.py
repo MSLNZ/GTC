@@ -41,6 +41,7 @@ __all__ = (
     'complex_to_seq',
     'seq_to_complex',
     'mean',
+    'mul2',
 )
     
 #---------------------------------------------------------------------------
@@ -173,7 +174,132 @@ def seq_to_complex(seq):
 
     return complex(seq[0],seq[2])
     
+#---------------------------------------------------------------------------
+# TODO: this is the old GTC code, it needs to be ported 
+#
+def mul2(arg1,arg2,estimated=False):
+    """
+    Return the product of ``arg1`` and ``arg2``
 
+    Extends the usual calculation of a product, by
+    using second-order contributions to uncertainty.
+    
+    :arg arg1: uncertain real or complex number
+    :arg arg2: uncertain real or complex number
+    :arg estimated: Boolean
+
+    When both arguments are uncertain numbers 
+    that always have the same fixed values then 
+    ``estimated`` should be set ``False``. 
+    For instance, residual errors are often associated 
+    with the value 0, or 1, which is not measured, in
+    that case ``estimated=False`` is appropriate. 
+    However, if either or both arguments are based on 
+    measured values set ``estimated=True``.
+    
+    .. note::
+    
+        When ``estimated`` is ``True``, and the 
+        product is close to zero, the result of a  
+        second-order uncertainty calculation is 
+        smaller than the uncertainty calculated by 
+        the usual first-order method. In some cases, 
+        an uncertainty of zero will be obtained.
+    
+    There are fairly strict limitations on the use of this
+    function, especially for uncertain complex numbers:
+    
+    1) Arguments must be independent (have no common influence  
+    quantities) and there can be no correlation between any 
+    of the quantities that influence `arg1` or `arg2`. 
+
+    2) If either argument is uncertain complex, the real and 
+    imaginary components must have equal uncertainties (i.e., 
+    the covariance matrix must be diagonal with equal elements 
+    along the diagonal) and be independent (no common influences).
+
+    A :class:`RuntimeError` exception is raised if  
+    these conditions are not met.
+
+    .. note::
+    
+        This function has been developed to improve the
+        accuracy of uncertainty calculations where one or  
+        both multiplicands are zero. In such cases, the 
+        usual method of uncertainty propagation fails.
+
+        For example ::
+                
+            >>> x1 = ureal(0,1,label='x1')
+            >>> x2 = ureal(0,1,label='x2')
+            >>> y = x1 * x2
+            >>> y
+            ureal(0,0,inf)
+            >>> for cpt in rp.budget(y,trim=0):
+            ... 	print "  %s: %G" % cpt
+            ... 	
+              x1: 0
+              x2: 0
+              
+        so none of the uncertainty in ``x1`` or ``x2`` 
+        is propagated to ``y``. However, we may calculate 
+        the second-order contribution ::
+        
+            >>> y = fn.mul2(x1,x2)
+            >>> y
+            ureal(0,1,inf)
+            >>> for cpt in rp.budget(y,trim=0):
+            ... 	print "  %s: %G" % cpt
+            ... 	
+              x1: 0.707107
+              x2: 0.707107
+    
+        The product now has a standard uncertainty of unity.
+        
+    .. warning::
+    
+        :func:`mul2` departs from the first-order linear  
+        calculation of uncertainty in the GUM.
+
+        In particular, the strict proportionality between 
+        components of uncertainty and first-order partial
+        derivatives no longer holds.
+        
+    """
+    reals = []
+    comp = []
+    for arg in (arg1,arg2):
+        if not isinstance(arg,(UncertainReal,UncertainComplex)):
+            raise RuntimeError(
+                "uncertain number required, got: '%s'" % repr(arg)
+            )
+
+    if isinstance(arg1,UncertainReal):
+        if isinstance(arg2,UncertainReal):
+            return mult_2nd_real_pair(arg1,arg2,estimated)
+        elif isinstance(arg2,UncertainComplex):
+            _simple_variance(arg2.v)
+            return mult_2nd_real_complex(arg1,arg2,estimated)
+        else:
+            raise RuntimeError(
+                "uncertain number required, got: '%s'" % repr(arg2)
+            )
+    elif isinstance(arg1,UncertainComplex):
+        _simple_variance(arg1.v)
+        if isinstance(arg2,UncertainReal):
+            return mult_2nd_real_complex(arg2,arg1,estimated)
+        elif isinstance(arg2,UncertainComplex):
+            _simple_variance(arg2.v)
+            return mult_2nd_complex_pair(arg1,arg2,estimated)
+        else:
+            raise RuntimeError(
+                "uncertain number required, got: '%s'" % repr(arg2)
+            )
+    else:
+        raise RuntimeError(
+            "uncertain number required, got: '%s'" % repr(arg1)
+        )
+    
 # ===========================================================================    
 if __name__ == "__main__":
     import doctest

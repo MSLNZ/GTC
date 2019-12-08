@@ -4756,4 +4756,107 @@ def complex_ensemble(seq,df):
         for x in (pair.real,pair.imag):
             x._node.ensemble = ensemble
             
-  
+#----------------------------------------------------------------------------
+# TODO: this is the old GTC code, it needs to be ported 
+#
+def mult_2nd_real_pair(arg1,arg2,estimated):
+    """Return the uncertain number product 
+
+    `arg1` and `arg2` must be independent.
+    
+    """
+    uids = set()
+    u_args = []
+    for arg in (arg1,arg2):
+        # Require all independent influences
+        arg_uids = set( arg._u_components.keys() )
+        for uid in arg_uids:
+            if uid in uids:
+                raise RuntimeError(
+                    "'%s' is not independent of the other arguments" % repr(arg)
+                )
+        uids.update( arg_uids )
+        u_args.append( arg.u )
+        
+    # Require all uncorrelated
+    context = arg1._context
+    R = context._correlations.submatrix( 
+        [ context._registered_leaf_nodes[id] for id in uids ] 
+    )
+    if len(R) != 0:
+        raise RuntimeError(
+            "there is correlation between influences"
+        )
+
+    #---------------------------------------------------------------
+    x1 = arg1._x
+    x2 = arg2._x
+    v1 = arg1.v
+    v2 = arg2.v
+    
+    # When either or both multiplicands have been estimated, 
+    # the uncertainty component will be reduced
+    if estimated is True:
+        w = x2**2 - v2/2.0
+        weight1 = math.sqrt( w ) if w > 0.0 else 0.0
+        
+        w = x1**2 - v1/2.0
+        weight2 = math.sqrt( w ) if w > 0.0 else 0.0
+    else:
+        weight1 = math.sqrt( x2**2 + v2/2.0 ) 
+        weight2 = math.sqrt( x1**2 + v1/2.0 ) 
+        
+    v = merge_weighted_vectors(
+                arg1._u_components, weight1,
+                arg2._u_components, weight2
+            )    
+
+    inter = merge_weighted_vectors(
+                arg1._i_components, weight1,
+                arg2._i_components, weight2
+            )    
+
+    return UncertainReal(
+        x1 * x2,
+        v,
+        inter,
+        Node( (arg1._node,arg2._x), (arg2._node,arg1._x) ),
+        context
+    )
+
+#---------------------------------------------------------
+# TODO: this is the old GTC code, it needs to be ported 
+#
+def mult_2nd_complex_pair(arg1,arg2,estimated):
+    """
+    Return the 2nd order product of two uncertain numbers
+
+    """
+    # Proceed by binary composition
+    # x = x_r + j x_i; y = y_r + j y_i
+    #   z = x * y = (x_r * y_r - x_i * y*i) + j(x_i*y_r + x_r*y_i)
+    x_r, x_i = arg1.real, arg1.imag
+    y_r, y_i = arg2.real, arg2.imag
+
+    re = mult_2nd_real_pair(x_r,y_r,estimated) - mult_2nd_real_pair(x_i,y_i,estimated)
+    im = mult_2nd_real_pair(x_i,y_r,estimated) + mult_2nd_real_pair(x_r,y_i,estimated)
+
+    return UncertainComplex(re,im)
+
+#---------------------------------------------------------
+# TODO: this is the old GTC code, it needs to be ported 
+#
+def mult_2nd_real_complex(arg1,arg2,estimated):
+    """
+    Return the 2nd order product of two uncertain numbers
+    
+    """
+    # Proceed by binary composition
+    # x = x_r; y = y_r + j y_i
+    #   z = x * y = (x_r * y_r) + j(x_r * y_i)
+    y_r, y_i = arg2.real, arg2.imag
+
+    re = mult_2nd_real_pair(arg1,y_r,estimated)
+    im = mult_2nd_real_pair(arg1,y_i,estimated)
+
+    return UncertainComplex(re,im)
