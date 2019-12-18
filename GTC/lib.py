@@ -476,8 +476,7 @@ class UncertainReal(object):
             if x.is_elementary:
                 n = x._node
                 if n.independent:
-                    return self._u_components.get(n,0.0) / n.u
-                        
+                    return self._u_components.get(n,0.0) / n.u                        
                 else:
                     return self._d_components.get(n,0.0) / n.u
                     
@@ -4757,8 +4756,6 @@ def complex_ensemble(seq,df):
             x._node.ensemble = ensemble
             
 #----------------------------------------------------------------------------
-# TODO: this is the old GTC code, it needs to be ported 
-#
 def mult_2nd_real_pair(arg1,arg2,estimated):
     """Return the uncertain number product 
 
@@ -4768,24 +4765,24 @@ def mult_2nd_real_pair(arg1,arg2,estimated):
     uids = set()
     u_args = []
     for arg in (arg1,arg2):
-        # Require all independent influences
+        # There should be no common influences
         arg_uids = set( arg._u_components.keys() )
         for uid in arg_uids:
             if uid in uids:
                 raise RuntimeError(
-                    "'%s' is not independent of the other arguments" % repr(arg)
+                    "{!r} is a common influence".format(arg)
                 )
         uids.update( arg_uids )
         u_args.append( arg.u )
         
     # Require all uncorrelated
-    context = arg1._context
-    R = context._correlations.submatrix( 
-        [ context._registered_leaf_nodes[id] for id in uids ] 
-    )
-    if len(R) != 0:
+    if len(arg1._d_components) or len(arg2._d_components):
+        # Note, strictly arguments might have been declared as dependent 
+        # but never assigned a correlation. To allow this case we need to 
+        # look at the contents of arg._node.correlations, which is a dictionary.
+        # The dictionary is instantiated with one element for self correlation.
         raise RuntimeError(
-            "there is correlation between influences"
+            "influences were not defined as independent"
         )
 
     #---------------------------------------------------------------
@@ -4806,12 +4803,12 @@ def mult_2nd_real_pair(arg1,arg2,estimated):
         weight1 = math.sqrt( x2**2 + v2/2.0 ) 
         weight2 = math.sqrt( x1**2 + v1/2.0 ) 
         
-    v = merge_weighted_vectors(
+    v = vector.merge_weighted_vectors(
                 arg1._u_components, weight1,
                 arg2._u_components, weight2
             )    
 
-    inter = merge_weighted_vectors(
+    interm = vector.merge_weighted_vectors(
                 arg1._i_components, weight1,
                 arg2._i_components, weight2
             )    
@@ -4819,14 +4816,13 @@ def mult_2nd_real_pair(arg1,arg2,estimated):
     return UncertainReal(
         x1 * x2,
         v,
-        inter,
-        Node( (arg1._node,arg2._x), (arg2._node,arg1._x) ),
-        context
+        vector.Vector( ),
+        interm
+        # Node( (arg1._node,arg2._x), (arg2._node,arg1._x) ),
+        # context
     )
 
 #---------------------------------------------------------
-# TODO: this is the old GTC code, it needs to be ported 
-#
 def mult_2nd_complex_pair(arg1,arg2,estimated):
     """
     Return the 2nd order product of two uncertain numbers
@@ -4844,8 +4840,6 @@ def mult_2nd_complex_pair(arg1,arg2,estimated):
     return UncertainComplex(re,im)
 
 #---------------------------------------------------------
-# TODO: this is the old GTC code, it needs to be ported 
-#
 def mult_2nd_real_complex(arg1,arg2,estimated):
     """
     Return the 2nd order product of two uncertain numbers

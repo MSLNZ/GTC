@@ -32,8 +32,8 @@ class TestZeroTimesZero(unittest.TestCase):
             - shared influences
             - unequal real-imaginary component uncertainties
         """
-        x1 = ureal(0,1,dependent=True)
-        x2 = ureal(0,1,dependent=True)
+        x1 = ureal(0,1,independent=False)
+        x2 = ureal(0,1,independent=False)
         x3 = ureal(0,1)
         
         set_correlation(.5,x1,x2)
@@ -48,8 +48,8 @@ class TestZeroTimesZero(unittest.TestCase):
         u1 = 2
         u2 = 4
         u3 = 6
-        z1 = ucomplex(0,u1,dependent=True)
-        z2 = ucomplex(0,u2,dependent=True)
+        z1 = ucomplex(0,u1,independent=False)
+        z2 = ucomplex(0,u2,independent=False)
         z3 = ucomplex(0,u3)
 
         set_correlation(.5,z1.real,z2.imag)
@@ -113,7 +113,7 @@ class TestZeroTimesZero(unittest.TestCase):
         
         z = fn.mul2(z1,z2)
 
-        self.assert_( equivalent_complex(z,0) )
+        self.assert_( equivalent_complex( value(z),0) )
 
         # z.real = z1_r * z2_r - z1_i * z2_i
         self.assert_(
@@ -172,7 +172,7 @@ class TestZeroTimesZero(unittest.TestCase):
         
         z = fn.mul2(z1,x2)
 
-        self.assert_( equivalent_complex(z,0) )
+        self.assert_( equivalent_complex( value(z),0) )
 
         # z.real = z1_r * x 
         self.assert_(
@@ -202,7 +202,7 @@ class TestZeroTimesZero(unittest.TestCase):
         # Changing the order will change nothing
         z = fn.mul2(x2,z1)
 
-        self.assert_( equivalent_complex(z,0) )
+        self.assert_( equivalent_complex( value(z),0) )
 
         # z.real = z1_r * x 
         self.assert_(
@@ -237,7 +237,7 @@ class TestZeroTimesZero(unittest.TestCase):
 
         y1 = fn.mul2( fn.mul2(x1,x2),x3)
 
-        self.assert_( equivalent(y1,0) )
+        self.assert_( equivalent( value(y1),0. ) )
 
         uc = reduce(lambda x,y: x*y,u,1)
 
@@ -256,7 +256,7 @@ class TestZeroTimesZero(unittest.TestCase):
         # Do in a different order
         y2 = fn.mul2( x1,fn.mul2(x2,x3))
 
-        self.assert_( equivalent(y2,0) )
+        self.assert_( equivalent( value(y2),0.) )
 
         self.assert_( equivalent(y2.u,uc) )
 
@@ -332,10 +332,10 @@ class TestZeroTimesZero(unittest.TestCase):
         variance = (a*ub)**2 + (b*ua)**2 + (ua*ub)**2
         uab = math.sqrt(variance)
 
-        self.assert_( equivalent(value( z ),a*b) )
-        self.assert_( equivalent(uncertainty( z ),uab) )
-        self.assert_( equivalent(rp.sensitivity(z,x),b) )
-        self.assert_( equivalent(rp.sensitivity(z,y),a) )
+        self.assert_( equivalent( value( z ),a*b ) )
+        self.assert_( equivalent( uncertainty( z ),uab ) )
+        # self.assert_( equivalent( rp.sensitivity(z,x),b) )
+        # self.assert_( equivalent( rp.sensitivity(z,y),a) )
     
   
 #============================================================================

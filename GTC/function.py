@@ -34,7 +34,13 @@ from GTC import (
 )
 
 from GTC.named_tuples import InterceptSlope
-from GTC.lib import UncertainReal
+
+from GTC.lib import (
+    UncertainReal, UncertainComplex, 
+    mult_2nd_real_pair, mult_2nd_complex_pair,mult_2nd_real_complex
+)
+
+
 from GTC.vector import scale_vector
         
 __all__ = (
@@ -175,8 +181,17 @@ def seq_to_complex(seq):
     return complex(seq[0],seq[2])
     
 #---------------------------------------------------------------------------
-# TODO: this is the old GTC code, it needs to be ported 
-#
+def _simple_variance(v):
+    v11, v12, v21, v22 = v
+    if (
+        abs(v11-v22) > 1E-15
+    or  abs(v12) > 1E-15
+    or  abs(v21) > 1E-15
+    ):
+        raise RuntimeError(
+            "equal diagonal variance required, got: {}".format(v)
+        )
+#---------------------------------------------------------------------------
 def mul2(arg1,arg2,estimated=False):
     """
     Return the product of ``arg1`` and ``arg2``
@@ -189,7 +204,7 @@ def mul2(arg1,arg2,estimated=False):
     :arg estimated: Boolean
 
     When both arguments are uncertain numbers 
-    that always have the same fixed values then 
+    that have the same fixed values then 
     ``estimated`` should be set ``False``. 
     For instance, residual errors are often associated 
     with the value 0, or 1, which is not measured, in
@@ -214,8 +229,8 @@ def mul2(arg1,arg2,estimated=False):
     of the quantities that influence `arg1` or `arg2`. 
 
     2) If either argument is uncertain complex, the real and 
-    imaginary components must have equal uncertainties (i.e., 
-    the covariance matrix must be diagonal with equal elements 
+    imaginary components of that argument must have equal uncertainties  
+    (i.e., the covariance matrix must be diagonal with equal elements 
     along the diagonal) and be independent (no common influences).
 
     A :class:`RuntimeError` exception is raised if  
@@ -235,21 +250,21 @@ def mul2(arg1,arg2,estimated=False):
             >>> y = x1 * x2
             >>> y
             ureal(0,0,inf)
-            >>> for cpt in rp.budget(y,trim=0):
-            ... 	print "  %s: %G" % cpt
+            >>> for l,u in rp.budget(y,trim=0):
+            ... 	print("  {l}s: {u}".format(l,u) )
             ... 	
               x1: 0
               x2: 0
               
-        so none of the uncertainty in ``x1`` or ``x2`` 
+        we see that none of the uncertainty in ``x1`` or ``x2`` 
         is propagated to ``y``. However, we may calculate 
         the second-order contribution ::
         
             >>> y = fn.mul2(x1,x2)
             >>> y
             ureal(0,1,inf)
-            >>> for cpt in rp.budget(y,trim=0):
-            ... 	print "  %s: %G" % cpt
+            >>> for l,u in rp.budget(y,trim=0):
+            ... 	print("  {l}s: {u}".format(l,u) )
             ... 	
               x1: 0.707107
               x2: 0.707107
@@ -259,7 +274,7 @@ def mul2(arg1,arg2,estimated=False):
     .. warning::
     
         :func:`mul2` departs from the first-order linear  
-        calculation of uncertainty in the GUM.
+        calculation of uncertainty described in the GUM.
 
         In particular, the strict proportionality between 
         components of uncertainty and first-order partial
@@ -271,7 +286,7 @@ def mul2(arg1,arg2,estimated=False):
     for arg in (arg1,arg2):
         if not isinstance(arg,(UncertainReal,UncertainComplex)):
             raise RuntimeError(
-                "uncertain number required, got: '%s'" % repr(arg)
+                "uncertain number required, got: {!r}".format( arg )
             )
 
     if isinstance(arg1,UncertainReal):
@@ -282,7 +297,7 @@ def mul2(arg1,arg2,estimated=False):
             return mult_2nd_real_complex(arg1,arg2,estimated)
         else:
             raise RuntimeError(
-                "uncertain number required, got: '%s'" % repr(arg2)
+                "uncertain number required, got: {!r}".format( arg2 )
             )
     elif isinstance(arg1,UncertainComplex):
         _simple_variance(arg1.v)
@@ -293,11 +308,11 @@ def mul2(arg1,arg2,estimated=False):
             return mult_2nd_complex_pair(arg1,arg2,estimated)
         else:
             raise RuntimeError(
-                "uncertain number required, got: '%s'" % repr(arg2)
+                "uncertain number required, got: {!r}".format( arg2 )
             )
     else:
         raise RuntimeError(
-            "uncertain number required, got: '%s'" % repr(arg1)
+            "uncertain number required, got: {!r}".format( arg1 )
         )
     
 # ===========================================================================    
