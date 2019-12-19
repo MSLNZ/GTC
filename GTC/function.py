@@ -46,8 +46,7 @@ from GTC.vector import scale_vector
 __all__ = (
     'complex_to_seq',
     'seq_to_complex',
-    'mean',
-    'mul2',
+    'mean'
 )
     
 #---------------------------------------------------------------------------
@@ -249,12 +248,12 @@ def mul2(arg1,arg2,estimated=False):
             >>> x2 = ureal(0,1,label='x2')
             >>> y = x1 * x2
             >>> y
-            ureal(0,0,inf)
-            >>> for l,u in rp.budget(y,trim=0):
-            ... 	print("  {l}s: {u}".format(l,u) )
+            ureal(0.0,0.0,inf)
+            >>> for cpt in rp.budget(y,trim=0):
+            ... 	print("  {0.label}: {0.u}".format(cpt) )
             ... 	
-              x1: 0
-              x2: 0
+              x1: 0.0
+              x2: 0.0
               
         we see that none of the uncertainty in ``x1`` or ``x2`` 
         is propagated to ``y``. However, we may calculate 
@@ -262,12 +261,12 @@ def mul2(arg1,arg2,estimated=False):
         
             >>> y = fn.mul2(x1,x2)
             >>> y
-            ureal(0,1,inf)
-            >>> for l,u in rp.budget(y,trim=0):
-            ... 	print("  {l}s: {u}".format(l,u) )
+            ureal(0.0,1.0,inf)
+            >>> for cpt in rp.budget(y,trim=0):
+            ... 	print("  {0.label}: {0.u}".format(cpt) )
             ... 	
-              x1: 0.707107
-              x2: 0.707107
+              x1: 0.70710678...
+              x2: 0.70710678...
     
         The product now has a standard uncertainty of unity.
         
@@ -279,6 +278,10 @@ def mul2(arg1,arg2,estimated=False):
         In particular, the strict proportionality between 
         components of uncertainty and first-order partial
         derivatives no longer holds.
+        
+        As a consequence, the calculation of first-order partial
+        derivatives using the ``sensitivity`` method are also 
+        incorrect.
         
     """
     reals = []
