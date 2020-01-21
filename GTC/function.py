@@ -46,8 +46,7 @@ from GTC.vector import scale_vector
 __all__ = (
     'complex_to_seq',
     'seq_to_complex',
-    'mean',
-    'mul2',
+    'mean'
 )
     
 #---------------------------------------------------------------------------
@@ -279,6 +278,10 @@ def mul2(arg1,arg2,estimated=False):
         In particular, the strict proportionality between 
         components of uncertainty and first-order partial
         derivatives no longer holds.
+        
+        As a consequence, the calculation of first-order partial
+        derivatives using the ``sensitivity`` method are also 
+        incorrect.
         
     """
     reals = []
