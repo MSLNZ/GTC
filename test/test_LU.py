@@ -106,7 +106,10 @@ class TestLUScalar(unittest.TestCase):
         b = numpy.array( (627.8036537899141, 1845.420819171415, 1851.64204122553) )
 
         # determinant        
-        numpy_det = numpy.linalg.det(a)
+        # numpy_det = numpy.linalg.det(a)
+        (sign, logdet) = numpy.linalg.slogdet(a)
+        numpy_det = sign * numpy.exp(logdet)
+        
         a_lu,i,p = ludcmp( a.copy() )
         lu_det = ludet(a_lu,p)
         self.assertTrue( equivalent(numpy_det,lu_det) )

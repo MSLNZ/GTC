@@ -322,4 +322,4 @@ def mul2(arg1,arg2,estimated=False):
 if __name__ == "__main__":
     import doctest
     from GTC import *
-    doctest.testmod(  optionflags=doctest.NORMALIZE_WHITESPACE  )
+    doctest.testmod(  optionflags= doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS  )
