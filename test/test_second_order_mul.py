@@ -239,7 +239,8 @@ class TestZeroTimesZero(unittest.TestCase):
 
         self.assert_( equivalent( value(y1),0. ) )
 
-        uc = reduce(lambda x,y: x*y,u,1)
+        uc = 1
+        for u_i in u: uc *= u_i
 
         self.assert_( equivalent(y1.u,uc) )
 
