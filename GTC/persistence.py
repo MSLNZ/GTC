@@ -2,22 +2,21 @@
 Class
 -----
 
-    An :class:`Archive` object can be used to marshal a set of uncertain numbers 
-    for storage, or restore a set of uncertain numbers from storage. 
+    An :class:`Archive` is used to create a record of uncertain numbers 
+    that can be stored and later retrieved. 
     
-    Python pickle is used for the storage mechanism.
+    Python pickle is used for the storage mechanism. An archive can be 
+    pickled and stored in a file, or a string. 
     
 Functions
----------
+---------    
 
-    An archive can be pickled and stored in a file, or a string. 
-
-    Functions for storing and retrieving a pickled archive file are
+    Functions for storing and retrieving pickled archive files are
     
         * :func:`load`
         * :func:`dump`
         
-    Functions for storing and retrieving a pickled archive string are
+    Functions for storing and retrieving pickled archive strings are
     
         * :func:`dumps`
         * :func:`loads`
@@ -97,8 +96,18 @@ class TaggedIntermediateComplex(object):
 #----------------------------------------------------------------------------
 class Archive(object):
     """
-    An :class:`Archive` object can be used to marshal a set of uncertain numbers 
-    for storage, or restore a set of uncertain numbers from storage.
+    An :class:`Archive` is a record of uncertain numbers that can be 
+    stored and later retrieved, so that uncertain numbers can be 
+    used in later calculations. 
+    
+    A particular :class:`Archive` object can only be used for one purpose 
+    (i.e., either to marshal uncertain numbers ready for storage, or to restore  
+    uncertain numbers that have been stored). 
+    
+    The :func:`~Archive.add` method is used to include uncertain numbers in an 
+    archive. The :func:`~Archive.extract` method is used to introduce
+    archived uncertain numbers to the current context.
+    
     """
     def __init__(self):
 
@@ -224,7 +233,9 @@ class Archive(object):
 
 
     def add(self,**kwargs):
-        """Add entries ``name = uncertain-number`` to the archive
+        """Add entries to an archive.
+        
+        Each entry is given a name that identifies it within the archive.
 
         **Example**::
         
@@ -266,18 +277,17 @@ class Archive(object):
 
     def extract(self,*args):
         """
-        Extract one or more uncertain numbers
+        Extract uncertain numbers by name
 
-        :arg args: names of archived uncertain numbers
+        :arg args: names of uncertain numbers stored in the archive
         
-        If just one name is given, a single uncertain 
-        number is returned, otherwise a sequence of
-        uncertain numbers is returned.
+        A single uncertain number is returned, if just one name is provided.
+        Otherwise a sequence of uncertain numbers is returned.
         
-        # **Example**::
+        **Example**::
 
-            # >>> x, fred = a.extract('x','fred')
-            # >>> harry = a.extract('harry')
+            harry = a.extract('harry')
+            x, fred = a.extract('x','fred')
             
         """        
         if not self._extract:
@@ -603,12 +613,11 @@ def _builder(o_name,_nodes,_tagged_reals):
 def dump(file,ar):
     """Save an archive in a file
 
-    :arg file:  a file object opened in binary
-                write mode (with 'wb')
+    :arg file:  a file object opened in binary mode (with 'wb')
                 
     :arg ar: an :class:`Archive` object
       
-    Several archives can be saved in a file 
+    Several archives can be saved in the same file 
     by repeated use of this function.
     
     """
@@ -619,11 +628,10 @@ def dump(file,ar):
 def load(file):
     """Load an archive from a file
 
-    :arg file:  a file object opened in binary
-                read mode (with 'rb')
+    :arg file:  a file object opened in binary mode (with 'rb')
 
     Several archives can be extracted from 
-    one file by repeatedly calling this function.
+    tha same file by repeatedly calling this function.
     
     """
     ar = pickle.load(file)
@@ -635,7 +643,7 @@ def load(file):
 #------------------------------------------------------------------     
 def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     """
-    Return a string representation of the archive 
+    Return the archive pickled in a string  
 
     :arg ar: an :class:`Archive` object
     :arg protocol: encoding type 
@@ -663,7 +671,7 @@ def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
 #------------------------------------------------------------------     
 def loads(s):
     """
-    Return an archive object restored from a string representation
+    Return an archive object restored from a pickled string 
 
     :arg s: a string created by :func:`dumps`
     
