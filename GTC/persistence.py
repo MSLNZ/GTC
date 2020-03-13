@@ -3,7 +3,7 @@ Class
 -----
 
     An :class:`Archive` is used to create a record of uncertain numbers 
-    that can be stored and later retrieved. 
+    for storage. 
     
     Python pickle is used for the storage mechanism. An archive can be 
     pickled and stored in a file, or a string. 
@@ -96,18 +96,12 @@ class TaggedIntermediateComplex(object):
 #----------------------------------------------------------------------------
 class Archive(object):
     """
-    An :class:`Archive` is a record of uncertain numbers that can be 
-    stored and later retrieved, so that uncertain numbers can be 
-    used in later calculations. 
+    An :class:`Archive` helps to store and retrieve uncertain numbers,
+    so that they can be used in later calculations. 
     
-    A particular :class:`Archive` object can only be used for one purpose 
-    (i.e., either to marshal uncertain numbers ready for storage, or to restore  
-    uncertain numbers that have been stored). 
-    
-    The :func:`~Archive.add` method is used to include uncertain numbers in an 
-    archive. The :func:`~Archive.extract` method is used to introduce
-    archived uncertain numbers to the current context.
-    
+    A particular :class:`Archive` object can either be used to prepare 
+    a record of uncertain numbers for storage, or to retrieve a stored record. 
+        
     """
     def __init__(self):
 
@@ -237,13 +231,27 @@ class Archive(object):
         
         Each entry is given a name that identifies it within the archive.
 
-        **Example**::
+        **Example**
         
-            >>> a = Archive()
+        .. code-block:: pycon   
+        
+            >>> a = pr.Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
             >>> a.add(x=x,fred=y)
-            
+
+        .. invisible-code-block: pycon
+        
+            >>> import tempfile
+            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.gar', 'wb')
+
+        Here ``f`` is a file stream opened in mode 'wb':
+        
+        .. code-block:: pycon   
+        
+            >>> pr.dump(f, a)
+            >>> f.close()
+        
         """
         if self._extract:
             raise RuntimeError('This archive is write-only!')
@@ -281,13 +289,34 @@ class Archive(object):
 
         :arg args: names of uncertain numbers stored in the archive
         
-        A single uncertain number is returned, if just one name is provided.
+        If just one name is provided, a single uncertain number is returned.
         Otherwise a sequence of uncertain numbers is returned.
         
-        **Example**::
+        **Example**
+        
+        Continuing the example in :meth:`~.Archive.add`, but in a different 
+        Python session, ``f`` is now a file stream opened in 'rb' mode:
 
-            harry = a.extract('harry')
-            x, fred = a.extract('x','fred')
+        .. invisible-code-block: pycon
+
+            >>> import tempfile
+            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.gar', 'rb')
+            
+        .. code-block:: pycon
+        
+            >>> a = pr.load(f)
+            >>> f.close()
+            >>>
+            >>> a.extract('fred')
+            ureal(2.0,1.0,inf)
+            >>> x, fred = a.extract('x','fred')
+            >>> x
+            ureal(1.0,1.0,inf)            
+        
+        .. invisible-code-block: pycon
+            
+            >>> import os, tempfile
+            >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
             
         """        
         if not self._extract:
@@ -643,7 +672,7 @@ def load(file):
 #------------------------------------------------------------------     
 def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     """
-    Return the archive pickled in a string  
+    Save an archive pickled in a string  
 
     :arg ar: an :class:`Archive` object
     :arg protocol: encoding type 
@@ -671,7 +700,7 @@ def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
 #------------------------------------------------------------------     
 def loads(s):
     """
-    Return an archive object restored from a pickled string 
+    Return an archive object from a pickled string 
 
     :arg s: a string created by :func:`dumps`
     
