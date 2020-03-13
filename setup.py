@@ -7,7 +7,7 @@ tests_require = ['pytest-cov']
 
 if sys.version_info[:2] == (2, 7):
     install_requires = ['numpy>=1.13.0,<1.17', 'scipy<1.3']
-    tests_require.append('pytest>=3.0,<5.0')
+    tests_require.extend(['zipp<2.0.0', 'pytest>=3.0,<5.0'])
 else:
     install_requires = ['numpy>=1.13.0', 'scipy']
     tests_require.append('pytest>=3.0')
