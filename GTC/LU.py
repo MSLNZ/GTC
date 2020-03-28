@@ -181,7 +181,7 @@ def invab(a,b):
     N = a_lu.shape[0]
     M = b.shape[1]
         
-    y = np.empty( (N,M), b.dtype )
+    y = np.empty( (N,M), a.dtype )
 
     # For each column in matrix 'b'
     for j in xrange(M):
