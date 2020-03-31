@@ -49,7 +49,7 @@ from GTC import inf, nan
 from GTC.uncertain_array import UncertainArray, _isinf, _isnan
 from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
-from GTC import type_a, function
+from GTC import type_a, function, linear_algebra
 from GTC.linear_algebra import matmul, uarray
 
 from testing_tools import *
@@ -4143,7 +4143,168 @@ class TestUncertainArray(unittest.TestCase):
     # floor
     # ceil
     # trunc
+    
+    def test_det(self):
+        """
+        The determinant of a matrix
 
+        """
+        x = ((1,2), (3,4))
+        a = uarray(x)
+        b = np.array(x)
+        correct = np.linalg.det(b)
+        c = linear_algebra.det(a)
+        self.assert_( equivalent(c,correct) )
 
+        x = [ (17.99753493515198, 18.08102451776513, 6),
+              (627.1639334786039, 27.20225830408064, 8.998767467575989),
+              (27.20225830408064, 628.4433741012242, 9.040512258882565)
+            ]
+        a = uarray(x)
+        b = np.array(x)
+        correct = np.linalg.det(b)
+        c = linear_algebra.det(a)
+        self.assertEqual(c,correct)
+
+    def test_matrix_inverse_1(self):
+        """
+        Inverse is calculated by an LU decomposition algorithm
+        (no uncertainty in this case)
+        
+        """
+        a = [
+                (17.99753493515198, 18.08102451776513, 6),
+                (627.1639334786039, 27.20225830408064, 8.998767467575989),
+                (27.20225830408064, 628.4433741012242, 9.040512258882565)
+            ]
+         
+        a_mat = linear_algebra.inv( uarray(a) )
+        a_mat_np = np.linalg.inv(a)
+        for i in range(3):
+            for j in range(3):
+                self.assert_( equivalent(a_mat[i,j],a_mat_np[i,j],TOL) )
+ 
+    def test_matrix_inverse_2(self):
+        """
+        When there is uncertainty, the product of a matrix and its inverse
+        should give the identity matrix (within numerical round-off)
+        
+        """
+        a_00 = ureal(1.2,0.2)
+        a_01 = ureal(0.5,0.1)
+        a_10 = ureal(-0.3,0.5)
+        a_11 = ureal(1,0.1)
+
+        A = linear_algebra.uarray( [(a_00, a_01),(a_10, a_11)] )
+        B = linear_algebra.inv(A)
+        BA = linear_algebra.matmul( B,A )
+        
+        I = np.identity(2)
+        for i in range(2):
+            for j in range(2):
+                self.assert_( equivalent(I[i,j],BA[i,j].x,TOL) )
+                self.assert_( equivalent(0.0,BA[i,j].u,TOL) )
+
+    def test_matrix_inverse_3(self):
+        """
+        For a linear system of equations, we should be able 
+        to go from solution back to inputs using the inverse
+        
+        """
+        a_00 = ureal(1.2,0.2)
+        a_01 = ureal(0.5,0.1)
+        a_10 = ureal(-0.3,0.5)
+        a_11 = ureal(1,0.1)
+
+        A = linear_algebra.uarray( [(a_00, a_01),(a_10, a_11)] )
+
+        x_0 = ureal(-5.2,0.5)
+        x_1 = ureal(10.5,2.1)
+        
+        Y = linear_algebra.matmul(A, linear_algebra.uarray( [x_0, x_1] ) )
+
+        B = linear_algebra.inv(A)
+        X = linear_algebra.matmul( B,Y )
+        
+        self.assert_( equivalent(x_0.x,X[0].x,TOL) )
+        self.assert_( equivalent(x_1.x,X[1].x,TOL) )
+        self.assert_( equivalent(x_0.u,X[0].u,TOL) )
+        self.assert_( equivalent(x_1.u,X[1].u,TOL) )
+ 
+    def test_matrix_inverse_4(self):
+        """
+        Same as _3 above, but no uncertainty in x values
+        
+        """
+        a_00 = ureal(1.2,0.2)
+        a_01 = ureal(0.5,0.1)
+        a_10 = ureal(-0.3,0.5)
+        a_11 = ureal(1,0.1)
+
+        A = linear_algebra.uarray( [(a_00, a_01),(a_10, a_11)] )
+
+        x_0 = -5.2
+        x_1 = 10.5
+        
+        Y = linear_algebra.matmul(A, linear_algebra.uarray( [x_0, x_1] ) )
+
+        B = linear_algebra.inv(A)
+        X = linear_algebra.matmul( B,Y )
+        
+        self.assert_( equivalent(x_0,X[0].x,TOL) )
+        self.assert_( equivalent(x_1,X[1].x,TOL) )
+        self.assert_( equivalent(0.0,X[0].u,TOL) )
+        self.assert_( equivalent(0.0,X[1].u,TOL) )
+ 
+    def test_matrix_inverse_5(self):
+        """
+        Same as _3 above, but no uncertainty in A values
+        
+        """
+        a_00 = 1.2
+        a_01 = 0.5
+        a_10 = -0.3
+        a_11 = 1
+
+        A = np.array( [(a_00, a_01),(a_10, a_11)] )
+
+        x_0 = ureal(-5.2,0.5)
+        x_1 = ureal(10.5,2.1)
+        
+        Y = linear_algebra.matmul(A, linear_algebra.uarray( [x_0, x_1] ) )
+
+        B = linear_algebra.inv(A)
+        X = linear_algebra.matmul( B,Y )
+        
+        self.assert_( equivalent(x_0.x,X[0].x,TOL) )
+        self.assert_( equivalent(x_1.x,X[1].x,TOL) )
+        self.assert_( equivalent(x_0.u,X[0].u,TOL) )
+        self.assert_( equivalent(x_1.u,X[1].u,TOL) )
+
+    def test_matrix_inverse_6(self):
+        """
+        For a linear system of equations, we should be able 
+        to go from solution back to inputs using the inverse
+        
+        """
+        a_00 = ureal(1.2,0.2)
+        a_01 = ureal(0.5,0.1)
+        a_10 = ureal(-0.3,0.5)
+        a_11 = ureal(1,0.1)
+
+        A = linear_algebra.uarray( [(a_00, a_01),(a_10, a_11)] )
+
+        x_0 = ureal(-5.2,0.5)
+        x_1 = ureal(10.5,2.1)
+        
+        Y = linear_algebra.matmul(A, linear_algebra.uarray( [x_0, x_1] ) )
+
+        X = linear_algebra.solve(A,Y)
+        
+        self.assert_( equivalent(x_0.x,X[0].x,TOL) )
+        self.assert_( equivalent(x_1.x,X[1].x,TOL) )
+        self.assert_( equivalent(x_0.u,X[0].u,TOL) )
+        self.assert_( equivalent(x_1.u,X[1].u,TOL) )
+ 
 if __name__ == '__main__':
     unittest.main()  # Runs all test methods starting with 'test'
