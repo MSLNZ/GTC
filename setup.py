@@ -3,15 +3,6 @@ import sys
 from distutils.cmd import Command
 from setuptools import setup, find_packages
 
-tests_require = ['pytest-cov']
-
-if sys.version_info[:2] == (2, 7):
-    install_requires = ['numpy>=1.13.0,<1.17', 'scipy<1.3']
-    tests_require.extend(['zipp<2.0.0', 'pytest>=3.0,<5.0'])
-else:
-    install_requires = ['numpy>=1.13.0', 'scipy']
-    tests_require.append('pytest>=3.0')
-
 
 class ApiDocs(Command):
     """
@@ -98,6 +89,17 @@ def fetch_init(key):
 
 testing = {'test', 'tests', 'pytest'}.intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if testing else []
+
+tests_require = ['pytest-cov']
+if not testing:
+    install_requires = ['numpy>=1.13.0', 'scipy']
+else:
+    install_requires = []
+    if sys.version_info[:2] == (2, 7):
+        tests_require.extend(['zipp<2.0.0', 'pytest>=3.0,<5.0',
+                              'numpy>=1.13.0,<1.17', 'scipy<1.3'])
+    else:
+        tests_require.extend(['pytest>=3.0', 'numpy>=1.13.0', 'scipy'])
 
 needs_sphinx = {'doc', 'docs', 'apidoc', 'apidocs', 'build_sphinx'}.intersection(sys.argv)
 sphinx = ['sphinx', 'sphinx_rtd_theme'] + install_requires if needs_sphinx else []
