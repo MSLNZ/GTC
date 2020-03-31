@@ -2,9 +2,12 @@
 Release Notes
 =============
 
-Version 1.3.0.dev0 (in development)
-===================================
+Version 1.2.1 (2020.04.01)
+==========================
 
+    * Fixed issue `#18 <https://github.com/MSLNZ/GTC/issues/18>`_ - calculate the inverse of a matrix with uncertain elements 
+    
+    * Revised the documentation for the persistence.py module 
 
 Version 1.2.0 (2019.10.16)
 ==========================
