@@ -4154,7 +4154,7 @@ class TestUncertainArray(unittest.TestCase):
         b = np.array(x)
         correct = np.linalg.det(b)
         c = linear_algebra.det(a)
-        self.assert_( equivalent(c,correct) )
+        self.assertTrue( equivalent(c,correct) )
 
         x = [ (17.99753493515198, 18.08102451776513, 6),
               (627.1639334786039, 27.20225830408064, 8.998767467575989),
@@ -4182,7 +4182,7 @@ class TestUncertainArray(unittest.TestCase):
         a_mat_np = np.linalg.inv(a)
         for i in range(3):
             for j in range(3):
-                self.assert_( equivalent(a_mat[i,j],a_mat_np[i,j],TOL) )
+                self.assertTrue( equivalent(a_mat[i,j],a_mat_np[i,j],TOL) )
  
     def test_matrix_inverse_2(self):
         """
@@ -4202,8 +4202,8 @@ class TestUncertainArray(unittest.TestCase):
         I = np.identity(2)
         for i in range(2):
             for j in range(2):
-                self.assert_( equivalent(I[i,j],BA[i,j].x,TOL) )
-                self.assert_( equivalent(0.0,BA[i,j].u,TOL) )
+                self.assertTrue( equivalent(I[i,j],BA[i,j].x,TOL) )
+                self.assertTrue( equivalent(0.0,BA[i,j].u,TOL) )
 
     def test_matrix_inverse_3(self):
         """
@@ -4226,10 +4226,10 @@ class TestUncertainArray(unittest.TestCase):
         B = linear_algebra.inv(A)
         X = linear_algebra.matmul( B,Y )
         
-        self.assert_( equivalent(x_0.x,X[0].x,TOL) )
-        self.assert_( equivalent(x_1.x,X[1].x,TOL) )
-        self.assert_( equivalent(x_0.u,X[0].u,TOL) )
-        self.assert_( equivalent(x_1.u,X[1].u,TOL) )
+        self.assertTrue( equivalent(x_0.x,X[0].x,TOL) )
+        self.assertTrue( equivalent(x_1.x,X[1].x,TOL) )
+        self.assertTrue( equivalent(x_0.u,X[0].u,TOL) )
+        self.assertTrue( equivalent(x_1.u,X[1].u,TOL) )
  
     def test_matrix_inverse_4(self):
         """
@@ -4251,10 +4251,10 @@ class TestUncertainArray(unittest.TestCase):
         B = linear_algebra.inv(A)
         X = linear_algebra.matmul( B,Y )
         
-        self.assert_( equivalent(x_0,X[0].x,TOL) )
-        self.assert_( equivalent(x_1,X[1].x,TOL) )
-        self.assert_( equivalent(0.0,X[0].u,TOL) )
-        self.assert_( equivalent(0.0,X[1].u,TOL) )
+        self.assertTrue( equivalent(x_0,X[0].x,TOL) )
+        self.assertTrue( equivalent(x_1,X[1].x,TOL) )
+        self.assertTrue( equivalent(0.0,X[0].u,TOL) )
+        self.assertTrue( equivalent(0.0,X[1].u,TOL) )
  
     def test_matrix_inverse_5(self):
         """
@@ -4276,10 +4276,10 @@ class TestUncertainArray(unittest.TestCase):
         B = linear_algebra.inv(A)
         X = linear_algebra.matmul( B,Y )
         
-        self.assert_( equivalent(x_0.x,X[0].x,TOL) )
-        self.assert_( equivalent(x_1.x,X[1].x,TOL) )
-        self.assert_( equivalent(x_0.u,X[0].u,TOL) )
-        self.assert_( equivalent(x_1.u,X[1].u,TOL) )
+        self.assertTrue( equivalent(x_0.x,X[0].x,TOL) )
+        self.assertTrue( equivalent(x_1.x,X[1].x,TOL) )
+        self.assertTrue( equivalent(x_0.u,X[0].u,TOL) )
+        self.assertTrue( equivalent(x_1.u,X[1].u,TOL) )
 
     def test_matrix_solve(self):
         """
@@ -4301,10 +4301,10 @@ class TestUncertainArray(unittest.TestCase):
 
         X = linear_algebra.solve(A,Y)
         
-        self.assert_( equivalent(x_0.x,X[0].x,TOL) )
-        self.assert_( equivalent(x_1.x,X[1].x,TOL) )
-        self.assert_( equivalent(x_0.u,X[0].u,TOL) )
-        self.assert_( equivalent(x_1.u,X[1].u,TOL) )
+        self.assertTrue( equivalent(x_0.x,X[0].x,TOL) )
+        self.assertTrue( equivalent(x_1.x,X[1].x,TOL) )
+        self.assertTrue( equivalent(x_0.u,X[0].u,TOL) )
+        self.assertTrue( equivalent(x_1.u,X[1].u,TOL) )
  
 if __name__ == '__main__':
     unittest.main()  # Runs all test methods starting with 'test'
