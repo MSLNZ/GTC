@@ -4281,10 +4281,10 @@ class TestUncertainArray(unittest.TestCase):
         self.assert_( equivalent(x_0.u,X[0].u,TOL) )
         self.assert_( equivalent(x_1.u,X[1].u,TOL) )
 
-    def test_matrix_inverse_6(self):
+    def test_matrix_solve(self):
         """
-        For a linear system of equations, we should be able 
-        to go from solution back to inputs using the inverse
+        Same case as used above for inverse, except 
+        now we use the `solve` function 
         
         """
         a_00 = ureal(1.2,0.2)
