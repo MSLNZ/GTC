@@ -2,22 +2,21 @@
 Class
 -----
 
-    An :class:`Archive` object can be used to marshal a set of uncertain numbers 
-    for storage, or restore a set of uncertain numbers from storage. 
+    An :class:`Archive` is used to create a record of uncertain numbers 
+    for storage. 
     
-    Python pickle is used for the storage mechanism.
+    Python pickle is used for the storage mechanism. An archive can be 
+    pickled and stored in a file, or a string. 
     
 Functions
----------
+---------    
 
-    An archive can be pickled and stored in a file, or a string. 
-
-    Functions for storing and retrieving a pickled archive file are
+    Functions for storing and retrieving pickled archive files are
     
         * :func:`load`
         * :func:`dump`
         
-    Functions for storing and retrieving a pickled archive string are
+    Functions for storing and retrieving pickled archive strings are
     
         * :func:`dumps`
         * :func:`loads`
@@ -97,8 +96,12 @@ class TaggedIntermediateComplex(object):
 #----------------------------------------------------------------------------
 class Archive(object):
     """
-    An :class:`Archive` object can be used to marshal a set of uncertain numbers 
-    for storage, or restore a set of uncertain numbers from storage.
+    An :class:`Archive` helps to store and retrieve uncertain numbers,
+    so that they can be used in later calculations. 
+    
+    A particular :class:`Archive` object can either be used to prepare 
+    a record of uncertain numbers for storage, or to retrieve a stored record. 
+        
     """
     def __init__(self):
 
@@ -224,15 +227,31 @@ class Archive(object):
 
 
     def add(self,**kwargs):
-        """Add entries ``name = uncertain-number`` to the archive
-
-        **Example**::
+        """Add entries to an archive.
         
-            >>> a = Archive()
+        Each entry is given a name that identifies it within the archive.
+
+        **Example**
+        
+        .. code-block:: pycon   
+        
+            >>> a = pr.Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
             >>> a.add(x=x,fred=y)
-            
+
+        .. invisible-code-block: pycon
+        
+            >>> import tempfile
+            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.gar', 'wb')
+
+        Here ``f`` is a file stream opened in mode 'wb':
+        
+        .. code-block:: pycon   
+        
+            >>> pr.dump(f, a)
+            >>> f.close()
+        
         """
         if self._extract:
             raise RuntimeError('This archive is write-only!')
@@ -266,18 +285,38 @@ class Archive(object):
 
     def extract(self,*args):
         """
-        Extract one or more uncertain numbers
+        Extract uncertain numbers by name
 
-        :arg args: names of archived uncertain numbers
+        :arg args: names of uncertain numbers stored in the archive
         
-        If just one name is given, a single uncertain 
-        number is returned, otherwise a sequence of
-        uncertain numbers is returned.
+        If just one name is provided, a single uncertain number is returned.
+        Otherwise a sequence of uncertain numbers is returned.
         
-        # **Example**::
+        **Example**
+        
+        Continuing the example in :meth:`~.Archive.add`, but in a different 
+        Python session, ``f`` is now a file stream opened in 'rb' mode:
 
-            # >>> x, fred = a.extract('x','fred')
-            # >>> harry = a.extract('harry')
+        .. invisible-code-block: pycon
+
+            >>> import tempfile
+            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.gar', 'rb')
+            
+        .. code-block:: pycon
+        
+            >>> a = pr.load(f)
+            >>> f.close()
+            >>>
+            >>> a.extract('fred')
+            ureal(2.0,1.0,inf)
+            >>> x, fred = a.extract('x','fred')
+            >>> x
+            ureal(1.0,1.0,inf)            
+        
+        .. invisible-code-block: pycon
+            
+            >>> import os, tempfile
+            >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
             
         """        
         if not self._extract:
@@ -603,12 +642,11 @@ def _builder(o_name,_nodes,_tagged_reals):
 def dump(file,ar):
     """Save an archive in a file
 
-    :arg file:  a file object opened in binary
-                write mode (with 'wb')
+    :arg file:  a file object opened in binary mode (with 'wb')
                 
     :arg ar: an :class:`Archive` object
       
-    Several archives can be saved in a file 
+    Several archives can be saved in the same file 
     by repeated use of this function.
     
     """
@@ -619,11 +657,10 @@ def dump(file,ar):
 def load(file):
     """Load an archive from a file
 
-    :arg file:  a file object opened in binary
-                read mode (with 'rb')
+    :arg file:  a file object opened in binary mode (with 'rb')
 
     Several archives can be extracted from 
-    one file by repeatedly calling this function.
+    tha same file by repeatedly calling this function.
     
     """
     ar = pickle.load(file)
@@ -635,7 +672,7 @@ def load(file):
 #------------------------------------------------------------------     
 def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     """
-    Return a string representation of the archive 
+    Save an archive pickled in a string  
 
     :arg ar: an :class:`Archive` object
     :arg protocol: encoding type 
@@ -663,7 +700,7 @@ def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
 #------------------------------------------------------------------     
 def loads(s):
     """
-    Return an archive object restored from a string representation
+    Return an archive object from a pickled string 
 
     :arg s: a string created by :func:`dumps`
     
