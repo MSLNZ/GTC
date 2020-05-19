@@ -94,9 +94,10 @@ __all__ = (
     'solve',
     'inv',
     'det',
-    'identity','zeros','ones','empty','full',
+    'identity', 'zeros', 'ones', 'empty', 'full',
     'transpose'
 )
+
 
 def uarray(array, label=None, names=None):
     """Create an array of uncertain numbers.
@@ -239,6 +240,7 @@ def dot(lhs, rhs):
     """
     return UncertainArray(np.dot(lhs, rhs))
 
+
 def transpose(a, axes=None):
     """Array transpose
 
@@ -253,8 +255,9 @@ def transpose(a, axes=None):
     """
     return UncertainArray(np.transpose(a, axes))
 
-#---------------------------------------------------------------------------
-def solve(a,b):
+
+# ---------------------------------------------------------------------------
+def solve(a, b):
     """Return :math:`x`, the solution of :math:`a \cdot x = b`
 
     .. versionadded:: 1.1
@@ -273,10 +276,35 @@ def solve(a,b):
         uarray([1.0, 2.0])
 
     """
-    return LU.solve(a,b)
+    return LU.solve(a, b)
 
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+def psolve(a, b):
+    """
+    Funstion solves overdetermined (more equations than variables) equation system with using Moore–Penrose pseudoinverse matrix
+    Return :math:`x`, the solution of :math:`a \cdot x = b`
+
+    .. versionadded:: 1.1
+
+    :arg a: 2D :class:`~uncertain_array.UncertainArray`
+    :arg b: :class:`~uncertain_array.UncertainArray`
+
+    :rtype: :class:`~uncertain_array.UncertainArray`
+
+
+    **Example**::
+
+        >>> a = la.uarray([[2,1],[-3,1],[-1,1]])
+        >>> b = la.uarray([[4], [-1], [0.98]])
+        >>> la.psolve(a,b)
+        uarray([1.0005263157894735, 1.9936842105263157])
+    """
+    return matmul(pinv(a),b)
+
+
+# ---------------------------------------------------------------------------
 def inv(a):
     """Return the (multiplicative) matrix inverse
 
@@ -291,10 +319,28 @@ def inv(a):
                 [4.440892098500626e-16, 1.0]])
 
     """
-    b = np.identity(a.shape[0],a.dtype)
-    return LU.invab(a,b)
+    b = np.identity(a.shape[0], a.dtype)
+    return LU.invab(a, b)
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+def pinv(a):
+    """Return the Moore–Penrose pseudoinverse matrix
+
+    .. versionadded:: x
+
+    **Example**::
+
+        >>> x = la.uarray( [[2,1],[3,4],[1,2]])
+        >>> x_pinv =la.pinv(x)
+    """
+    # a+=(atxa)^1 x at
+    at = transpose(a)
+    ata = matmul(at, a)
+    inv_ata = inv(ata)
+    b = matmul(inv_ata, at)
+    return b
+# ---------------------------------------------------------------------------
 def det(a):
     """Return the matrix determinant
 
@@ -312,9 +358,10 @@ def det(a):
 
     """
     a_lu, i, p = LU.ludcmp(a.copy())
-    return LU.ludet(a_lu,p)
+    return LU.ludet(a_lu, p)
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 def identity(n):
     """Return an identity array with ``n`` dimensions
 
@@ -328,7 +375,8 @@ def identity(n):
                 [0, 0, 1]])
 
     """
-    return uarray( np.identity(n,dtype=object) )
+    return uarray(np.identity(n, dtype=object))
+
 
 def empty(shape):
     """Return an array of shape ``shape`` containing ``None`` elements
@@ -342,7 +390,7 @@ def empty(shape):
                 [None, None, None]])
 
     """
-    return uarray( np.empty(shape,dtype=object) )
+    return uarray(np.empty(shape, dtype=object))
 
 
 def zeros(shape):
@@ -357,7 +405,8 @@ def zeros(shape):
                 [0, 0, 0]])
 
     """
-    return uarray( np.zeros(shape,dtype=object) )
+    return uarray(np.zeros(shape, dtype=object))
+
 
 def ones(shape):
     """Return an array of shape ``shape`` containing ``1`` elements
@@ -370,9 +419,10 @@ def ones(shape):
         uarray([[1, 1, 1], [1, 1, 1]])
 
     """
-    return uarray( np.ones(shape,dtype=object) )
+    return uarray(np.ones(shape, dtype=object))
 
-def full(shape,fill_value):
+
+def full(shape, fill_value):
     """Return an array of shape ``shape`` containing ``fill_value`` elements
 
     .. versionadded:: 1.1
@@ -384,14 +434,15 @@ def full(shape,fill_value):
                  ureal(2.0,1.0,inf)]])
 
     """
-    return uarray( np.full(shape,fill_value,dtype=object) )
+    return uarray(np.full(shape, fill_value, dtype=object))
 
 
 # import here to avoid circular imports when importing the matmul function in uncertain_array.py
 from GTC.uncertain_array import UncertainArray
 
-#============================================================================
+# ============================================================================
 if __name__ == "__main__":
     import doctest
     from GTC import *
-    doctest.testmod(  optionflags=doctest.NORMALIZE_WHITESPACE )
+
+    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
