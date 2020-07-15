@@ -2,20 +2,15 @@
 Class
 -----
 
-    An :class:`Archive` is used to create a record of uncertain numbers 
-    for storage. 
+    An :class:`Archive` is used to store and retrieve uncertain numbers. 
     
 Module contents
 ---------------
 
 """
 import itertools
-try:
-    import cPickle as pickle  # Python 2
-    PY2 = True
-except ImportError:
-    import pickle
-    PY2 = False
+import sys
+PY2 = ( sys.version_info[0] == 2 )
 
 from GTC.lib import (
     UncertainComplex,
@@ -33,7 +28,7 @@ __all__ = (
 # are translated into the following simple representations that
 # Python will pickle.
 #
-class FrozenLeaf(object):
+class LeafNode(object):
     def __init__(self,node):
         self.uid = node.uid
         self.label = node.label 
@@ -47,12 +42,12 @@ class FrozenLeaf(object):
         if hasattr(node,'ensemble'):
             self.ensemble = frozenset( node.ensemble )
         
-class TaggedElementaryReal(object):
+class ElementaryReal(object):
     def __init__(self,x,uid):
         self.x = x
         self.uid = uid
 
-class TaggedIntermediateReal(object):
+class IntermediateReal(object):
     def __init__(self,value,u_components,d_components,i_components,label,uid):
         self.value = value
         self.u_components = u_components    
@@ -61,19 +56,41 @@ class TaggedIntermediateReal(object):
         self.label = label
         self.uid = uid
     
-class TaggedElementaryComplex(object):
+class ElementaryComplex(object):
     def __init__(self,n_re,n_im,label):
         self.n_re = n_re
         self.n_im = n_im
         self.label = label
     
-class TaggedIntermediateComplex(object):
+class IntermediateComplex(object):
     def __init__(self,n_re,n_im,label):
         self.n_re = n_re
         self.n_im = n_im
         self.label = label
         
 #----------------------------------------------------------------------------
+# """
+# Archive plays several roles related to storage of uncertain numbers.
+
+# When uncertain numbers are stored, an archive is used to marshal
+# information related to the selected uncertain numbers. This 
+# ensures that when they are retrieved from storage, later in another Python  
+# process, their behaviour will be the same as it was in the original process.
+
+# This information is collected after specific uncertain numbers have been 
+# identified. It is referred to as 'freezing' the archive. Freezing also 
+# involves a transformation of the archive object contents into a form that 
+# is suitable for generic storage in different formats. In this way, the 
+# archive represents an intermediate staging point, which can be 
+# followed by different format-specific storage operations.
+
+# When a stored archive is to be retrieved, the reverse process occurs.
+# First, format-specific operations must be used to recreate an archive 
+# in its frozen state. Then the archive will be 'thawed', which will 
+# create various GTC objects and restore the necessary environment for 
+# the specific uncertain numbers that were saved initially. Finally, 
+# these uncertain numbers may be restored (on demand).
+# """
 class Archive(object):
     """
     An :class:`Archive` helps to store and retrieve uncertain numbers,
@@ -315,7 +332,7 @@ class Archive(object):
         """        
         values = self._tagged_reals.itervalues() if PY2 else self._tagged_reals.values()
         self._leaf_nodes = {
-            n_i.uid  : FrozenLeaf(n_i)
+            n_i.uid  : LeafNode(n_i)
                 for un in values
                     for n_i in itertools.chain(
                         un._u_components.iterkeys(),
@@ -350,7 +367,7 @@ class Archive(object):
         for n,obj in items:
             if obj.is_elementary:
                 if isinstance(obj,UncertainReal):
-                    tagged = TaggedElementaryReal(
+                    tagged = ElementaryReal(
                         x=obj.x,
                         uid=obj._node.uid
                     )
@@ -358,11 +375,11 @@ class Archive(object):
                     self._tagged_reals[n] = tagged
                     
                 elif isinstance(obj,UncertainComplex):
-                    re = TaggedElementaryReal(
+                    re = ElementaryReal(
                         x=obj.real.x,
                         uid=obj.real._node.uid
                     )
-                    im = TaggedElementaryReal(
+                    im = ElementaryReal(
                         x=obj.imag.x,
                         uid=obj.imag._node.uid
                     )
@@ -372,7 +389,7 @@ class Archive(object):
                     n_im = "{}_im".format(n)
                     self._tagged_reals[n_im] = im
                     
-                    self._tagged[n] = TaggedElementaryComplex(
+                    self._tagged[n] = ElementaryComplex(
                         n_re=n_re,
                         n_im=n_im,
                         label = obj.label
@@ -381,7 +398,7 @@ class Archive(object):
                     assert False, 'unexpected'
             else:
                 if isinstance(obj,UncertainReal):
-                    un = TaggedIntermediateReal(
+                    un = IntermediateReal(
                         value = obj.x,
                         u_components = _vector_index_to_uid( 
                             obj._u_components ),
@@ -398,7 +415,7 @@ class Archive(object):
                     self._tagged_reals[n] = un
                     
                 elif isinstance(obj,UncertainComplex):
-                    re = TaggedIntermediateReal(
+                    re = IntermediateReal(
                         value = obj.real.x,
                         u_components = _vector_index_to_uid(
                             obj.real._u_components ),
@@ -415,7 +432,7 @@ class Archive(object):
                     n_re = "{}_re".format(n)
                     self._tagged_reals[n_re] = re
                     
-                    im = TaggedIntermediateReal(
+                    im = IntermediateReal(
                         value = obj.imag._x,
                         u_components = _vector_index_to_uid( 
                             obj.imag._u_components ),
@@ -432,7 +449,7 @@ class Archive(object):
                     n_im = "{}_im".format(n)
                     self._tagged_reals[n_im] = im
                     
-                    self._tagged[n] = TaggedIntermediateComplex(
+                    self._tagged[n] = IntermediateComplex(
                         n_re=n_re,
                         n_im=n_im,
                         label=obj.label
@@ -477,7 +494,7 @@ class Archive(object):
         #
         items = self._tagged.iteritems() if PY2 else self._tagged.items()
         for name,obj in items:
-            if isinstance(obj,TaggedElementaryReal):
+            if isinstance(obj,ElementaryReal):
                 un = _builder(
                     name,
                     _leaf_nodes,
@@ -485,7 +502,7 @@ class Archive(object):
                 )                    
                 self._tagged[name] = un
 
-            elif isinstance(obj,TaggedIntermediateReal):
+            elif isinstance(obj,IntermediateReal):
                 un = _builder(
                     name,
                     _nodes,
@@ -495,7 +512,7 @@ class Archive(object):
                 
             elif isinstance(
                     obj,
-                    (TaggedElementaryComplex,TaggedIntermediateComplex)
+                    (ElementaryComplex,IntermediateComplex)
                 ):
                 name_re = obj.n_re
                 name_im = obj.n_im
@@ -593,14 +610,14 @@ def _builder(o_name,_nodes,_tagged_reals):
     """
     obj = _tagged_reals[o_name]
     
-    if isinstance(obj,TaggedElementaryReal):
+    if isinstance(obj,ElementaryReal):
         un = UncertainReal._archived_elementary(
             uid = obj.uid,
             x = obj.x
         )
         _tagged_reals[o_name] = un    
                 
-    elif isinstance(obj,TaggedIntermediateReal):                
+    elif isinstance(obj,IntermediateReal):                
             
         un = UncertainReal(
             obj.value,

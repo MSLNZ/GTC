@@ -16,6 +16,7 @@ Module contents
 ---------------
 
 """
+import json
 try:
     import cPickle as pickle  # Python 2
     PY2 = True
@@ -25,6 +26,7 @@ except ImportError:
 
 from GTC import context
 from archive import Archive
+from json_coding import JSONArchiveEncoder
 
 __all__ = (
     'Archive',
@@ -106,6 +108,20 @@ def loads(s):
     ar._thaw()
     
     return ar
+
+#------------------------------------------------------------------     
+def dumps_json(ar):
+    """
+    Save an archive as a JSON string  
+
+    :arg ar: an :class:`Archive` object
+    
+    """
+    
+    ar._freeze()
+    s = json.dumps(ar, cls=JSONArchiveEncoder )
+    
+    return s
 
 #============================================================================    
 if __name__ == "__main__":
