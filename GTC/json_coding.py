@@ -1,17 +1,19 @@
 import json
 
-from archive import (
+from GTC.archive import (
     Archive,
     LeafNode, 
     ElementaryReal,
     IntermediateReal,
-    ElementaryComplex,
-    IntermediateComplex
+    Complex
 )
 
-from vector import Vector
+from GTC.vector import Vector
 
-__all__ = ( 'JSONArchiveEncoder' )
+__all__ = ( 
+    'JSONArchiveEncoder',
+    'json_to_archive'
+)
 
 #----------------------------------------------------------------------------
 # 
@@ -32,28 +34,34 @@ def leaf_to_json(x):
         df = float(x.df),
         independent = bool(x.independent)
     )
+    
     # The last 3 attributes may not be assigned 
-    # TODO: need to change these object types
     if hasattr(x,'complex'):
-        j['complex'] = x.complex
+        j['complex'] = [ 
+            tuple(x_i) for x_i in x.complex
+        ]
     if hasattr(x,'correlation'):
-        j['correlation'] = x.correlation
+        j['correlation'] = { 
+            tuple(uid) : x_i for (uid,x_i) in x.correlation
+        }
     if hasattr(x,'ensemble'):
-        j['ensemble'] = x.ensemble
+        j['ensemble'] = [ 
+            tuple(x_i) for x_i in x.ensemble
+        ]
     
     return j
  
 #----------------------------------------------------------------------------
 # 
 def tagged_to_json(x):
-    if isinstance(x,ElementaryReal):
+    if isinstance( x, ElementaryReal ):
         return el_real_to_json(x)
-    elif isinstance(x,IntermediateReal):
+    elif isinstance( x, IntermediateReal ):
         return int_real_to_json(x)
-    elif isinstance(x,ElementaryComplex):
-        return el_complex_to_json(x)
-    elif isinstance(x,IntermediateComplex):
-        return int_complex_to_json(x)
+    elif isinstance(x, Complex ):
+        return complex_to_json(x)
+    else:
+        raise TypeError( "Unrecognised: {}".format( type(x) ) )
  
 #----------------------------------------------------------------------------
 # 
@@ -81,12 +89,13 @@ def int_real_to_json(x):
     
 #----------------------------------------------------------------------------
 # 
-def el_complex_to_json(x):
-    return dict()
-#----------------------------------------------------------------------------
-# 
-def int_complex_to_json(x):
-    return dict()
+def complex_to_json(x):
+    return dict(
+        CLASS = x.__class__.__name__, 
+        n_re = str(x.n_re), 
+        n_im = str(x.n_im), 
+        label = tuple(x.label) 
+    ) 
 
 #----------------------------------------------------------------------------
 # 
@@ -117,10 +126,29 @@ def archive_to_json(a):
     return j
     
 #----------------------------------------------------------------------------
+#
 class JSONArchiveEncoder(json.JSONEncoder):
-    def default(self, x):
-        if isinstance(x,Archive):
-            return archive_to_json(x)
+    def default(self, o):
+        if isinstance(o,Archive):
+            return archive_to_json(o)
         else:
-            return super(JSONArchiveEncoder,self).default(x)
+            return super(JSONArchiveEncoder,self).default(o)
             
+#----------------------------------------------------------------------------
+# 
+def json_to_archive(js): 
+
+    if 'CLASS' in js and js['CLASS'] == 'Archive':
+        ar = Archive() 
+
+        ar._leaf_nodes = {
+            eval(i) : LeafNode(d)
+                for (i,d) in js['leaf_nodes'].iteritems()
+        }
+
+        return ar 
+    else:
+        # Don't touch the JSON object
+        return js
+        
+    

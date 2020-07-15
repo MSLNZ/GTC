@@ -10,7 +10,7 @@ Module contents
 """
 import itertools
 import sys
-PY2 = ( sys.version_info[0] == 2 )
+PY2 = bool( sys.version_info[0] == 2 )
 
 from GTC.lib import (
     UncertainComplex,
@@ -30,17 +30,35 @@ __all__ = (
 #
 class LeafNode(object):
     def __init__(self,node):
-        self.uid = node.uid
-        self.label = node.label 
-        self.u = node.u 
-        self.df = node.df 
-        self.independent = node.independent 
-        if hasattr(node,'complex'):
-            self.complex = node.complex
-        if hasattr(node,'correlation'):
-            self.correlation = node.correlation.items()
-        if hasattr(node,'ensemble'):
-            self.ensemble = frozenset( node.ensemble )
+        
+        # If called during freezing, a
+        # Leaf object will be provided.
+        # If called after a JSON record has 
+        # been restored, a dict will be provided.
+        if isinstance( node, dict ): # JSON form
+            self.uid = node['uid'] 
+            self.label = node['label']
+            self.u = float( node['u'] )
+            self.df = float( node['df'] )
+            self.independent = bool( node['independent'] ) 
+            if 'complex' in node:
+                self.complex = eval( node['complex'] )
+            if 'correlation' in node:
+                self.complex = eval( node['correlation'] )
+            if 'ensemble' in node:
+                self.complex = frozenset( node['ensemble'] )                               
+        else:                       # Leaf object
+            self.uid = node.uid
+            self.label = node.label 
+            self.u = node.u 
+            self.df = node.df 
+            self.independent = node.independent 
+            if hasattr(node,'complex'):
+                self.complex = node.complex
+            if hasattr(node,'correlation'):
+                self.correlation = node.correlation.items()
+            if hasattr(node,'ensemble'):
+                self.ensemble = frozenset( node.ensemble )
         
 class ElementaryReal(object):
     def __init__(self,x,uid):
@@ -56,13 +74,13 @@ class IntermediateReal(object):
         self.label = label
         self.uid = uid
     
-class ElementaryComplex(object):
+class Complex(object):
     def __init__(self,n_re,n_im,label):
         self.n_re = n_re
         self.n_im = n_im
         self.label = label
     
-class IntermediateComplex(object):
+class Complex(object):
     def __init__(self,n_re,n_im,label):
         self.n_re = n_re
         self.n_im = n_im
@@ -389,7 +407,7 @@ class Archive(object):
                     n_im = "{}_im".format(n)
                     self._tagged_reals[n_im] = im
                     
-                    self._tagged[n] = ElementaryComplex(
+                    self._tagged[n] = Complex(
                         n_re=n_re,
                         n_im=n_im,
                         label = obj.label
@@ -449,7 +467,7 @@ class Archive(object):
                     n_im = "{}_im".format(n)
                     self._tagged_reals[n_im] = im
                     
-                    self._tagged[n] = IntermediateComplex(
+                    self._tagged[n] = Complex(
                         n_re=n_re,
                         n_im=n_im,
                         label=obj.label
@@ -511,8 +529,7 @@ class Archive(object):
                 self._tagged[name] = un
                 
             elif isinstance(
-                    obj,
-                    (ElementaryComplex,IntermediateComplex)
+                    obj,Complex
                 ):
                 name_re = obj.n_re
                 name_im = obj.n_im
