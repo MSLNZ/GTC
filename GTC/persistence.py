@@ -172,6 +172,7 @@ def load_json(file,**kw):
     ar._thaw()
     
     return ar
+    
 #============================================================================    
 if __name__ == "__main__":
     import doctest
