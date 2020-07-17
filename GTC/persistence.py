@@ -26,7 +26,7 @@ except ImportError:
 
 from GTC import context
 from archive import Archive
-from json_coding import JSONArchiveEncoder, json_to_archive
+from json_format import JSONArchiveEncoder, json_to_archive
 
 __all__ = (
     'Archive',
@@ -117,7 +117,6 @@ def dumps_json(ar):
     :arg ar: an :class:`Archive` object
     
     """
-    
     ar._freeze()
     s = json.dumps(ar, cls=JSONArchiveEncoder )
     
@@ -131,14 +130,12 @@ def loads_json(s):
     :arg s: a string created by :func:`dumps_json`
     
     """
-    j = json.loads(s,object_hook=json_to_archive)
+    ar = json.loads(s,object_hook=json_to_archive)    
+    ar.context = context._context
+    ar._thaw()
     
-    return j
+    return ar
     
-    # ar.context = context._context
-    # ar._thaw()
-    
-    # return ar
 #============================================================================    
 if __name__ == "__main__":
     import doctest

@@ -18,10 +18,11 @@ __all__ = (
 #----------------------------------------------------------------------------
 # 
 def vector_to_json(x): 
-    return {
-        str(i) : float(x_i) 
-            for (i,x_i) in x.iteritems()
-    }
+    return dict(
+        CLASS = x.__class__.__name__,
+        index = x.keys(),
+        value = x.values()
+    )
     
 #----------------------------------------------------------------------------
 # 
@@ -119,6 +120,7 @@ def archive_to_json(a):
     }
     
     j['intermediate_uids'] = {
+        # o_i is the pair (label,u)
         str(i) : (o_i)
             for (i, o_i) in a._intermediate_uids.iteritems()
     }
@@ -136,19 +138,71 @@ class JSONArchiveEncoder(json.JSONEncoder):
             
 #----------------------------------------------------------------------------
 # 
-def json_to_archive(js): 
-
-    if 'CLASS' in js and js['CLASS'] == 'Archive':
+def json_to_archive(j): 
+    """
+    Called during retrieval of an archive in JSON format by `json.loads()`
+    The function is called, when `loads()` parses the JSON record, every time 
+    an object is not a recognised JSON type. `j` is always a dict. 
+    By transforming `j` into an appropriate object we can reconstruct the 
+    elements of the archive and finally assemble the archive object.
+    
+    """
+    if 'CLASS' in j and (j['CLASS'] == Vector.__name__):  
+        # uid must be hashable, so we apply `tuple()`
+        return Vector( 
+            index=[ tuple(i) for i in j['index'] ], 
+            value=j['value'] 
+        )
+        
+    elif 'CLASS' in j and (j['CLASS'] == LeafNode.__name__):
+        return LeafNode(j) 
+        
+    elif 'CLASS' in j and (j['CLASS'] == ElementaryReal.__name__):
+        return ElementaryReal(
+            j['x'],
+            tuple(j['uid'])     # Must be hashable
+        )
+        
+    elif 'CLASS' in j and (j['CLASS'] == IntermediateReal.__name__):
+        return IntermediateReal(
+            j['value'],
+            j['u_components'],
+            j['d_components'],
+            j['i_components'],
+            j['label'],
+            tuple(j['uid'])     # Must be hashable
+        )
+        
+    elif 'CLASS' in j and (j['CLASS'] == Complex.__name__):
+        return Complex(
+            j['n_re'],
+            j['n_im'],
+            j['label']
+        )
+        
+    elif 'CLASS' in j and (j['CLASS'] == Archive.__name__):
         ar = Archive() 
 
         ar._leaf_nodes = {
-            eval(i) : LeafNode(d)
-                for (i,d) in js['leaf_nodes'].iteritems()
+            # eval(i) transforms the string repr of a UID into a tuple
+            eval(i) : o
+                for (i,o) in j['leaf_nodes'].iteritems()
         }
 
-        return ar 
-    else:
-        # Don't touch the JSON object
-        return js
+        # Mapping uid -> (label, u)
+        ar._intermediate_uids = {
+            # eval(i) transforms the string repr of a UID into a tuple
+            eval(i) : tuple(args) 
+                for (i,args) in j['intermediate_uids'].iteritems()
+        }
+ 
+        ar._tagged = j['tagged']
+        ar._tagged_reals = j['tagged_reals']
         
-    
+        return ar 
+        
+    else:
+        # Allow parsing to continue at the next level
+        return j 
+        
+  

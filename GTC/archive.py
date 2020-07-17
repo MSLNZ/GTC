@@ -79,13 +79,7 @@ class Complex(object):
         self.n_re = n_re
         self.n_im = n_im
         self.label = label
-    
-class Complex(object):
-    def __init__(self,n_re,n_im,label):
-        self.n_re = n_re
-        self.n_im = n_im
-        self.label = label
-        
+            
 #----------------------------------------------------------------------------
 # """
 # Archive plays several roles related to storage of uncertain numbers.
