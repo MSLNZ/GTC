@@ -1,3 +1,7 @@
+"""
+This module handles conversion of an archive object to a JSON format 
+and then restoration of an archive from JSON.
+"""
 import json
 
 from GTC.archive import (
@@ -39,15 +43,15 @@ def leaf_to_json(x):
     # The last 3 attributes may not be assigned 
     if hasattr(x,'complex'):
         j['complex'] = [ 
-            tuple(x_i) for x_i in x.complex
+            str(x_i) for x_i in x.complex
         ]
     if hasattr(x,'correlation'):
         j['correlation'] = { 
-            tuple(uid) : x_i for (uid,x_i) in x.correlation
+            str(uid) : x_i for (uid,x_i) in x.correlation
         }
     if hasattr(x,'ensemble'):
         j['ensemble'] = [ 
-            tuple(x_i) for x_i in x.ensemble
+            str(x_i) for x_i in x.ensemble
         ]
     
     return j
@@ -95,7 +99,7 @@ def complex_to_json(x):
         CLASS = x.__class__.__name__, 
         n_re = str(x.n_re), 
         n_im = str(x.n_im), 
-        label = tuple(x.label) 
+        label = x.label
     ) 
 
 #----------------------------------------------------------------------------
@@ -164,20 +168,22 @@ def json_to_archive(j):
         )
         
     elif 'CLASS' in j and (j['CLASS'] == IntermediateReal.__name__):
+        label = j['label']
         return IntermediateReal(
             j['value'],
             j['u_components'],
             j['d_components'],
             j['i_components'],
-            j['label'],
+            label if label != "None" else None,
             tuple(j['uid'])     # Must be hashable
         )
         
     elif 'CLASS' in j and (j['CLASS'] == Complex.__name__):
+        label = j['label']
         return Complex(
             j['n_re'],
             j['n_im'],
-            j['label']
+            label if label != "None" else None
         )
         
     elif 'CLASS' in j and (j['CLASS'] == Archive.__name__):

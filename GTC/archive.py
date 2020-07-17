@@ -35,19 +35,41 @@ class LeafNode(object):
         # Leaf object will be provided.
         # If called after a JSON record has 
         # been restored, a dict will be provided.
-        if isinstance( node, dict ): # JSON form
-            self.uid = node['uid'] 
-            self.label = node['label']
+        
+        if isinstance( node, dict ): 
+            # JSON record
+            
+            # A uid must be hashable
+            self.uid = tuple(node['uid'])
+            
+            # 'None' must be restored to an object
+            label = node['label']
+            if label != "None" : 
+                self.label = label 
+            else:
+                self.label = None
+                
             self.u = float( node['u'] )
             self.df = float( node['df'] )
+            
             self.independent = bool( node['independent'] ) 
+            
             if 'complex' in node:
-                self.complex = eval( node['complex'] )
+                self.complex = ( 
+                    eval(node['complex'][0]), 
+                    eval(node['complex'][1]) 
+                )
             if 'correlation' in node:
-                self.complex = eval( node['correlation'] )
+                self.correlation = {
+                    eval(x_i) : r_i 
+                        for x_i,r_i in node['correlation'].iteritems()
+                }
             if 'ensemble' in node:
-                self.complex = frozenset( node['ensemble'] )                               
-        else:                       # Leaf object
+                self.ensemble = frozenset( 
+                    eval(i) for i in node['ensemble'] 
+                )                               
+        else:    
+            # Leaf object        
             self.uid = node.uid
             self.label = node.label 
             self.u = node.u 

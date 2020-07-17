@@ -8,9 +8,14 @@ Functions
         * :func:`dump`
         
     Functions for storing and retrieving pickled archive strings are
-    
+
         * :func:`dumps`
         * :func:`loads`
+        
+    Functions for storing and retrieving JSON-formatted archive strings are
+    
+        * :func:`dumps_json`
+        * :func:`loads_json`
 
 Module contents
 ---------------
@@ -34,6 +39,8 @@ __all__ = (
     'dump',
     'dumps',
     'loads',
+    'dumps_json',
+    'loads_json',
 )
 
 #------------------------------------------------------------------     
@@ -110,32 +117,61 @@ def loads(s):
     return ar
 
 #------------------------------------------------------------------     
-def dumps_json(ar):
+def dumps_json(ar,**kw):
     """
-    Save an archive as a JSON string  
+    Convert an archive to a JSON string  
 
     :arg ar: an :class:`Archive` object
     
     """
     ar._freeze()
-    s = json.dumps(ar, cls=JSONArchiveEncoder )
+    s = json.dumps(ar, cls=JSONArchiveEncoder,**kw )
     
     return s
 
 #------------------------------------------------------------------     
-def loads_json(s):
+def loads_json(s,**kw):
     """
-    Return an archive object from a JSON string  
+    Return an archive object by converting a JSON string  
 
     :arg s: a string created by :func:`dumps_json`
     
     """
-    ar = json.loads(s,object_hook=json_to_archive)    
+    ar = json.loads(s,object_hook=json_to_archive,**kw)    
     ar.context = context._context
     ar._thaw()
     
     return ar
     
+#------------------------------------------------------------------     
+def dump_json(file,ar,**kw):
+    """Save an archive in a file in JSON format
+
+    :arg file:  a file object opened in text mode (with 'w')
+                
+    :arg ar: an :class:`Archive` object
+      
+    Only one archives can be saved in the same file.
+    
+    """
+    ar._freeze()
+    s = json.dump(ar, file, cls=JSONArchiveEncoder, **kw )
+    
+    return s
+
+#------------------------------------------------------------------     
+def load_json(file,**kw):
+    """
+    Return an archive object by converting a JSON string  
+
+    :arg s: a string created by :func:`dumps_json`
+    
+    """
+    ar = json.load(file, object_hook=json_to_archive,**kw)    
+    ar.context = context._context
+    ar._thaw()
+    
+    return ar
 #============================================================================    
 if __name__ == "__main__":
     import doctest

@@ -1210,7 +1210,7 @@ class TestArchive(unittest.TestCase):
  
     def test_with_string(self):
         """
-        Save to a file and then restore by reading
+        Simple save with intermediate 
         """
         context._context = Context()
 
@@ -1233,6 +1233,93 @@ class TestArchive(unittest.TestCase):
         self.assertEqual( repr(y1), repr(y) )
         self.assertEqual( repr(z1), repr(z) )
 
+    def test_with_string2(self):
+        """
+        Dependent elementary UNs
+        """
+        context._context = Context()
+
+        x = ureal(1,1,independent=False)
+        y = ureal(2,1,independent=False)
+        
+        r = 0.5
+        set_correlation(r,x,y)
+        
+        z = result( x + y )
+        
+        ar = persistence.Archive()
+
+        ar.add(x=x,y=y,z=z)
+
+        db = persistence.dumps(ar)
+
+        context._context = Context()
+        ar = persistence.loads(db)
+
+        x1, y1, z1 = ar.extract('x','y','z')
+
+        self.assertEqual( repr(x1), repr(x) )
+        self.assertEqual( repr(y1), repr(y) )
+        self.assertEqual( repr(z1), repr(z) )
+        
+        self.assertEqual( get_correlation(x,y), r )
+ 
+    def test_with_string3(self):
+        """
+        Correlations with finite DoF
+        """
+        context._context = Context()
+
+        x,y = multiple_ureal([1,2],[1,1],4)
+        
+        r = 0.5
+        set_correlation(r,x,y)
+        
+        z = result( x + y )
+        
+        ar = persistence.Archive()
+
+        ar.add(x=x,y=y,z=z)
+
+        db = persistence.dumps(ar)
+
+        context._context = Context()
+        ar = persistence.loads(db)
+
+        x1, y1, z1 = ar.extract('x','y','z')
+
+        self.assertEqual( repr(x1), repr(x) )
+        self.assertEqual( repr(y1), repr(y) )
+        self.assertEqual( repr(z1), repr(z) )
+        
+        self.assertEqual( get_correlation(x,y), r )
+ 
+    def test_with_string4(self):
+        """
+        Complex
+        """
+        context._context = Context()
+
+        x = ucomplex(1,[10,2,2,10],5)
+        y = ucomplex(1-6j,[10,2,2,10],7)
+        
+        z = result( x * y )
+        
+        ar = persistence.Archive()
+
+        ar.add(x=x,y=y,z=z)
+
+        db = persistence.dumps(ar)
+
+        context._context = Context()
+        ar = persistence.loads(db)
+
+        x1, y1, z1 = ar.extract('x','y','z')
+
+        self.assertEqual( repr(x1), repr(x) )
+        self.assertEqual( repr(y1), repr(y) )
+        self.assertEqual( repr(z1), repr(z) )
+        
     def test_multiple_names(self):
         """
         Different names may apply to the same UN
