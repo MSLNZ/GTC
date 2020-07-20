@@ -30,8 +30,11 @@ except ImportError:
     PY2 = False
 
 from GTC import context
-from archive import Archive
-from json_format import JSONArchiveEncoder, json_to_archive
+from .archive import Archive
+from .json_format import (
+    JSONArchiveEncoder,
+    json_to_archive,
+)
 
 __all__ = (
     'Archive',
