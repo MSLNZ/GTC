@@ -9,7 +9,8 @@ from GTC.archive import (
     LeafNode, 
     ElementaryReal,
     IntermediateReal,
-    Complex
+    Complex,
+    PY2,
 )
 
 from GTC.vector import Vector
@@ -106,27 +107,38 @@ def complex_to_json(x):
 # 
 def archive_to_json(a): 
     
-    j = dict( CLASS = a.__class__.__name__ ) 
+    j = dict( CLASS = a.__class__.__name__ )
+
+    if PY2:
+        leaf_nodes_items = a._leaf_nodes.iteritems
+        tagged_items = a._tagged.iteritems
+        tagged_reals_items = a._tagged_reals.iteritems
+        intermediate_uids_items = a._intermediate_uids.iteritems
+    else:
+        leaf_nodes_items = a._leaf_nodes.items
+        tagged_items = a._tagged.items
+        tagged_reals_items = a._tagged_reals.items
+        intermediate_uids_items = a._intermediate_uids.items
     
     j['leaf_nodes'] = {
         str(i) : leaf_to_json(o_i)
-            for (i, o_i) in a._leaf_nodes.iteritems()
+            for (i, o_i) in leaf_nodes_items()
     }
     
     j['tagged'] = {
         str(i) : tagged_to_json(o_i)
-            for (i, o_i) in a._tagged.iteritems()
+            for (i, o_i) in tagged_items()
     }
     
     j['tagged_reals'] = {
         str(i) : tagged_to_json(o_i)
-            for (i, o_i) in a._tagged_reals.iteritems()
+            for (i, o_i) in tagged_reals_items()
     }
     
     j['intermediate_uids'] = {
         # o_i is the pair (label,u)
         str(i) : (o_i)
-            for (i, o_i) in a._intermediate_uids.iteritems()
+            for (i, o_i) in intermediate_uids_items()
     }
    
     return j
@@ -187,19 +199,26 @@ def json_to_archive(j):
         )
         
     elif 'CLASS' in j and (j['CLASS'] == Archive.__name__):
-        ar = Archive() 
+        ar = Archive()
+
+        if PY2:
+            leaf_nodes_items = j['leaf_nodes'].iteritems
+            intermediate_uids_items = j['intermediate_uids'].iteritems
+        else:
+            leaf_nodes_items = j['leaf_nodes'].items
+            intermediate_uids_items = j['intermediate_uids'].items
 
         ar._leaf_nodes = {
             # eval(i) transforms the string repr of a UID into a tuple
             eval(i) : o
-                for (i,o) in j['leaf_nodes'].iteritems()
+                for (i,o) in leaf_nodes_items()
         }
 
         # Mapping uid -> (label, u)
         ar._intermediate_uids = {
             # eval(i) transforms the string repr of a UID into a tuple
             eval(i) : tuple(args) 
-                for (i,args) in j['intermediate_uids'].iteritems()
+                for (i,args) in intermediate_uids_items()
         }
  
         ar._tagged = j['tagged']

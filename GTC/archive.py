@@ -60,9 +60,10 @@ class LeafNode(object):
                     eval(node['complex'][1]) 
                 )
             if 'correlation' in node:
+                items = node['correlation'].iteritems() if PY2 else node['correlation'].items()
                 self.correlation = {
                     eval(x_i) : r_i 
-                        for x_i,r_i in node['correlation'].iteritems()
+                        for x_i,r_i in items
                 }
             if 'ensemble' in node:
                 self.ensemble = frozenset( 
