@@ -2,7 +2,7 @@
 Functions
 ---------    
 
-    Functions for storing and retrieving pickled archive files are
+    Functions for storing and retrieving archive files using Python pickle format are
     
         * :func:`load`
         * :func:`dump`
@@ -12,7 +12,7 @@ Functions
         * :func:`dumps`
         * :func:`loads`
         
-    Functions for storing and retrieving JSON-formatted archive strings are
+    Functions for storing and retrieving an archive as a JSON-formatted string are
     
         * :func:`dumps_json`
         * :func:`loads_json`
@@ -123,6 +123,8 @@ def dumps_json(ar,**kw):
 
     :arg ar: an :class:`Archive` object
     
+    Keyword arguments will be passed to :func:`json.dumps()`
+
     """
     ar._freeze()
     s = json.dumps(ar, cls=JSONArchiveEncoder,**kw )
@@ -135,6 +137,8 @@ def loads_json(s,**kw):
     Return an archive object by converting a JSON string  
 
     :arg s: a string created by :func:`dumps_json`
+    
+    Keyword arguments will be passed to :func:`json.loads()`
     
     """
     ar = json.loads(s,object_hook=json_to_archive,**kw)    
@@ -151,7 +155,9 @@ def dump_json(file,ar,**kw):
                 
     :arg ar: an :class:`Archive` object
       
-    Only one archives can be saved in the same file.
+    Keyword arguments will be passed to :func:`json.dump()`
+
+    Only one archive can be saved in a file.
     
     """
     ar._freeze()
@@ -166,6 +172,8 @@ def load_json(file,**kw):
 
     :arg s: a string created by :func:`dumps_json`
     
+    Keyword arguments will be passed to :func:`json.load()`
+
     """
     ar = json.load(file, object_hook=json_to_archive,**kw)    
     ar.context = context._context
