@@ -16,7 +16,7 @@ matrix:
       python: 3.8
     - os: osx
       language: generic
-      env: PYTHON=2.7.17
+      env: PYTHON=2.7.18
     - os: osx
       language: generic
       env: PYTHON=3.5.9
@@ -28,7 +28,7 @@ matrix:
       env: PYTHON=3.7.7
     - os: osx
       language: generic
-      env: PYTHON=3.8.2
+      env: PYTHON=3.8.3
 
 before_install:
   - |
