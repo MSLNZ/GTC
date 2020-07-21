@@ -2,12 +2,17 @@
 Release Notes
 =============
 
+Version 1.2.2 (2020.07.??)
+==========================
+
+    * Added support to :mod:`persistence` for archive storage in a JSON format. The new functions are: :func:`persistence.dump_json`, :func:`persistence.dumps_json`, :func:`persistence.load_json` and :func:`persistence.loads_json`
+    
 Version 1.2.1 (2020.04.01)
 ==========================
 
     * Fixed issue `#18 <https://github.com/MSLNZ/GTC/issues/18>`_ - calculate the inverse of a matrix with uncertain elements 
     
-    * Revised the documentation for the persistence.py module 
+    * Revised the documentation for the :mod:`persistence` module 
 
 Version 1.2.0 (2019.10.16)
 ==========================

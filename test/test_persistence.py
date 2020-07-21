@@ -1208,6 +1208,117 @@ class TestArchive(unittest.TestCase):
 
         os.remove(path)
  
+    def test_with_file3(self):
+        """
+        Dependent elementary UNs
+        """
+        wdir = os.getcwd()
+        fname = 'test_file.pkl'
+        path = os.path.join(wdir,fname)
+
+        context._context = Context()
+
+        x = ureal(1,1,independent=False)
+        y = ureal(2,1,independent=False)
+        
+        r = 0.5
+        set_correlation(r,x,y)
+        
+        z = result( x + y )
+        
+        ar = persistence.Archive()
+
+        ar.add(x=x,y=y,z=z)
+
+        with open(path,'wb') as f:
+            persistence.dump(f,ar)
+
+        context._context = Context()
+        with open(path,'rb') as f:
+            ar = persistence.load(f)
+            
+        os.remove(path)
+
+        x1, y1, z1 = ar.extract('x','y','z')
+
+        self.assertEqual( repr(x1), repr(x) )
+        self.assertEqual( repr(y1), repr(y) )
+        self.assertEqual( repr(z1), repr(z) )
+        
+        self.assertEqual( get_correlation(x,y), r )
+
+    def test_with_file4(self):
+        """
+        Correlations with finite DoF
+        """
+        wdir = os.getcwd()
+        fname = 'test_file.pkl'
+        path = os.path.join(wdir,fname)
+
+        context._context = Context()
+
+        x,y = multiple_ureal([1,2],[1,1],4)
+        
+        r = 0.5
+        set_correlation(r,x,y)
+        
+        z = result( x + y )
+        
+        ar = persistence.Archive()
+
+        ar.add(x=x,y=y,z=z)
+
+        with open(path,'wb') as f:
+            persistence.dump(f,ar)
+
+        context._context = Context()
+        with open(path,'rb') as f:
+            ar = persistence.load(f)
+
+        os.remove(path)
+
+        x1, y1, z1 = ar.extract('x','y','z')
+
+        self.assertEqual( repr(x1), repr(x) )
+        self.assertEqual( repr(y1), repr(y) )
+        self.assertEqual( repr(z1), repr(z) )
+        
+        self.assertEqual( get_correlation(x,y), r )
+ 
+    def test_with_file5(self):
+        """
+        Complex
+        """
+        wdir = os.getcwd()
+        fname = 'test_file.pkl'
+        path = os.path.join(wdir,fname)
+
+        context._context = Context()
+
+        x = ucomplex(1,[10,2,2,10],5)
+        y = ucomplex(1-6j,[10,2,2,10],7)
+        
+        z = result( log( x * y ) )
+        
+        ar = persistence.Archive()
+
+        ar.add(x=x,y=y,z=z)
+
+        with open(path,'wb') as f:
+            persistence.dump(f,ar)
+
+        context._context = Context()
+        with open(path,'rb') as f:
+            ar = persistence.load(f)
+
+        os.remove(path)
+
+        x1, y1, z1 = ar.extract('x','y','z')
+
+        self.assertEqual( repr(x1), repr(x) )
+        self.assertEqual( repr(y1), repr(y) )
+        self.assertEqual( repr(z1), repr(z) )
+        
     def test_with_string(self):
         """
         Simple save with intermediate 
@@ -1234,6 +1345,37 @@ class TestArchive(unittest.TestCase):
         self.assertEqual( repr(z1), repr(z) )
 
     def test_with_string2(self):
+        """
+        Save to a file and then restore several times
+        to test the effectiveness of GTC's uid system.
+        
+        """
+        context._context = Context()
+        
+        x = ureal(1,1,3,label='x')
+        y = ureal(2,1,4,label='y')
+        z = result( x + y )
+
+        ar = persistence.Archive()
+
+        # Saving only `z` means that when the archive
+        # is restored `x` and `y` are not recreated as UNs.
+        # However, Leaf nodes are created. We need to make sure 
+        # that only one Leaf node gets created.
+        
+        ar.add(z=z)
+
+        s = persistence.dumps(ar)
+
+        context._context = Context()       
+        ar1 = persistence.loads(s)
+
+        z1 = ar1.extract('z')
+
+        # The attempt to create the node again is caught
+        self.assertRaises(RuntimeError,persistence.loads,s)
+ 
+    def test_with_string3(self):
         """
         Dependent elementary UNs
         """
@@ -1264,7 +1406,7 @@ class TestArchive(unittest.TestCase):
         
         self.assertEqual( get_correlation(x,y), r )
  
-    def test_with_string3(self):
+    def test_with_string4(self):
         """
         Correlations with finite DoF
         """
@@ -1294,7 +1436,7 @@ class TestArchive(unittest.TestCase):
         
         self.assertEqual( get_correlation(x,y), r )
  
-    def test_with_string4(self):
+    def test_with_string5(self):
         """
         Complex
         """

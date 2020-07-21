@@ -279,9 +279,8 @@ class UncertainReal(object):
         """
         Return an intermediate uncertain real number
         
-        An intermediate UN must be defined to allow 
+        An intermediate UN has to be defined to allow 
         the sensitivity of subsequent results to be investigated.
-        .
         
         Parameters
         ----------
@@ -326,8 +325,9 @@ class UncertainReal(object):
             # whether or not something is elementary or not. 
             
             # The only surprising behaviour to a user would be that 
-            # the `label` is not applied to the elementary uncertain number 
-            # if it already has been assigned. 
+            # if a `label` has already been assigned to the elementary
+            # uncertain number, it will not be changed by this call. 
+            # 
             # Note that this code ripples through other types, because
             # UncertainComplex and UncertainArray use this class method.
             if label is not None:
@@ -337,7 +337,8 @@ class UncertainReal(object):
                     n.label = label
                 elif label != n.label:
                     warnings.warn(
-                        "Label `{}` ignored in `result()`".format(label),
+                        "Elementary UN label `{}` was not changed by `result()`:"
+                        " the new label `{}` has been ignored".format(n.label,label),
                         RuntimeWarning
                     )
                 else:
