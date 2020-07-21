@@ -80,6 +80,13 @@ class LeafNode(object):
                 self.complex = node.complex
             if hasattr(node,'correlation'):
                 self.correlation = node.correlation.items()
+                if not PY2:
+                    # In Python 2 items() returns a list but
+                    # in Python 3 a dict_items object is returned.
+                    # Since it is not possible to pickle a
+                    # dict_items object we convert dict_items
+                    # to be a list.
+                    self.correlation = list(self.correlation)
             if hasattr(node,'ensemble'):
                 self.ensemble = frozenset( node.ensemble )
         
