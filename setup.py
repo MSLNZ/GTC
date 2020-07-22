@@ -96,8 +96,8 @@ if not testing:
 else:
     install_requires = []
     if sys.version_info[:2] == (2, 7):
-        tests_require.extend(['zipp<2.0.0', 'pytest>=3.0,<5.0',
-                              'numpy>=1.13.0,<1.17', 'scipy<1.3'])
+        tests_require.extend(['zipp<2.0.0', 'numpy>=1.13.0,<1.17', 'scipy<1.3',
+                              'pyparsing<3.0', 'pytest>=3.0,<5.0'])
     else:
         tests_require.extend(['pytest>=3.0', 'numpy>=1.13.0', 'scipy'])
 
