@@ -4,14 +4,19 @@ Functions
 
     Functions for storing and retrieving archive files using Python pickle format are
     
-        * :func:`load`
         * :func:`dump`
-        
+        * :func:`load`
+
     Functions for storing and retrieving pickled archive strings are
 
         * :func:`dumps`
         * :func:`loads`
-        
+
+    Functions for storing and retrieving archive files using JSON format are
+
+        * :func:`dump_json`
+        * :func:`load_json`
+
     Functions for storing and retrieving an archive as a JSON-formatted string are
     
         * :func:`dumps_json`
@@ -30,8 +35,8 @@ except ImportError:
     PY2 = False
 
 from GTC import context
-from .archive import Archive
-from .json_format import (
+from GTC.archive import Archive
+from GTC.json_format import (
     JSONArchiveEncoder,
     json_to_archive,
 )
@@ -42,6 +47,8 @@ __all__ = (
     'dump',
     'dumps',
     'loads',
+    'dump_json',
+    'load_json',
     'dumps_json',
     'loads_json',
 )
@@ -85,8 +92,8 @@ def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     :arg ar: an :class:`Archive` object
     :arg protocol: encoding type 
 
-    Possible values for ``protocol`` are described in the 
-    Python documentation for the 'pickle' module.
+    Possible values for :ref:`protocol <pickle-protocols>` are described in the
+    Python documentation for the :mod:`pickle` module.
 
     ``protocol=0`` creates an ASCII string, but note
     that many (special) linefeed characters are embedded.
@@ -173,7 +180,7 @@ def load_json(file,**kw):
     """
     Return an archive object by converting a JSON string  
 
-    :arg s: a string created by :func:`dumps_json`
+    :arg file: a file created by :func:`dump_json`
     
     Keyword arguments will be passed to :func:`json.load()`
 
