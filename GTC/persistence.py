@@ -177,8 +177,7 @@ def dump_json(file,ar,**kw):
 
 #------------------------------------------------------------------     
 def load_json(file,**kw):
-    """
-    Return an archive object by converting a JSON string  
+    """Load an archive from a file
 
     :arg file: a file created by :func:`dump_json`
     
