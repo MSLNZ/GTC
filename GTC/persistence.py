@@ -135,6 +135,7 @@ def dumps_json(ar,**kw):
     
     Keyword arguments will be passed to :func:`json.dumps()`
 
+    .. versionadded:: 1.3.0
     """
     ar._freeze()
     s = json.dumps(ar, cls=JSONArchiveEncoder,**kw )
@@ -150,6 +151,7 @@ def loads_json(s,**kw):
     
     Keyword arguments will be passed to :func:`json.loads()`
     
+    .. versionadded:: 1.3.0
     """
     ar = json.loads(s,object_hook=json_to_archive,**kw)    
     ar.context = context._context
@@ -169,6 +171,7 @@ def dump_json(file,ar,**kw):
 
     Only one archive can be saved in a file.
     
+    .. versionadded:: 1.3.0
     """
     ar._freeze()
     s = json.dump(ar, file, cls=JSONArchiveEncoder, **kw )
@@ -183,6 +186,7 @@ def load_json(file,**kw):
     
     Keyword arguments will be passed to :func:`json.load()`
 
+    .. versionadded:: 1.3.0
     """
     ar = json.load(file, object_hook=json_to_archive,**kw)    
     ar.context = context._context
