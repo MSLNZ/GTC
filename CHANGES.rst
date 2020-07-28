@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 1.2.2 (2020.07.??)
+Version 1.3.0 (2020.07.28)
 ==========================
 
     * Added support to :mod:`persistence` for archive storage in a JSON format. The new functions are: :func:`persistence.dump_json`, :func:`persistence.dumps_json`, :func:`persistence.load_json` and :func:`persistence.loads_json`
