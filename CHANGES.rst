@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+Version 1.3.1 (2020.08.??)
+==========================
+
+    * Fixed an issue with the `r` attribute of uncertain complex numbers, which returns the correlation coefficient between real and imaginary components: the calculation was incorrect (however, :func:`core.get_correlation` gave the correct result).
+    
+    * Fixed an issue with the calculation of the variance-covariance matrix for an uncertain complex number with finite degrees of freedom: the matrix element for the variance of the real component was sometimes incorrectly returned for the variance of the imaginary component as well.
+    
+
 Version 1.3.0 (2020.07.28)
 ==========================
 
