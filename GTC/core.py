@@ -618,7 +618,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         >>> print(z)
         (127.732(70)+219.847(296)j)
         >>> z.r
-        -28.5825760885182...
+        -0.5914846108189988...
 
     """
     if len(x_seq) != len(u_seq):

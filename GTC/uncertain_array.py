@@ -280,7 +280,7 @@ class UncertainArray(np.ndarray):
             >>> a = la.uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2)),
             ...                ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5))])
             >>> a.r
-            uarray([0.2651515151515152, 0.29629629629629634])
+            uarray([0.43082021842766455, 0.34426518632954817])
 
         :rtype: :class:`UncertainArray`
         """
