@@ -179,7 +179,8 @@ class TestAPIFunctions(unittest.TestCase):
         # uc = ucomplex(1 + 1j, 0.1)
         # ur = ureal(2, 0.2)
         # r = 0.3
-        # self.assertRaises(RuntimeError,set_correlation,r,uc,ur)
+        # self.assertRaises(TypeError,set_correlation,r,uc,ur)
+        
         # uc = ucomplex(1 + 1j, 0.1,independent=False)
         # ur = ureal(2, 0.2,independent=False)
         # set_correlation(r,uc,ur)
