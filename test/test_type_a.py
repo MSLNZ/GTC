@@ -646,7 +646,169 @@ class TestEnsembleWSComplex(unittest.TestCase):
         self.assertRaises(RuntimeError,type_a.multi_estimate_complex,data)
     
     
+    def test_WS_complex_WH_ex1(self):
+        """
+        This is Example 1 in 
+            "An extension to GUM methodology:
+            degrees-of-freedom calculations for correlated
+            multidimensional estimates", by 
+            Willink and Hall
+            
+        """
+        s11 = [
+            0.0242-0.0101j, -0.0023+0.2229j,
+            0.0599+0.0601j, 0.0433+0.2100j,
+            -0.0026+0.0627j
+        ]
+        S11 = type_a.estimate( s11, label='S11' )
+        self.assertTrue( equivalent_complex(S11.x,(0.02450+0.10912j),tol=1E-8) )
+        self.assertTrue( equivalent_sequence(S11.v,(0.1530E-3,-0.0797E-3,-0.0797E-3,2.0947E-3),tol=1E-7) )
 
+        g_prime = [
+            0.1648-0.0250j, 0.1568-0.0179j,
+            0.1598-0.1367j, 0.1198-0.0045j,
+            0.3162-0.1310j
+        ]
+        G_prime = type_a.estimate( g_prime, label='G_prime' )        
+        self.assertTrue( equivalent_complex(G_prime.x,(0.18348-0.06302j),tol=1E-8) )
+        self.assertTrue( equivalent_sequence(G_prime.v,(1.1646E-3,-0.6459E-3,-0.6459E-3,0.8478E-3),tol=1E-7) )
+   
+        G = result(G_prime - S11,label = 'G')
+        self.assertTrue( equivalent_complex(G.x,(0.15898-0.17214j),tol=1E-8) )
+        self.assertTrue( equivalent_sequence(G.v,(1.3175E-3,-0.7256E-3,-0.7256E-3,2.9425E-3),tol=1E-7) )
+        self.assertTrue( equivalent(G.df,6.85,tol=5E-3) )
+  
+    def test_WS_complex_WH_ex2(self):
+        """
+        This is Example 2 in 
+            "An extension to GUM methodology:
+            degrees-of-freedom calculations for correlated
+            multidimensional estimates", by 
+            Willink and Hall
+            
+        """
+        g_prime = [
+            -0.220+0.008j, -0.217-0.010j,
+            -0.222-0.003j, -0.207-0.018j,
+            -0.219-0.009j
+        ]
+        G_prime = type_a.estimate( g_prime, label='G_prime' )        
+        self.assertTrue( equivalent_complex(G_prime.x,(-0.2170-0.0064j),tol=1E-10) )
+        self.assertTrue( equivalent_sequence(G_prime.v,(0.6900E-5,-0.8550E-5,-0.8550E-5,1.8660E-5),tol=1E-10) )
+
+        s11 = [
+            -0.072+0.066j, -0.075+0.073j,
+            -0.087+0.069j, -0.087+0.092j,
+            -0.064+0.071j, -0.079+0.067j,
+            -0.069+0.072j
+        ]
+        s12 = [
+            0.112+0.903j, 0.115+0.891j,
+            0.094+0.888j, 0.098+0.898j,
+            0.092+0.899j, 0.072+0.892j,
+            0.102+0.906j
+        ]
+        s21 = [
+            0.106+0.900j, 0.098+0.900j,
+            0.085+0.893j, 0.106+0.886j,
+            0.114+0.907j, 0.089+0.882j,
+            0.108+0.893j
+        ]
+        s22 = [
+            0.044+0.106j, 0.029+0.091j,
+            0.019+0.096j, 0.036+0.099j,
+            0.026+0.102j, 0.026+0.088j,
+            0.022+0.096j
+        ]
+        # Correlated estimates
+        S11, S12, S21, S22 = type_a.multi_estimate_complex(
+            (s11,s12,s21,s22),
+            labels =('S11','S12','S21','S22')
+        ) 
+   
+        # # The variance-covariance matrix
+        # self.assertTrue( 
+            # equivalent_sequence(
+                # S11.v,
+                # (1.0973E-5,-0.4908E-5,-0.4908E-5,1.1116E-5),
+                # tol=1E-6
+            # ) 
+        # )
+        # self.assertTrue( 
+            # equivalent_sequence(
+                # S12.v,
+                # (2.9259E-5,0.4088E-5,0.4088E-5,0.6272E-5),
+                # tol=1E-8
+            # ) 
+        # )
+        # self.assertTrue( 
+            # equivalent_sequence(
+                # S21.v,
+                # (1.6116E-5,0.7010E-5,0.7010E-5,1.0707E-5),
+                # tol=1E-8
+            # ) 
+        # )
+
+        # self.assertTrue( 
+            # equivalent_sequence(
+                # S22.v,
+                # (1.0497E-5,0.4235E-5,0.4235E-5,0.5449E-5),
+                # tol=1E-8
+            # ) 
+        # )
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S11,S12),
+                (0.3592E-5,0.4946E-5,0.1949E-5,0.0707E-5),
+                tol=1E-9
+            ) 
+        )
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S11,S21),
+                (0.9020E-5,0.7486E-5,0.3878E-5,-0.3395E-5),
+                tol=1E-9
+            ) 
+        )
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S11,S22),
+                (0.0401E-5,0.2354E-5,0.2354E-5,0.0568E-5),
+                tol=1E-9
+            ) 
+        )
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S12,S11),
+                (0.3592E-5,0.1949E-5,0.4946E-5,0.0707E-5),
+                tol=1E-9
+            ) 
+        )
+ 
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S12,S21),
+                (0.8211E-5,1.0010E-5,0.8231E-5,0.1878E-5),
+                tol=1E-9
+            ) 
+        )
+ 
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S12,S22),
+                (0.7568E-5,0.5425E-5,0.3160E-5,0.3493E-5),
+                tol=1E-9
+            ) 
+        )
+
+        # Calculation of measurement result
+        num = G_prime - S11
+        den = S12*S21 + S22*num
+        G = result( num/den, label = 'G')
+        self.assertTrue( equivalent_complex(G.x,(0.1516+0.1317j),tol=5E-5) )
+        self.assertTrue( equivalent_sequence(G.v,(3.035E-5,-2.583E-5,-2.583E-5,4.199E-5),tol=1E-8) )
+        self.assertTrue( equivalent(G.df,9.01,tol=5E-3) )
+    
 #-----------------------------------------------------
 #
 from test_fitting import simple_sigma_abr
