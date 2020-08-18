@@ -694,7 +694,13 @@ class TestEnsembleWSComplex(unittest.TestCase):
         ]
         G_prime = type_a.estimate( g_prime, label='G_prime' )        
         self.assertTrue( equivalent_complex(G_prime.x,(-0.2170-0.0064j),tol=1E-10) )
-        self.assertTrue( equivalent_sequence(G_prime.v,(0.6900E-5,-0.8550E-5,-0.8550E-5,1.8660E-5),tol=1E-10) )
+        self.assertTrue( 
+            equivalent_sequence(
+                G_prime.v,
+                (0.6900E-5,-0.8550E-5,-0.8550E-5,1.8660E-5),
+                tol=1E-10
+            ) 
+        )
 
         s11 = [
             -0.072+0.066j, -0.075+0.073j,
@@ -726,36 +732,36 @@ class TestEnsembleWSComplex(unittest.TestCase):
             labels =('S11','S12','S21','S22')
         ) 
    
-        # # The variance-covariance matrix
-        # self.assertTrue( 
-            # equivalent_sequence(
-                # S11.v,
-                # (1.0973E-5,-0.4908E-5,-0.4908E-5,1.1116E-5),
-                # tol=1E-6
-            # ) 
-        # )
-        # self.assertTrue( 
-            # equivalent_sequence(
-                # S12.v,
-                # (2.9259E-5,0.4088E-5,0.4088E-5,0.6272E-5),
-                # tol=1E-8
-            # ) 
-        # )
-        # self.assertTrue( 
-            # equivalent_sequence(
-                # S21.v,
-                # (1.6116E-5,0.7010E-5,0.7010E-5,1.0707E-5),
-                # tol=1E-8
-            # ) 
-        # )
+        # The variance-covariance matrix
+        self.assertTrue( 
+            equivalent_sequence(
+                S11.v,
+                (1.0973E-5,-0.4908E-5,-0.4908E-5,1.1116E-5),
+                tol=1E-8
+            ) 
+        )
+        self.assertTrue( 
+            equivalent_sequence(
+                S12.v,
+                (2.9259E-5,0.4088E-5,0.4088E-5,0.6272E-5),
+                tol=1E-8
+            ) 
+        )
+        self.assertTrue( 
+            equivalent_sequence(
+                S21.v,
+                (1.6116E-5,0.7010E-5,0.7010E-5,1.0707E-5),
+                tol=1E-8
+            ) 
+        )
 
-        # self.assertTrue( 
-            # equivalent_sequence(
-                # S22.v,
-                # (1.0497E-5,0.4235E-5,0.4235E-5,0.5449E-5),
-                # tol=1E-8
-            # ) 
-        # )
+        self.assertTrue( 
+            equivalent_sequence(
+                S22.v,
+                (1.0497E-5,0.4235E-5,0.4235E-5,0.5449E-5),
+                tol=1E-8
+            ) 
+        )
         self.assertTrue( 
             equivalent_sequence(
                 get_covariance(S11,S12),
@@ -797,6 +803,54 @@ class TestEnsembleWSComplex(unittest.TestCase):
             equivalent_sequence(
                 get_covariance(S12,S22),
                 (0.7568E-5,0.5425E-5,0.3160E-5,0.3493E-5),
+                tol=1E-9
+            ) 
+        )
+
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S21,S11),
+                (0.9020E-5,0.3878E-5,0.7486E-5,-0.3395E-5),
+                tol=1E-9
+            ) 
+        )
+
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S21,S12),
+                (0.8211E-5,0.8231E-5,1.0010E-5,0.1878E-5),
+                tol=1E-9
+            ) 
+        )
+
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S21,S22),
+                (0.5187E-5,0.6068E-5,0.1153E-5,0.4224E-5),
+                tol=1E-9
+            ) 
+        )
+
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S22,S11),
+                (0.0401E-5,0.2354E-5,0.2354E-5,0.0568E-5),
+                tol=1E-9
+            ) 
+        )
+
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S22,S12),
+                (0.7568E-5,0.3160E-5,0.5425E-5,0.3493E-5),
+                tol=1E-9
+            ) 
+        )
+
+        self.assertTrue( 
+            equivalent_sequence(
+                get_covariance(S22,S21),
+                (0.5187E-5,0.1153E-5,0.6068E-5,0.4224E-5),
                 tol=1E-9
             ) 
         )
