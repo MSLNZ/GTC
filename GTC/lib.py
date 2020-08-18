@@ -614,11 +614,15 @@ class UncertainReal(object):
                         "{!r}, {!r}".format(x._node,self._node)
                     )
         elif isinstance(x,UncertainComplex):
+            # TODO: why not implement this? 
+            # Need to sort out the format required for `r`,
+            # because either a 2-element or 4-element sequence
+            # would work
             raise TypeError(
                 "illegal argument {!r}".format(x)
             )
-            # r_rr = set_correlation_real(arg1,arg2.real,r[0])
-            # r_ri = set_correlation_real(arg1,arg2.imag,r[1])
+            # r_rr = set_correlation_real(self,x.real,r[0])
+            # r_ri = set_correlation_real(self,x.imag,r[1])
         else:
             raise TypeError(
                 "argument must be ureal: {!r}".format(x) 
@@ -2832,11 +2836,15 @@ class UncertainComplex(object):
             set_correlation_real(self.real,self.imag,r)
             
         elif isinstance(arg,UncertainReal):
+            # TODO: why not implement this? 
+            # Need to sort out the format required for `r`,
+            # because either a 2-element or 4-element sequence
+            # would work
             raise TypeError(
                 "illegal argument {!r}".format(arg)
             )
-            # r_rr = set_correlation_real(self.real,arg2,r[0])
-            # r_ir = set_correlation_real(self.imag,arg2,r[2])
+            # r_rr = set_correlation_real(self.real,arg,r[0])
+            # r_ir = set_correlation_real(self.imag,arg,r[2])
             
         elif isinstance(arg,UncertainComplex):
             if not( is_sequence(r) and len(r)==4 ):
@@ -4318,7 +4326,7 @@ def std_variance_covariance_complex(x):
     v_r = re.v
     v_i = im.v
     cv = std_covariance_real(re,im)
-    
+
     return VarianceCovariance(v_r,cv,cv,v_i)
 
 #---------------------------------------------------------------------------
@@ -4477,13 +4485,13 @@ def willink_hall(x):
     or  imag.is_elementary and _is_uncertain_real_constant(real)
     ):
         vr = real.v if real.is_elementary else 0.0
-        vi = real.v if imag.is_elementary else 0.0
+        vi = imag.v if imag.is_elementary else 0.0
         
         if real.is_elementary and imag.is_elementary:
             cv = get_covariance_real(real,imag)
         else:
             cv = 0.0
-            
+           
         return VarianceAndDof(
             (vr,cv,cv,vi),
             real.df if real.is_elementary else imag.df
