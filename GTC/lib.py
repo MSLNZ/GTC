@@ -630,7 +630,7 @@ class UncertainReal(object):
         Evaluate the correlation coefficient 
         
         The input `x` may be an uncertain real number,
-        ,an uncertain complex number, or `None`.
+        an uncertain complex number, or `None`.
         
         When an uncertain real number is provided,
         the correlation between the arguments is a real number. 
@@ -3032,7 +3032,10 @@ class UncertainComplex(object):
         """
         if not hasattr(self,"_r"):
             cv = self.v
-            self._r = cv[1]/(cv[0]*cv[3]) if cv[1] != 0.0 else 0.0
+            if cv[1] != 0.0:
+                self._r = cv[1]/math.sqrt(cv[0]*cv[3]) 
+            else :
+                self._r = 0.0
         
         return self._r
             
