@@ -291,7 +291,8 @@ def inv(a):
                 [4.440892098500626e-16, 1.0]])
 
     """
-    return LU.invab(a,np.identity(a.shape[0]))
+    b = np.identity(a.shape[0],a.dtype)
+    return LU.invab(a,b)
 
 #---------------------------------------------------------------------------
 def det(a):

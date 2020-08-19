@@ -130,15 +130,10 @@ def _lubksb(a_lu,idx,b):
 
     """
     
-    # # If b is of an inferior type to `a_lu` the algorithm
-    # # can quietly calculate unexpected results! It is
-    # # necessary to try to harmonize them
-    # if( a_lu.dtype != b.dtype ):
-        # try:
-           # # print "coercing %s to %s" % (b.dtype,a_lu.dtype)
-           # b = np.asarray( b,a_lu.dtype )
-        # except TypeError:
-           # a_lu = np.asarray( a_lu,b.dtype )
+    # If `b` does not contain the same type as `a_lu` 
+    # the algorithm can calculate unexpected results! 
+    # It is necessary to try to harmonize them in 
+    # the calling context.
             
     N = a_lu.shape[0]
 
@@ -171,23 +166,29 @@ def invab(a,b):
     Neither `a` or `b` are changed by the function 
     
     """
+    # Required by _lubksb
+    assert a.dtype == b.dtype,\
+        "{} != {}".format(a.dtype, b.dtype)
+        
     if len(b.shape) != 2:
         raise RuntimeError( 
             "A 2D array is needed for `b`, got  shape={}".format(b.shape)
         )
-    # Checks `a` shape when `ludcmp` is called 
+    # `a` shape is checked when `ludcmp` is called 
     a_lu,idx,p = ludcmp(a.copy())
 
     N = a_lu.shape[0]
     M = b.shape[1]
         
-    y = np.empty( (N,M), b.dtype )
+    y = np.empty( (N,M), a.dtype )
 
-    # For each column in matrix 'b'
+    # For each column in matrix `b`
     for j in xrange(M):
     
+        # TODO: consider a slice here
         col = _lubksb(a_lu,idx,[ b[i,j] for i in xrange(N) ])
         
+        # TODO: consider a slice here
         for i in xrange(N):
             y[i,j] = col[i]
             
@@ -231,6 +232,10 @@ def solve(a,b):
     Neither `a` or `b` are changed by the function 
 
     """
+    # Required by _lubksb
+    assert a.dtype == b.dtype,\
+        "{} != {}".format(a.dtype, b.dtype)
+        
     a_lu,i,p = ludcmp( a.copy() )
     return _lubksb( a_lu,i,b.copy() )
 

@@ -279,9 +279,8 @@ class UncertainReal(object):
         """
         Return an intermediate uncertain real number
         
-        An intermediate UN must be defined to allow 
+        An intermediate UN has to be defined to allow 
         the sensitivity of subsequent results to be investigated.
-        .
         
         Parameters
         ----------
@@ -326,8 +325,9 @@ class UncertainReal(object):
             # whether or not something is elementary or not. 
             
             # The only surprising behaviour to a user would be that 
-            # the `label` is not applied to the elementary uncertain number 
-            # if it already has been assigned. 
+            # if a `label` has already been assigned to the elementary
+            # uncertain number, it will not be changed by this call. 
+            # 
             # Note that this code ripples through other types, because
             # UncertainComplex and UncertainArray use this class method.
             if label is not None:
@@ -337,7 +337,8 @@ class UncertainReal(object):
                     n.label = label
                 elif label != n.label:
                     warnings.warn(
-                        "Label `{}` ignored in `result()`".format(label),
+                        "Elementary UN label `{}` was not changed by `result()`:"
+                        " the new label `{}` has been ignored".format(n.label,label),
                         RuntimeWarning
                     )
                 else:
@@ -612,11 +613,15 @@ class UncertainReal(object):
                         "{!r}, {!r}".format(x._node,self._node)
                     )
         elif isinstance(x,UncertainComplex):
+            # TODO: why not implement this? 
+            # Need to sort out the format required for `r`,
+            # because either a 2-element or 4-element sequence
+            # would work
             raise TypeError(
                 "illegal argument {!r}".format(x)
             )
-            # r_rr = set_correlation_real(arg1,arg2.real,r[0])
-            # r_ri = set_correlation_real(arg1,arg2.imag,r[1])
+            # r_rr = set_correlation_real(self,x.real,r[0])
+            # r_ri = set_correlation_real(self,x.imag,r[1])
         else:
             raise TypeError(
                 "argument must be ureal: {!r}".format(x) 
@@ -628,7 +633,7 @@ class UncertainReal(object):
         Evaluate the correlation coefficient 
         
         The input `x` may be an uncertain real number,
-        ,an uncertain complex number, or `None`.
+        an uncertain complex number, or `None`.
         
         When an uncertain real number is provided,
         the correlation between the arguments is a real number. 
@@ -2830,11 +2835,15 @@ class UncertainComplex(object):
             set_correlation_real(self.real,self.imag,r)
             
         elif isinstance(arg,UncertainReal):
+            # TODO: why not implement this? 
+            # Need to sort out the format required for `r`,
+            # because either a 2-element or 4-element sequence
+            # would work
             raise TypeError(
                 "illegal argument {!r}".format(arg)
             )
-            # r_rr = set_correlation_real(self.real,arg2,r[0])
-            # r_ir = set_correlation_real(self.imag,arg2,r[2])
+            # r_rr = set_correlation_real(self.real,arg,r[0])
+            # r_ir = set_correlation_real(self.imag,arg,r[2])
             
         elif isinstance(arg,UncertainComplex):
             if not( is_sequence(r) and len(r)==4 ):
@@ -3030,7 +3039,10 @@ class UncertainComplex(object):
         """
         if not hasattr(self,"_r"):
             cv = self.v
-            self._r = cv[1]/(cv[0]*cv[3]) if cv[1] != 0.0 else 0.0
+            if cv[1] != 0.0:
+                self._r = cv[1]/math.sqrt(cv[0]*cv[3]) 
+            else :
+                self._r = 0.0
         
         return self._r
             
@@ -4313,7 +4325,7 @@ def std_variance_covariance_complex(x):
     v_r = re.v
     v_i = im.v
     cv = std_covariance_real(re,im)
-    
+
     return VarianceCovariance(v_r,cv,cv,v_i)
 
 #---------------------------------------------------------------------------
@@ -4472,13 +4484,13 @@ def willink_hall(x):
     or  imag.is_elementary and _is_uncertain_real_constant(real)
     ):
         vr = real.v if real.is_elementary else 0.0
-        vi = real.v if imag.is_elementary else 0.0
+        vi = imag.v if imag.is_elementary else 0.0
         
         if real.is_elementary and imag.is_elementary:
             cv = get_covariance_real(real,imag)
         else:
             cv = 0.0
-            
+           
         return VarianceAndDof(
             (vr,cv,cv,vi),
             real.df if real.is_elementary else imag.df
