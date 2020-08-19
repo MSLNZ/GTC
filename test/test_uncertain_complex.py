@@ -1121,6 +1121,7 @@ class GuideExampleH2Complex(unittest.TestCase):
         equivalent( uncertainty(z)[0],0.0699787279884,TOL)
         equivalent( uncertainty(z)[1],0.295716826846,TOL)
         equivalent( get_correlation(z),-0.591484610819,TOL)
+        equivalent( z.r,-0.591484610819,TOL)
 
         # The willink_hall function provides an alternative
         # calculation of the covariance, so just check that
@@ -2637,7 +2638,23 @@ class TestMisc(unittest.TestCase):
         self.assertTrue( bool(un) is True )
         un = ucomplex(0+0j,1)
         self.assertTrue( bool(un) is not True )
-        
+  
+    def test_variance_and_v(self):
+        v_cv = (2,1,1,3)
+        uz = ucomplex(0,v_cv)
+        self.assertTrue(
+            equivalent_sequence(
+                v_cv,
+                uz.v
+            )
+        )
+        self.assertTrue(
+            equivalent_sequence(
+                v_cv,
+                variance(uz)
+            )
+        )
+
 #============================================================================
 if(__name__== '__main__'):
 

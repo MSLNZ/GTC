@@ -16,19 +16,19 @@ matrix:
       python: 3.8
     - os: osx
       language: generic
-      env: PYTHON=2.7.17
+      env: PYTHON=2.7.18
     - os: osx
       language: generic
-      env: PYTHON=3.5.7
+      env: PYTHON=3.5.9
     - os: osx
       language: generic
-      env: PYTHON=3.6.9
+      env: PYTHON=3.6.10
     - os: osx
       language: generic
-      env: PYTHON=3.7.5
+      env: PYTHON=3.7.7
     - os: osx
       language: generic
-      env: PYTHON=3.8.0
+      env: PYTHON=3.8.3
 
 before_install:
   - |
@@ -36,6 +36,7 @@ before_install:
       brew update
       brew outdated pyenv || brew upgrade pyenv
       brew install pyenv-virtualenv
+      pyenv install --list
       pyenv install $PYTHON
       export PYENV_VERSION=$PYTHON
       pyenv virtualenv venv
@@ -46,6 +47,7 @@ install:
   - python --version
   - python -m pip install --upgrade pip
   - python -m pip install --upgrade setuptools wheel
+  - python -m pip install --upgrade pytest pytest-cov pytest-runner numpy>=1.13.0 scipy
 
 script:
   - python setup.py tests
