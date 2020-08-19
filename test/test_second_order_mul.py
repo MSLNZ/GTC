@@ -75,12 +75,12 @@ class TestZeroTimesZero(unittest.TestCase):
 
         y = fn.mul2(x1,x2)
 
-        self.assert_( equivalent(y.x,0) )
+        self.assertTrue( equivalent(y.x,0) )
 
         uc = x1.u * x2.u
-        self.assert_( equivalent(y.u,uc) )
+        self.assertTrue( equivalent(y.u,uc) )
 
-        self.assert_(
+        self.assertTrue(
             equivalent( component(y,x1), uc/root_2 )
         )
 
@@ -88,18 +88,18 @@ class TestZeroTimesZero(unittest.TestCase):
         uc *= x3.u
         y = fn.mul2(y,x3)
 
-        self.assert_( equivalent(y.u,uc) )
+        self.assertTrue( equivalent(y.u,uc) )
 
-        self.assert_(
+        self.assertTrue(
             equivalent( component(y,x1), uc/root_2**2 )
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( component(y,x3), uc/root_2 )
         )
 
         # a different order should not affect uc
         y = fn.mul2(x1,fn.mul2(x2,x3))
-        self.assert_( equivalent(y.u,uc) )
+        self.assertTrue( equivalent(y.u,uc) )
 
     def test2(self):
         """
@@ -113,39 +113,39 @@ class TestZeroTimesZero(unittest.TestCase):
         
         z = fn.mul2(z1,z2)
 
-        self.assert_( equivalent_complex( value(z),0) )
+        self.assertTrue( equivalent_complex( value(z),0) )
 
         # z.real = z1_r * z2_r - z1_i * z2_i
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,z1.real), u1*u2/math.sqrt(2))
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,z1.imag), -u1*u2/math.sqrt(2))
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,z2.real), u1*u2/math.sqrt(2))
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,z2.imag), -u1*u2/math.sqrt(2))
         )
 
         # combined standard uncertainty is RSS of components
         uc = math.sqrt( (u1*u2)**2 + (u1*u2)**2)
-        self.assert_(
+        self.assertTrue(
             equivalent( uncertainty(z.real), uc)
         )
 
         # z_im = z1_i * z2_r + z1_r * z2_i
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,z1.real), u1*u2/math.sqrt(2))
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,z1.imag), u1*u2/math.sqrt(2))
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,z2.real), u1*u2/math.sqrt(2))
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,z2.imag), u1*u2/math.sqrt(2))
         )
 
@@ -154,7 +154,7 @@ class TestZeroTimesZero(unittest.TestCase):
             (u1*u2)**2
         +   (u1*u2)**2
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( uncertainty(z.imag), uc)
         )
 
@@ -172,54 +172,54 @@ class TestZeroTimesZero(unittest.TestCase):
         
         z = fn.mul2(z1,x2)
 
-        self.assert_( equivalent_complex( value(z),0) )
+        self.assertTrue( equivalent_complex( value(z),0) )
 
         # z.real = z1_r * x 
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,x2), u1*u2/root2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,z1.real), u1*u2/root2)
         )
         # z.imag = z1_i * x 
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,x2), u1*u2/root2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,z1.imag), u1*u2/root2)
         )
 
         # combined standard uncertainty is RSS of components
         uc = u1*u2
-        self.assert_(
+        self.assertTrue(
             equivalent( uncertainty(z.real), uc)
         )
         uc = u1*u2
-        self.assert_(
+        self.assertTrue(
             equivalent( uncertainty(z.imag), uc)
         )
 
         # Changing the order will change nothing
         z = fn.mul2(x2,z1)
 
-        self.assert_( equivalent_complex( value(z),0) )
+        self.assertTrue( equivalent_complex( value(z),0) )
 
         # z.real = z1_r * x 
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.real,x2), u1*u2/root2)
         )
         # z.imag = z1_i * x 
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(z.imag,x2), u1*u2/root2)
         )
 
         # combined standard uncertainty is RSS of components
         uc = u1*u2
-        self.assert_(
+        self.assertTrue(
             equivalent( uncertainty(z.real), uc)
         )
         uc = u1*u2
-        self.assert_(
+        self.assertTrue(
             equivalent( uncertainty(z.imag), uc)
         )
 
@@ -237,37 +237,37 @@ class TestZeroTimesZero(unittest.TestCase):
 
         y1 = fn.mul2( fn.mul2(x1,x2),x3)
 
-        self.assert_( equivalent( value(y1),0. ) )
+        self.assertTrue( equivalent( value(y1),0. ) )
 
         uc = 1
         for u_i in u: uc *= u_i
 
-        self.assert_( equivalent(y1.u,uc) )
+        self.assertTrue( equivalent(y1.u,uc) )
 
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(y1,x1), uc/root2**2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(y1,x2), uc/root2**2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(y1,x3), uc/root2)
         )
 
         # Do in a different order
         y2 = fn.mul2( x1,fn.mul2(x2,x3))
 
-        self.assert_( equivalent( value(y2),0.) )
+        self.assertTrue( equivalent( value(y2),0.) )
 
-        self.assert_( equivalent(y2.u,uc) )
+        self.assertTrue( equivalent(y2.u,uc) )
 
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(y2,x1), uc/root2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(y2,x2), uc/root2**2)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(y2,x3), uc/root2**2)
         )
        
@@ -293,25 +293,25 @@ class TestZeroTimesZero(unittest.TestCase):
         zzz = fn.mul2(fn.mul2(z1,z2),z3)
         zzzz = fn.mul2(fn.mul2(z1,z3),z2)
 
-        self.assert_( equivalent_sequence(zz.u,zzz.u) )
-        self.assert_( equivalent_sequence(zzz.u,zzzz.u) )
+        self.assertTrue( equivalent_sequence(zz.u,zzz.u) )
+        self.assertTrue( equivalent_sequence(zzz.u,zzzz.u) )
 
         uc = u1 * u2 * u3
         # u = sqrt(2)*(sqrt(2)*u1*u2)*u3
-        self.assert_( equivalent(zz.u[0], 2*uc) )
-        self.assert_( equivalent(zz.u[1], 2*uc) )
+        self.assertTrue( equivalent(zz.u[0], 2*uc) )
+        self.assertTrue( equivalent(zz.u[1], 2*uc) )
 
         # The working for these results is in the GTC folder
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(zzz.real,z1.real), 0)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(zzz.real,z1.imag), -uc)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(zzz.real,z3.real), uc)
         )
-        self.assert_(
+        self.assertTrue(
             equivalent( rp.u_component(zzz.real,z3.imag), -uc)
         )
 
@@ -333,10 +333,10 @@ class TestZeroTimesZero(unittest.TestCase):
         variance = (a*ub)**2 + (b*ua)**2 + (ua*ub)**2
         uab = math.sqrt(variance)
 
-        self.assert_( equivalent( value( z ),a*b ) )
-        self.assert_( equivalent( uncertainty( z ),uab ) )
-        # self.assert_( equivalent( rp.sensitivity(z,x),b) )
-        # self.assert_( equivalent( rp.sensitivity(z,y),a) )
+        self.assertTrue( equivalent( value( z ),a*b ) )
+        self.assertTrue( equivalent( uncertainty( z ),uab ) )
+        # self.assertTrue( equivalent( rp.sensitivity(z,x),b) )
+        # self.assertTrue( equivalent( rp.sensitivity(z,y),a) )
     
   
 #============================================================================
