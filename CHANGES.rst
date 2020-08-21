@@ -2,8 +2,8 @@
 Release Notes
 =============
 
-Version 1.3.1 (in development)
-==============================
+Version 1.3.1 (2020.08.21)
+==========================
 
     * Fixed an issue with the `r` attribute of uncertain complex numbers, which returns the correlation coefficient between real and imaginary components: the calculation was incorrect (however, :func:`core.get_correlation` gave the correct result).
     
