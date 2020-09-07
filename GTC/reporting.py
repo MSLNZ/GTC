@@ -24,7 +24,7 @@ Uncertainty functions
         
     *   The function :func:`sensitivity` returns the partial 
         derivative of one uncertain number with respect to another.
-        This is ofetn called the sensitivity coefficient.
+        This is often called a sensitivity coefficient.
 
 Type functions
 --------------
