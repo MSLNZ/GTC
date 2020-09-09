@@ -172,7 +172,7 @@ class Archive(object):
     def values(self):
         """Return a list of uncertain numbers 
         """
-        return self._tagged.values()
+        return self._tagged.values() 
         
     def itervalues(self):
         """Return an iterator for uncertain numbers 
@@ -214,7 +214,14 @@ class Archive(object):
                     )
                     
                 if not value.is_elementary:
-                    self._uid_to_intermediate[value.real._node.uid] = value.real
+                    try:
+                        uid = value.real._node.uid
+                    except AttributeError:
+                        raise RuntimeError(
+                            "uncertain number labelled '{}' is not declared intermediate".format(key)
+                        )
+                        
+                    self._uid_to_intermediate[uid] = value.real            
                 
                 self._tagged_reals[key] = value
 
@@ -236,8 +243,16 @@ class Archive(object):
                 self._tagged_reals[n_im] = value.imag
                 
                 if not value.is_elementary:
-                    self._uid_to_intermediate[value.real._node.uid] = value.real
-                    self._uid_to_intermediate[value.imag._node.uid] = value.imag
+                    try:
+                        uid_r = value.real._node.uid
+                        uid_i = value.imag._node.uid
+                    except AttributeError:
+                        raise RuntimeError(
+                            "uncertain number labelled '{}' is not declared intermediate".format(key)
+                        )
+                        
+                    self._uid_to_intermediate[uid_r] = value.real
+                    self._uid_to_intermediate[uid_i] = value.imag
                         
             else:
                 raise RuntimeError(
@@ -277,7 +292,11 @@ class Archive(object):
             >>> a = pr.Archive()
             >>> x = ureal(1,1)
             >>> y = ureal(2,1)
+            >>> z = ureal(20,1)
             >>> a.add(x=x,fred=y)
+
+            # Entries can also be added using the name as a key       
+            >>> a['z'] = z
 
         .. invisible-code-block: pycon
         
@@ -290,7 +309,8 @@ class Archive(object):
         
             >>> pr.dump(f, a)
             >>> f.close()
-        
+   
+
         """
         if self._extract:
             raise RuntimeError('This archive is write-only!')
@@ -345,18 +365,22 @@ class Archive(object):
         
             >>> a = pr.load(f)
             >>> f.close()
-            >>>
+            
             >>> a.extract('fred')
             ureal(2.0,1.0,inf)
             >>> x, fred = a.extract('x','fred')
             >>> x
             ureal(1.0,1.0,inf)            
-        
+ 
+            # Entries can also be extracted using the name as a key
+            >>> a['z']
+            ureal(20.0,1.0,inf)
+
         .. invisible-code-block: pycon
             
             >>> import os, tempfile
             >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
-            
+  
         """        
         if not self._extract:
             raise RuntimeError('This archive is read-only!')
@@ -371,7 +395,12 @@ class Archive(object):
         
         NB after freezing, the archive object is immutable.
         
-        """        
+        """    
+        if not len(self):
+            raise RuntimeError(
+                "There is nothing in the archive!"
+            )
+
         values = self._tagged_reals.itervalues() if PY2 else self._tagged_reals.values()
         self._leaf_nodes = {
             n_i.uid  : LeafNode(n_i)
@@ -506,6 +535,7 @@ class Archive(object):
     def _thaw(self):
         _leaf_nodes = dict()
         items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
+                        
         for uid_i,fl_i in items:
             l = context._context.new_leaf(
                 uid_i, 

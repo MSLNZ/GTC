@@ -93,11 +93,21 @@ class Context(object):
         """
         Return a new ``Leaf`` node unless one with the same uid exists
         
-        """
+        """        
         if uid in self._registered_leaf_nodes:
-            raise RuntimeError(
-                "the Leaf node uid({}) is in use already".format(uid)
+            # If the node found is indistinguishable from the new node 
+            # then quietly ignore the request 
+            l = self._registered_leaf_nodes[uid]
+            OK = (
+                label == l.label and 
+                u == l.u and 
+                df == l.df and 
+                independent == l.independent
             )
+            if not OK:
+                raise RuntimeError(
+                    "the Leaf node uid({}) is in use already".format(uid)
+                )
         else:          
             l = Leaf(uid,label,u,df,independent)
             self._registered_leaf_nodes[uid] = l

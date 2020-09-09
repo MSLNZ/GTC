@@ -122,7 +122,34 @@ class TestArchive(unittest.TestCase):
         ar._thaw( )
 
         self.assertRaises(RuntimeError,ar.add,y=y)  # cannot add now
+  
+    def test_empty_archive(self):
+        "Nothing to save is surely an error?"
+        ar = persistence.Archive() 
+        self.assertRaises(RuntimeError,ar._freeze) 
+ 
+    def test_forgot_result(self):
+        """
+        Raise a RuntimeError not an AttributeError when 
+        someone forgets to declare an intermediate result 
+        using `result()`
         
+        """
+        context._context = Context() 
+        
+        x = ureal(1,1)
+        y = ureal(2,1)
+        z = ( x + y )
+
+        ar = persistence.Archive()
+        self.assertRaises(RuntimeError,ar.add,z=z)
+ 
+        x = ucomplex(1,1)
+        y = ucomplex(2,1)
+        z = ( x + y )
+        self.assertRaises(RuntimeError,ar.add,z=z)
+
+ 
     def test(self):
         """
         Simple x,y z problem, but don't save
@@ -1318,7 +1345,63 @@ class TestArchive(unittest.TestCase):
         self.assertEqual( repr(x1), repr(x) )
         self.assertEqual( repr(y1), repr(y) )
         self.assertEqual( repr(z1), repr(z) )
+ 
+    def test_with_file6(self):
+        """
+        The management of new leaf nodes must be 
+        able to recognise when an identical leaf 
+        has been declared in context already.
         
+        """
+        wdir = os.getcwd()
+        fname1 = 'test_file_1.pkl'
+        fname2 = 'test_file_2.pkl'
+        path1 = os.path.join(wdir,fname1)
+        path2 = os.path.join(wdir,fname2)
+
+        context._context = Context()
+        
+        x = ureal(1,1,3,label='x')
+        y = ureal(2,1,4,label='y')
+        z1 = result( x + y )
+        z2 = result( 2*x - 3*y )
+        
+        ar1 = persistence.Archive()
+        ar2 = persistence.Archive()
+
+        # Saving only `z` means that when the archive
+        # is restored Leaf nodes are created. 
+        # We need to make sure that only one Leaf node 
+        # gets created.
+        
+        ar1.add(z1=z1)
+        with open(path1,'wb') as f:
+            persistence.dump(f,ar1)
+
+        ar2.add(z2=z2)
+        with open(path2,'wb') as f:
+            persistence.dump(f,ar2)
+
+        # Now both archives have the same 
+        # Leaf node dependencies, restoring 
+        # the first one re-creates the leaves
+        # so the second one should quietly 
+        # recognise that the leaves are the same. 
+        context._context = Context()
+        
+        with open(path1,'rb') as f:
+            ar1 = persistence.load(f)
+
+        z1 = ar1.extract('z1')
+
+        with open(path2,'rb') as f:
+            ar2 = persistence.load(f)
+
+        z2 = ar2.extract('z2')
+
+        os.remove(path1)
+        os.remove(path2)
+ 
     def test_with_string(self):
         """
         Simple save with intermediate 
