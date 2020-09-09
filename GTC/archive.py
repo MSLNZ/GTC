@@ -376,15 +376,13 @@ class Archive(object):
             # Entries can also be extracted using the name as a key::
         
             >>> z = a['z']
+            ureal(20.0,1.0,inf)
  
         .. invisible-code-block: pycon
             
             >>> import os, tempfile
             >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
- 
-        .. note:: 
-        
- 
+  
         """        
         if not self._extract:
             raise RuntimeError('This archive is read-only!')
