@@ -160,7 +160,7 @@ class Archive(object):
     def keys(self):
         """Return a list of names 
         """
-        return lself._tagged.keys()
+        return self._tagged.keys()
 
     def iterkeys(self):
         """Return an iterator for names 
