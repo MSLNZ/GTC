@@ -295,8 +295,7 @@ class Archive(object):
             >>> z = ureal(20,1)
             >>> a.add(x=x,fred=y)
 
-            # Entries can also be added using the name as a key::
-        
+            # Entries can also be added using the name as a key       
             >>> a['z'] = z
 
         .. invisible-code-block: pycon
@@ -367,17 +366,19 @@ class Archive(object):
             >>> a = pr.load(f)
             >>> f.close()
             >>>
+            >>> a.keys()
+            dict_keys(['x', 'fred', 'z'])
+            
             >>> a.extract('fred')
             ureal(2.0,1.0,inf)
             >>> x, fred = a.extract('x','fred')
             >>> x
             ureal(1.0,1.0,inf)            
  
-            # Entries can also be extracted using the name as a key::
-        
-            >>> z = a['z']
+            # Entries can also be extracted using the name as a key
+            >>> a['z']
             ureal(20.0,1.0,inf)
- 
+
         .. invisible-code-block: pycon
             
             >>> import os, tempfile
