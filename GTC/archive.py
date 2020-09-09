@@ -160,7 +160,7 @@ class Archive(object):
     def keys(self):
         """Return a list of names 
         """
-        return self._tagged.keys()
+        return lself._tagged.keys()
 
     def iterkeys(self):
         """Return an iterator for names 
@@ -172,7 +172,7 @@ class Archive(object):
     def values(self):
         """Return a list of uncertain numbers 
         """
-        return self._tagged.values()
+        return self._tagged.values() 
         
     def itervalues(self):
         """Return an iterator for uncertain numbers 
@@ -365,9 +365,6 @@ class Archive(object):
         
             >>> a = pr.load(f)
             >>> f.close()
-            >>>
-            >>> a.keys()
-            dict_keys(['x', 'fred', 'z'])
             
             >>> a.extract('fred')
             ureal(2.0,1.0,inf)
