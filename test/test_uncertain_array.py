@@ -3165,8 +3165,17 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(isinstance(xa, UncertainArray))
 
     def test_tostring_tobytes(self):
-        # this just tests that one could call these attributes
-        self.assertTrue(self.xca.tostring() == self.xca.tobytes())
+        # This just tests that one could call the tostring() and tobytes() attributes.
+        # NOTE: One cannot use tobytes() and then frombuffer(..., dtype=object) to load
+        #       the bytes back into an UncertainArray.
+        if hasattr(self.xca, 'tostring'):
+            # suppress the following warning from being displayed
+            #   DeprecationWarning: tostring() is deprecated. Use tobytes() instead.
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                self.assertTrue(self.xca.tostring() == self.xca.tobytes())
+        self.assertTrue(isinstance(self.xca.tobytes(), bytes))
 
     def test_tolist(self):
         xlist = self.xa.tolist()
