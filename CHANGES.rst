@@ -1,12 +1,13 @@
 =============
 Release Notes
 =============
-Version 1.3.2 (in development)
-==============================
 
-    * Fixed an issue with restoration of archived uncertain numbers. An RuntimeError arose if two uncertain numbers, originally created in the same context, were restored to different archive objects in a new common context. 
+Version 1.3.2 (2020.09.16)
+==========================
+
+    * Fixed an issue with restoration of archived uncertain numbers. A `RuntimeError` arose if two uncertain numbers, originally created in the same context, were restored to different archive objects in a new common context.
     
-    * An attempt to create a file or string representation of an empty archive raises a RuntimeError    
+    * An attempt to create a file or string representation of an empty archive raises a `RuntimeError`
 
     * Docstrings for :meth:`~.Archive.add` and :meth:`~.Archive.extract` now mention the option of using the name as a look-up key (like a mapping) 
     
