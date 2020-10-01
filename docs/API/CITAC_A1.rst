@@ -68,7 +68,7 @@ The contributions to the standard uncertainty can be itemised using :func:`repor
   
 The contribution from the overall uncertainty in the volume of fluid, rather than the individual terms can also be compared with other contributions by using a list of influences :: 
 
-    >>> for cp,u in rp.budget(c_Cd,[m,P,V]):
+    >>> for cp,u in rp.budget(c_Cd,influences=[m,P,V]):
     ...     print( " {}: {:G}".format(cp,u) )
     ...
      V: 0.666525

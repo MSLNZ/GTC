@@ -97,7 +97,7 @@ The calculation of :math:`c_\mathrm{NaOH}` is now ::
     
 The contribution from different influences can be examined ::
 
-    >>> for cpt,u in rp.budget(c_HCl,[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
+    >>> for cpt,u in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
     ...     print( " {}: {:G}".format(cpt,u) )
     ...
     R: 0.000101387
@@ -143,7 +143,7 @@ A reduction in the uncertainty attributed to repeatability, by a factor of :math
     c_HCl=0.10139(16)
 
  
-    >>> for cpt,u in rp.budget(c_HCl,[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
+    >>> for cpt,u in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
     ...     print( " {}: {:G}".format(cpt,u) )
     ... 
      V_T2: 9.69953E-05

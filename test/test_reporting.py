@@ -308,7 +308,7 @@ class TestBudget(unittest.TestCase):
         self.assertEqual(b[1].label,'x2')
         self.assertEqual(b[2].label,'z1_re')
 
-        b = reporting.budget(y,[ux1,uz1.real,uz1.imag],trim=0)
+        b = reporting.budget(y,influences=[ux1,uz1.real,uz1.imag],trim=0)
         self.assertEqual( len(b), 3  )
         self.assertEqual(b[0].label,'z1_re')
         self.assertEqual(b[1].label,'x1')
@@ -317,7 +317,7 @@ class TestBudget(unittest.TestCase):
         # A complex quantity may be passed as an
         # influence but the budget reports real
         # and imaginary components
-        b = reporting.budget(y,[ux1,uz1],trim=0)
+        b = reporting.budget(y,influences=[ux1,uz1],trim=0)
         self.assertEqual( len(b), 3  )
         self.assertEqual(b[0].label,'z1_re')
         self.assertEqual(b[1].label,'x1')
@@ -353,7 +353,7 @@ class TestBudget(unittest.TestCase):
         self.assertTrue( equivalent(b[1].u,0.5,TOL) )
         self.assertTrue( equivalent(b[2].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
 
-        b = reporting.budget(y,[ux1,uz1])
+        b = reporting.budget(y,influences=[ux1,uz1])
         self.assertEqual( len(b), 2)
         
         self.assertTrue( equivalent(b[0].u,1.0,TOL) )

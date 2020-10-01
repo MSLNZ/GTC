@@ -5,6 +5,8 @@ Release Notes
 Version 1.3.3 (in development)
 ==============================
 
+    * :func:`reporting.budget` now expects explicit keyword arguments for all options, instead of positional arguments. 
+
 Version 1.3.2 (2020.09.16)
 ==========================
 

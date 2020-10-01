@@ -154,7 +154,7 @@ To estimate :math:`r` we now evaluate ::
 
 The contribution from the different influences can be examined ::
 
-    >>> for cpt,u in rp.budget(r,[c_0,V_L,a_V,f_acid,f_time,f_temp]):
+    >>> for cpt,u in rp.budget(r,influences=[c_0,V_L,a_V,f_acid,f_time,f_temp]):
     ...     print( " {}: {:G}".format(cpt,u) )
     ... 
      absorbance: 0.00102956

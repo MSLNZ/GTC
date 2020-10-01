@@ -444,41 +444,37 @@ def v_bar(cv):
     return (cv[0] + cv[3]) / 2.0
 
 #----------------------------------------------------------------------------
-def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
+def budget(y,**kwargs):
     """Return a sequence of label-component of uncertainty pairs
 
-    :arg y:  an uncertain number
-    :type y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`
+    arg:
+        y (:class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`):  an uncertain number
 
-    :arg influences:  a sequence of uncertain numbers
-
-    :arg key: the list sorting key
-
-    :arg reverse:  determines sorting order (forward or reverse)
-    :type reverse: bool
-
-    :arg trim:  remove components of uncertainty that are
-                less than ``trim`` times the largest component
-    
-    :arg max_number: return no more than ``max_number`` components
+    keyword args:
+        | influences: a sequence of uncertain numbers
+        | key (str): sorting key ('u' or 'label')
+        | reverse (bool): sorting order (forward or reverse)
+        | trim (float): control smallest reported magnitudes 
+        | max_number (int): return no more than ``max_number`` components
     
     A sequence of :obj:`~named_tuples.Influence` namedtuples is 
     returned, each with the attributes ``label`` and ``u`` for a 
     component of uncertainty (see :func:`~core.component`). 
 
-    The argument ``influences`` can be used to select the influences
-    are that reported.
+    The keyword argument ``influences`` can select specific influences
+    to be reported.
 
-    The argument ``key`` can be used to order the sequence
+    The keyword argument ``key`` sets the order of the sequence
     by the component of uncertainty or the label (``u`` or ``label``).
 
-    The argument ``reverse`` controls the sense of ordering.
+    The keyword argument ``reverse`` controls the sense of ordering.
     
-    The argument ``trim`` can be used to set a minimum relative 
-    magnitude of components returned. Set ``trim=0`` for a 
-    complete list.
+    The keyword argument ``trim`` can be used to set a minimum relative 
+    magnitude of components returned. The components of uncertainty greater 
+    than ``trim`` times the largest component will be reported. 
+    Set ``trim=0`` for a complete list.
 
-    The argument ``max_number`` can be used to restrict the 
+    The keyword argument ``max_number`` can be used to restrict the 
     number of components returned.  
 
     **Example**::
@@ -501,7 +497,14 @@ def budget(y,influences=None,key='u',reverse=True,trim=0.01,max_number=None):
         x2: 0.166667
         x1: 0.333333
         
-    """    
+    """  
+    # Keyword options
+    influences = kwargs['influences'] if 'influences' in kwargs else None 
+    key = kwargs['key'] if 'key' in kwargs else 'u' 
+    reverse = kwargs['reverse'] if 'reverse' in kwargs else True
+    trim = kwargs['trim'] if 'trim' in kwargs else 0.01
+    max_number = kwargs['max_number'] if 'max_number' in kwargs else None
+    
     if isinstance(y,UncertainReal):
         if influences is None:
             nodes = y._u_components.keys()
