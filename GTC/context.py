@@ -122,7 +122,9 @@ class Context(object):
         """
         if uid in self._registered_intermediate_nodes:
             raise RuntimeError(
-                "the intermediate node uid({}) is in use already".format(uid)
+                "intermediate node uid({}), '{}', u={} is used".format(
+                    uid,label,u
+                )
             )
         else:          
             n = Node(uid,label,u)
