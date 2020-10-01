@@ -85,6 +85,8 @@ class TestArchiveJSON(unittest.TestCase):
 
         z1 = ar1.extract('z')
 
+        self.assertEqual( repr(z1), repr(z) )
+
         with open(path,'r') as f:
             # The attempt to create the node again is caught
             self.assertRaises(RuntimeError,persistence.load_json,f)
@@ -166,7 +168,7 @@ class TestArchiveJSON(unittest.TestCase):
         self.assertEqual( repr(y1), repr(y) )
         self.assertEqual( repr(z1), repr(z) )
         
-        self.assertEqual( get_correlation(x,y), r )
+        self.assertEqual( get_correlation(x1,y1), r )
  
     def test_with_file5(self):
         """
