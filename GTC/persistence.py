@@ -66,7 +66,18 @@ def dump(file,ar):
     
     """
     ar._freeze()
-    pickle.dump(ar,file,protocol=pickle.HIGHEST_PROTOCOL)
+
+# About pickle protocols (from 3.8 docs, abridged)
+# 0 is the original “human-readable” protocol and is backwards compatible with earlier versions of Python.
+# 1 is an old binary format which is also compatible with earlier versions of Python.
+# 2 was introduced in Python 2.3. It provides much more efficient pickling of new-style classes. 
+# 3 was added in Python 3.0. It has explicit support for bytes objects and cannot be unpickled by Python 2.x. 
+#    This was the default protocol in Python 3.0–3.7.
+# 4 was added in Python 3.4. It adds support for very large objects, pickling more kinds of objects, and some data format optimizations. 
+#    It is the default protocol starting with Python 3.8. 
+# 5 was added in Python 3.8. It adds support for out-of-band data and speedup for in-band data. 
+
+    pickle.dump(ar,file,protocol=2)     # Change to 3 when GTC no longer supports Python 2.7
 
 #------------------------------------------------------------------     
 def load(file):
