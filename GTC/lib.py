@@ -2485,6 +2485,10 @@ class UncertainComplex(object):
         un = UncertainComplex(un_re,un_im)
         un._label = label
         
+        complex_id = (un.real._node.uid,un.imag._node.uid)
+        un.real._node.complex = complex_id 
+        un.imag._node.complex = complex_id
+        
         return un 
         
     #------------------------------------------------------------------------
