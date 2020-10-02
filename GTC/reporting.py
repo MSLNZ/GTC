@@ -481,7 +481,7 @@ def budget(y,**kwargs):
     The keyword argument ``intermediate`` allows all the components 
     of uncertainty with respect to all intermediate results to be reported.
 
-    **Example**::
+    **Examples**::
 
         >>> x1 = ureal(1,1,label='x1')
         >>> x2 = ureal(2,0.5,label='x2')
@@ -500,6 +500,14 @@ def budget(y,**kwargs):
         x3: 0.0111111
         x2: 0.166667
         x1: 0.333333
+ 
+        >>> y1 = result(x1 + x2,label='y1')
+        >>> y2 = result(x2 + x3,label='y2')
+        >>> for l,u in reporting.budget(y1 + y2,intermediate=True):
+        ... 	print("{0}: {1:G}".format(l,u))
+        ... 
+        y1: 1.11803
+        y2: 0.509902
         
     """  
     # Keyword options
