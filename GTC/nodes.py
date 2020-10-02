@@ -19,6 +19,7 @@ class Node(object):
         'uid',
         'label',
         'u',
+        'complex',
         '__weakref__'
     ]
  
@@ -37,7 +38,6 @@ class Leaf(Node):
     __slots__ = [
         'df',
         'independent',
-        'complex',
         'correlation',
         'ensemble'
     ]
