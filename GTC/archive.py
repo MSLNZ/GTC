@@ -405,6 +405,7 @@ class Archive(object):
             )
 
         values = self._tagged_reals.itervalues() if PY2 else self._tagged_reals.values()
+        
         self._leaf_nodes = {
             n_i.uid  : LeafNode(n_i)
                 for un in values
@@ -585,9 +586,8 @@ class Archive(object):
                 )                    
                 self._tagged[name] = un
                 
-            elif isinstance(
-                    obj,Complex
-                ):
+            elif isinstance(obj,Complex):
+                # This is an intermediate uncertain complex
                 name_re = obj.n_re
                 name_im = obj.n_im
                 
@@ -603,8 +603,18 @@ class Archive(object):
                 )
 
                 assert un_re.is_elementary == un_im.is_elementary
+                
                 unc = UncertainComplex(un_re,un_im)
+                
+                # An intermediate complex needs to 
+                # link the nodes of its components 
+                # (same as in `UncertainComplex._intermediate`)
+                complex_id = (un_re._node.uid,un_im._node.uid)
+                unc.real._node.complex = complex_id 
+                unc.imag._node.complex = complex_id
+        
                 self._tagged[name] = unc
+                
             else:
                 assert False
                         
