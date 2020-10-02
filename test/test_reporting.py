@@ -209,6 +209,23 @@ class TestCoverage(unittest.TestCase):
  
 #-----------------------------------------------------
 class TestBudget(unittest.TestCase):
+    
+    def test_errors(self):
+        
+        x = ureal(1,1,label="x")
+        y = ureal(1,1,label="y")
+        z = ureal(1,1,label="z")
+
+        x1 = result(x + y,label='x1')
+        y1 = result(y + z,label='y1')
+
+        x2 = x1 + y1
+
+        # Illegal combination of keywords
+        self.assertRaises(
+            RuntimeError,rp.budget,x2,influences=[x1],intermediate=True
+        )
+        
     def test_empty_budget(self):
         """
         When there are no influence quantities, an empty 
@@ -359,7 +376,155 @@ class TestBudget(unittest.TestCase):
         self.assertTrue( equivalent(b[0].u,1.0,TOL) )
         self.assertTrue( equivalent(b[1].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
 
+    def test_intermediate_real(self):
+        
+        x = ureal(1,1,label="x")
+        y = ureal(1,1,label="y")
+        z = ureal(1,1,label="z")
 
+        x1 = result(x + y,label='x1')
+        y1 = result(y + z,label='y1')
+
+        # First possibility: undeclared result 
+        x2 = x1 + y1
+        
+        # NB, expect 2 items; 3 would be an error
+        x1_,y1_ = rp.budget(x2,intermediate=True)
+        
+        self.assertEqual( x1_.label, x1.label)
+        self.assertEqual( y1_.label, y1.label)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Second possibility: declared result, no label
+        x2 = result(x1 + y1)
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.budget(x2,intermediate=True)
+        
+        self.assertEqual( x1_.label, x1.label)
+        self.assertEqual( y1_.label, y1.label)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Third possibility: declared result
+        result(x1 + y1,label='x2')
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.budget(x2,intermediate=True)
+        
+        self.assertEqual( x1_.label, x1.label)
+        self.assertEqual( y1_.label, y1.label)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+
+    def test_intermediate_complex(self):
+        
+        x = ucomplex(1,1,label="x")
+        y = ucomplex(1,1,label="y")
+        z = ucomplex(1,1,label="z")
+
+        x1 = result(x + y,label='x1')
+        y1 = result(y + z,label='y1')
+
+        # First possibility: undeclared result 
+        x2 = x1 + y1
+        
+        # NB, expect 2 items; 3 would be an error
+        x1_,y1_ = rp.budget(x2,intermediate=True)
+        
+        self.assertEqual( x1_.label, x1.label)
+        self.assertEqual( y1_.label, y1.label)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Second possibility: declared result, no label
+        x2 = result(x1 + y1)
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.budget(x2,intermediate=True)
+        
+        self.assertEqual( x1_.label, x1.label)
+        self.assertEqual( y1_.label, y1.label)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Third possibility: declared result
+        result(x1 + y1,label='x2')
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.budget(x2,intermediate=True)
+        
+        self.assertEqual( x1_.label, x1.label)
+        self.assertEqual( y1_.label, y1.label)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )    
+
+   
 #============================================================================
 if(__name__== '__main__'):
 
