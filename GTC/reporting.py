@@ -456,6 +456,7 @@ def budget(y,**kwargs):
         | reverse (bool): sorting order (forward or reverse)
         | trim (float): control smallest reported magnitudes 
         | max_number (int): return no more than ``max_number`` components
+        | intermediate (bool): report intermediate components
     
     A sequence of :obj:`~named_tuples.Influence` namedtuples is 
     returned, each with the attributes ``label`` and ``u`` for a 
@@ -476,6 +477,9 @@ def budget(y,**kwargs):
 
     The keyword argument ``max_number`` can be used to restrict the 
     number of components returned.  
+    
+    The keyword argument ``intermediate`` allows all the components 
+    of uncertainty with respect to all intermediate results to be reported.
 
     **Example**::
 
@@ -504,9 +508,16 @@ def budget(y,**kwargs):
     reverse = kwargs['reverse'] if 'reverse' in kwargs else True
     trim = kwargs['trim'] if 'trim' in kwargs else 0.01
     max_number = kwargs['max_number'] if 'max_number' in kwargs else None
+    intermediate = kwargs['intermediate'] if 'intermediate' in kwargs else False
+    
+    # Some combinations are incompatible
+    if intermediate and influences is not None:
+        raise RuntimeError(
+            "'influences' cannot be specified when 'intermediate' is True"
+        )
     
     if isinstance(y,UncertainReal):
-        if influences is None:
+        if influences is None and not intermediate:
             nodes = y._u_components.keys()
             labels = [ n_i.label 
                         if n_i.label is not None else "{}".format(n_i.uid) 
@@ -518,22 +529,41 @@ def budget(y,**kwargs):
                         if n_i.label is not None else "{}".format(n_i.uid) 
                            for n_i in nodes ]
             values += [ math.fabs( u ) for u in y._d_components.itervalues() ]
-        else:
+            
+        elif intermediate:
+            # The argument 'y' could be in the list 
+            n_y_uid = y._node.uid if y.is_intermediate else 0
+            
+            labels = []
+            values = []
+            for n_i,u_i in y._i_components.iteritems():
+                if n_i.uid == n_y_uid: continue    # Do not include 'y' itself
+                    
+                labels.append( 
+                    n_i.label if n_i.label is not None else "{}".format(n_i.uid) 
+                )
+                values.append( math.fabs( u_i ) )
+            
+        elif influences is not None:
             labels = []
             values = []
             for i in influences:
                 if isinstance(i,UncertainReal):
                     labels.append( i.label )
                     values.append( math.fabs(u_component(y,i)) ) 
+                    
                 elif isinstance(i,UncertainComplex):
                     labels.append( i.real.label )
                     values.append( math.fabs(u_component(y,i.real)) ) 
                     labels.append( i.imag.label )
                     values.append( math.fabs(u_component(y,i.imag)) ) 
                 else:
-                    assert False,\
-                           "unexpected type: '{}'".format( type(i) )
-
+                    raise RuntimeError(
+                        "unexpected type: '{!r}'".format( i )
+                    )
+        else:
+            assert False,"should never occur"
+            
         if len(values):
             cut_off = max(values) * float(trim)
             this_budget = [ Influence( label=n, u=u )
@@ -542,12 +572,12 @@ def budget(y,**kwargs):
             this_budget = [ ]
         
     elif isinstance(y,UncertainComplex):        
-        if influences is None:
+        if influences is None and not intermediate:
             
             # Ensure that the influence vectors have the same keys
             re = extend_vector(y.real._u_components, y.real._d_components)
             re = extend_vector(re,y.imag._u_components)
-            re = re = extend_vector(re,y.imag._d_components)
+            re = extend_vector(re,y.imag._d_components)
     
             im = extend_vector(y.imag._u_components, y.imag._d_components)
             im = extend_vector(im,y.real._u_components)
@@ -564,8 +594,14 @@ def budget(y,**kwargs):
                     ii_0,ui_0 = next(it_im)
 
                     if hasattr(ir_0,'complex'):
+                        
+                        # The next item is always the imaginary component
                         ir_1,ur_1 = next(it_re)
                         ii_1,ui_1 = next(it_im)
+                        
+                        # Reduce the 4 components of uncertainty 
+                        # to a summary value
+                        u=u_bar([ur_0,ur_1,ui_0,ui_1])
                         
                         if ir_0.label is None:
                             # No label assigned, report uids
@@ -576,28 +612,101 @@ def budget(y,**kwargs):
                             # take the trailing _re off the real label
                             # to label the complex influence
                             label = ir_0.label[:-3]
+                            
+                            labels.append(label)
+                            values.append(u)
 
-                        u=u_bar([ur_0,ur_1,ui_0,ui_1])
-                        labels.append(label)
-                        values.append(u)
-                        
                     else:
-                        # Not wrt a complex influence
+                        # Report the component wrt a real influence
+                        # this is still a matrix, which is then reduced 
+                        # to a summary value
+                        u=u_bar([ur_0,0,ui_0,0])
+                        
                         if ir_0.label is None:
                             label = "uid({})".format( uid_str(ir_0.uid) )
                         else:
                             label = ir_0.label 
                             
-                        u=u_bar([ur_0,0,ui_0,0])
                         labels.append(label)
                         values.append(u)
                         
             except StopIteration:
                 pass
-        else:
+                
+        elif intermediate:
+            # The argument 'y' could be in the list 
+            if y.is_intermediate:
+                n_yr_uid = y.real._node.uid
+                n_yi_uid = y.imag._node.uid
+            else:
+                n_yr_uid = 0
+                n_yi_uid = 0
+                
+            # Ensure that the influence vectors have the same keys
+            re = extend_vector(y.real._i_components,y.imag._i_components)    
+            im = extend_vector(y.imag._i_components,y.real._i_components)
+
+            try:
+                labels = []
+                values = []
+                it_re = re.iteritems()
+                it_im = im.iteritems()
+                
+                while True:
+                    ir_0,ur_0 = next(it_re)
+                    ii_0,ui_0 = next(it_im)
+
+                    if hasattr(ir_0,'complex'):
+                        
+                        # The next item is always the imaginary component
+                        ir_1,ur_1 = next(it_re)
+                        ii_1,ui_1 = next(it_im)
+                        
+                        # Skip these real and imaginary components of 'y'
+                        if ir_0.uid == n_yr_uid or ii_0.uid == n_yi_uid:
+                            continue                        
+                        
+                        # Reduce the 4 components of uncertainty 
+                        # to a summary value
+                        u=u_bar([ur_0,ur_1,ui_0,ui_1])
+                        
+                        if ir_0.label is None:
+                            # No label assigned, report uids
+                            label = "uid({},{})".format(
+                                uid_str(ir_0.uid),uid_str(ii_0.uid)
+                            )
+                        else:
+                            # take the trailing _re off the real label
+                            # to label the complex influence
+                            label = ir_0.label[:-3]
+                            
+                            labels.append(label)
+                            values.append(u)
+
+                    else:
+                        # Report the component wrt a real influence
+                        # this is still a matrix, which is then reduced 
+                        # to a summary value
+                        u=u_bar([ur_0,0,ui_0,0])
+                        
+                        if ir_0.label is None:
+                            label = "uid({})".format( uid_str(ir_0.uid) )
+                        else:
+                            label = ir_0.label 
+                            
+                        labels.append(label)
+                        values.append(u)
+                        
+            except StopIteration:
+                pass
+                
+        elif influences is not None:
             labels = [ i.label for i in influences ]
             values = [ u_bar( u_component(y,i) ) for i in influences ]
-            
+
+        else:
+            assert False,"should never occur"
+
         if len(values):
             cut_off = max(values) * float(trim)
             this_budget = [ 
