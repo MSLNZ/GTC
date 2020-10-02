@@ -1062,6 +1062,10 @@ class TestArchive(unittest.TestCase):
         self.assertEqual( repr(x5), repr(y5) )
         self.assertEqual( repr(x6), repr(y6) )
         
+        # The restored complex should have a link between the component nodes
+        self.assertEqual( x5.real._node.complex, y5.real._node.complex )
+        self.assertEqual( y5.imag._node.complex, y5.real._node.complex )
+        
         # Archived as a complex influence of a complex quantity                
         self.assertTrue( equivalent_sequence(
             rp.u_component(x6,x5),
