@@ -167,7 +167,8 @@ class Archive(object):
         """
         if PY2:
             return self._tagged.iterkeys()
-        return self._tagged.keys()
+        else:
+            return self._tagged.keys()
 
     def values(self):
         """Return a list of uncertain numbers 
@@ -179,7 +180,8 @@ class Archive(object):
         """
         if PY2:
             return self._tagged.itervalues()
-        return self._tagged.values()
+        else:
+            return self._tagged.values()
 
     def items(self):
         """Return a list of name -to- uncertain-number pairs 
@@ -191,7 +193,8 @@ class Archive(object):
         """
         if PY2:
             return self._tagged.iteritems()
-        return self._tagged.items()
+        else:
+            return self._tagged.items()
 
     def __len__(self):
         """Return the number of entries 
