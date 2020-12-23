@@ -35,7 +35,7 @@ jobs:
       env: PYTHON=3.8.6
     - os: osx
       language: shell
-      env: PYTHON=3.9.1
+      env: PYTHON=3.9.0
 
 before_install:
   - |
