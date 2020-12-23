@@ -31,7 +31,7 @@ class TestFFT(unittest.TestCase):
         N = 16
         
         d = numpy.ones(N,dtype='cfloat')        
-        ft.fft(d)
+        d = ft.fft(d)
         self.assertTrue( equivalent_complex(d[0],N) )
 
         d = numpy.ones(N,dtype='cfloat')        
@@ -39,7 +39,7 @@ class TestFFT(unittest.TestCase):
         self.assertTrue( equivalent_complex(d[0],N) )
 
         d = numpy.ones(N,dtype='cfloat')
-        ft.ifft(d)
+        d = ft.ifft(d)
         self.assertTrue( equivalent_complex(d[0],1) )
 
         d = numpy.ones(N,dtype='cfloat')
@@ -55,11 +55,11 @@ class TestFFT(unittest.TestCase):
             
             for i in range(N):
                 d[i] = complex( math.cos(2*math.pi*i*k/N),-math.sin(2*math.pi*i*k/N) )
-            ft.fft(d)
+            d = ft.fft(d)
             self.assertTrue( equivalent_complex(d[k],N) )
 
             # Reverse transform undoes FT 
-            ft.ifft(d)
+            d = ft.ifft(d)
             for i in range(N):
                 d_i = complex( math.cos(2*math.pi*i*k/N), -math.sin(2*math.pi*i*k/N) )
                 self.assertTrue( equivalent_complex(d[i],d_i) )

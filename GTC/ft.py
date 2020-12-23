@@ -12,15 +12,24 @@ __all__ = (
 )
 
 # """
-# This is the NR algorithm, but perhaps it is not so fast. Alternatives are out there:
-# Fast FFT libraries: Intel's MKL library (C,C++,Fortran) or MIT licensed FFTW (C, C++), 
-# or CenterSpaces' NMath library
+# This is based on the NR algorithm, but alternatives are out there.
+# Faster FFT libraries may include: Intel's MKL library (C,C++,Fortran) 
+# or MIT licensed FFTW (C, C++), or CenterSpaces' NMath library ...
 # """
+
 #----------------------------------------------------------------------------
 def ifft(data):
     """
     Evaluate the inverse fast Fourier transform 
         
+    ``data`` is an array of ``N`` complex values,
+    where ``N`` must be a power of 2. 
+    
+    Note..
+
+        ``data`` is modified in-place and also returned 
+
+
     """
     fft(data,True)
     
@@ -28,29 +37,35 @@ def ifft(data):
     for i,d_i in enumerate(data): 
         data[i] = d_i/N
         
+    return data 
+        
 #----------------------------------------------------------------------------
 def fft(data,inverse=False):
     """
-    Evaluate the fast Fourier transform of ``data`` in-place 
+    Evaluate in-place and return the fast Fourier transform of ``data`` 
 
-    ``data`` is treated as an array of ``N`` complex values,
+    ``data`` is an array of ``N`` complex values,
     where ``N`` must be a power of 2. 
     
-    ``inverse`` may be set True to evaluate the inverse transform,
-    but the values must be re-scaled by ``N``.
+    Set ``inverse`` True to evaluate the inverse transform,
+    but values must be re-scaled by ``N``.
     
     Note..
+
+        ``data`` is modified by this function 
+        
+    Note..
     
-        The 'forward' transform here uses a positive exponent 
-        whereas other implementations used by engineers often adopt 
+        The 'forward' transform is defined here with a positive exponent, 
+        whereas implementations used by engineers adopt 
         a negative exponent for the forward transform. 
     
     """
-    N = len(data)   # Must be a power of 2
-    n = N << 1      # times 2
-    
     isign = -1 if inverse else 1 
-    
+    N = len(data)   # Must be a power of 2
+
+    n = N << 1      # times 2
+      
     j = 0
     for i in xrange(n):
         if j > i: 
@@ -66,7 +81,7 @@ def fft(data,inverse=False):
                
     mmax = 2
     while n > mmax:
-        
+        # See: https://stackoverflow.com/questions/2220879/c-numerical-recipies-fft 
         theta_2 = isign*(math.pi/mmax) 
         wtemp = math.sin(theta_2)
         wpr = -2.0*wtemp*wtemp 
@@ -79,24 +94,17 @@ def fft(data,inverse=False):
             for i in xrange(m,n+1,istep):
                 j = i + mmax 
                 
+                # perhaps this can be re-factored?
                 ii = i-1 >> 1 
                 jj = j-1 >> 1 
-                # print("i,j",ii,jj)
                 
-                # tempr = wr*data[j].real - wi*data[j].imag 
-                # tempi = I*(wr*data[j].imag + wi*data[j].real) 
-                temp = w * data[jj]
-                
-                # data[j] = data[i] - (tempr + tempi)
-                # data[i] = data[i] + (tempr + tempi)
+                temp = w * data[jj]             
                 data[jj] = data[ii] - temp 
                 data[ii] = data[ii] + temp
                 
-            # wtemp = wr
-            # wr = wr*wpr - wi*wpi + wr 
-            # wi = wi*wpr + wtemp*wpi + wi
             w += w*wp          
             
         mmax = istep
-        # print("mmax=",mmax)
+        
+    return data 
  
