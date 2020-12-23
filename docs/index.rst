@@ -27,6 +27,7 @@ GTC Modules
     Storage <API/persistence>
     Named tuples <API/named_tuples>
     Linear algebra <API/linear_algebra.rst>
+    Fourier transform <API/fourier.rst>
 
 Examples
 --------

@@ -89,6 +89,7 @@ __all__ = (
     ,   'type_a',       'ta'
     ,   'persistence',  'pr'
     ,   'linear_algebra', 'la'
+    ,   'ft'
     ,   'math'
     ,   'cmath'
     ,   'inf'

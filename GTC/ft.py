@@ -6,12 +6,50 @@ import math
 if (sys.version_info > (3, 0)):
     xrange = range
 
+__all__ = (
+    'fft', 
+    'ifft',
+)
+
+# """
+# This is the NR algorithm, but perhaps it is not so fast. Alternatives are out there:
+# Fast FFT libraries: Intel's MKL library (C,C++,Fortran) or MIT licensed FFTW (C, C++), 
+# or CenterSpaces' NMath library
+# """
 #----------------------------------------------------------------------------
-def fft(data,isign=-1):
+def ifft(data):
     """
+    Evaluate the inverse fast Fourier transform 
+        
+    """
+    fft(data,True)
+    
+    N = len(data)
+    for i,d_i in enumerate(data): 
+        data[i] = d_i/N
+        
+#----------------------------------------------------------------------------
+def fft(data,inverse=False):
+    """
+    Evaluate the fast Fourier transform of ``data`` in-place 
+
+    ``data`` is treated as an array of ``N`` complex values,
+    where ``N`` must be a power of 2. 
+    
+    ``inverse`` may be set True to evaluate the inverse transform,
+    but the values must be re-scaled by ``N``.
+    
+    Note..
+    
+        The 'forward' transform here uses a positive exponent 
+        whereas other implementations used by engineers often adopt 
+        a negative exponent for the forward transform. 
+    
     """
     N = len(data)   # Must be a power of 2
     n = N << 1      # times 2
+    
+    isign = -1 if inverse else 1 
     
     j = 0
     for i in xrange(n):
@@ -61,3 +99,4 @@ def fft(data,isign=-1):
             
         mmax = istep
         # print("mmax=",mmax)
+ 

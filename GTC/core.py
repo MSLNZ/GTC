@@ -14,6 +14,7 @@ from GTC import type_b
 from GTC import type_a
 from GTC import persistence
 from GTC import function
+from GTC import ft
 
 from GTC import (   
     inf,
@@ -82,6 +83,7 @@ __all__ = (
     ,   'type_a',       'ta'
     ,   'persistence',  'pr'
     ,   'linear_algebra', 'la'
+    ,   'ft'
     ,   'math'
     ,   'cmath'
 )
@@ -1229,7 +1231,7 @@ def mag_squared(x):
     except AttributeError:
         return abs(x)**2
 
-# import here to avoid circular imports
+# Placed here to avoid circular imports
 from GTC import linear_algebra
 la = linear_algebra
 
