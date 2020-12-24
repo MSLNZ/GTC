@@ -71,7 +71,7 @@ def fft(data,inverse=False):
         ...     d[i] = cmath.exp( -2j*math.pi*i*k/N )  
         ...
         
-        >>> ft.fft(d)
+        >>> d = ft.fft(d)
         >>> d[1]
         (16+4.36419692839477e-15j)
         
