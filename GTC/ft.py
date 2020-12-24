@@ -72,7 +72,7 @@ def fft(data,inverse=False):
         ...
         
         >>> d = ft.fft(d)
-        >>> "{0.real:.3f}+j{0.imag:.3f}".format( d[1])
+        >>> "{0.real:.3f}+j{0.imag:.3f}".format( d[1] )
         '16.000+j0.000'
         
     """
