@@ -15,6 +15,7 @@ __all__ = (
 # This is based on the NR algorithm, but alternatives are out there.
 # Faster FFT libraries may include: Intel's MKL library (C,C++,Fortran) 
 # or MIT licensed FFTW (C, C++), or CenterSpaces' NMath library ...
+# See: https://stackoverflow.com/questions/2220879/c-numerical-recipies-fft 
 # """
 
 #----------------------------------------------------------------------------
@@ -56,52 +57,61 @@ def fft(data,inverse=False):
         
     Note..
     
-        The 'forward' transform is defined here with a positive exponent, 
-        whereas implementations used by engineers adopt 
-        a negative exponent for the forward transform. 
+        This transform is defined with a positive exponent, 
+        whereas engineering implementations use a negative exponent
+        (i.e., the inverse transform).
+        
+    **Example**::
     
-    """
-    isign = -1 if inverse else 1 
-    N = len(data)   # Must be a power of 2
+        >>> N = 16
+        >>> k = 1 
+        >>> d = [0] * N
 
-    n = N << 1      # times 2
-      
+        >>> for i in range(N):
+        ...     d[i] = cmath.exp( -2j*math.pi*i*k/N )  
+        ...
+        
+        >>> ft.fft(d)
+        >>> d[1]
+        (16+4.36419692839477e-15j)
+        
+    """
+    isign = -1 if inverse else 1
+    
+    N = len(data)   # Must be a power of 2 -- not checked
+
     j = 0
-    for i in xrange(n):
+    for i in xrange(2*N):
         if j > i: 
             data[i], data[j] = data[j], data[i]
         
-        m = N >> 1  # divided by 2
-        
+        m = N >> 1  # divide by 2   
         while m >= 2 and j+1>m: 
             j = j - m
-            m = m >> 1 # divided by 2
+            m = m >> 1 
           
         j = j + m 
-               
-    mmax = 2
-    while n > mmax:
-        # See: https://stackoverflow.com/questions/2220879/c-numerical-recipies-fft 
-        theta_2 = isign*(math.pi/mmax) 
-        wtemp = math.sin(theta_2)
-        wpr = -2.0*wtemp*wtemp 
-        wpi = math.sin(2.0*theta_2)
-        wp = complex(wpr,wpi)     
+   
+    mmax = 1
+    while N > mmax:
+        istep = mmax << 1 # times 2
 
-        w = complex(1,0) 
-        istep = mmax << 1    
-        for m in xrange(1,mmax,2):
-            for i in xrange(m,n+1,istep):
+        theta_2 = isign*(math.pi/(2*mmax)) 
+        wtemp = math.sin(theta_2)        
+        wp = complex(
+            -2.0*wtemp*wtemp,
+            math.sin(2.0*theta_2)
+        )     
+
+        w = complex(1,0)        
+        for m in xrange(mmax):
+            for i in xrange(m,N,istep):
                 j = i + mmax 
                 
-                # perhaps this can be re-factored?
-                ii = i-1 >> 1 
-                jj = j-1 >> 1 
-                
-                temp = w * data[jj]             
-                data[jj] = data[ii] - temp 
-                data[ii] = data[ii] + temp
-                
+                temp = w * data[j]             
+                data[j] = data[i] - temp 
+                data[i] = data[i] + temp
+                                
             w += w*wp          
             
         mmax = istep
