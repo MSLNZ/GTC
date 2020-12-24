@@ -72,8 +72,8 @@ def fft(data,inverse=False):
         ...
         
         >>> d = ft.fft(d)
-        >>> d[1]
-        (16+4.36419692839477e-15j)
+        >>> "{0.real:f}+j{0.imag:f}".format( d[1])
+        16.000000+j0.000000
         
     """
     isign = -1 if inverse else 1
