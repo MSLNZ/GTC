@@ -12,7 +12,7 @@ __all__ = (
 )
 
 # """
-# This is based on the NR algorithm, but alternatives are out there.
+# This is based on the NR FFT algorithm, but alternatives are out there.
 # Faster FFT libraries may include: Intel's MKL library (C,C++,Fortran) 
 # or MIT licensed FFTW (C, C++), or CenterSpaces' NMath library ...
 # See: https://stackoverflow.com/questions/2220879/c-numerical-recipies-fft 
@@ -45,8 +45,8 @@ def fft(data,inverse=False):
     """
     Evaluate in-place and return the fast Fourier transform of ``data`` 
 
-    ``data`` is an array of ``N`` complex values,
-    where ``N`` must be a power of 2. 
+    ``data`` is an array of ``N`` complex values, where ``N`` must be 
+    a power of 2. 
     
     Set ``inverse`` True to evaluate the inverse transform,
     but values must be re-scaled by ``N``.
@@ -118,3 +118,131 @@ def fft(data,inverse=False):
         
     return data 
  
+#----------------------------------------------------------------------------
+def _fft(data,inverse=False):
+    """
+    ``data`` is an array of ``n`` real values,
+    where ``n`` must be a power of 2. 
+    
+    Set ``inverse`` True to evaluate the inverse transform,
+    but values must be re-scaled by ``N = n/2``.
+    
+    """
+    isign = -1 if inverse else 1
+    
+    n = len(data)
+    N = n / 2
+
+    j = 1
+    for i in xrange(1,n,2):
+        if j>i: 
+            data[j-1], data[i-1] = data[i-1], data[j-1]
+            data[j], data[i] = data[i], data[j]
+            
+        m = n >> 1 
+        while m >= 2 and j > m:
+            j = j - m
+            m = m >> 1 
+        j = j + m 
+
+    mmax = 2
+    while n > mmax:
+        istep = mmax << 1
+        
+        theta_2 = isign*math.pi/mmax
+        wtemp = math.sin(theta_2)
+        wpr = -2.0*wtemp*wtemp 
+        wpi = math.sin(2*theta_2) 
+        
+        wr = 1.0
+        wi = 0.0 
+        for m in xrange(1,mmax,2):
+            for i in xrange(m,n+1,istep):
+                j = i + mmax
+                
+                tempr = wr*data[j-1] - wi*data[j]
+                tempi = wr*data[j] + wi*data[j-1] 
+                
+                data[j-1] = data[i-1] - tempr 
+                data[j] = data[i] - tempi 
+                
+                data[i-1] = data[i-1] + tempr 
+                data[i] = data[i] + tempi 
+                
+            wtemp = wr 
+            wr = wr + wr*wpr - wi*wpi
+            wi = wi + wi*wpr + wtemp*wpi 
+            
+        mmax = istep 
+            
+    return data      
+
+#----------------------------------------------------------------------------
+def _realft(data,inverse=False):
+    """
+    Evaluate the positive frequency half of the spectrum of ``data`` 
+    
+    ``data`` is an array of ``N`` real values,
+    where ``N`` must be a power of 2. 
+    
+    ``data[0]`` is returned with the zero frequency term
+    ``data[1]`` is returned with the Nyquist frequency term (pure real)
+    
+    Set ``inverse`` True to evaluate the inverse transform,
+    but values must be re-scaled by ``N/2``.
+    
+    """
+    N = len(data)
+    
+    theta_2 = math.pi/N  
+    c1 = 0.5 
+    
+    if inverse:
+        c2 = 0.5 
+        theta_2 = -theta_2 
+    else:
+        c2 = -0.5
+        data = _fft(data,inverse)
+
+    wtemp = math.sin(theta_2)
+    wpr = -2.0*wtemp*wtemp 
+    wpi = math.sin(2*theta_2) 
+    
+    wr = 1.0 + wpr 
+    wi = wpi  
+    np3 = N + 2
+    
+    for i in xrange(2,(N>>2) + 1):
+        
+        i1 = (i - 1) + (i - 1)
+        i2 = i1 + 1
+        i3 = np3 - i2 - 1
+        i4 = i3 + 1
+        
+        h1r = c1*( data[i1] + data[i3] )
+        h1i = c1*( data[i2] - data[i4] )
+        
+        h2r = -c2*( data[i2] + data[i4] )
+        h2i = c2*( data[i1] - data [i3] )
+        
+        data[i1] = h1r + wr*h2r - wi*h2i 
+        data[i2] = h1i + wr*h2i + wi*h2r
+        data[i3] = h1r - wr*h2r + wi*h2i  
+        data[i4] = -h1i + wr*h2i + wi*h2r
+        
+        wtemp = wr 
+        wr = wr + wr*wpr - wi*wpi 
+        wi = wi + wi*wpr + wtemp*wpi 
+        
+    if inverse:
+        h1r = data[0]
+        data[0] = c1*(h1r + data[1])
+        data[1] = c1*(h1r - data[1])
+        data = _fft(data,inverse)
+        
+    else:
+        h1r = data[0]
+        data[0] = h1r + data[1] 
+        data[1] = h1r - data[1]
+        
+    return data 
