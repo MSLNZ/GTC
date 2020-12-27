@@ -167,7 +167,48 @@ class Test_REALFT(unittest.TestCase):
             for i in range(N):
                 dr = math.cos(2*math.pi*i*k/N) 
                 self.assertTrue( equivalent(d[i]*2/N,dr) )
-                
+  
+#-----------------------------------------------------
+class Test_TWOFT(unittest.TestCase):
+    
+    """
+    Test the _twoft routine. This is intended only 
+    for internal use. It uses arrays of float.  
+    """  
+
+    def test_dc(self):
+  
+        N = 16
+        
+        d1 = [1]*N
+        d2 = [1]*N
+        
+        f1, f2 = ft._twoft(d1,d2)
+        
+        self.assertTrue( equivalent(f1[0],N ) )
+        self.assertTrue( equivalent(f2[0],N ) )
+
+    def test(self):
+        N = 16
+        k1 = 3
+        k2 = 1
+
+        d1 = [0]*N
+        d2 = [0]*N
+        
+        for k1 in xrange(1,N//2):
+            for k2 in xrange(1,N//2):
+                for i in xrange(N):
+                    d1[i] = math.cos(2*math.pi*i*k1/N)
+                    d2[i] = -math.sin(2*math.pi*i*k2/N)
+ 
+                f1, f2 = ft._twoft(d1,d2)  
+
+                self.assertTrue( equivalent(f1[2*k1]*2/N,1) )                
+                self.assertTrue( equivalent(f1[2*k1+1]*2/N,0) )                
+                self.assertTrue( equivalent(f2[2*k2]*2/N,0) )                
+                self.assertTrue( equivalent(f2[2*k2+1]*2/N,-1) )                
+ 
 #=====================================================
 if(__name__== '__main__'):
 

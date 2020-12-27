@@ -127,6 +127,10 @@ def _fft(data,inverse=False):
     Set ``inverse`` True to evaluate the inverse transform,
     but values must be re-scaled by ``N = n/2``.
     
+    Note..
+
+        ``data`` is modified by this function 
+
     """
     isign = -1 if inverse else 1
     
@@ -191,6 +195,10 @@ def _realft(data,inverse=False):
     Set ``inverse`` True to evaluate the inverse transform,
     but values must be re-scaled by ``N/2``.
     
+    Note..
+
+        ``data`` is modified by this function 
+
     """
     N = len(data)
     
@@ -246,3 +254,53 @@ def _realft(data,inverse=False):
         data[1] = h1r - data[1]
         
     return data 
+    
+#----------------------------------------------------------------------------
+def _twoft(data1,data2):
+    """
+    Given real arrays ``data1`` and ``data2`` evaluate the corresponding 
+    Fourier transforms and return these in a pair of complex arrays.
+    
+    Note..
+
+        ``data1`` and ``data2`` are not modified by calling this function 
+    
+    """
+    N = len(data1)
+    assert N == len(data2)
+    
+    fft1 = [0]*2*N
+    fft2 = [0]*2*N
+    
+    nn2 = N + N + 2
+    nn3 = 1 + nn2 
+    for j in xrange(1,N+1):
+        jj = 2*j 
+        fft1[jj-1-1] = data1[j-1]
+        fft1[jj-1] = data2[j-1]
+        
+    fft1 = _fft(fft1)  
+    
+    fft2[0] = fft1[1]
+    fft1[1] = fft2[1] = 0.0 
+     
+    for j in xrange(3,N+2,2):
+        
+        rep = 0.5*( fft1[j-1] + fft1[nn2-j-1] )
+        rem = 0.5*( fft1[j-1] - fft1[nn2-j-1] )
+        aip = 0.5*( fft1[j] + fft1[nn3-j-1] )
+        aim = 0.5*( fft1[j] - fft1[nn3-j-1] )
+        
+        fft1[j-1] = rep 
+        fft1[j] = aim 
+        fft1[nn2-j-1] = rep 
+        fft1[nn3-j-1] = -aim 
+        
+        fft2[j-1] = aip
+        fft2[j] = -rem 
+        fft2[nn2-j-1] = aip 
+        fft2[nn3-j-1] = rem 
+        
+    return fft1, fft2
+        
+    
