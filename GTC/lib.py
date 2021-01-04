@@ -1778,6 +1778,10 @@ def _add(lhs,rhs):
                 )
     elif isinstance(rhs,numbers.Complex):
         if rhs == 0.0:
+            # The UncertainReal `lhs` is changed to an 
+            # UncertainComplex with the same value. 
+            # This follows the expected behaviour of 
+            # arithmetic with mixed types.
             r = +lhs 
             i = UncertainReal._constant(0.0)
         else:
@@ -1809,6 +1813,10 @@ def _radd(lhs,rhs):
                 
     elif isinstance(lhs,numbers.Complex):
         if lhs == 0.0:
+            # The UncertainReal `rhs` is changed to an 
+            # UncertainComplex with the same value. 
+            # This follows the expected behaviour of 
+            # arithmetic with mixed types.
             r = +rhs
             i = UncertainReal._constant(0.0)
         else:
@@ -2347,7 +2355,8 @@ class UncertainComplex(object):
             # (i.is_elementary and _is_uncertain_real_constant(r)) or\
             # (r.is_elementary and _is_uncertain_real_constant(i))
             
-        assert i.is_intermediate == r.is_intermediate
+        assert i.is_intermediate == r.is_intermediate,\
+            "{0.is_intermediate} != {1.is_intermediate}".format(r,i)
         
         self.real = r  #: :class:`UncertainReal`: The real component.
         self.imag = i  #: :class:`UncertainReal`: The imaginary component.
