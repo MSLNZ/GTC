@@ -41,6 +41,11 @@ def ifft(data):
     return data 
         
 #----------------------------------------------------------------------------
+# TODO:
+# - optional parameter `n` so that the routine can truncate or pad the data. 
+# - raise an exception if `n` is not a power of 2 or `n` is not specified and  
+#   the data is not a power of 2
+#
 def fft(data,inverse=False):
     """
     Evaluate in-place and return the fast Fourier transform of ``data`` 
