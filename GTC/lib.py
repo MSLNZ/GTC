@@ -347,6 +347,8 @@ class UncertainReal(object):
         return self 
         
     #-------------------------------------------------------------------------
+    # TODO: consider making this a free function so that it can be used for
+    # expanded uncertainty too. 
     def _round(self,digits,df_decimals):
         """
         Return a ``GroomedUncertainReal`` 
@@ -2492,6 +2494,8 @@ class UncertainComplex(object):
         return un 
         
     #------------------------------------------------------------------------
+    # TODO: consider making a free function so that it can be used with 
+    # expanded uncertainty too.
     def _round(self,digits,df_decimals):
         """
         `digits` specifies the number of significant digits of 
