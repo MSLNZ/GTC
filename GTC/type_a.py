@@ -1342,9 +1342,8 @@ def merge(a,b,TOL=1E-13):
     :arg b: an uncertain real or complex number
     :arg TOL: float
 
-    :returns:   an uncertain number with the value of ``a` 
-                and the uncertainty components of
-                ``a`` and ``b`` combined
+    :returns:   an uncertain number with the value of ``a`` and the 
+                uncertainty components of ``a`` and ``b`` combined
 
     The absolute difference between the values of ``a`` and ``b`` 
     must be less than ``TOL`` and the components of uncertainty 
