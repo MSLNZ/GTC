@@ -448,17 +448,16 @@ def line_fit(x,y,label=None):
 
     df = N-2
 
-    v = u_y = [1.0] * N
     S = N
     S_x = math.fsum( x )
     S_y = math.fsum( y )
         
     k = S_x / S
-    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+    t = [ (x_i - k) for x_i in x ]
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
-    b_ =  math.fsum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    b_ =  math.fsum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
     a_ = (S_y - b_*S_x)/S
 
     siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
@@ -1336,19 +1335,20 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     return rtn
         
 #--------------------------------------------------------------------
-def merge(a,b):
+def merge(a,b,TOL=1E-13):
     """Combine the uncertainty components of ``a`` and ``b``
 
     :arg a: an uncertain real or complex number
     :arg b: an uncertain real or complex number
+    :arg TOL: float
 
-    :returns:   an uncertain number that combines
-                the uncertainty components of
-                ``a`` and ``b``
+    :returns:   an uncertain number with the value of ``a` 
+                and the uncertainty components of
+                ``a`` and ``b`` combined
 
-    The values of ``a`` and ``b`` must be equal
-    and the components of uncertainty associated with
-    ``a`` and ``b`` must be distinct, otherwise
+    The absolute difference between the values of ``a`` and ``b`` 
+    must be less than ``TOL`` and the components of uncertainty 
+    associated with ``a`` and ``b`` must be distinct, otherwise
     a :class:`RuntimeError` will be raised.
 
     Use this function to combine results from
@@ -1403,9 +1403,11 @@ def merge(a,b):
         y_2 = type_a.merge(y_2_a,y_2_b)
 
     """
-    if abs( value(a) - value(b) ) > EPSILON:
+    if abs( value(a) - value(b) ) > TOL:
         raise RuntimeError(
-            "a != b: {!r} != {!r}".format(a,b)
+            "|a - b| = {} > {}: {!r} != {!r}".format(
+                abs( value(a) - value(b) ),TOL,a,b
+            )
         )
     else:
         return a + (b - value(b))

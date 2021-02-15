@@ -1106,6 +1106,8 @@ class TestCombineComponents(unittest.TestCase):
         self.assertTrue( equivalent(component(mu,mu_a),mu_a.u, TOL) )
         self.assertTrue( equivalent(component(mu,mu_b),mu_b.u, TOL) )
         self.assertTrue( equivalent(component(mu,e_sys),u, TOL) )
+        
+        self.assertRaises(RuntimeError,type_a.merge,mu_a+1E-13,mu_b)
 
     def test_line_fit(self):
         """
