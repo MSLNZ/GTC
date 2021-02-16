@@ -1,5 +1,4 @@
-image:
-  - Visual Studio 2019
+image: Visual Studio 2019
 
 environment:
   matrix:
@@ -21,12 +20,12 @@ install:
   - python --version
   - python -m pip install --upgrade pip
   - python -m pip install --upgrade setuptools wheel
-  - python -m pip install --upgrade pytest pytest-cov pytest-runner numpy>=1.13.0 scipy
+  - python -m pip install --upgrade --editable .[tests]
 
 build: off
 
 test_script:
-  - python setup.py tests
+  - python -m pytest
 
 after_test:
   - python setup.py sdist bdist_wheel
