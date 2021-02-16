@@ -103,7 +103,7 @@ class TestUncertainArray(unittest.TestCase):
     def test_value_uncertainty_variance_r_dof_ureal(self):
         # make sure that a uarray of size==1 is okay
         a = uarray([ureal(1.2, 0.3, df=4.2)])
-        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(a.dtype == object)
         self.assertTrue(equivalent(value(a), 1.2))
         self.assertTrue(equivalent(uncertainty(a), 0.3))
         self.assertTrue(equivalent(variance(a), 0.09))
@@ -111,7 +111,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # a 1D array
         a = uarray([ureal(1.2, 0.3, df=3.3), ureal(2.5, 0.8, df=7)])
-        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(a.dtype == object)
         self.assertTrue(equivalent(a[0].x, 1.2))
         self.assertTrue(equivalent(a[0].u, 0.3))
         self.assertTrue(equivalent(a[0].v, 0.09))
@@ -122,36 +122,36 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1].df, 7.0))
 
         for x in (a.value(), value(a), a.x):
-            self.assertTrue(x.dtype == np.object)
+            self.assertTrue(x.dtype == object)
             self.assertTrue(equivalent(x[0], 1.2))
             self.assertTrue(equivalent(x[1], 2.5))
 
         for u in (a.uncertainty(), uncertainty(a), a.u):
-            self.assertTrue(u.dtype == np.object)
+            self.assertTrue(u.dtype == object)
             self.assertTrue(equivalent(u[0], 0.3))
             self.assertTrue(equivalent(u[1], 0.8))
 
         for v in (a.variance(), variance(a), a.v):
-            self.assertTrue(v.dtype == np.object)
+            self.assertTrue(v.dtype == object)
             self.assertTrue(equivalent(v[0], 0.09))
             self.assertTrue(equivalent(v[1], 0.64))
 
         for df in (a.dof(), dof(a), a.df):
             self.assertTrue(isinstance(df, UncertainArray))
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(df.dtype == object)
             self.assertTrue(equivalent(df[0], 3.3))
             self.assertTrue(equivalent(df[1], 7.0))
 
         corr = a.r
         self.assertTrue(isinstance(corr, UncertainArray))
-        self.assertTrue(df.dtype == np.object)
+        self.assertTrue(df.dtype == object)
         self.assertTrue(equivalent(corr[0], 0.0))
         self.assertTrue(equivalent(corr[1], 0.0))
 
         # a 2D array
         a = uarray([[ureal(1.2, 0.3, df=1), ureal(2.5, 0.8, df=2)],
                     [ureal(-3.1, 1.1, df=3), ureal(0.3, 0.05, df=4)]])
-        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(a.dtype == object)
         self.assertTrue(equivalent(a[0, 0].x, 1.2))
         self.assertTrue(equivalent(a[0, 0].u, 0.3))
         self.assertTrue(equivalent(a[0, 0].v, 0.09))
@@ -170,21 +170,21 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1, 1].df, 4.0))
 
         for x in (a.value(), value(a), a.x):
-            self.assertTrue(x.dtype == np.object)
+            self.assertTrue(x.dtype == object)
             self.assertTrue(equivalent(x[0, 0], 1.2))
             self.assertTrue(equivalent(x[0, 1], 2.5))
             self.assertTrue(equivalent(x[1, 0], -3.1))
             self.assertTrue(equivalent(x[1, 1], 0.3))
 
         for u in (a.uncertainty(), uncertainty(a), a.u):
-            self.assertTrue(u.dtype == np.object)
+            self.assertTrue(u.dtype == object)
             self.assertTrue(equivalent(u[0, 0], 0.3))
             self.assertTrue(equivalent(u[0, 1], 0.8))
             self.assertTrue(equivalent(u[1, 0], 1.1))
             self.assertTrue(equivalent(u[1, 1], 0.05))
 
         for v in (a.variance(), variance(a), a.v):
-            self.assertTrue(v.dtype == np.object)
+            self.assertTrue(v.dtype == object)
             self.assertTrue(equivalent(v[0, 0], 0.09))
             self.assertTrue(equivalent(v[0, 1], 0.64))
             self.assertTrue(equivalent(v[1, 0], 1.21))
@@ -192,7 +192,7 @@ class TestUncertainArray(unittest.TestCase):
 
         for df in (a.dof(), dof(a), a.df):
             self.assertTrue(isinstance(df, UncertainArray))
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(df.dtype == object)
             self.assertTrue(equivalent(df[0, 0], 1.0))
             self.assertTrue(equivalent(df[0, 1], 2.0))
             self.assertTrue(equivalent(df[1, 0], 3.0))
@@ -200,7 +200,7 @@ class TestUncertainArray(unittest.TestCase):
 
         corr = a.r
         self.assertTrue(isinstance(corr, UncertainArray))
-        self.assertTrue(df.dtype == np.object)
+        self.assertTrue(df.dtype == object)
         self.assertTrue(equivalent(corr[0, 0], 0.0))
         self.assertTrue(equivalent(corr[0, 1], 0.0))
         self.assertTrue(equivalent(corr[1, 0], 0.0))
@@ -209,7 +209,7 @@ class TestUncertainArray(unittest.TestCase):
     def test_value_uncertainty_variance_r_dof_ucomplex(self):
         # make sure that a uarray of size==1 is okay
         a = uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2)])
-        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(a.dtype == object)
         self.assertTrue(equivalent_complex(value(a), 1.2-0.5j))
         self.assertTrue(isinstance(uncertainty(a), UncertainArray))
         self.assertTrue(equivalent(uncertainty(a).real, 1.0954451150103321))
@@ -224,7 +224,7 @@ class TestUncertainArray(unittest.TestCase):
 
         a = uarray([ucomplex(1.2-0.5j, (1.2, 0.7, 0.7, 2.2), df=4.2),
                     ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5), df=2.6)])
-        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(a.dtype == object)
         self.assertTrue(equivalent_complex(a[0].x, 1.2-0.5j))
         self.assertTrue(isinstance(a[0].u, StandardUncertainty))
         self.assertTrue(equivalent(a[0].u.real, 1.0954451150103321))
@@ -249,12 +249,12 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1].df, 2.6))
 
         for x in (a.value(), value(a), a.x):
-            self.assertTrue(x.dtype == np.object)
+            self.assertTrue(x.dtype == object)
             self.assertTrue(equivalent_complex(x[0], 1.2-0.5j))
             self.assertTrue(equivalent_complex(x[1], -0.2+1.2j))
 
         for u in (a.uncertainty(), uncertainty(a), a.u):
-            self.assertTrue(u.dtype == np.object)
+            self.assertTrue(u.dtype == object)
         self.assertTrue(isinstance(u[0], StandardUncertainty))
         self.assertTrue(equivalent(u[0].real, 1.0954451150103321))
         self.assertTrue(equivalent(u[0].imag, 1.4832396974191326))
@@ -263,7 +263,7 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(u[1].imag, 1.224744871391589))
 
         for v in (a.variance(), variance(a), a.v):
-            self.assertTrue(v.dtype == np.object)
+            self.assertTrue(v.dtype == object)
             self.assertTrue(isinstance(v[0], VarianceCovariance))
             self.assertTrue(equivalent(v[0].rr, 1.2))
             self.assertTrue(equivalent(v[0].ri, 0.7))
@@ -277,13 +277,13 @@ class TestUncertainArray(unittest.TestCase):
 
         for df in (a.dof(), dof(a), a.df):
             self.assertTrue(isinstance(df, UncertainArray))
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(df.dtype == object)
             self.assertTrue(equivalent(df[0], 4.2))
             self.assertTrue(equivalent(df[1], 2.6))
 
         r = a.r
         self.assertTrue(isinstance(r, UncertainArray))
-        self.assertTrue(r.dtype == np.object)
+        self.assertTrue(r.dtype == object)
         self.assertTrue(equivalent(r[0], 0.43082021842766455))
         self.assertTrue(equivalent(r[1], 0.34426518632954817))
 
@@ -292,7 +292,7 @@ class TestUncertainArray(unittest.TestCase):
                      ucomplex(-0.2+1.2j, (0.9, 0.4, 0.4, 1.5), df=2.6)],
                     [ucomplex(6.3-1.5j, (3.4, 0.21, 0.21, 2.3), df=10.3),
                      ucomplex(8.7j, (1.4, 0.85, 0.85, 1.8), df=8.8)]])
-        self.assertTrue(a.dtype == np.object)
+        self.assertTrue(a.dtype == object)
         self.assertTrue(equivalent_complex(a[0, 0].x, 1.2-0.5j))
         self.assertTrue(isinstance(a[0, 0].u, StandardUncertainty))
         self.assertTrue(equivalent(a[0, 0].u.real, 1.0954451150103321))
@@ -339,14 +339,14 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(equivalent(a[1, 1].df, 8.8))
 
         for x in (a.value(), value(a), a.x):
-            self.assertTrue(x.dtype == np.object)
+            self.assertTrue(x.dtype == object)
             self.assertTrue(equivalent_complex(x[0, 0], 1.2-0.5j))
             self.assertTrue(equivalent_complex(x[0, 1], -0.2+1.2j))
             self.assertTrue(equivalent_complex(x[1, 0], 6.3-1.5j))
             self.assertTrue(equivalent_complex(x[1, 1], 8.7j))
 
         for u in (a.uncertainty(), uncertainty(a), a.u):
-            self.assertTrue(u.dtype == np.object)
+            self.assertTrue(u.dtype == object)
             self.assertTrue(isinstance(u[0, 0], StandardUncertainty))
             self.assertTrue(equivalent(u[0, 0].real, 1.0954451150103321))
             self.assertTrue(equivalent(u[0, 0].imag, 1.4832396974191326))
@@ -361,7 +361,7 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(equivalent(u[1, 1].imag, 1.3416407864998738))
 
         for v in (a.variance(), variance(a), a.v):
-            self.assertTrue(v.dtype == np.object)
+            self.assertTrue(v.dtype == object)
             self.assertTrue(isinstance(v[0, 0], VarianceCovariance))
             self.assertTrue(equivalent(v[0, 0].rr, 1.2))
             self.assertTrue(equivalent(v[0, 0].ri, 0.7))
@@ -385,7 +385,7 @@ class TestUncertainArray(unittest.TestCase):
 
         for df in (a.dof(), dof(a), a.df):
             self.assertTrue(isinstance(df, UncertainArray))
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(df.dtype == object)
             self.assertTrue(equivalent(df[0, 0], 4.2))
             self.assertTrue(equivalent(df[0, 1], 2.6))
             self.assertTrue(equivalent(df[1, 0], 10.3))
@@ -393,7 +393,7 @@ class TestUncertainArray(unittest.TestCase):
 
         r = a.r
         self.assertTrue(isinstance(r, UncertainArray))
-        self.assertTrue(r.dtype == np.object)
+        self.assertTrue(r.dtype == object)
         self.assertTrue(equivalent(r[0, 0], 0.43082021842766455))
         self.assertTrue(equivalent(r[0, 1], 0.34426518632954817))
         self.assertTrue(equivalent(r[1, 0], 0.07509584668447591))
@@ -404,7 +404,7 @@ class TestUncertainArray(unittest.TestCase):
                     7, 3.2, 8-3j, self._ureal(inf, 9, df=nan), nan])
 
         for x in (a.value(), value(a), a.x):
-            self.assertTrue(x.dtype == np.object)
+            self.assertTrue(x.dtype == object)
             self.assertTrue(equivalent(x[0], 1))
             self.assertTrue(equivalent_complex(x[1], 1+1j))
             self.assertTrue(equivalent(x[2], 7))
@@ -414,7 +414,7 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(math.isnan(x[6]))
 
         for x in (a.value(), value(a), a.x):
-            self.assertTrue(x.dtype == np.object)
+            self.assertTrue(x.dtype == object)
             self.assertTrue(equivalent_complex(x[0], 1+0j))
             self.assertTrue(equivalent_complex(x[1], 1+1j))
             self.assertTrue(equivalent_complex(x[2], 7+0j))
@@ -449,7 +449,7 @@ class TestUncertainArray(unittest.TestCase):
 
         for df in (a.dof(), dof(a), a.df):
             self.assertTrue(isinstance(df, UncertainArray))
-            self.assertTrue(df.dtype == np.object)
+            self.assertTrue(df.dtype == object)
             self.assertTrue(equivalent(df[0], 7))
             self.assertTrue(equivalent(df[1], 4))
             self.assertTrue(math.isinf(df[2]))
@@ -1139,59 +1139,59 @@ class TestUncertainArray(unittest.TestCase):
         rr = uarray([ureal(1.2, 0.4, 7)])
         # ==
         y = l == r
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(not y)
         y = l == rr
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(y)
         # !=
         y = l != r
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(y)
         y = l != rr
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(not y)
         # <
         y = l < r
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(not y)
         y = l < rr
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(not y)
 
         # >
         y = l > r
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(y)
         y = l > rr
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(not y)
 
         # <=
         y = l <= r
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(not y)
         y = l <= rr
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(y)
 
         # >=
         y = l >= r
-        self.assertTrue( isinstance(y, np.object))
+        self.assertTrue( isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(y)
         y = l >= rr
-        self.assertTrue(isinstance(y, np.object))
+        self.assertTrue(isinstance(y, object))
         self.assertTrue(isinstance(y[0], np.bool_))
         self.assertTrue(y)
         

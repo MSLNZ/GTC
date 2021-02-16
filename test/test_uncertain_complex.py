@@ -63,7 +63,7 @@ def to_std_uncertainty(x):
         x0,x1 = x
         return ( numpy.asarray( [[x0,0.],[0.,x1]] ), 0.0 )
     elif ( d == 4 ):       
-        tmp = numpy.asarray( x, numpy.float )
+        tmp = numpy.asarray( x, float )
         tmp.shape = ( 2, 2 )
         assert is_positive_definite( tmp ),"not +ve definite: '%s'"
         
