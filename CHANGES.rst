@@ -2,11 +2,10 @@
 Release Notes
 =============
 
-Version 1.3.3 (in development)
-==============================
+Version 1.3.3 (2021.02.16)
+==========================
 
-    * :func:`reporting.budget` now expects explicit keyword arguments for all options, instead of positional arguments (the names of the previous positional arguments are now the keywords). 
-    * :func:`reporting.budget` takes a new key word ``intermediate``
+    * Fixed an issue with merging uncertain numbers. The function :func:`type_a.merge` now has a tolerance parameter, which is used to determine whether the arguments ``a`` and ``b`` have equivalent values.
 
 Version 1.3.2 (2020.09.16)
 ==========================

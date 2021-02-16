@@ -186,7 +186,7 @@ class UncertainArray(np.ndarray):
         # Use the numpy formatting but hide the default dtype
         np_array_repr = np.array_repr(self)
 
-        if self.dtype == np.object:
+        if self.dtype == object:
             # Truncate string from trailing ','
             i = np_array_repr.rfind(',')
             return np_array_repr[:i] + ')'
