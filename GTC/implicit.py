@@ -1,4 +1,7 @@
+import sys 
+
 from GTC import *
+from GTC import context
 
 __all__ = ('implicit',)
 
@@ -37,11 +40,10 @@ def implicit(fn,x_min,x_max,epsilon=sys.float_info.epsilon):
         ureal(1,0.025000000000000001,inf)
 
     """
-    # TODO: default.context
-    return implicit_real(fn,x_min,x_max,epsilon,default.context)
+    return implicit_real(fn,x_min,x_max,epsilon)
     
 #------------------------------------------------------------------------
-def implicit_real(fn,x_min,x_max,epsilon,context):
+def implicit_real(fn,x_min,x_max,epsilon):
     """Return the uncertain real number ``x``, that solves :math:`fn(x) = 0`
 
     The function fn() must take a single argument and x_min and
@@ -59,34 +61,44 @@ def implicit_real(fn,x_min,x_max,epsilon,context):
     ----------
     fn : a function with a single argument
     x_min, x_max, epsilon : float
-    context : Context
 
     Returns
     -------
     UncertainReal
     
     """
-    # TODO: context
+    # TODO: make sure this still does what we want
     xk,dy_dx = nr_get_root(fn,x_min,x_max,epsilon,context)
 
-    # x will depend implicitly on the other arguments, 
-    # so the influence set of y and the influence set
-    # of x are the same (except for x itself).
+    # `x` depends implicitly on the other arguments, 
+    # so the influence set of `y` and the influence set
+    # of `x` are the same (except for `x` itself).
 
-    # The components of uncertainty of x are related to 
-    # the components of y as follows:
+    # The components of uncertainty of `x` are related to 
+    # the components of `y` as follows:
     #       u_i(x) = -( dy/dx_i / dy/dx ) * u_i(xi)
 
+    # A constant is: UncertainReal(x,Vector(),Vector(),Node(),context)
+    # Now: UncertainReal._constant(float(x),label)
     y = fn( context.constant_real(xk,None) )
     dx_dy = -1/dy_dx
     
     return UncertainReal(
         xk
     ,   scale_vector(y._u_components,dx_dy)
+    ,   scale_vector(y._d_components,dx_dy)
     ,   scale_vector(y._i_components,dx_dy)
     ,   Node( (y._node,dx_dy) )
-    ,   context
+    # ,   context
     )
+    
+    # In the Node constructor, the tuple is a node and the derivative of
+    # the parent with respect to the child. This made the `x` returned 
+    # a function of the nodes than influenced `y`.
+    
+    # In the new GTC Node() would be an intermediate result and 
+    # the second argument its combined standard uncertainty. This 
+    # probably won't do what we want.
     
 #---------------------------------------------------------
 # Newton-Raphson method with bisection.
@@ -116,8 +128,16 @@ def nr_get_root(fn,x_min,x_max,epsilon,context):
     
     lower, upper = x_min, x_max
 
+    # UncertainReal._elementary(
+                # float(x),
+                # float(u),
+                # float(df),
+                # label,
+                # independent
+            # )
+    # "elementary_real(self,x,u,df,label,dependent)"
     ureal = lambda x,u: context.elementary_real(
-            x,u,inf,None,False
+            x,u,inf,None,False # No label and independent
     )
     value = lambda x: float(x)
     
@@ -127,6 +147,11 @@ def nr_get_root(fn,x_min,x_max,epsilon,context):
     assert isinstance(f_x,UncertainReal),\
            "fn() must return an UncertainReal, got: %s" % type(f_x)
     
+    # Don't have ._node.partial_derivative() now
+    # But there is y.sensitivity(x)
+    # if we know that `x` is elementary and independent then 
+    # sensitivity = y._u_components.get(n,0.0) / n.u, where n = x._node
+    #
     if abs( fl ) < epsilon:
         return fl,f_x._node.partial_derivative(x._node)
     
