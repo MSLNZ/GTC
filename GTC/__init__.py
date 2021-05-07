@@ -5,8 +5,6 @@ in real and complex quantities.
 The method of uncertainty propagation is compatible with the approach described
 in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
-Copyright (c) 2020, Measurement Standards Laboratory of New Zealand.
-
 """
 from __future__ import division
 
@@ -99,7 +97,7 @@ __all__ = (
 #----------------------------------------------------------------------------
 version = "1.3.3.dev0"
 
-copyright = """Copyright (c) 2020, \
+copyright = """Copyright (c) 2021, \
 Measurement Standards Laboratory of New Zealand"""
 
 from .core import *

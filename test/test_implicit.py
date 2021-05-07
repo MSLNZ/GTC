@@ -7,7 +7,7 @@ DIGITS = 13
 from GTC import *
 from testing_tools import *
 
-from GTC.implicit import implicit
+implicit = fn.implicit
 
 #-----------------------------------------------------
 class TestImplicit(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestImplicit(unittest.TestCase):
     A RuntimeError will be raised if the root search does not converge.
     
     An exception will be raised is:
-        * fn() does not return an UncertainReal
+        * fn(x) does not return an UncertainReal when `x` is UncertainReal
         * [x_min,x_max] does not appear to include a zero (this is done by
             checking that fn(x_max) * fn(x_min) < 0)
         * x_min < x_max
@@ -28,11 +28,13 @@ class TestImplicit(unittest.TestCase):
         fn = lambda x : x + ureal(0,1)
         self.assertRaises(RuntimeError,implicit,fn,10,1)
         self.assertRaises(RuntimeError,implicit,fn,10,20)
+        
+        # This will convert an uncertain number `x` into a float.
         fn = lambda x : value(x)
         self.assertRaises(AssertionError,implicit,fn,-1,1)
 
     def test_root_find(self):
-        # solve 0 = cos(x), this has no uncertainty
+        # solve 0 = cos(x), this has no uncertainty!
         fn = lambda x: cos(x)   
         x = implicit(fn,0,math.pi)
         self.assertTrue( equivalent(value(x), math.pi/2.0 ) )
