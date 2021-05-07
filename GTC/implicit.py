@@ -1,12 +1,15 @@
-import sys 
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range
 
-from GTC import *
-from GTC import context
+from GTC import inf, vector
+from GTC.lib import UncertainReal 
 
 __all__ = ('implicit',)
 
 #---------------------------------------------------------------------------
-def implicit(fn,x_min,x_max,epsilon=sys.float_info.epsilon):
+def implicit(fn,x_min,x_max,epsilon=1E-13):
     """Return the solution to :math:`f(x) = 0` 
         
     :arg fn: a user-defined function
@@ -59,7 +62,7 @@ def implicit_real(fn,x_min,x_max,epsilon):
 
     Parameters
     ----------
-    fn : a function with a single argument
+    fn : a function taking one argument
     x_min, x_max, epsilon : float
 
     Returns
@@ -67,102 +70,80 @@ def implicit_real(fn,x_min,x_max,epsilon):
     UncertainReal
     
     """
-    # TODO: make sure this still does what we want
-    xk,dy_dx = nr_get_root(fn,x_min,x_max,epsilon,context)
+    xk,dy_dx = nr_get_root(fn,x_min,x_max,epsilon)
 
     # `x` depends implicitly on the other arguments, 
     # so the influence set of `y` and the influence set
-    # of `x` are the same (except for `x` itself).
+    # of `x` are the same. But `x` is not an elementary 
+    # uncertain number.
 
     # The components of uncertainty of `x` are related to 
     # the components of `y` as follows:
     #       u_i(x) = -( dy/dx_i / dy/dx ) * u_i(xi)
 
-    # A constant is: UncertainReal(x,Vector(),Vector(),Node(),context)
-    # Now: UncertainReal._constant(float(x),label)
-    y = fn( context.constant_real(xk,None) )
+    y = fn( UncertainReal._constant(xk) )
     dx_dy = -1/dy_dx
     
     return UncertainReal(
         xk
-    ,   scale_vector(y._u_components,dx_dy)
-    ,   scale_vector(y._d_components,dx_dy)
-    ,   scale_vector(y._i_components,dx_dy)
-    ,   Node( (y._node,dx_dy) )
-    # ,   context
-    )
-    
-    # In the Node constructor, the tuple is a node and the derivative of
-    # the parent with respect to the child. This made the `x` returned 
-    # a function of the nodes than influenced `y`.
-    
-    # In the new GTC Node() would be an intermediate result and 
-    # the second argument its combined standard uncertainty. This 
-    # probably won't do what we want.
+    ,   vector.scale_vector(y._u_components,dx_dy)
+    ,   vector.scale_vector(y._d_components,dx_dy)
+    ,   vector.scale_vector(y._i_components,dx_dy)
+    )     
     
 #---------------------------------------------------------
 # Newton-Raphson method with bisection.
-# See NR Ch 9, Section 4.
+# Based on Numerical Recipes in C, Ch 9, Section 4,
+# but using uncertain numbers to evaluate the derivatives.
 #
-def nr_get_root(fn,x_min,x_max,epsilon,context):
+def nr_get_root(fn,x_min,x_max,epsilon):
     """Return the x-location of the root and the derivative at that point.
     
-    A utility function used by implicit_real(). It searches within the
-    range for a real root.
+    This is a utility function used by implicit_real(). 
+    It searches within the range for a real root.
     
     Parameters
     ----------
     fn : a function with a single argument
     x_min, x_max, epsilon : float
-    context : Context
 
     Returns
     -------
     (float,float)
 
     """
-    # TODO
-    #    how to handle: elementary_real, ._node.partial_derivative, value 
-    assert x_max > x_min,\
-           "Invalid search range: %s" % str((x_min,x_max))
+    if x_max <= x_min:      
+        raise RuntimeError(
+            "Invalid search range: {!s}".format((x_min,x_max))
+        )
+           
     
     lower, upper = x_min, x_max
 
-    # UncertainReal._elementary(
-                # float(x),
-                # float(u),
-                # float(df),
-                # label,
-                # independent
-            # )
-    # "elementary_real(self,x,u,df,label,dependent)"
-    ureal = lambda x,u: context.elementary_real(
-            x,u,inf,None,False # No label and independent
-    )
-    value = lambda x: float(x)
+    ureal = lambda x,u: UncertainReal._elementary(x,u,inf,None,True)
+    value = lambda x: x.x if isinstance(x,UncertainReal) else float(x)
     
     x = ureal(lower,1.0)
     f_x = fn(x) 
     fl = value(f_x)
+    
     assert isinstance(f_x,UncertainReal),\
            "fn() must return an UncertainReal, got: %s" % type(f_x)
     
-    # Don't have ._node.partial_derivative() now
-    # But there is y.sensitivity(x)
-    # if we know that `x` is elementary and independent then 
-    # sensitivity = y._u_components.get(n,0.0) / n.u, where n = x._node
-    #
     if abs( fl ) < epsilon:
-        return fl,f_x._node.partial_derivative(x._node)
+        return fl,f_x.sensitivity(x)
     
     x = ureal(upper,1.0)
     f_x = fn(x) 
     fu = value(f_x)
-    if abs( fu ) < epsilon:
-        return fu,f_x._node.partial_derivative(x._node)
 
-    assert fl * fu < 0.0,\
-           "range does not appear to contain a root: %s" % str((fl,fu))
+    if abs( fu ) < epsilon:
+            return fu,f_x.sensitivity(x)
+
+    if fl * fu >= 0.0:
+        raise RuntimeError(
+           "range does not appear to contain a root: {}".format((fl,fu))
+        )
 
     if fl > 0.0:
         lower, upper = upper, lower
@@ -175,7 +156,7 @@ def nr_get_root(fn,x_min,x_max,epsilon,context):
     x = ureal(xk,1.0)
     f_x = fn(x) 
     f = value( f_x )
-    df = f_x._node.partial_derivative(x._node)
+    df = f_x.sensitivity(x)
 
     for i in xrange(100): 
         if  (((xk-upper) * df-f) * ((xk-lower) * df - f) > 0.0
@@ -210,11 +191,11 @@ def nr_get_root(fn,x_min,x_max,epsilon,context):
         x = ureal(xk,1.0)
         f_x = fn(x) 
         f = value( f_x )
-        df = f_x._node.partial_derivative(x._node)
+        df = f_x.sensitivity(x)
 
         if(f < 0.0):
             lower = xk
         else:
             upper = xk
             
-    raise RuntimeError,"Failed to converge"
+    raise RuntimeError("Failed to converge")
