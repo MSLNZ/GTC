@@ -7,7 +7,7 @@ DIGITS = 13
 from GTC import *
 from testing_tools import *
 
-from implicit import implicit
+from GTC.implicit import implicit
 
 #-----------------------------------------------------
 class TestImplicit(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestImplicit(unittest.TestCase):
 
     A RuntimeError will be raised if the root search does not converge.
     
-    An AssertionError will be raised is:
+    An exception will be raised is:
         * fn() does not return an UncertainReal
         * [x_min,x_max] does not appear to include a zero (this is done by
             checking that fn(x_max) * fn(x_min) < 0)
@@ -26,8 +26,8 @@ class TestImplicit(unittest.TestCase):
     """
     def test_preconditions(self):
         fn = lambda x : x + ureal(0,1)
-        self.assertRaises(AssertionError,implicit,fn,10,1)
-        self.assertRaises(AssertionError,implicit,fn,10,20)
+        self.assertRaises(RuntimeError,implicit,fn,10,1)
+        self.assertRaises(RuntimeError,implicit,fn,10,20)
         fn = lambda x : value(x)
         self.assertRaises(AssertionError,implicit,fn,-1,1)
 
@@ -37,19 +37,19 @@ class TestImplicit(unittest.TestCase):
         x = implicit(fn,0,math.pi)
         self.assertTrue( equivalent(value(x), math.pi/2.0 ) )
         self.assertTrue( equivalent( value(fn(x)),0 ) )
-        self.assertTrue( equivalent( u_component(x,x),0.0 ) )
+        self.assertTrue( equivalent( rp.u_component(x,x),0.0 ) )
 
         # solve 0 = (x-x1) - y
         y = ureal(0.5,.1)
         x1 = ureal(1,1)
         fn = lambda x: (x-x1) - y
         x = implicit(fn,0.5,2.0)
-        self.assertTrue( equivalent(value(x), 1.5 ) )
+        self.assertTrue( equivalent( value(x), 1.5 ) )
         self.assertTrue( equivalent( value(fn(x)),0 ) )
-        self.assertTrue( equivalent( u_component(x,x1),1.0 ) )
-        self.assertTrue( equivalent( u_component(x,y),.1 ) )
+        self.assertTrue( equivalent( rp.u_component(x,x1),1.0 ) )
+        self.assertTrue( equivalent( rp.u_component(x,y),.1 ) )
         self.assertTrue( equivalent( uncertainty(x), math.sqrt(variance(y)+variance(x1))) )
-        
+  
 #===============================================================
 if(__name__== '__main__'):
 
