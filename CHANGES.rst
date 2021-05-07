@@ -2,11 +2,12 @@
 Release Notes
 =============
 
-Version 1.3.4 (in development)
-==============================
+Version 1.3.4 (???)
+===================
 
     * :func:`reporting.budget` now expects explicit keyword arguments for all options, instead of positional arguments (the names of the previous positional arguments are now the keywords).
     * :func:`reporting.budget` takes a new key word ``intermediate``
+    * :func:`function.implicit` has been added. This finds the uncertain-number solution ``x`` to a user-defined function :math:`fn(x,...) = 0`.
 
 Version 1.3.3 (2021.02.16)
 ==========================
