@@ -95,7 +95,7 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
-version = "1.3.4.dev0"
+version = "1.3.4"
 
 copyright = """Copyright (c) 2021, \
 Measurement Standards Laboratory of New Zealand"""
