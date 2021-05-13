@@ -508,15 +508,18 @@ def budget(y,**kwargs):
         ... 
         y1: 1.11803
         y2: 0.509902
+      
+    .. versionchanged::
+        Added the `intermediate` keyword argument. 
         
     """  
     # Keyword options
-    influences = kwargs['influences'] if 'influences' in kwargs else None 
-    key = kwargs['key'] if 'key' in kwargs else 'u' 
-    reverse = kwargs['reverse'] if 'reverse' in kwargs else True
-    trim = kwargs['trim'] if 'trim' in kwargs else 0.01
-    max_number = kwargs['max_number'] if 'max_number' in kwargs else None
-    intermediate = kwargs['intermediate'] if 'intermediate' in kwargs else False
+    influences = kwargs.get('influences') 
+    key = kwargs.get('key', 'u') 
+    reverse = kwargs.get('reverse', True)
+    trim = kwargs.get('trim', 0.01)
+    max_number = kwargs.get('max_number')
+    intermediate = kwargs.get('intermediate', False)
     
     # Some combinations are incompatible
     if intermediate and influences is not None:

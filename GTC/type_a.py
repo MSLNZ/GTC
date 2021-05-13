@@ -1366,7 +1366,7 @@ def merge(a,b,TOL=1E-13):
         observed in the data, and therefore
         assessed in a type-A analysis.
 
-    .. versionadded:: 1.3.3
+    .. versionchanged:: 1.3.3
        Added the `TOL` keyword argument.
 
     **Example**::

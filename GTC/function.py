@@ -349,6 +349,8 @@ def implicit(fn,x_min,x_max,epsilon=1E-13):
         >>> function.implicit(fn,0,2)
         ureal(1.0,0.025...,inf)
 
+    .. versionadded:: 1.3.4
+    
     """
     return implicit_real(fn,x_min,x_max,epsilon)
     
@@ -375,7 +377,9 @@ def implicit_real(fn,x_min,x_max,epsilon):
     Returns
     -------
     UncertainReal
-    
+
+    .. versionadded:: 1.3.4
+
     """
     xk,dy_dx = nr_get_root(fn,x_min,x_max,epsilon)
 
@@ -421,6 +425,8 @@ def nr_get_root(fn,x_min,x_max,epsilon):
     Returns
     -------
     (float,float)
+
+    .. versionadded:: 1.3.4
 
     """
     if x_max <= x_min:      
@@ -474,8 +480,8 @@ def nr_get_root(fn,x_min,x_max,epsilon):
             or  ( abs(2.0 * f) > abs(dx2 * df) )):
             # Bisect if Newton out of range or
             # not decreasing fast enough.
-            dx2 = dx;
-            dx = (upper - lower) / 2.0;
+            dx2 = dx
+            dx = (upper - lower) / 2.0
 
             # If the bisection is too small then the root is found
             if(abs(dx) <= epsilon):
