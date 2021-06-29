@@ -2,7 +2,7 @@
 GTC
 ===
 
-|docs| |travis| |appveyor| |pypi| |zenodo|
+|docs| |github tests| |pypi| |zenodo|
 
 The GUM Tree Calculator is a Python package for processing data with measurement uncertainty.
 
@@ -66,11 +66,8 @@ The documentation for **GTC** can be found `here <https://gtc.readthedocs.io/en/
     :target: https://gtc.readthedocs.io/en/latest/
     :alt: Documentation Status
 
-.. |travis| image:: https://img.shields.io/travis/MSLNZ/GTC/master.svg?label=Travis-CI
-    :target: https://travis-ci.org/MSLNZ/GTC
-
-.. |appveyor| image:: https://img.shields.io/appveyor/ci/jborbely/gtc/master.svg?label=AppVeyor
-    :target: https://ci.appveyor.com/project/jborbely/gtc/branch/master
+.. |github tests| image:: https://github.com/MSLNZ/GTC/actions/workflows/run-tests.yml/badge.svg
+   :target: https://github.com/MSLNZ/GTC/actions/workflows/run-tests.yml
 
 .. |pypi| image:: https://badge.fury.io/py/GTC.svg
     :target: https://badge.fury.io/py/GTC
