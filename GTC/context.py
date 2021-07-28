@@ -115,19 +115,22 @@ class Context(object):
         return l 
             
     #------------------------------------------------------------------------
-    def new_node(self,uid,label,u):
+    def new_node(self,uid,label,u,df):
         """
         Return a new ``Node`` unless one with the same uid exists
+        
+        Prior to v.1.3.5, degrees of freedom was not buffered in a Node,
+        so the default ``None`` is provide for backward compatibility
         
         """
         if uid in self._registered_intermediate_nodes:
             raise RuntimeError(
-                "intermediate node uid({}), '{}', u={} is used".format(
-                    uid,label,u
+                "intermediate node uid({}), '{}', u={}, df={} is used".format(
+                    uid,label,u,df
                 )
             )
         else:          
-            n = Node(uid,label,u)
+            n = Node(uid,label,u,df)
             self._registered_intermediate_nodes[uid] = n
 
         return n
