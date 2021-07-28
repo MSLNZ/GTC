@@ -294,7 +294,8 @@ class UncertainReal(object):
                 _node = context._context.new_node(
                     context._context._next_intermediate_id(),
                     label,
-                    self.u
+                    self.u,
+                    self.df
                 )
 
                 # Seed the Vector of intermediate components 
@@ -811,14 +812,13 @@ class UncertainReal(object):
             0.5
             
         """
-        if hasattr(self,'_u'):
+        if self.is_elementary or self.is_intermediate:
+            return self._node.u
+        elif hasattr(self,'_u'):
             return self._u
         else:
-            # cache the return value
-            if self.is_elementary or self.is_intermediate:
-                self._u = self._node.u
-            else:
-                self._u = math.sqrt( std_variance_real(self) )
+            v = std_variance_real(self)
+            self._u = math.sqrt( v )
 
             return self._u 
             
@@ -837,17 +837,17 @@ class UncertainReal(object):
             0.25
             
         """
-        if hasattr(self,'_u'):
-            u = self.u 
+        if self.is_elementary or self.is_intermediate:
+            u = self._node.u
+            return u*u
+        elif hasattr(self,'_u'):
+            u = self._u 
             return u*u
         else:
-            if self.is_elementary or self.is_intermediate:
-                u = self._u = self._node.u
-                return u*u
-            else:
-                v = std_variance_real(self)
-                self._u = math.sqrt( v )
-                return v
+            v = std_variance_real(self)
+            self._u = math.sqrt( v )
+            
+            return v
 
     #------------------------------------------------------------------------
     @property
@@ -885,6 +885,16 @@ class UncertainReal(object):
         """
         if self.is_elementary:
             return self._node.df
+            
+        elif self.is_intermediate:
+            # The `None` case is to handle a change in the 
+            # archiving process. It will be phased out after 
+            # a few more releases. See also archive.py _thaw
+            # shim function.
+            if self._node.df is None:
+                self._node.df = welch_satterthwaite(self).df 
+            return self._node.df
+            
         else:
             v_df = welch_satterthwaite(self)
             if not hasattr(self,"_u"):
