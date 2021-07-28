@@ -19,14 +19,16 @@ class Node(object):
         'uid',
         'label',
         'u',
+        'df',
         'complex',
         '__weakref__'
     ]
  
-    def __init__(self,uid,label,u):    
+    def __init__(self,uid,label,u,df):    
         self.uid = uid
         self.label = label
         self.u = u
+        self.df = df
  
 #----------------------------------------------------------------------------
 class Leaf(Node):
@@ -36,16 +38,14 @@ class Leaf(Node):
     """
     
     __slots__ = [
-        'df',
         'independent',
         'correlation',
         'ensemble'
     ]
     
     def __init__(self,uid,label,u,df,independent=True):
-        Node.__init__(self,uid,label,u)
+        Node.__init__(self,uid,label,u,df)
     
-        self.df = df
         self.independent = independent
         if not independent:
             self.correlation = {uid: 1.0}
