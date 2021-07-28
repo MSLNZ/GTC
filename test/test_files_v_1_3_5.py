@@ -78,10 +78,10 @@ class TestArchiveJSONFilev135(unittest.TestCase):
         self.assertEqual( repr(z1), repr(z) )
 
 #-----------------------------------------------------
-class TestArchivePickleFilev133(unittest.TestCase):
+class TestArchivePickleFilev135(unittest.TestCase):
 
     """
-    Use a reference file created using GTC v 1.3.3 
+    Use a reference file created using GTC v 1.3.5 
     to make sure we maintain backward compatibility.
     """
     
