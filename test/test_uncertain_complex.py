@@ -1,5 +1,6 @@
 import re
 import unittest
+import numbers
 
 try:
     from operator import div  # Python 2
@@ -2655,6 +2656,12 @@ class TestMisc(unittest.TestCase):
             )
         )
 
+    def test_intermediate_constant(self):
+        self.assertTrue( equivalent_complex( result(1+3j), 1+3j) )
+        self.assertTrue( isinstance( result(1+3j), numbers.Complex) )
+        x = self.assertWarns( RuntimeWarning, result,(1+3j),label='error')
+        x = self.assertWarns( RuntimeWarning, result,1,label='error')
+        
 #============================================================================
 if(__name__== '__main__'):
 
