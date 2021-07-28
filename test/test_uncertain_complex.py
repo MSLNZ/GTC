@@ -2660,7 +2660,7 @@ class TestMisc(unittest.TestCase):
     def test_intermediate_constant(self):
         self.assertTrue( equivalent_complex( result(1+3j), 1+3j) )
         self.assertTrue( isinstance( result(1+3j), numbers.Complex) )
-        if sys.version_info[0] < 3:
+        if sys.version_info[0] > 2:
             x = self.assertWarns( RuntimeWarning, result,(1+3j),label='error')
             x = self.assertWarns( RuntimeWarning, result,1,label='error')
         
