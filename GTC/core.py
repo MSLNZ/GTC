@@ -464,6 +464,8 @@ def result(un,label=None):
     if hasattr(un,'_intermediate'):
         return un._intermediate(label)
     elif isinstance(un,numbers.Complex):
+        assert False, 'Need a test case for this!!'
+        # TODO: no intermediate is created
         return un
     else:
         raise TypeError(
