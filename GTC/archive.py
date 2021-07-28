@@ -431,7 +431,7 @@ class Archive(object):
                 
         # Use this to recreate intermediate nodes in _thaw
         self._intermediate_uids = {
-            n_i.uid : (n_i.label,n_i.u)
+            n_i.uid : (n_i.label,n_i.u,n_i.df)
             for n_i in _intermediate_node_to_uid
         }
         
@@ -560,8 +560,17 @@ class Archive(object):
         # uncertain numbers. This must be done before the 
         # intermediate uncertain numbers are recreated.
         items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items()
+        
+        # In v1.3.5, a df field was added to intermediate nodes. 
+        # In previous versions it was absent. This shim function
+        # will add `None` to the df attribute, which can then be
+        # fixed once the uncertain number object is formed.
+        # This is a temporary feature that will be removed after a few releases.
+        # See also lib.py property df  
+        shim_1_3_3 = lambda args: args + (None,) if len(args) == 2 else args
+            
         _nodes = {
-            uid: context._context.new_node(uid, *args)
+            uid: context._context.new_node(uid, *shim_1_3_3(args) )
                 for uid, args in items
         }
             
@@ -703,14 +712,18 @@ def _builder(o_name,_nodes,_tagged_reals):
                 
     elif isinstance(obj,IntermediateReal):                
             
+        _node = _nodes[obj.uid] 
+        
         un = UncertainReal(
             obj.value,
             _vector_index_to_node( obj.u_components ),
             _vector_index_to_node( obj.d_components ),
             _ivector_index_to_node( obj.i_components, _nodes ),
-            _nodes[obj.uid],
+            _node,
             )
         
+        if _node.df is None: un.df
+            
         _tagged_reals[o_name] = un
 
     else:
