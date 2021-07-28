@@ -3,6 +3,8 @@ from __future__ import division
 import math
 import cmath
 import numbers
+import warnings
+
 try:
     from itertools import izip  # Python 2
 except ImportError:
@@ -463,10 +465,18 @@ def result(un,label=None):
     """
     if hasattr(un,'_intermediate'):
         return un._intermediate(label)
+        
     elif isinstance(un,numbers.Complex):
-        assert False, 'Need a test case for this!!'
-        # TODO: no intermediate is created
+        # This covers any number type
+        if label is not None:
+            warnings.warn(
+                "A label cannot be applied to a pure number by result():"
+                " the label {!r} has been ignored".format(label),
+                RuntimeWarning
+            )
+        
         return un
+        
     else:
         raise TypeError(
             "undefined for {!r}'".format(un)
