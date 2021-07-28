@@ -1,10 +1,11 @@
 import re
 import unittest
 import numbers
+import sys
 
-try:
+if sys.version_info[0] < 3:
     from operator import div  # Python 2
-except ImportError:
+else:
     from operator import truediv as div
 
 import numpy
@@ -2659,8 +2660,9 @@ class TestMisc(unittest.TestCase):
     def test_intermediate_constant(self):
         self.assertTrue( equivalent_complex( result(1+3j), 1+3j) )
         self.assertTrue( isinstance( result(1+3j), numbers.Complex) )
-        x = self.assertWarns( RuntimeWarning, result,(1+3j),label='error')
-        x = self.assertWarns( RuntimeWarning, result,1,label='error')
+        if sys.version_info[0] < 3:
+            x = self.assertWarns( RuntimeWarning, result,(1+3j),label='error')
+            x = self.assertWarns( RuntimeWarning, result,1,label='error')
         
 #============================================================================
 if(__name__== '__main__'):
