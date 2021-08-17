@@ -149,6 +149,30 @@ class TestAPIFunctions(unittest.TestCase):
         self.assertEqual(variance(4),0)
 
     def test_get_correlation(self):
+        # Self correlation tests 
+        x = ureal(1,1)
+        y = ureal(1,1)
+        self.assertTrue( equivalent(
+            get_correlation(x,x),
+            1.0
+        ) )
+        self.assertTrue( equivalent(
+            get_correlation(+x,x),
+            1.0
+        ) )
+        self.assertTrue( equivalent(
+            get_correlation(+x,+x),
+            1.0
+        ) )
+        self.assertTrue( equivalent(
+            get_correlation(x+0*y,x+0*y),
+            1.0
+        ) )
+        self.assertTrue( equivalent(
+            get_correlation(x+y,x+y),
+            1.0
+        ) )
+        
         # If the product of variances is zero but the covariance
         # is also zero, then return a zero correlation coefficient.
         #
@@ -359,6 +383,33 @@ class TestGetCovariance(unittest.TestCase):
             u1[1]*r[2]*u2[0],
             u1[1]*r[3]*u2[1],
         )
+    def test_self(self):
+        # Self covariance tests 
+        
+        x = ureal(1,1)
+        y = ureal(1,1)
+        
+        self.assertTrue( equivalent(
+            get_covariance(x,x),
+            x.u*y.u
+        ) )
+        self.assertTrue( equivalent(
+            get_covariance(+x,x),
+            x.u*y.u
+        ) )
+        self.assertTrue( equivalent(
+            get_covariance(+x,+x),
+            x.u*y.u
+        ) )
+        self.assertTrue( equivalent(
+            get_covariance(x+0*y,x+0*y),
+            x.u*y.u
+        ) )
+        self.assertTrue( equivalent(
+            get_covariance(x+y,x+y),
+            x.u*y.u*(x.x+y.x)
+        ) )
+        
     def test(self):
         ux1 = [0.25,0]
         uz1 = [0.33,1.5]

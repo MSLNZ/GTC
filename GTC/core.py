@@ -439,7 +439,7 @@ def result(un,label=None):
     The component of uncertainty, or the sensitivity, of an uncertain number 
     with respect to an intermediate result can be evaluated. 
 
-    Declaring intermediate results also enables the dependencies of uncertain 
+    Declaring intermediate results also enables uncertain 
     numbers to be stored in an archive.
         
     .. note::
@@ -467,7 +467,7 @@ def result(un,label=None):
         return un._intermediate(label)
         
     elif isinstance(un,numbers.Complex):
-        # This covers any number type
+        # This covers any pure number type
         if label is not None:
             warnings.warn(
                 "A label cannot be applied to a pure number by result():"

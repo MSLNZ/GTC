@@ -320,14 +320,14 @@ class UncertainReal(object):
                 # user has repeated the registration process.
 
         else:
-            # There should be no harm in ignoring elementary UNs.
-            # They will be archived properly and they are not dependent
+            # There is no harm in ignoring elementary UNs.
+            # They can be archived and they are not dependent
             # on anything. It is convenient for the user not to worry
-            # whether or not something is elementary or not. 
+            # whether something is elementary or not. 
             
-            # The only surprising behaviour to a user would be that 
-            # if a `label` has already been assigned to the elementary
-            # uncertain number, it will not be changed by this call. 
+            # The only surprising behaviour to a user would be 
+            # if a `label` had already been assigned to the elementary
+            # uncertain number, then it will not be changed by this call. 
             # 
             # Note that this code ripples through other types, because
             # UncertainComplex and UncertainArray use this class method.
@@ -338,7 +338,7 @@ class UncertainReal(object):
                     n.label = label
                 elif label != n.label:
                     warnings.warn(
-                        "Elementary UN label `{}` was not changed by `result()`:"
+                        "label `{}` was not changed by `result()`:"
                         " the new label `{}` has been ignored".format(n.label,label),
                         RuntimeWarning
                     )
@@ -1893,7 +1893,11 @@ def get_correlation_real(x1,x2):
         ln1 = x1._node
         ln2 = x2._node
         
-        if ln1.independent:
+        if ln1.uid == ln2.uid: 
+            # Correlation with self
+            return 1.0
+        elif ln1.independent:
+            # Two different independent UNs cannot be correlated 
             return 0.0
         else:
             return ln1.correlation.get( ln2.uid, 0.0 )
@@ -2000,10 +2004,15 @@ def get_covariance_real(x1,x2):
     """
     if x1.is_elementary and x2.is_elementary:
         n1 = x1._node
-        if n1.independent:
+        n2 = x2._node
+
+        if n1.uid == n2.uid: 
+            # Correlation with self
+            return 1.0
+        elif n1.independent:
+            # Two different independent UNs cannot be correlated 
             return 0.0
         else:
-            n2 = x2._node
             return n1.u*n1.correlation.get(n2.uid,0.0)*n2.u
     else:        
         return std_covariance_real(x1,x2) 
