@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 1.3.5 (2021.????)
+Version 1.3.5 (2021.08.19)
 ==========================
 
     * Fixed a bug in :func:`core.get_covariance`. The function incorrectly returned zero when the arguments were a single independent elementary uncertain real number. 
