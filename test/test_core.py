@@ -150,8 +150,8 @@ class TestAPIFunctions(unittest.TestCase):
 
     def test_get_correlation(self):
         # Self correlation tests 
-        x = ureal(1,1)
-        y = ureal(1,1)
+        x = ureal(1,5)
+        y = ureal(1,6)
         self.assertTrue( equivalent(
             get_correlation(x,x),
             1.0
@@ -386,28 +386,28 @@ class TestGetCovariance(unittest.TestCase):
     def test_self(self):
         # Self covariance tests 
         
-        x = ureal(1,1)
-        y = ureal(1,1)
+        x = ureal(1,2)
+        y = ureal(1,3)
         
         self.assertTrue( equivalent(
             get_covariance(x,x),
-            x.u*y.u
+            x.u*x.u
         ) )
         self.assertTrue( equivalent(
             get_covariance(+x,x),
-            x.u*y.u
+            x.u*x.u
         ) )
         self.assertTrue( equivalent(
             get_covariance(+x,+x),
-            x.u*y.u
+            x.u*x.u
         ) )
         self.assertTrue( equivalent(
             get_covariance(x+0*y,x+0*y),
-            x.u*y.u
+            x.u*x.u
         ) )
         self.assertTrue( equivalent(
             get_covariance(x+y,x+y),
-            x.u*y.u*(x.x+y.x)
+            (x+y).u**2 
         ) )
         
     def test(self):

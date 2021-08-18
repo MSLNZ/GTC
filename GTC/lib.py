@@ -2008,10 +2008,12 @@ def get_covariance_real(x1,x2):
 
         if n1.uid == n2.uid: 
             # Correlation with self
-            return 1.0
+            return n1.u**2
+            
         elif n1.independent:
             # Two different independent UNs cannot be correlated 
             return 0.0
+            
         else:
             return n1.u*n1.correlation.get(n2.uid,0.0)*n2.u
     else:        
