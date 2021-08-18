@@ -110,7 +110,7 @@ are copied)
    True
 
 However, if an element in ``ua`` is redefined to point to a new object then the
-corresponding element is ``data`` does not change
+corresponding element in ``data`` does not change
 
 .. code-block:: pycon
 
