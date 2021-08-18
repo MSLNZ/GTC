@@ -1,9 +1,9 @@
 """
-Script used to create 'test_file_v_1_3_3.json' as a reference file 
+Script used to create 'ref_file_v_1_3_3.json' as a reference file 
 that must be readable by subsequent versions of GTC.  
 
-The unit test 'test_json_v_1_3_3.py' expects to find 
-'test_file_v_1_3_3.json' in the local directory.
+The unit test 'test_files_v_1_3_3.py' expects to find 
+'ref_file_v_1_3_3.json' in the local directory.
 
 """
 import os

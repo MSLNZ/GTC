@@ -5,9 +5,9 @@ Release Notes
 Version 1.3.5 (2021.????)
 ==========================
 
-    * Fixed a bug in :func:`core.get_covariance` has been corrected. The function incorrectly returned zero when the arguments were a single independent elementary uncertain real number. 
+    * Fixed a bug in :func:`core.get_covariance`. The function incorrectly returned zero when the arguments were a single independent elementary uncertain real number. 
 
-    * Fixed a bug in :func:`core.get_correlation` has been corrected. The function incorrectly returned zero when the arguments were a single independent elementary uncertain real number. 
+    * Fixed a bug in :func:`core.get_correlation`. The function incorrectly returned zero when the arguments were a single independent elementary uncertain real number. 
 
     * :func:`core.result` now raises a warning if applied to a pure number and there is a label specified.
     

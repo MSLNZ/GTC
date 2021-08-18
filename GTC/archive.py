@@ -722,8 +722,6 @@ def _builder(o_name,_nodes,_tagged_reals):
             _node,
             )
         
-        if _node.df is None: un.df
-            
         _tagged_reals[o_name] = un
 
     else:

@@ -142,7 +142,7 @@ Ordinary Least-Squares Results:
         :arg x_label: a label for the return uncertain number `x` 
         :arg y_label: a label for the estimate of `y` based on ``yseq`` 
 
-        ..note::
+        .. note::
             When ``x_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
 
@@ -197,7 +197,7 @@ Ordinary Least-Squares Results:
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty will also be propagated into ``y``.
 
-        ..note::
+        .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
         
@@ -248,7 +248,7 @@ Relative Weighted Least-Squares Results:
         :arg x_label: a label for the return uncertain number `x` 
         :arg y_label: a label for the estimate of `y` based on ``yseq``
 
-        ..note::
+        .. note::
             When ``x_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
 
@@ -295,7 +295,7 @@ Relative Weighted Least-Squares Results:
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty is also propagated into ``y``.
         
-        ..note::
+        .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
 
@@ -348,7 +348,7 @@ Weighted Least-Squares Results:
         The variations in ``yseq`` values are assumed to result from 
         independent random effects.
         
-        ..note::
+        .. note::
             When ``x_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
 
@@ -391,7 +391,7 @@ Weighted Least-Squares Results:
         An uncertain real number can be used for ``x``, in which
         case the associated uncertainty is also propagated into ``y``.
         
-        ..note::
+        .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
 

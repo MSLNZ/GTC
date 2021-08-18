@@ -119,10 +119,13 @@ class Context(object):
         """
         Return a new ``Node`` unless one with the same uid exists
         
-        Prior to v.1.3.5, degrees of freedom was not buffered in a Node,
-        so the default ``None`` is provide for backward compatibility
-        
         """
+        
+        # Prior to v1.3.5, degrees of freedom was not buffered in a Node.
+        # Now, to maintain backward comparability, a value ``None`` 
+        # will be inserted for backward compatibility when needed.
+        # See the ``shim_1_3_3`` function in archive.py.        
+
         if uid in self._registered_intermediate_nodes:
             raise RuntimeError(
                 "intermediate node uid({}), '{}', u={}, df={} is used".format(

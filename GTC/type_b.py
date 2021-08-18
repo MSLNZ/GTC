@@ -262,7 +262,7 @@ Ordinary Least-Squares Results:
 
         The items in ``yseq`` must be uncertain real numbers.
         
-        ..note::
+        .. note::
             When ``x_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
         
@@ -284,7 +284,7 @@ Ordinary Least-Squares Results:
 
         This is a prediction of a single future response ``y`` to a stimulus ``x``
         
-        ..note::
+        .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
         
