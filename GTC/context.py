@@ -127,11 +127,21 @@ class Context(object):
         # See the ``shim_1_3_3`` function in archive.py.        
 
         if uid in self._registered_intermediate_nodes:
-            raise RuntimeError(
-                "intermediate node uid({}), '{}', u={}, df={} is used".format(
-                    uid,label,u,df
-                )
+            # If the node found is indistinguishable from the new node 
+            # then quietly ignore the request 
+            n = self._registered_intermediate_nodes[uid]
+            
+            OK = (
+                label == n.label and 
+                u == n.u and 
+                df == n.df 
             )
+            if not OK:
+                raise RuntimeError(
+                    "intermediate node uid({}), '{}', u={}, df={} is used".format(
+                        uid,label,u,df
+                    )
+                )
         else:          
             n = Node(uid,label,u,df)
             self._registered_intermediate_nodes[uid] = n
