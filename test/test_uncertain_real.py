@@ -868,7 +868,7 @@ class TestUncertainReal(unittest.TestCase):
         
         x = 1.2
         u = 0.2
-        x_str= "1.20(20)" # takes account of uncertainty rounding
+        x_str= " 1.20(20)" # takes account of uncertainty rounding
 
         un = ureal(x,u)
 
@@ -930,39 +930,39 @@ class TestUncertainReal(unittest.TestCase):
             inf,inf,inf,
             None,True
         )
-        self.assertEqual( str(x), 'inf(inf)')
+        self.assertEqual( str(x), ' inf(inf)')
         self.assertEqual( repr(x), 'ureal(inf,inf,inf)')
 
         x = UncertainReal._elementary(
             inf,inf,nan,
             None,True
         )
-        self.assertEqual( str(x), 'inf(inf)')
+        self.assertEqual( str(x), ' inf(inf)')
         self.assertEqual( repr(x), 'ureal(inf,inf,nan)')
         
         x = UncertainReal._elementary(
             inf,nan,nan,
             None,True
         )
-        self.assertEqual( str(x), 'inf(nan)')
+        self.assertEqual( str(x), ' inf(nan)')
         self.assertEqual( repr(x), 'ureal(inf,nan,nan)')
         
         x = UncertainReal._elementary(
             nan,nan,nan,
             None,True
         )
-        self.assertEqual( str(x), 'nan(nan)')
+        self.assertEqual( str(x), ' nan(nan)')
         self.assertEqual( repr(x), 'ureal(nan,nan,nan)')
 
         x = UncertainReal._elementary(
             1,0.1,nan,
             None,True
         )
-        self.assertEqual( str(x), '1.00(10)')
+        self.assertEqual( str(x), ' 1.00(10)')
         self.assertEqual( repr(x), 'ureal(1.0,0.1,nan)')
 
         x = ureal(1.0,0.0)
-        self.assertEqual( str(x), '1.000000')   # reverts to default number format
+        self.assertEqual( str(x), ' 1.000000')   # reverts to default number format
         self.assertEqual( repr(x), 'ureal(1.0,0.0,inf)')
 
 #----------------------------------------------------------------------------
