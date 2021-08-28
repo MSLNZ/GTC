@@ -2,6 +2,13 @@
 Release Notes
 =============
 
+Version 1.3.6 (2021.??.??)
+==========================
+
+    * When loading an uncertain-number archive from a file or string, if there is an existing intermediate :class:`nodes.Node` object that is indistinguishable from one in the archive then the existing :class:`nodes.Node` will be used instead. 
+    
+    * The string format of an uncertain real number now begins with a space if the value is positive.
+
 Version 1.3.5 (2021.08.19)
 ==========================
 
