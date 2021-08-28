@@ -468,7 +468,7 @@ class UncertainReal(object):
     def __str__(self):
         # Use 2-digit fixed-point format for the uncertainty          
         gself = self._round(2,0)
-        return "{1.x:.{0}f}{1.u_digits}".format( gself.precision, gself )
+        return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
              
     #------------------------------------------------------------------------
     def sensitivity(self,x):
