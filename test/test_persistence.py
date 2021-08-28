@@ -1230,12 +1230,17 @@ class TestArchive(unittest.TestCase):
         
         with open(path,'rb') as f:
             ar1 = persistence.load(f)
+            z1 = ar1.extract('z')
 
-        z1 = ar1.extract('z')
+        self.assertEqual( repr(z1), repr(z) )
 
         with open(path,'rb') as f:
-            # The attempt to create the node again is caught
-            self.assertRaises(RuntimeError,persistence.load,f)
+            # The attempt to create the uncertain number again is allowed 
+            # but should not create a new node object 
+            ar2 = persistence.load(f)
+            z2 = ar2.extract('z')
+            self.assertTrue( z2.is_intermediate )
+            self.assertTrue( z1._node is z2._node )
 
         os.remove(path)
  
@@ -1454,14 +1459,18 @@ class TestArchive(unittest.TestCase):
 
         s = persistence.dumps(ar)
 
-        context._context = Context()       
+        context._context = Context()
+        
         ar1 = persistence.loads(s)
-
         z1 = ar1.extract('z')
 
-        # The attempt to create the node again is caught
-        self.assertRaises(RuntimeError,persistence.loads,s)
- 
+        # The attempt to create a new uncertain number
+        # is allowed but a new node is not created
+        ar2 = persistence.loads(s)
+        z2 = ar2.extract('z')
+        self.assertTrue(z2.is_intermediate)
+        self.assertTrue( z2._node is z1._node)
+        
     def test_with_string3(self):
         """
         Dependent elementary UNs
