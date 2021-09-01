@@ -2,12 +2,14 @@
 Release Notes
 =============
 
-Version 1.3.6 (2021.??.??)
+Version 1.3.6 (2021.09.??)
 ==========================
 
-    * When loading an uncertain-number archive from a file or string, if there is an existing intermediate :class:`nodes.Node` object that is indistinguishable from one in the archive then the existing :class:`nodes.Node` will be used instead. 
+    * When loading an uncertain-number archive from a file or string, if there is an existing intermediate :class:`nodes.Node` registered with the context that is indistinguishable from one in the archive, then the existing :class:`nodes.Node` will be used and no error is raised. Nodes are considered indistinguishable if their labels, uncertainties and degrees of freedom are the same.  
     
-    * The string format of an uncertain real number now begins with a space if the value is positive.
+    * The string format of an uncertain real number now begins with a space, if the value is positive, or a negative sign.
+    
+    * The string format of an uncertain complex number now always shows the sign (+ or -) of the real component 
 
 Version 1.3.5 (2021.08.19)
 ==========================
