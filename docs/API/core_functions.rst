@@ -105,7 +105,7 @@ Uncertain Complex Numbers
 	
         >>> z = ucomplex(1.333-0.121212j,(0.01,0.002))
         >>> print(z)
-        (1.3330(100)-0.1212(20)j)
+        (+1.3330(100)-0.1212(20)j)
 	
     
     When an :class:`~lib.UncertainComplex` is converted to its Python *representation* ( e.g., by :func:`repr` ), a string is returned that shows the representation of the elements that define the uncertain number. 

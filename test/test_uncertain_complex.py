@@ -2557,7 +2557,7 @@ class TestStringRepresentations(unittest.TestCase):
             inf,
             None,True
         )
-        self.assertEqual( str(z), '(inf(inf)+inf(inf)j)')
+        self.assertEqual( str(z), '(+inf(inf)+inf(inf)j)')
         self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[inf,inf], r=nan, df=inf)')
         
         z = UncertainComplex._elementary(
@@ -2567,7 +2567,7 @@ class TestStringRepresentations(unittest.TestCase):
             nan,
             None,True
         )
-        self.assertEqual( str(z), '(inf(inf)+inf(inf)j)')
+        self.assertEqual( str(z), '(+inf(inf)+inf(inf)j)')
         self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[inf,inf], r=nan, df=nan)')
 
         z = UncertainComplex._elementary(
@@ -2577,7 +2577,7 @@ class TestStringRepresentations(unittest.TestCase):
             nan,
             None,True
         )
-        self.assertEqual( str(z), '(inf(inf)+inf(nan)j)')
+        self.assertEqual( str(z), '(+inf(inf)+inf(nan)j)')
         self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[inf,nan], r=nan, df=nan)')
 
         z = UncertainComplex._elementary(
@@ -2587,7 +2587,7 @@ class TestStringRepresentations(unittest.TestCase):
             nan,
             None,True
         )
-        self.assertEqual( str(z), '(inf(nan)+inf(nan)j)')
+        self.assertEqual( str(z), '(+inf(nan)+inf(nan)j)')
         self.assertEqual( repr(z), 'ucomplex((inf+infj), u=[nan,nan], r=nan, df=nan)')
 
         z = UncertainComplex._elementary(
@@ -2597,7 +2597,7 @@ class TestStringRepresentations(unittest.TestCase):
             nan,
             None,True
         )
-        self.assertEqual( str(z), '(inf(nan)+nan(nan)j)')
+        self.assertEqual( str(z), '(+inf(nan)+nan(nan)j)')
         self.assertEqual( repr(z), 'ucomplex((inf+nanj), u=[nan,nan], r=nan, df=nan)')
 
         z = UncertainComplex._elementary(
@@ -2607,7 +2607,7 @@ class TestStringRepresentations(unittest.TestCase):
             nan,
             None,True
         )
-        self.assertEqual( str(z), '(nan(nan)+nan(nan)j)')
+        self.assertEqual( str(z), '(+nan(nan)+nan(nan)j)')
         self.assertEqual( repr(z), 'ucomplex((nan+nanj), u=[nan,nan], r=nan, df=nan)')
 
         z = UncertainComplex._elementary(
@@ -2617,7 +2617,7 @@ class TestStringRepresentations(unittest.TestCase):
             nan,
             None,True
         )
-        self.assertEqual( str(z), '(1.00(10)+1.00(10)j)')
+        self.assertEqual( str(z), '(+1.00(10)+1.00(10)j)')
         self.assertEqual( repr(z), 'ucomplex((1+1j), u=[0.1,0.1], r=0.0, df=nan)')
 
 #-----------------------------------------------------

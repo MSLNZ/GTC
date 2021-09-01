@@ -2676,7 +2676,7 @@ class UncertainComplex(object):
     #------------------------------------------------------------------------
     def __str__(self):  
         gself = self._round(2,0)
-        return "({1.real:.{0}f}({2}){1.imag:+.{0}f}({3})j)".format(
+        return "({1.real:+.{0}f}({2}){1.imag:+.{0}f}({3})j)".format(
             gself.precision,
             gself.x,
             gself.re_u_digits,

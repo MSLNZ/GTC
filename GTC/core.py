@@ -628,7 +628,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         
         >>> z = v * exp(phi)/ i
         >>> print(z)
-        (127.732(70)+219.847(296)j)
+        (+127.732(70)+219.847(296)j)
         >>> z.r
         -0.591484610818998...
 

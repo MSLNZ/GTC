@@ -137,7 +137,7 @@ The complex impedance is ::
 
     >>> z = v * exp(phi) / i
     >>> print(z)
-    (127.73(19)+219.85(20)j)
+    (+127.73(19)+219.85(20)j)
     
 We see that our best estimate of the impedance is the complex value :math:`(127.73 +\mathrm{j}219.85) \,\Omega`. The standard uncertainty in the real component is :math:`0.19 \,\Omega` and the standard uncertainty in the imaginary component is :math:`0.20 \,\Omega`. There is also a small correlation between our estimates of the real and imaginary components ::
 
