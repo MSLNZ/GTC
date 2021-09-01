@@ -104,19 +104,19 @@ Using the remainder of the calibration data, we can compare the calibration line
 
     >>> for x_i,y_i in zip(x_data,y_data):
     ...     dif = y_i - (x_i * b + a)
-    ...     print("x={:G}, dif={}".format(x_i,dif))
+    ...     print("x = {:G}, dif ={}".format(x_i,dif))
     ...
-    x=0, dif=...0.00000(28)
-    x=0.2039, dif=0.00196(34)
-    x=0.408, dif=0.00196(52)
-    x=0.612, dif=0.00294(72)
-    x=0.816, dif=0.00392(94)
-    x=1.0201, dif=0.0039(12)
-    x=1.2242, dif=0.0039(14)
-    x=1.4283, dif=0.0039(16)
-    x=1.6325, dif=0.0029(19)
-    x=1.8367, dif=0.0020(21)
-    x=2.041, dif=0.0000(23)
+    x = 0, dif = ...0.00000(28)
+    x = 0.2039, dif = 0.00196(34)
+    x = 0.408, dif = 0.00196(52)
+    x = 0.612, dif = 0.00294(72)
+    x = 0.816, dif = 0.00392(94)
+    x = 1.0201, dif = 0.0039(12)
+    x = 1.2242, dif = 0.0039(14)
+    x = 1.4283, dif = 0.0039(16)
+    x = 1.6325, dif = 0.0029(19)
+    x = 1.8367, dif = 0.0020(21)
+    x = 2.041, dif = 0.0000(23)
 
 A maximum deviation (worst case error) is taken to be 0.005.[#Kessel]_ This amount of deviation is assumed to cover departures from linearity of the sensor [#]_.
 
@@ -215,19 +215,19 @@ The differences between nominal standard values and the sensor estimates can be 
 
     >>> for x_i,y_i in zip(x_data,y_data):
     ...    dif = y_i - (f_lin(x_i) * b + a)
-    ...    print("x={:G}, dif={}".format(x_i,dif))
+    ...    print("x = {: G}, dif ={}".format(x_i,dif))
     ...
-    x=0, dif=...0.00000(28)
-    x=0.2039, dif=0.00063(34)
-    x=0.408, dif=-0.00048(52)
-    x=0.612, dif=-0.00036(72)
-    x=0.816, dif=0.00003(94)
-    x=1.0201, dif=-0.0003(12)
-    x=1.2242, dif=-0.0002(14)
-    x=1.4283, dif=0.0002(16)
-    x=1.6325, dif=0.0000(19)
-    x=1.8367, dif=0.0003(21)
-    x=2.041, dif=0.0000(23)
+    x = 0, dif =...0.00000(28)
+    x = 0.2039, dif = 0.00063(34)
+    x = 0.408, dif =-0.00048(52)
+    x = 0.612, dif =-0.00036(72)
+    x = 0.816, dif = 0.00003(94)
+    x = 1.0201, dif =-0.0003(12)
+    x = 1.2242, dif =-0.0002(14)
+    x = 1.4283, dif = 0.0002(16)
+    x = 1.6325, dif = 0.0000(19)
+    x = 1.8367, dif = 0.0003(21)
+    x = 2.041, dif = 0.0000(23)
 
 Which shows that the differences are much smaller than before.
 

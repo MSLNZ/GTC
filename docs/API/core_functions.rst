@@ -55,7 +55,7 @@ Uncertain Real Numbers
 	
         >>> x = ureal(1.414141,0.01)
         >>> str(x) 
-        '1.414(10)'
+        ' 1.414(10)'
         >>> print(x)
         1.414(10)
 	

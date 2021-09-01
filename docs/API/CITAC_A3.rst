@@ -139,8 +139,8 @@ A reduction in the uncertainty attributed to repeatability, by a factor of :math
     >>> R = ureal(1.0,0.001/math.sqrt(3),label='R')
  
     >>> c_HCl = R * (1000 * m_KHP * P_KHP * V_T2)/(M_KHP * V_T1 * V_HCl)
-    >>> print('c_HCl={}'.format(c_HCl))
-    c_HCl=0.10139(16)
+    >>> print('c_HCl ={}'.format(c_HCl))
+    c_HCl = 0.10139(16)
 
  
     >>> for cpt,u in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
