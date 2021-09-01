@@ -106,7 +106,7 @@ Using the remainder of the calibration data, we can compare the calibration line
     ...     dif = y_i - (x_i * b + a)
     ...     print("x = {:G}, dif ={}".format(x_i,dif))
     ...
-    x = 0, dif = ...0.00000(28)
+    x = 0, dif =...0.00000(28)
     x = 0.2039, dif = 0.00196(34)
     x = 0.408, dif = 0.00196(52)
     x = 0.612, dif = 0.00294(72)
