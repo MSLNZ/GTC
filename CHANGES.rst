@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 1.3.6 (2021.09.??)
+Version 1.3.6 (2021.09.06)
 ==========================
 
     * When loading an uncertain-number archive from a file or string, if there is an existing intermediate ``Node`` registered with the context that is indistinguishable from another in the archive, then the existing ``Node`` will be used and no error is raised. ``Node`` objects are considered indistinguishable if their labels, uncertainties and degrees of freedom are the same.  
