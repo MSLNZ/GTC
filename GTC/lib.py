@@ -926,6 +926,21 @@ class UncertainReal(object):
         except AttributeError:
             return None          
 
+    #-----------------------------------------------------------------
+    @property
+    def uid(self):
+        """Return the GTC unique identifier for the uncertain number or ``None``
+        
+        Note that``un.uid`` is equivalent to :func:`uid(un)<core.label>`
+        
+            .. versionadded:: 1.3.7
+
+        """
+        try:
+            return self._node.uid
+        except AttributeError:
+            return None                 
+
     #------------------------------------------------------------------------
     # Arithmetic operations
     def __neg__(self):
@@ -3119,6 +3134,24 @@ class UncertainComplex(object):
             return self._label
         except AttributeError:
             return None
+
+    #-----------------------------------------------------------------
+    @property
+    def uid(self):
+        """Return the GTC unique identifier for the uncertain number or ``None``
+        
+        Note that``un.uid`` is equivalent to :func:`uid(un)<core.label>`
+        
+            .. versionadded:: 1.3.7
+
+        """
+        try:
+            return ( 
+                self.real._node.uid,
+                self.imag._node.uid
+            )
+        except AttributeError:
+            return None                 
 
     #------------------------------------------------------------------------
     def __add__(self,rhs):

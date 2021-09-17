@@ -48,6 +48,7 @@ __all__ = (
     ,   'variance'
     ,   'dof'
     ,   'label'
+    ,   'uid'
     ,   'component'
     ,   'inf'
     ,   'nan'
@@ -267,7 +268,17 @@ def label(x):
     
     """
     return x.label 
+ 
+#----------------------------------------------------------------------------
+def uid(x):
+    """Return the GTC unique identifier for the uncertain number or ``None``
+                
+    .. versionadded:: 1.3.7
     
+    """
+    return x.uid 
+    
+ 
 #----------------------------------------------------------------------------
 def ureal(x,u,df=inf,label=None,independent=True):
     """

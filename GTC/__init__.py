@@ -52,6 +52,7 @@ __all__ = (
     ,   'variance'
     ,   'dof'
     ,   'label'
+    ,   'uid'
     ,   'component'
     ,   'inf'
     ,   'nan'

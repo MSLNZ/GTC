@@ -82,10 +82,18 @@ class Context(object):
             are independent: values can overlap!
             
         """
+        # Note the format of intermediate uncertain-number UIDs 
+        # differs from elementary uncertain-number UIDs (changed in v1.3.7).
+        # GTC code only tests UIDs for order and equality, it does not make 
+        # use of the internal structure of a UID. However, previously an elementary 
+        # UID and an intermediate UID could be equal, although they were intended 
+        # to identify different types of node object. Now intermediate UIDs are 
+        # 3-tuples and elementary UIDs 2-tuples, so there can be no confusion.
         self._intermediate_id_counter += 1
         return (
             self._id,
-            self._intermediate_id_counter
+            self._intermediate_id_counter,
+            0
         )
  
     #------------------------------------------------------------------------

@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+Version 1.3.7 (2021.xx.xx)
+==========================
+
+    * The property ``uid`` has been added to :class:`lib.UncertainReal` and :class:`lib.UncertainComplex`. For an :class:`lib.UncertainReal`, this returns the UID associated with an elementary uncertain number and, when defined, the UID associated with an intermediate uncertain number (otherwise it returns ``None``). Analogous behaviour is defined for an :class:`lib.UncertainComplex`.  
+
 Version 1.3.6 (2021.09.06)
 ==========================
 
