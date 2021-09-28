@@ -111,7 +111,19 @@ Influence = namedtuple('Influence','label, u')
    
 .. attribute:: u
   
-   :class:`float`: component of uncertainty due to influence quantity
+   :class:`float`: component of uncertainty
+   
+"""
+Component = namedtuple('Component','uid, u')
+""":obj:`~collections.namedtuple`: unique identifier and value of a component of uncertainty
+ 
+.. attribute:: uid
+  
+   :class:`tuple`: unique identifier tuple
+   
+.. attribute:: u
+  
+   :class:`float`: component of uncertainty
    
 """
 CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")

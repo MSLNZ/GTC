@@ -61,8 +61,9 @@ from GTC.lib import (
     _is_uncertain_complex_constant
 )
 from GTC.named_tuples import (
-    ComponentOfUncertainty, 
-    Influence
+    ComponentOfUncertainty,     # relates to complex quantities
+    Influence,
+    Component                   
 )
 from GTC.vector import extend_vector
 
@@ -444,6 +445,227 @@ def v_bar(cv):
     return (cv[0] + cv[3]) / 2.0
 
 #----------------------------------------------------------------------------
+def components(y,**kwargs):
+    """Return a sequence of uid-component of uncertainty pairs
+
+    arg:
+        y (:class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`):  an uncertain number
+
+    keyword args:
+        | influences: a sequence of uncertain numbers
+        | trim (float): control smallest reported magnitudes 
+        | max_number (int): return no more than ``max_number`` components
+        | intermediate (bool): report all intermediate components
+    
+    A sequence of :obj:`~named_tuples.Component` namedtuples is 
+    returned, each with the attributes ``uid`` and ``u`` for a 
+    component of uncertainty (see :func:`u_component`). 
+
+    The keyword argument ``influences`` can be used to report on  
+    specific influences.
+    
+    The keyword argument ``trim`` can be used to set a minimum relative 
+    magnitude of components returned. The components of uncertainty 
+    with a magnitude greater than ``trim`` times the largest component 
+    will be reported. Set ``trim=0`` for a complete list.
+
+    The keyword argument ``max_number`` can be used to restrict the 
+    number of components returned.  
+    
+    The keyword argument ``intermediate`` causes all the components 
+    of uncertainty with respect to all intermediate results to be reported.
+    When ``intermediate`` is ``True``, ``influences`` cannot be specified. 
+    
+    .. versionadded 1.3.7::
+
+"""
+    # Keyword options
+    influences = kwargs.get('influences') 
+    trim = kwargs.get('trim', 0.01)
+    max_number = kwargs.get('max_number')
+    intermediate = kwargs.get('intermediate', False)
+    
+    # Some combinations are incompatible
+    if intermediate and influences is not None:
+        raise RuntimeError(
+            "'influences' cannot be specified when 'intermediate' is True"
+        )
+    
+    if isinstance(y,UncertainReal):
+        if influences is None and not intermediate:
+            nodes = y._u_components.keys()
+            
+            uids = [ n_i.uid for n_i in nodes ]
+            values = [ math.fabs( u ) for u in y._u_components.itervalues() ]
+            
+            nodes = y._d_components.keys()
+            uids += [ n_i.uid for n_i in nodes ]
+            values += [ math.fabs( u ) for u in y._d_components.itervalues() ]
+            
+        elif intermediate:
+            # The argument 'y' could be in the list 
+            n_y_uid = y._node.uid if y.is_intermediate else 0
+            
+            uids = []
+            values = []
+            for n_i,u_i in y._i_components.iteritems():
+                if n_i.uid == n_y_uid: continue    # Do not include 'y' itself
+                    
+                uids.append( n_i.uid ) 
+                values.append( math.fabs( u_i ) )
+            
+        elif influences is not None:
+            uids = []
+            values = []
+            for i in influences:
+                if isinstance(i,UncertainReal):
+                    uids.append( i.uid )
+                    values.append( math.fabs(u_component(y,i)) ) 
+                    
+                elif isinstance(i,UncertainComplex):
+                    uids.append( i.real.uid )
+                    values.append( math.fabs(u_component(y,i.real)) ) 
+                    uids.append( i.imag.uid )
+                    values.append( math.fabs(u_component(y,i.imag)) ) 
+                else:
+                    raise RuntimeError(
+                        "unexpected type: '{!r}'".format( i )
+                    )
+        else:
+            assert False,"should never occur"
+            
+        if len(values):
+            cut_off = max(values) * float(trim)
+            this_budget = [ Component( uid=n, u=u )
+                            for (u,n) in izip(values,uids) if u >= cut_off ]
+        else:
+            this_budget = [ ]
+        
+    elif isinstance(y,UncertainComplex):        
+        if influences is None and not intermediate:
+            
+            # Ensure that the influence vectors have the same keys
+            re = extend_vector(y.real._u_components, y.real._d_components)
+            re = extend_vector(re,y.imag._u_components)
+            re = extend_vector(re,y.imag._d_components)
+    
+            im = extend_vector(y.imag._u_components, y.imag._d_components)
+            im = extend_vector(im,y.real._u_components)
+            im = extend_vector(im,y.real._d_components)
+
+            try:
+                uids = []
+                values = []
+                it_re = re.iteritems()
+                it_im = im.iteritems()
+                
+                while True:
+                    ir_0,ur_0 = next(it_re)
+                    ii_0,ui_0 = next(it_im)
+
+                    if hasattr(ir_0,'complex'):
+                        
+                        # The next item is always the imaginary component
+                        ir_1,ur_1 = next(it_re)
+                        ii_1,ui_1 = next(it_im)
+                        
+                        # Reduce the 4 components of uncertainty 
+                        # to a summary value
+                        u=u_bar([ur_0,ur_1,ui_0,ui_1])
+                                                    
+                        uids.append(ir_0.complex)
+                        values.append(u)
+
+                    else:
+                        # Report the component wrt a real influence
+                        # this is still a matrix, which is then reduced 
+                        # to a summary value
+                        u=u_bar([ur_0,0,ui_0,0])
+                        
+                        uids.append(ir_0.uid)
+                        values.append(u)
+                        
+            except StopIteration:
+                pass
+                
+        elif intermediate:
+            # The argument 'y' could be in the list 
+            if y.is_intermediate:
+                n_yr_uid = y.real._node.uid
+                n_yi_uid = y.imag._node.uid
+            else:
+                n_yr_uid = 0
+                n_yi_uid = 0
+                
+            # Ensure that the influence vectors have the same keys
+            re = extend_vector(y.real._i_components,y.imag._i_components)    
+            im = extend_vector(y.imag._i_components,y.real._i_components)
+
+            try:
+                uids = []
+                values = []
+                it_re = re.iteritems()
+                it_im = im.iteritems()
+                
+                while True:
+                    ir_0,ur_0 = next(it_re)
+                    ii_0,ui_0 = next(it_im)
+
+                    if hasattr(ir_0,'complex'):
+                        
+                        # The next item is always the imaginary component
+                        ir_1,ur_1 = next(it_re)
+                        ii_1,ui_1 = next(it_im)
+                        
+                        # Skip these real and imaginary components of 'y'
+                        if ir_0.uid == n_yr_uid or ii_0.uid == n_yi_uid:
+                            continue                        
+                        
+                        # Reduce the 4 components of uncertainty 
+                        # to a summary value
+                        u=u_bar([ur_0,ur_1,ui_0,ui_1])
+                                                    
+                        uids.append(ir_0.complex)
+                        values.append(u)
+
+                    else:
+                        # Report the component wrt a real influence
+                        # this is still a matrix, which is then reduced 
+                        # to a summary value
+                        u=u_bar([ur_0,0,ui_0,0])
+                        
+                        uids.append(ir_0.complex)
+                        values.append(u)
+                        
+            except StopIteration:
+                pass
+                
+        elif influences is not None:
+            uids = [ i.uid for i in influences ]
+            values = [ u_bar( u_component(y,i) ) for i in influences ]
+
+        else:
+            assert False,"should never occur"
+
+        if len(values):
+            cut_off = max(values) * float(trim)
+            this_budget = [ 
+                Component( uid=n, u=u ) 
+                    for (u,n) in izip(values,uids) 
+                        if u >= cut_off  
+            ]
+            
+        else:   
+            this_budget = []
+    else:
+        this_budget = []
+
+    if max_number is not None and len(this_budget) > max_number:
+        this_budget = this_budget[:max_number]
+        
+    return this_budget
+    
+#----------------------------------------------------------------------------
 def budget(y,**kwargs):
     """Return a sequence of label-component of uncertainty pairs
 
@@ -480,6 +702,7 @@ def budget(y,**kwargs):
     
     The keyword argument ``intermediate`` allows all the components 
     of uncertainty with respect to all intermediate results to be reported.
+    When ``intermediate`` is ``True``, ``influences`` cannot be specified. 
 
     **Examples**::
 
@@ -531,14 +754,16 @@ def budget(y,**kwargs):
         if influences is None and not intermediate:
             nodes = y._u_components.keys()
             labels = [ n_i.label 
-                        if n_i.label is not None else "{}".format(n_i.uid) 
-                           for n_i in nodes ]
+                        if n_i.label is not None 
+                            else "{}".format(n_i.uid) 
+                                for n_i in nodes ]
             values = [ math.fabs( u ) for u in y._u_components.itervalues() ]
             
             nodes = y._d_components.keys()
             labels += [ n_i.label 
-                        if n_i.label is not None else "{}".format(n_i.uid) 
-                           for n_i in nodes ]
+                        if n_i.label is not None 
+                            else "{}".format(n_i.uid) 
+                                for n_i in nodes ]
             values += [ math.fabs( u ) for u in y._d_components.itervalues() ]
             
         elif intermediate:
