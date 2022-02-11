@@ -615,11 +615,11 @@ class TestArchive(unittest.TestCase):
         # self.assertTrue( phi1._node in c2._ensemble )
 
         self.assertTrue( hasattr(v1._node, 'ensemble') )
-        self.assertTrue( v1._node.uid in v1._node.ensemble )
+        self.assertTrue( v1.uid in v1._node.ensemble )
         self.assertTrue( hasattr(i1._node, 'ensemble') )
-        self.assertTrue( i1._node.uid in i1._node.ensemble )
+        self.assertTrue( i1.uid in i1._node.ensemble )
         self.assertTrue( hasattr(phi1._node, 'ensemble') )
-        self.assertTrue( phi1._node.uid in phi1._node.ensemble )
+        self.assertTrue( phi1.uid in phi1._node.ensemble )
 
         
         self.assertEqual( repr(v1), repr(v) )
@@ -1588,7 +1588,7 @@ class TestArchive(unittest.TestCase):
         # This used to be the case, but thawing now allows multiple UNs
         # self.assertTrue( yz1 is y1 )
         
-        self.assertTrue( yz1._node.uid is y1._node.uid )
+        self.assertTrue( yz1.uid is y1.uid )
         self.assertEqual( repr(x1), repr(y1) )
         self.assertEqual( repr(yz1),repr(y1) )
 
@@ -1600,8 +1600,8 @@ class TestArchive(unittest.TestCase):
         yz6 = ar['z6']
         # self.assertTrue( yz4 is y4 )
         # self.assertTrue( yz6 is y6 )
-        self.assertTrue( yz4._node.uid is y4._node.uid )
-        self.assertTrue( yz6._node.uid is y6._node.uid )
+        self.assertTrue( yz4.uid is y4.uid )
+        self.assertTrue( yz6.uid is y6.uid )
         
         self.assertEqual( repr(x4),repr(y4) )
         self.assertEqual( repr(yz4), repr(y4) )
@@ -1706,9 +1706,9 @@ class TestArchive(unittest.TestCase):
 
         # First just check that we get the same objects
         # and that the values are correct
-        self.assertEqual(z1._node.uid,y1._node.uid)
-        self.assertEqual(z1._node.uid[1],x1._node.uid[1])
-        self.assertEqual(z1._node.uid[0],x1._node.uid[0])
+        self.assertEqual(z1.uid,y1.uid)
+        self.assertEqual(z1.uid[1],x1.uid[1])
+        self.assertEqual(z1.uid[0],x1.uid[0])
 
         self.assertTrue(
             equivalent(value(z1),value(y1))
@@ -1729,10 +1729,14 @@ class TestArchive(unittest.TestCase):
             equivalent(dof(z1),dof(x1))
         )
 
-        self.assertEqual(z2.imag._node.uid,y2.imag._node.uid)
-        self.assertEqual(z2.real._node.uid,y2.real._node.uid)
-        self.assertEqual(z2.real._node.uid,x2.real._node.uid)
-        self.assertEqual(z2.imag._node.uid,x2.imag._node.uid)
+        self.assertEqual(z2.imag.uid,y2.imag.uid)
+        self.assertEqual(z2.real.uid,y2.real.uid)
+        self.assertEqual(z2.uid,y2.uid)
+        
+        self.assertEqual(z2.real.uid,x2.real.uid)
+        self.assertEqual(z2.imag.uid,x2.imag.uid)
+        self.assertEqual(z2.uid,x2.uid)
+        
         self.assertTrue(
             equivalent(value(z2.real),value(y2.real))
         )
@@ -1751,8 +1755,8 @@ class TestArchive(unittest.TestCase):
         self.assertTrue(
             equivalent(dof(z2),dof(x2))
         )
-        self.assertEqual(z2.imag._node.uid,y2.imag._node.uid)
-        self.assertEqual(z2.imag._node.uid,x2.imag._node.uid)
+        self.assertEqual(z2.imag.uid,y2.imag.uid)
+        self.assertEqual(z2.imag.uid,x2.imag.uid)
         
         self.assertTrue(
             equivalent(value(z2.imag),value(y2.imag))

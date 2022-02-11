@@ -19,12 +19,12 @@ class TestContext(unittest.TestCase):
         x2 = UncertainReal._elementary(x_value,x_u,x_dof,None,independent=True)
 
         # uid's must be in order
-        self.assertTrue( x1._node.uid < x2._node.uid )
+        self.assertTrue( x1.uid < x2.uid )
         self.assertEqual(x_dof, x1._node.df )
         self.assertEqual(x_dof, x2._node.df )
 
-        self.assertTrue( _context._registered_leaf_nodes[x1._node.uid].df == x_dof )
-        self.assertTrue( _context._registered_leaf_nodes[x2._node.uid].df == x_dof )
+        self.assertTrue( _context._registered_leaf_nodes[x1.uid].df == x_dof )
+        self.assertTrue( _context._registered_leaf_nodes[x2.uid].df == x_dof )
 
         # illegal dof is checked when the object is created
         self.assertRaises(

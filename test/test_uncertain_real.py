@@ -1497,8 +1497,8 @@ class TestGetCovariance(unittest.TestCase):
         self.assertTrue( equivalent( r, get_correlation_real(x1,x2) ) )
 
         # When we delete one node the other remains
-        x1_uid = x1._node.uid
-        x2_uid = x2._node.uid
+        x1_uid = x1.uid 
+        x2_uid = x2.uid 
         self.assertTrue( x1_uid in context._context._registered_leaf_nodes )
         self.assertTrue( x2_uid in context._context._registered_leaf_nodes )
         del x1
@@ -1506,7 +1506,7 @@ class TestGetCovariance(unittest.TestCase):
         self.assertTrue( x2_uid in context._context._registered_leaf_nodes )
 
         # self.assertEqual(1, len(c._registered_leaf_nodes) )
-        # self.assertTrue( x2._node.uid in c._registered_leaf_nodes )
+        # self.assertTrue( x2.uid in c._registered_leaf_nodes )
         
         # Correlation matrix is not trimmed when `x1` is destroyed
         self.assertEqual(2, len(x2._node.correlation) )
@@ -2253,9 +2253,9 @@ class TestRealEnsemble(unittest.TestCase):
         
         _ensemble = x1._node.ensemble 
         
-        self.assertTrue( x3._node.uid in _ensemble )
-        self.assertTrue( x2._node.uid in _ensemble )
-        self.assertTrue( x1._node.uid in _ensemble )
+        self.assertTrue( x3.uid in _ensemble )
+        self.assertTrue( x2.uid in _ensemble )
+        self.assertTrue( x1.uid in _ensemble )
         
         self.assertEqual(x1._node.ensemble,x2._node.ensemble)
         self.assertEqual(x1._node.ensemble,x3._node.ensemble)
