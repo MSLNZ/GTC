@@ -2664,6 +2664,27 @@ class TestMisc(unittest.TestCase):
             x = self.assertWarns( RuntimeWarning, result,(1+3j),label='error')
             x = self.assertWarns( RuntimeWarning, result,1,label='error')
         
+    def test_uid_property(self):
+        """
+        The property `uid` exposes the `uid` attribute of a `node`. 
+        There are two nodes in an UncertainComplex
+        
+        """
+        # Elementary UN
+        un = ucomplex(0,1)
+        self.assertEqual(un.uid,( un.real._node.uid, un.imag._node.uid))
+        self.assertEqual( un.uid, uid(un) )
+        
+        # No UID defined 
+        un2 = un * ucomplex(1+1j,1)
+        self.assertTrue(un2.uid is None)
+        self.assertEqual( un2.uid, uid(un2) )
+
+        # Intermediate uncertain number
+        un2 = result( un * ucomplex(1+1j,1) )
+        self.assertEqual(un2.uid, (un2.real._node.uid, un2.imag._node.uid) )        
+        self.assertEqual( un2.uid, uid(un2) )
+
 #============================================================================
 if(__name__== '__main__'):
 

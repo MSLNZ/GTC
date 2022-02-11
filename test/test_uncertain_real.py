@@ -903,7 +903,7 @@ class TestUncertainReal(unittest.TestCase):
         self.assertTrue( un._node.independent is True )
         self.assertTrue( un._node.df == df )
         
-    def test_check_identity(self):
+    def test_check_type_identity(self):
         """
         The `reporting.is_ureal` function should be able to pick
         an uncertain real number.
@@ -920,7 +920,27 @@ class TestUncertainReal(unittest.TestCase):
 
         z1 = ucomplex(1+3j,1)
         self.assertTrue( reporting.is_ureal( z1.real ) )
+
+    def test_uid_property(self):
+        """
+        The property `uid` exposes the `uid` attribute of a `node`. 
         
+        """
+        # Elementary UN
+        un = ureal(0,1)
+        self.assertEqual(un.uid,un._node.uid)
+        self.assertEqual( un.uid, uid(un) )
+        
+        # No UID defined 
+        un2 = un * ureal(0,1)
+        self.assertTrue(un2.uid is None)
+        self.assertEqual( un2.uid, uid(un2) )
+ 
+        # Intermediate uncertain number
+        un2 = result( un * ureal(0,1) )
+        self.assertEqual( un2.uid, uid(un2) )
+        self.assertTrue(un2.uid is un2._node.uid)
+ 
     def test_strange_rounding_cases(self):
         """
         The __str__ method 
