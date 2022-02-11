@@ -68,7 +68,7 @@ Uncertain Real Numbers
         "ureal(0.4666666666666666,0.01,5.0, label='x')"
 
 .. autoclass:: lib.UncertainReal
-   :members: conjugate, df, imag, real, label, u, v, x
+   :members: conjugate, df, imag, real, label, u, v, x, uid
 
 Uncertain Complex Numbers
 -------------------------
@@ -117,5 +117,5 @@ Uncertain Complex Numbers
         'ucomplex((1.333-0.121212j), u=[0.01,0.002], r=0.0, df=inf)'	
 
 .. autoclass:: lib.UncertainComplex
-    :members: conjugate, df, imag, real, label, u, v, x, r
+    :members: conjugate, df, imag, real, label, u, v, x, r, uid
    
