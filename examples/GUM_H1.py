@@ -40,5 +40,5 @@ print("""
 Components of uncertainty in l (nm)
 -----------------------------------""")
 
-for l_i,u_i in reporting.budget(l):
-    print( "  {!s}: {:G}".format(l_i,u_i) )
+for i in reporting.budget(l):
+    print( "  {!s}: {:G}".format(i.label,i.u) )
