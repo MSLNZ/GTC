@@ -23,7 +23,7 @@ GTC Modules
     Evaluating type-A uncertainty <API/type_a>
     Evaluating type-B uncertainty <API/type_b>
     Additional functions <API/function>
-    Reporting <API/reporting_functions>
+    Reporting <API/reporting_section>
     Storage <API/persistence>
     Named tuples <API/named_tuples>
     Linear algebra <API/linear_algebra.rst>
