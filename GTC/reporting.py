@@ -1,4 +1,10 @@
 """
+This module provides functions to facilitate reporting information
+about uncertainty calculations.
+
+The abbreviation ``rp`` is defined as an alias for :mod:`reporting`,
+to resolve the names of objects defined in this module.
+
 Reporting functions
 -------------------
 
@@ -14,7 +20,7 @@ Reporting functions
         in complex-valued problems.
     *   Functions :func:`u_bar` and :func:`v_bar` return summary values 
         for matrix results associated with 2-D uncertainty.
-
+            
 Uncertainty functions
 ---------------------
 
@@ -667,40 +673,44 @@ def components(y,**kwargs):
     
 #----------------------------------------------------------------------------
 def budget(y,**kwargs):
-    """Return a sequence of label-component of uncertainty pairs
+    """Return a sequence of `Influence` objects
 
     arg:
         y (:class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`):  an uncertain number
 
     keyword args:
         | influences: a sequence of uncertain numbers
-        | key (str): sorting key ('u' or 'label')
-        | reverse (bool): sorting order (forward or reverse)
-        | trim (float): control smallest reported magnitudes 
-        | max_number (int): return no more than ``max_number`` components
-        | intermediate (bool): report intermediate components
+        | key (str): a sorting key ('u' or 'label')
+        | reverse (bool): the sorting order (forward or reverse)
+        | trim (float): to control smallest reported magnitudes 
+        | max_number (int): to return no more than `max_number` components
+        | intermediate (bool): to report all intermediate components
     
-    A sequence of :obj:`~named_tuples.Influence` namedtuples is 
-    returned, each with the attributes ``label`` and ``u`` for a 
-    component of uncertainty (see :func:`~core.component`). 
+    Returns a sequence of :obj:`~named_tuples.Influence` namedtuples. 
+    
+    Each :obj:`~named_tuples.Influence` has three attributes: ``label``, ``u``, ``uid``.
+    
+        * ``label`` is the label assigned to the uncertain number.
+        * ``u`` is the value of the component of uncertainty (see :func:`~core.component`);
+        * ``uid`` is the unique identifier for the uncertain number. 
 
-    The keyword argument ``influences`` can select specific influences
-    to be reported.
+    The keyword argument ``influences`` can be used to report 
+    specific influences.
 
-    The keyword argument ``key`` sets the order of the sequence
-    by the component of uncertainty or the label (``u`` or ``label``).
+    The keyword argument ``key`` sets the sequence ordering to use 
+    the component of uncertainty or the label, respectively, ``u`` or ``label``.
 
     The keyword argument ``reverse`` controls the sense of ordering.
     
-    The keyword argument ``trim`` can be used to set a minimum relative 
-    magnitude of components returned. The components of uncertainty greater 
-    than ``trim`` times the largest component will be reported. 
+    The keyword argument ``trim`` can be used to set the minimum relative 
+    magnitude of components returned. Components of uncertainty greater 
+    than ``trim`` times the largest component returned will be reported. 
     Set ``trim=0`` for a complete list.
 
     The keyword argument ``max_number`` can be used to restrict the 
     number of components returned.  
     
-    The keyword argument ``intermediate`` allows all the components 
+    The keyword argument ``intermediate`` will cause all components 
     of uncertainty with respect to all intermediate results to be reported.
     When ``intermediate`` is ``True``, ``influences`` cannot be specified. 
 
@@ -710,15 +720,15 @@ def budget(y,**kwargs):
         >>> x2 = ureal(2,0.5,label='x2')
         >>> x3 = ureal(3,0.1,label='x3')
         >>> y = (x1 - x2) / x3
-        >>> for l,u in reporting.budget(y):
-        ... 	print("{0}: {1:G}".format(l,u))
+        >>> for i in reporting.budget(y):
+        ...     print("{0}: {1:G}".format(i.label,i.u))
         ... 	
         x1: 0.333333
         x2: 0.166667
         x3: 0.0111111
         
-        >>> for l,u in reporting.budget(y,reverse=False):
-        ... 	print("{0}: {1:G}".format(l,u))
+        >>> for i in reporting.budget(y,reverse=False):
+        ... 	print("{0}: {1:G}".format(i.label,i.u))
         ... 	
         x3: 0.0111111
         x2: 0.166667
@@ -726,13 +736,16 @@ def budget(y,**kwargs):
  
         >>> y1 = result(x1 + x2,label='y1')
         >>> y2 = result(x2 + x3,label='y2')
-        >>> for l,u in reporting.budget(y1 + y2,intermediate=True):
-        ... 	print("{0}: {1:G}".format(l,u))
+        >>> for i in reporting.budget(y1 + y2,intermediate=True):
+        ... 	print("{0}: {1:G}".format(i.label,i.u))
         ... 
         y1: 1.11803
         y2: 0.509902
       
-    .. versionchanged::
+    ..  versionchanged:: 1.3.7
+        The `Influence` namedtuple has a third attribute `uid`
+        
+    ..  versionchanged:: 1.3.4
         Added the `intermediate` keyword argument. 
         
     """  
@@ -753,6 +766,7 @@ def budget(y,**kwargs):
     if isinstance(y,UncertainReal):
         if influences is None and not intermediate:
             nodes = y._u_components.keys()
+            uids = [ n_i.uid for n_i in nodes ]
             labels = [ n_i.label 
                         if n_i.label is not None 
                             else "{}".format(n_i.uid) 
@@ -760,6 +774,7 @@ def budget(y,**kwargs):
             values = [ math.fabs( u ) for u in y._u_components.itervalues() ]
             
             nodes = y._d_components.keys()
+            uids += [ n_i.uid for n_i in nodes ]
             labels += [ n_i.label 
                         if n_i.label is not None 
                             else "{}".format(n_i.uid) 
@@ -770,27 +785,33 @@ def budget(y,**kwargs):
             # The argument 'y' could be in the list 
             n_y_uid = y._node.uid if y.is_intermediate else 0
             
+            uids = []
             labels = []
             values = []
             for n_i,u_i in y._i_components.iteritems():
                 if n_i.uid == n_y_uid: continue    # Do not include 'y' itself
                     
+                uids.append( n_i.uid ) 
                 labels.append( 
                     n_i.label if n_i.label is not None else "{}".format(n_i.uid) 
                 )
                 values.append( math.fabs( u_i ) )
             
         elif influences is not None:
+            uids = []
             labels = []
             values = []
             for i in influences:
                 if isinstance(i,UncertainReal):
+                    uids.append( i.uid ) 
                     labels.append( i.label )
                     values.append( math.fabs(u_component(y,i)) ) 
                     
                 elif isinstance(i,UncertainComplex):
+                    uids.append( i.real.uid ) 
                     labels.append( i.real.label )
                     values.append( math.fabs(u_component(y,i.real)) ) 
+                    uids.append( i.imag.uid ) 
                     labels.append( i.imag.label )
                     values.append( math.fabs(u_component(y,i.imag)) ) 
                 else:
@@ -802,8 +823,8 @@ def budget(y,**kwargs):
             
         if len(values):
             cut_off = max(values) * float(trim)
-            this_budget = [ Influence( label=n, u=u )
-                            for (u,n) in izip(values,labels) if u >= cut_off ]
+            this_budget = [ Influence( label=n, u=u, uid=uid )
+                            for (u,n,uid) in izip(values,labels,uids) if u >= cut_off ]
         else:
             this_budget = [ ]
         
@@ -820,6 +841,7 @@ def budget(y,**kwargs):
             im = extend_vector(im,y.real._d_components)
 
             try:
+                uids = []
                 labels = []
                 values = []
                 it_re = re.iteritems()
@@ -849,8 +871,9 @@ def budget(y,**kwargs):
                             # to label the complex influence
                             label = ir_0.label[:-3]
                             
-                            labels.append(label)
-                            values.append(u)
+                        uids.append( ir_0.complex )                        
+                        labels.append(label)
+                        values.append(u)
 
                     else:
                         # Report the component wrt a real influence
@@ -863,6 +886,7 @@ def budget(y,**kwargs):
                         else:
                             label = ir_0.label 
                             
+                        uids.append( ir_0.uid )                        
                         labels.append(label)
                         values.append(u)
                         
@@ -883,6 +907,7 @@ def budget(y,**kwargs):
             im = extend_vector(y.imag._i_components,y.real._i_components)
 
             try:
+                uids = []
                 labels = []
                 values = []
                 it_re = re.iteritems()
@@ -916,8 +941,9 @@ def budget(y,**kwargs):
                             # to label the complex influence
                             label = ir_0.label[:-3]
                             
-                            labels.append(label)
-                            values.append(u)
+                        uids.append( ir_0.complex )                        
+                        labels.append(label)
+                        values.append(u)
 
                     else:
                         # Report the component wrt a real influence
@@ -930,6 +956,7 @@ def budget(y,**kwargs):
                         else:
                             label = ir_0.label 
                             
+                        uids.append( ir_0.uid )                        
                         labels.append(label)
                         values.append(u)
                         
@@ -937,6 +964,7 @@ def budget(y,**kwargs):
                 pass
                 
         elif influences is not None:
+            uids = [ i.uid for i in influences ]
             labels = [ i.label for i in influences ]
             values = [ u_bar( u_component(y,i) ) for i in influences ]
 
@@ -946,8 +974,8 @@ def budget(y,**kwargs):
         if len(values):
             cut_off = max(values) * float(trim)
             this_budget = [ 
-                Influence( label=n, u=u ) 
-                    for (u,n) in izip(values,labels) 
+                Influence( label=n, u=u, uid=uid ) 
+                    for (u,n,uid) in izip(values,labels,uids) 
                         if u >= cut_off  
             ]
             
