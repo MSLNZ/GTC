@@ -115,8 +115,11 @@ Influence = namedtuple('Influence','label, u, uid')
    
 .. attribute:: uid
   
-   :class:`tuple`: unique identifier
+   :class:`tuple`: unique identifier of the uncertain number
    
+..  versionadded:: 1.3.7
+    The attribute `uid` has been added
+        
 """
 Component = namedtuple('Component','uid, u')
 """:obj:`~collections.namedtuple`: unique identifier and value of a component of uncertainty
