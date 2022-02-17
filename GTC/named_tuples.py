@@ -102,8 +102,8 @@ JacobianMatrix = namedtuple('JacobianMatrix','rr, ri, ir, ii')
 
    """
 
-Influence = namedtuple('Influence','label, u')
-""":obj:`~collections.namedtuple`: label and value of a component of uncertainty
+Influence = namedtuple('Influence','label, u, uid')
+""":obj:`~collections.namedtuple`: label, value, and identifier of a component of uncertainty
  
 .. attribute:: label
   
@@ -112,6 +112,10 @@ Influence = namedtuple('Influence','label, u')
 .. attribute:: u
   
    :class:`float`: component of uncertainty
+   
+.. attribute:: uid
+  
+   :class:`tuple`: unique identifier
    
 """
 Component = namedtuple('Component','uid, u')
