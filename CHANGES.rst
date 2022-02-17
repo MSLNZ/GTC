@@ -2,10 +2,16 @@
 Release Notes
 =============
 
-Version 1.3.7 (2021.xx.xx)
+Version 1.3.7 (2022.xx.xx)
 ==========================
 
-    * The property ``uid`` has been added to :class:`lib.UncertainReal` and :class:`lib.UncertainComplex`. For an :class:`lib.UncertainReal`, this returns the UID associated with an elementary uncertain number and, when defined, the UID associated with an intermediate uncertain number (otherwise it returns ``None``). Analogous behaviour is defined for an :class:`lib.UncertainComplex`.  
+    * The property ``uid`` has been added to :class:`lib.UncertainReal` and :class:`lib.UncertainComplex`. For an :class:`lib.UncertainReal`, this returns the unique identifier of an elementary uncertain number and, when defined, the unique identifier associated with an intermediate uncertain number (otherwise it returns ``None``). Analogous behaviour is defined for an :class:`lib.UncertainComplex`.  
+    
+    * The namedtuple :obj:`named_tuples.Influence` has an attribute `uid` for the unique identifier of an uncertain-number influence. The function :func:`reporting.budget` returns a sequence of :obj:`~named_tuples.Influence` objects, each of which now has a unique identifier. This is intended to permit indexing of arbitrary information about uncertain numbers held in other data structures.
+    
+    * The idiom shown for using :func:`reporting.budget` has changed in the documentation. Previously, the pair of :obj:`~named_tuples.Influence` attributes was expanded. Now, a temporary variable is assigned to each :obj:`~named_tuples.Influence` item during iteration and then the required attributes are selected.
+    
+    * A new section in the documentation under `reporting` has been added to provide an example that uses the new ``uid`` feature.
 
 Version 1.3.6 (2021.09.06)
 ==========================
