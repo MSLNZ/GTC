@@ -98,7 +98,7 @@ __all__ = (
 #----------------------------------------------------------------------------
 version = "1.3.7.dev0"
 
-copyright = """Copyright (c) 2021, \
+copyright = """Copyright (c) 2022, \
 Measurement Standards Laboratory of New Zealand"""
 
 from .core import *
