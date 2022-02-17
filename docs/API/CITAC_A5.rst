@@ -154,8 +154,8 @@ To estimate :math:`r` we now evaluate ::
 
 The contribution from the different influences can be examined ::
 
-    >>> for cpt,u in rp.budget(r,influences=[c_0,V_L,a_V,f_acid,f_time,f_temp]):
-    ...     print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(r,influences=[c_0,V_L,a_V,f_acid,f_time,f_temp]):
+    ...     print( " {}: {:G}".format(i.label,i.u) )
     ... 
      absorbance: 0.00102956
      f_temp: 0.00086663
@@ -169,8 +169,8 @@ The results (which can be compared with Figure A5.8 in the Guide) show that the 
 
 The full uncertainty budget can be obtained by writing ::
 
-    >>> for cpt,u in rp.budget(r,trim=0):
-    ...     print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(r,trim=0):
+    ...     print( " {}: {:G}".format(i.label,i.u) )
     ...
      noise: 0.000928623
      f_temp: 0.00086663

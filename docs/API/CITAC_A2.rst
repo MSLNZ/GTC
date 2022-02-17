@@ -79,8 +79,8 @@ The calculation of :math:`c_\mathrm{NaOH}` is now [#]_::
 
 The contribution from different influences can be examined (and compared with Fig. A2.9 in the Guide) ::
 
-    >>> for cpt,u in rp.budget(c_NaOH,influences=[m_KHP,P_KHP,M_KHP,V_T,R]):
-    ... 	print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(c_NaOH,influences=[m_KHP,P_KHP,M_KHP,V_T,R]):
+    ... 	print( " {}: {:G}".format(i.label,i.u) )
     ... 
      V_T: 7.47292E-05
      R: 5.10681E-05
@@ -90,8 +90,8 @@ The contribution from different influences can be examined (and compared with Fi
 
 The full uncertainty budget is ::
 
-    >>> for cpt,u in rp.budget(c_NaOH):
-    ... 	print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(c_NaOH):
+    ... 	print( " {}: {:G}".format(i.label,i.u) )
     ... 	
      V_T_cal: 6.71088E-05
      R: 5.10681E-05

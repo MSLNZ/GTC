@@ -97,8 +97,8 @@ The calculation of :math:`c_\mathrm{NaOH}` is now ::
     
 The contribution from different influences can be examined ::
 
-    >>> for cpt,u in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
-    ...     print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
+    ...     print( " {}: {:G}".format(i.label,i.u) )
     ...
     R: 0.000101387
     V_T2: 9.69953E-05
@@ -112,8 +112,8 @@ The results (which can be compared with Figure A3.6 in the Guide) show that repe
  
 The full uncertainty budget is obtained by  ::
 
-    >>> for cpt,u in rp.budget(c_HCl):
-    ...    print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(c_HCl):
+    ...    print( " {}: {:G}".format(i.label,i.u) )
     ...
      R: 0.000101387
      V_T2_cal: 8.33938E-05
@@ -143,8 +143,8 @@ A reduction in the uncertainty attributed to repeatability, by a factor of :math
     c_HCl = 0.10139(16)
 
  
-    >>> for cpt,u in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
-    ...     print( " {}: {:G}".format(cpt,u) )
+    >>> for i in rp.budget(c_HCl,influences=[m_KHP,P_KHP,M_KHP,V_T1,V_T2,V_HCl,R]):
+    ...     print( " {}: {:G}".format(i.label,i.u) )
     ... 
      V_T2: 9.69953E-05
      V_T1: 8.33653E-05

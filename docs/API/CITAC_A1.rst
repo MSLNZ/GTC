@@ -57,8 +57,8 @@ The concentration calculation is then simply [#]_ ::
  
 The contributions to the standard uncertainty can be itemised using :func:`reporting.budget`::
 
-    >>> for cp,u in rp.budget(c_Cd):
-    ...     print( " {}: {:G}".format(cp,u) )
+    >>> for i in rp.budget(c_Cd):
+    ...     print( " {}: {:G}".format(i.label,i.u) )
     ...
      m: 0.49995
      V_T: 0.486284
@@ -68,8 +68,8 @@ The contributions to the standard uncertainty can be itemised using :func:`repor
   
 The contribution from the overall uncertainty in the volume of fluid, rather than the individual terms can also be compared with other contributions by using a list of influences :: 
 
-    >>> for cp,u in rp.budget(c_Cd,influences=[m,P,V]):
-    ...     print( " {}: {:G}".format(cp,u) )
+    >>> for i in rp.budget(c_Cd,influences=[m,P,V]):
+    ...     print( " {}: {:G}".format(i.label,i.u) )
     ...
      V: 0.666525
      m: 0.49995
