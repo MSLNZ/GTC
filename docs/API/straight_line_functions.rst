@@ -124,9 +124,11 @@ Application: an additional `y` observation after regression
 
 After regression, the uncertain numbers for the intercept and slope can be used to estimate the stimulus :math:`x_1` for a further observation :math:`y_1`. For example, if :math:`y_1 = 10.5` and :math:`u(y_1) = 1.0`, :math:`x_1` is obtained in the same way as Example 1 ::
 
-    y1 = ureal(10.5,1)
-    x1 = (y1 - a)/b
-    print( "x1={:.15G}, u={:.15G}".format( value(x1),uncertainty(x1) ) )
+    >>> a = fit.intercept
+    >>> b = fit.slope
+    >>> y1 = ureal(10.5,1)
+    >>> x1 = (y1 - a)/b
+    >>> print( "x1={:.15G}, u={:.15G}".format( value(x1),uncertainty(x1) ) )
     x1=4.674..., u=0.533...
   
 Example 3: uncertainty in `x` and `y`
