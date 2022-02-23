@@ -29,13 +29,13 @@ We apply weighted least-squares regression to the data, which assumes that the v
 
 This displays ::
 
-    Weighted Least-Squares Results:
+Weighted Least-Squares Results:
 
-      Number of points: 6
-      Intercept: 1.87, u=0.47, df=inf
-      Slope: 1.76, u=0.12, df=inf
-      Correlation: -0.9
-      Sum of the squared residuals: 1.66476   
+    Intercept:  1.87(47)
+    Slope:  1.76(12)
+    Correlation: -0.9
+    Sum of the squared residuals: 1.664761904761908
+    Number of points: 6   
 
 More significant figures could be obtained with ::
 
@@ -43,19 +43,19 @@ More significant figures could be obtained with ::
     print( "a={:.15G}, u={:.15G}".format(value(a),uncertainty(a)) )
     b = fit.slope
     print( "b={:.15G}, u={:.15G}".format(value(b),uncertainty(b)) )
-    print( "cov(1,b)={:.15G}"format(a.u*b.u*get_correlation(a,b)) )
+    print( "cov(a,b)={:.15G}".format(a.u*b.u*get_correlation(a,b)) )
 
 giving ::
 
     a=1.86666666666667, u=0.465474668125631
     b=1.75714285714286, u=0.119522860933439
-    cov(1,b)=-0.05   
+    cov(a,b)=-0.05   
 
 These results agree with published values [#]_ ::
 
     a = 1.867, u(a) = 0.465
     b = 1.757, u(b) = 0.120
-    cov(a,b) = -0.50
+    cov(a,b) = -0.05
     chi-squared = 1.665, with 4 degrees of freedom
 
 The value of ``chi-squared`` can be compared with the ``Sum of the squared residuals`` above and the degrees of freedom is the ``Number of points`` less 2.    
