@@ -3122,7 +3122,7 @@ class UncertainComplex(object):
 
         :rtype: str
         
-        Note that``un.label`` is equivalent to :func:`label(un)<core.label>`
+        Note that ``un.label`` is equivalent to :func:`label(un)<core.label>`
         
         **Example**::
             >>> z = ucomplex(2.5+.3j,(1,1),label='z')
