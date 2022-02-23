@@ -931,7 +931,7 @@ class UncertainReal(object):
     def uid(self):
         """Return the unique identifier for the uncertain number, or ``None``.
         
-        Note that ``un.uid`` is equivalent to :func:`uid(un)<core.label>`
+        Note that ``un.uid`` is equivalent to :func:`uid(un)<core.uid>`
         
         .. versionadded:: 1.3.7
 
@@ -3140,7 +3140,7 @@ class UncertainComplex(object):
     def uid(self):
         """Return the unique identifier for the uncertain number, or ``None``.
         
-        Note that ``un.uid`` is equivalent to :func:`uid(un)<core.label>`
+        Note that ``un.uid`` is equivalent to :func:`uid(un)<core.uid>`
         
         .. versionadded:: 1.3.7
 
