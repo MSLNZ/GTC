@@ -12,6 +12,8 @@ Version 1.3.7 (2022.xx.xx)
     * The idiom shown for using :func:`reporting.budget` has changed in the documentation. Previously, the pair of :obj:`~named_tuples.Influence` attributes was expanded. Now, a temporary variable is assigned to each :obj:`~named_tuples.Influence` item during iteration and then the required attributes are selected.
     
     * A new section in the documentation under `reporting` has been added to provide an example that uses the new ``uid`` feature.
+    
+    * The documentation in `straight_line_functions.rst` has been updated and some details corrected.
 
 Version 1.3.6 (2021.09.06)
 ==========================
