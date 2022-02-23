@@ -32,7 +32,7 @@ We apply weighted least-squares regression to the data, which assumes that the v
       Intercept:  1.87(47)
       Slope:  1.76(12)
       Correlation: -0.9
-      Sum of the squared residuals: 1.664761904761908
+      Sum of the squared residuals: 1.66476190476...
       Number of points: 6
 
 More significant figures could be obtained with ::
@@ -103,7 +103,7 @@ Again, a weighted least-squares regression can be used, which assumes that the u
       Intercept:  0.89(53)
       Slope:  2.06(18)
       Correlation: -0.87
-      Sum of the squared residuals: 4.130801687763713
+      Sum of the squared residuals: 4.13080168776...
       Number of points: 6   
 
 More significant figures can be obtained by the same commands used in Example 1::
@@ -187,7 +187,7 @@ We proceed as above ::
       Intercept:  1.17(16)
       Slope:  1.964(41)
       Correlation: -0.9
-      Sum of the squared residuals: 0.116498285714...
+      Sum of the squared residuals: 0.11649828571...
       Number of points: 6
 
 More precise values of the fitted parameters are ::
@@ -223,7 +223,7 @@ We proceed as follows. The data sequences are defined and the ordinary least-squ
       Intercept:  1.17(16)
       Slope:  1.964(41)
       Correlation: -0.9
-      Sum of the squared residuals: 0.116498285714...
+      Sum of the squared residuals: 0.11649828571...
       Number of points: 6
 
 More precise values of the fitted parameters are ::
