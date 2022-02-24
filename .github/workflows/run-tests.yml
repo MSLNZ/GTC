@@ -36,9 +36,6 @@ jobs:
           - python-version: "3.9"
             os: windows
             architecture: x86
-          - python-version: "3.10"
-            os: windows
-            architecture: x86
 
     steps:
       - name: Checkout repository
