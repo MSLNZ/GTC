@@ -479,21 +479,27 @@ class UncertainReal(object):
         if isinstance(x,UncertainReal):
             if x.is_elementary:
                 n = x._node
-                if n.independent:
-                    return self._u_components.get(n,0.0) / n.u                        
-                else:
-                    return self._d_components.get(n,0.0) / n.u
+                if n.u > 0.0:
+                    if n.independent:
+                        return self._u_components.get(n,0.0) / n.u                        
+                    else:
+                        return self._d_components.get(n,0.0) / n.u
+                else: 
+                    return 0.0
                     
             elif x.is_intermediate:
                 n = x._node
-                return self._i_components.get(n,0.0) / n.u
+                if n.u > 0.0:
+                    return self._i_components.get(n,0.0) / n.u
+                else:
+                    return 0.0
                 
             elif _is_uncertain_real_constant(x):
-                return 0
+                return 0.0
                 
             else:
                 raise RuntimeError(
-                    "`x` is not an elementary or intermediate uncertain number"
+                    "{!r} is not an elementary or intermediate uncertain number".format(x)
                 )
              
         elif isinstance(x,UncertainComplex):

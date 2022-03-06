@@ -38,8 +38,9 @@ class TestSensitivity(unittest.TestCase):
         x1 = ureal(2,1)
         x2 = ureal(5,1)
         x3 = ureal(7,1)
+        x4 = ureal(1,0)
 
-        y = x3 ** x1 * x2
+        y = x3 ** x1 * (x2 + x4)
 
         self.assertTrue(
             equivalent(
@@ -59,13 +60,20 @@ class TestSensitivity(unittest.TestCase):
                 rp.sensitivity(y,x3)
         ))
 
-        x4 = result( y )
-        y = sin(x4)
+        # x4 is assigned zero weight
+        self.assertTrue(
+            equivalent(
+                rp.u_component(y,x4),
+                rp.sensitivity(y,x4)
+        ))
+
+        x5 = result( y )
+        y = sin(x5)
         # Do the differentiation by hand
         self.assertTrue(
             equivalent(
-                math.cos(x4.x),
-                rp.sensitivity(y,x4)
+                math.cos(x5.x),
+                rp.sensitivity(y,x5)
         ))
 
 
@@ -76,8 +84,10 @@ class TestSensitivity(unittest.TestCase):
         z1 = ucomplex(1+2j,1)
         z2 = ucomplex(2-1.5j,1)
         z3 = ucomplex(.1+1.8j,1)
+        z4 = ucomplex(-.1+0.8j,[0,1])
+        z5 = ureal(1.2,0)
 
-        z = z1**z2 * z3
+        z = z1**z2 * (z3 + z4 + z5)
         
         self.assertTrue(
             equivalent_sequence(
@@ -97,17 +107,31 @@ class TestSensitivity(unittest.TestCase):
                 rp.sensitivity(z,z3)
         ))
 
-        z4 = result( z )
-        z = sqrt(z4)
+        # The real component of z4 is assigned zero weight
+        self.assertTrue(
+            equivalent_sequence(
+                rp.u_component(z,z4),
+                rp.sensitivity(z,z4)
+        ))
+
+        # The imaginary component of z5 is assigned zero weight
+        self.assertTrue(
+            equivalent_sequence(
+                rp.u_component(z,z5),
+                rp.sensitivity(z,z5)
+        ))
+
+        z6 = result( z )
+        z = sqrt(z6)
         # Do the differentiation by hand
-        dz_dz4 = fn.complex_to_seq(
-            1.0/(2 * cmath.sqrt(z4.x))
+        dz_dz6 = fn.complex_to_seq(
+            1.0/(2 * cmath.sqrt(z6.x))
         )
 
         self.assertTrue(
             equivalent_sequence(
-                dz_dz4,
-                rp.sensitivity(z,z4)
+                dz_dz6,
+                rp.sensitivity(z,z6)
         ))
 
     # def test_uarray_singles_ureal(self):

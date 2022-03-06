@@ -324,6 +324,44 @@ def sensitivity(y,x):
         >>> reporting.sensitivity(z,q)
         JacobianMatrix(rr=3.0, ri=-0.0, ir=0.0, ii=3.0)
         
+    .. note::
+    
+        This function evaluates the sensitivity (partial derivative) of one 
+        uncertain number with respect to another term ``x``.
+
+        However, if the standard uncertainty of ``x`` is zero, the term is treated 
+        as being absent from the analytical model, so a sensitivity of 0 is reported. 
+
+        For example ::
+            >>> z1 = ucomplex(1+2j,[0,1])
+            >>> z2 = ucomplex(-1.2-0.9j,[1,0])
+            >>> z = z1*z2
+            >>> rp.sensitivity(z,z1.real)
+            JacobianMatrix(rr=0.0, ri=0.0, ir=0.0, ii=0.0)
+            >>> rp.sensitivity(z,z1.imag)
+            JacobianMatrix(rr=0.9, ri=0.0, ir=-1.2, ii=0.0)
+            >>> rp.sensitivity(z,z2.real)
+            JacobianMatrix(rr=1.0, ri=0.0, ir=2.0, ii=0.0)
+            >>> rp.sensitivity(z,z2.imag)
+            JacobianMatrix(rr=0.0, ri=0.0, ir=0.0, ii=0.0)
+        
+        If all the partial derivatives of a measurement model are required, 
+        regardless of the associated standard uncertainties, the preferred method is 
+        to assign all standard uncertainty values to unity.
+        
+        Using the same example as above ::
+            >>> z1 = ucomplex(1+2j,1)
+            >>> z2 = ucomplex(-1.2-0.9j,1)
+            >>> z = z1*z2
+            >>> rp.sensitivity(z,z1.real)
+            JacobianMatrix(rr=-1.2, ri=0.0, ir=-0.9, ii=0.0)
+            >>> rp.sensitivity(z,z1.imag)
+            JacobianMatrix(rr=0.9, ri=0.0, ir=-1.2, ii=0.0)
+            >>> rp.sensitivity(z,z2.real)
+            JacobianMatrix(rr=1.0, ri=0.0, ir=2.0, ii=0.0)
+            >>> rp.sensitivity(z,z2.imag)
+            JacobianMatrix(rr=-2.0, ri=0.0, ir=1.0, ii=0.0)
+
     """
     # There are three types that define a `sensitivity` method: 
     # ~uncertain_array.UncertainArray, UncertainReal and UncertainComplex. 
