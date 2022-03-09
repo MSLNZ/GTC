@@ -3060,8 +3060,6 @@ class UncertainComplex(object):
             StandardUncertainty(real=0.5, imag=0.5)
         """        
         if not hasattr(self,"_u"):
-            self.real.u
-            self.imag.u
             self._u = StandardUncertainty(self.real.u,self.imag.u)
             
         return self._u 
