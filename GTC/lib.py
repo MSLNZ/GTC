@@ -739,15 +739,18 @@ class UncertainReal(object):
     #------------------------------------------------------------------------
     @property
     def real(self):
-        """Return the real component 
+        """Return the real component
+
+        :rtype: :class:`~lib.UncertainReal`
         """
         return self  
     
     #------------------------------------------------------------------------
     @property
     def imag(self):
-        """Returns the imaginary component 
-        
+        """Returns the imaginary component
+
+        :rtype: :class:`~lib.UncertainReal`
         """
         # Returning an UN constant ensures that an algorithm
         # expecting an uncertain number will not break
@@ -791,32 +794,35 @@ class UncertainReal(object):
         """Return the value
 
         :rtype: float
-        
-        Note that ``un.x`` is equivalent to :func:`value(un)<core.value>`
+
+        Note that ``ur.x`` is equivalent to :func:`value(ur)<core.value>`
         
         **Example**::
+
             >>> ur = ureal(2.5,0.5)
             >>> ur.x
             2.5
-            
+            >>> value(ur)
+            2.5
         """
         return self._x
 
     #------------------------------------------------------------------------
     @property
     def u(self):
-        """Return the standard uncertainty 
-        
+        """Return the standard uncertainty
+
         :rtype: float
-        
-        Note that ``un.u`` is equivalent to :func:`uncertainty(un)<core.uncertainty>`
+
+        Note that ``ur.u`` is equivalent to :func:`uncertainty(ur)<core.uncertainty>`
         
         **Example**::
 
             >>> ur = ureal(2.5,0.5)
             >>> ur.u
             0.5
-            
+            >>> uncertainty(ur)
+            0.5
         """
         if self.is_elementary or self.is_intermediate:
             return self._node.u
@@ -835,13 +841,15 @@ class UncertainReal(object):
         
         :rtype: float
         
-        Note that ``un.v`` is equivalent to :func:`variance(un)<core.variance>`
+        Note that ``ur.v`` is equivalent to :func:`variance(ur)<core.variance>`
         
         **Example**::
+
             >>> ur = ureal(2.5,0.5)
             >>> ur.v
             0.25
-            
+            >>> variance(ur)
+            0.25
         """
         if self.is_elementary or self.is_intermediate:
             u = self._node.u
@@ -867,10 +875,10 @@ class UncertainReal(object):
         component is implicitly zero there is no correlation.
         
         **Example**::
+
             >>> ur = ureal(2.5,0.5)
             >>> ur.r
             0.0
-            
         """
         return 0.0
 
@@ -878,16 +886,18 @@ class UncertainReal(object):
     @property
     def df(self):
         """Return the degrees of freedom
-        
+
         :rtype: float
 
-        Note ``un.df`` is equivalent to :func:`dof(un)<core.dof>`
+        Note ``ur.df`` is equivalent to :func:`dof(ur)<core.dof>`
         
         **Example**::
+
             >>> ur = ureal(2.5,0.5,3)
             >>> ur.df
-            3.0        
-            
+            3.0
+            >>> dof(ur)
+            3.0
         """
         if self.is_elementary:
             return self._node.df
@@ -915,16 +925,15 @@ class UncertainReal(object):
         
         :rtype: str
 
-        Note ``un.label`` is equivalent to :func:`label(un)<core.label>`
+        Note ``ur.label`` is equivalent to :func:`label(ur)<core.label>`
         
         **Example**::
-            >>> x = ureal(2.5,0.5,label='x')
-            >>> x.label
+
+            >>> ur = ureal(2.5,0.5,label='x')
+            >>> ur.label
             'x'
-        
-            >>> label(x)
+            >>> label(ur)
             'x'
-            
         """
         try:
             # Elementary, constant and intermediate UNs
@@ -936,7 +945,7 @@ class UncertainReal(object):
     @property
     def uid(self):
         """Return the unique identifier for the uncertain number, or ``None``.
-        
+
         Note that ``un.uid`` is equivalent to :func:`uid(un)<core.uid>`
         
         .. versionadded:: 1.3.7
@@ -3024,10 +3033,12 @@ class UncertainComplex(object):
         Note that ``uc.x`` is equivalent to :func:`value(uc)<core.value>`
         
         **Example**::
+
             >>> uc = ucomplex(1+2j,(.3,.2))
             >>> uc.x
             (1+2j)
-
+            >>> value(uc)
+            (1+2j)
         """
         return self._value
 
@@ -3036,7 +3047,7 @@ class UncertainComplex(object):
     def u(self):
         """Return standard uncertainties for the real and imaginary components
 
-        :rtype: 2-element sequence of float
+        :rtype: :obj:`~named_tuples.StandardUncertainty`
         
         Note that ``uc.u`` is equivalent to :func:`uncertainty(uc)<core.uncertainty>`
         
@@ -3045,7 +3056,8 @@ class UncertainComplex(object):
             >>> uc = ucomplex(1+2j,(.5,.5))
             >>> uc.u
             StandardUncertainty(real=0.5, imag=0.5)
-        
+            >>> uncertainty(uc)
+            StandardUncertainty(real=0.5, imag=0.5)
         """        
         if not hasattr(self,"_u"):
             self.real.u
@@ -3062,7 +3074,7 @@ class UncertainComplex(object):
         The uncertainty of an uncertain complex number can be associated with
         a 4-element variance-covariance matrix.
 
-        :rtype: 4-element sequence of float
+        :rtype: :class:`~named_tuples.VarianceCovariance`
         
         Note that ``uc.v`` is equivalent to :func:`variance(uc)<core.variance>`
         
@@ -3071,7 +3083,8 @@ class UncertainComplex(object):
             >>> uc = ucomplex(1+2j,(.5,.5))
             >>> uc.v
             VarianceCovariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
-
+            >>> variance(uc)
+            VarianceCovariance(rr=0.25, ri=0.0, ir=0.0, ii=0.25)
         """
         if not hasattr(self,"_v"):
             self._v = std_variance_covariance_complex(self)
@@ -3103,17 +3116,20 @@ class UncertainComplex(object):
 
         When the object is not an elementary uncertain number, the 
         effective degrees-of-freedom is calculated using the method
-        described by Willink and Hall in Metrologia 2002, 39, pp 361-369.
+        described by
+        `Willink and Hall in Metrologia 2002, 39, pp 361-369 <https://doi.org/10.1088/0026-1394/39/4/5>`_.
 
         :rtype: float
         
         Note that ``uc.df`` is equivalent to :func:`dof(uc)<core.dof>`
         
         **Example**::
+
             >>> uc = ucomplex(1+2j,(.3,.2),3)
             >>> uc.df
             3.0
-        
+            >>> dof(uc)
+            3.0
         """
         cv_df = willink_hall(self)
         if not hasattr(self,"_v"):
@@ -3124,17 +3140,19 @@ class UncertainComplex(object):
     #--------------------------------------------
     @property
     def label(self):
-        """The `label` attribute
+        """The uncertain-number label
 
         :rtype: str
         
-        Note that ``un.label`` is equivalent to :func:`label(un)<core.label>`
+        Note that ``uc.label`` is equivalent to :func:`label(uc)<core.label>`
         
         **Example**::
-            >>> z = ucomplex(2.5+.3j,(1,1),label='z')
-            >>> z.label
+
+            >>> uc = ucomplex(2.5+.3j,(1,1),label='z')
+            >>> uc.label
             'z'
-            
+            >>> label(uc)
+            'z'
         """
         try:
             return self._label
