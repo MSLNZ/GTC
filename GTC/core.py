@@ -563,6 +563,8 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 raise ValueError(
                     "covariance elements not equal: {!r} and {!r}".format(cv1,cv2) 
                 )
+                
+            # Note that for cv1 to be non-zero, both u_r and u_i must be non-zero
             u_r = math.sqrt(u_r)
             u_i = math.sqrt(u_i)
             r = cv1 / (u_r*u_i) if cv1 != 0 else None
@@ -662,7 +664,8 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         )
  
     rtn = [
-        # When u_i == 0 constant objects are created
+        # When the uncertainty term u_i corresponds to zero, 
+        # constant ucomplex objects are created
         ucomplex(x_i,u_i,df,label=l_i,independent=False)
             for x_i,u_i,l_i in izip(
                 x_seq,u_seq,label_seq
