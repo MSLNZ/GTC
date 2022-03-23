@@ -92,6 +92,8 @@ def mean(seq,*args,**kwargs):
     if is_sequence(seq):
         return sum(seq)/len(seq)
         
+    # If there are no elements in `seq`, the numpy ndarray 
+    # case returns `nan` rather than a ZeroDivisionError
     elif isinstance(seq,np.ndarray):
         return np.asarray(seq).mean(*args, **kwargs)
         
