@@ -9,6 +9,8 @@ names of objects in this module.
 
 .. automodule:: type_b
 
+.. autofunction:: type_b.mean
+
 .. autofunction:: type_b.line_fit
 .. autofunction:: type_b.line_fit_wls
 .. autofunction:: type_b.line_fit_wtls

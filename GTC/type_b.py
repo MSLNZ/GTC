@@ -128,7 +128,20 @@ def mean(seq,*args,**kwargs):
     :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
     
     An uncertain number is returned if ``seq`` contains uncertain numbers.
-            
+
+    **Example** ::
+    
+        >>> seq = [ ureal(1,1), ureal(2,1), ureal(3,1) ]
+        >>> function.mean(seq)
+        ureal(2.0,0.5773502691896257,inf)
+        
+    .. note::
+        When ``seq`` is an empty :class:`numpy.ndarray` or 
+        an :class:`~numpy.ndarray` containing any ``NaN`` elements
+        ``NaN`` is returned. 
+        
+        In other cases, a :class:`ZeroDivisionError` is raised when there are no elements in ``seq``.
+
     """
     if is_sequence(seq):
         assert not args
@@ -153,8 +166,7 @@ def mean(seq,*args,**kwargs):
             "{!r} is not iterable".format(seq)
         )
     
-    # If `seq` has uncertain number elements then `mu` will 
-    # be an uncertain number.     
+    # If `seq` has uncertain number elements then `mu` will be an uncertain number.     
     return mu
 #-----------------------------------------------------------------------------------------
 class LineFit(object):

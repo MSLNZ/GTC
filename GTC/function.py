@@ -18,6 +18,7 @@ from __future__ import division
 
 import math
 import numpy as np 
+from GTC.type_b import mean 
 
 try:  # Python 2
     import __builtin__ as builtins
@@ -70,45 +71,7 @@ def sum(seq,*args,**kwargs):
         raise RuntimeError(
             "{!r} is not iterable".format(seq)
         )    
- 
-#---------------------------------------------------------------------------
-def mean(seq,*args,**kwargs):
-    """Return the arithmetic mean of the elements in `seq`
-    
-    :arg seq: a sequence, :class:`~numpy.ndarray`, or iterable, of numbers or uncertain numbers
-    :arg args: optional arguments when ``seq`` is an :class:`~numpy.ndarray`
-    :arg kwargs: optional keyword arguments when ``seq`` is an :class:`~numpy.ndarray`
-    
-    If the elements of ``seq`` are uncertain numbers, 
-    an uncertain number is returned.
-    
-    **Example** ::
-    
-        >>> seq = [ ureal(1,1), ureal(2,1), ureal(3,1) ]
-        >>> function.mean(seq)
-        ureal(2.0,0.5773502691896257,inf)
-        
-    """
-    if is_sequence(seq):
-        return sum(seq)/len(seq)
-        
-    # If there are no elements in `seq`, the numpy ndarray 
-    # case returns `nan` rather than a ZeroDivisionError
-    elif isinstance(seq,np.ndarray):
-        return np.asarray(seq).mean(*args, **kwargs)
-        
-    elif isinstance(seq,Iterable):
-        count = 0
-        total = 0
-        for i in seq:
-            total += i
-            count += 1
-        return total/count
-        
-    else:
-        raise RuntimeError(
-            "{!r} is not iterable".format(seq)
-        )
+
 #---------------------------------------------------------------------------
 def complex_to_seq(z):
     """Transform a complex number into a 4-element sequence

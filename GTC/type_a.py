@@ -913,6 +913,13 @@ def mean(seq,*args,**kwargs):
         >>> type_a.mean(data)
         7.0
             
+    .. note::
+        When ``seq`` is an empty :class:`numpy.ndarray` or 
+        an :class:`~numpy.ndarray` containing any ``NaN`` elements
+        ``NaN`` is returned. 
+        
+        In other cases, a :class:`ZeroDivisionError` is raised when there are no elements in ``seq``.
+
     """
     return value( type_b.mean(seq,*args,**kwargs) )
     
