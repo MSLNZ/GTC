@@ -392,18 +392,22 @@ def line_fit(x,y):
         ureal(-3.0,0.02201927530252...,inf)
         
     """  
-    S = len(x) 
+    N = len(x) 
+    if N != len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
     
     S_x = sum( x ) 
     S_y = sum( y )
 
-    k = S_x / S
+    k = S_x / N
     t = [ x_i - k for x_i in x ]
 
     S_tt = sum( t_i*t_i for t_i in t )
     
     b = sum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
-    a = (S_y - b*S_x)/S
+    a = (S_y - b*S_x)/N
 
     if not isinstance(a, UncertainReal):
         raise ValueError('"y" must be a sequence of uncertain real numbers. '
@@ -422,7 +426,7 @@ def line_fit(x,y):
             for x_i,y_i in izip(x,y) 
     )
 
-    return LineFitOLS(a,b,ssr,S)
+    return LineFitOLS(a,b,ssr,N)
  
 #--------------------------------------------------------------------
 #
@@ -473,6 +477,11 @@ def line_fit_wls(x,y,u_y=None):
         ureal(2.0569620253164...,0.1778920167412...,inf)
         
     """
+    if len(x)!= len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
+
     if u_y is None:
         v = [ y_i.v for y_i in y ]
         u = [ math.sqrt(v_i) for v_i in v ]
@@ -947,6 +956,11 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         ureal(-0.48053339...,0.057616740...,inf)
 
     """
+    if len(x)!= len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
+
     ureal = lambda x,u: UncertainReal._elementary(
             x,u,inf,None,True
     )    

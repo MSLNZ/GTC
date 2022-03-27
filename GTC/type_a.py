@@ -442,6 +442,10 @@ def line_fit(x,y,label=None):
             
     """
     N = len(x)
+    if N != len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
     
     x = value_seq(x)
     y = value_seq(y)
@@ -499,6 +503,10 @@ def _line_fit_wls(x,y,u_y):
     NB client must supply sequences `x` and `y` of pure numbers
     """
     N = len(x)
+    if N != len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
 
     v = [ u_y_i*u_y_i for u_y_i in u_y ]
     S =  math.fsum( 1.0/v_i for v_i in v)
@@ -613,6 +621,10 @@ def line_fit_rwls(x,y,s_y,label=None):
           
     """
     N = len(x)
+    if N != len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
     if N < 3:
         raise RuntimeError(
             "At least three data points are required, got {}".format(N)
@@ -694,6 +706,11 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
         ureal(-0.48053339...,0.057616740...,8)
     
     """
+    if len(x)!= len(y):
+        raise RuntimeError(
+            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+        )
+
     independent = r_xy is None
 
     x_u = [ ureal( value(x_i),u_i,inf,None,independent=independent)
@@ -874,6 +891,12 @@ def estimate(seq,label=None):
 
     """
     df = len(seq)-1
+    if 0 >= df:
+        raise RuntimeError(
+            "require: 0 >= len({!r})".format(seq)
+        )
+        
+    df = len(seq)-1
     
     seq = value_seq(seq)
     
@@ -967,6 +990,10 @@ def standard_deviation(seq,mu=None):
         
     """
     N = len(seq)
+    if N == 0:
+        raise RuntimeError(
+            "empty sequence: {!r}".format(seq)
+        )
     
     if mu is None:
         mu = mean(seq)
@@ -1049,7 +1076,13 @@ def standard_uncertainty(seq,mu=None):
         -0.31374045124595246
 
     """
-    ROOT_N = math.sqrt(len(seq))
+    N = len(seq)
+    if N == 0:
+        raise RuntimeError(
+            "empty sequence: {!r}".format(seq)
+        )
+
+    ROOT_N = math.sqrt(N)
     
     if mu is None:
         mu = mean(seq)
@@ -1109,8 +1142,11 @@ def variance_covariance_complex(seq,mu=None):
         0.7051975704291644
 
     """
-    N = len(seq)
-    df = N-1
+    df = len(seq)-1
+    if 0 >= df:
+        raise RuntimeError(
+            "require: 0 >= len({!r})".format(seq)
+        )
     
     zseq = value_seq(seq)
     
