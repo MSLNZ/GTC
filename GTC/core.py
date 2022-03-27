@@ -895,9 +895,12 @@ def sqrt(x):
 
     .. note::
         There is a singularity in the uncertainty if the value of ``x`` is zero. 
-        For example, the following will raise a :class:`ZeroDivisionError` ::
+        For example, ::
         
             >>> sqrt(ureal(0,1))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: float division by zero
 
         More generally, uncertainty in :math:`\sqrt{x}` becomes
         large when :math:`x` is close to zero. 
@@ -982,9 +985,12 @@ def asin(x):
 
     .. note::
         There is a singularity in the uncertainty if the value of ``x`` is unity. 
-        For example, the following will raise a :class:`ZeroDivisionError` ::
+        For example, ::
         
             >>> asin(ureal(1, 1))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: float division by zero
 
         More generally, uncertainty in the inverse sine function becomes
         large when :math:`x` is close to unity. 
@@ -1016,9 +1022,12 @@ def acos(x):
 
     .. note::
         There is a singularity in the uncertainty if the value of ``x`` is unity. 
-        For example, the following will raise a :class:`ZeroDivisionError` ::
+        For example, ::
         
             >>> acos(ureal(1, 1))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: float division by zero
 
         More generally, uncertainty in the inverse cosine function becomes
         large when :math:`x` is close to unity. 
