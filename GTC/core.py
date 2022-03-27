@@ -894,6 +894,17 @@ def sqrt(x):
     Uncertain number square root function
 
     .. note::
+        There is a singularity in the uncertainty if the value of ``x`` is zero. 
+        For example, the following will raise a :class:`ZeroDivisionError` ::
+        
+            >>> sqrt(ureal(0,1))
+
+        More generally, uncertainty in :math:`\sqrt{x}` becomes
+        large when :math:`x` is close to zero. 
+        This may be an indication that the measurement model is ill-formed or that a 
+        GUM calculation of uncertainty is not appropriate.
+        
+    .. note::
         In the complex case there is one branch cut,
         from 0 along the negative real
         axis to :math:`-\infty`, continuous from above.
@@ -970,6 +981,17 @@ def asin(x):
     Uncertain number arcsine function
 
     .. note::
+        There is a singularity in the uncertainty if the value of ``x`` is unity. 
+        For example, the following will raise a :class:`ZeroDivisionError` ::
+        
+            >>> asin(ureal(1, 1))
+
+        More generally, uncertainty in the inverse sine function becomes
+        large when :math:`x` is close to unity. 
+        This may be an indication that the measurement model is ill-formed or that a 
+        GUM calculation of uncertainty is not appropriate.
+
+    .. note::
         In the complex case there are two branch cuts: one extends
         right, from 1 along the real axis to :math:`\infty`,
         continuous from below; the other extends left, from -1 along
@@ -992,6 +1014,17 @@ def acos(x):
     """
     Uncertain number arc-cosine function
 
+    .. note::
+        There is a singularity in the uncertainty if the value of ``x`` is unity. 
+        For example, the following will raise a :class:`ZeroDivisionError` ::
+        
+            >>> acos(ureal(1, 1))
+
+        More generally, uncertainty in the inverse cosine function becomes
+        large when :math:`x` is close to unity. 
+        This may be an indication that the measurement model is ill-formed or that a 
+        GUM calculation of uncertainty is not appropriate.
+        
     .. note::
         In the complex case there are two branch cuts: one extends
         right, from 1 along the real axis to :math:`\infty`, continuous
