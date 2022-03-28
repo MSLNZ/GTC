@@ -176,9 +176,14 @@ Ordinary Least-Squares Results:
 
         append_real_ensemble(a,y)
         
-        if x_label is None:
-            x = (y - a)/b
+        if abs(b) < 1E-15:
+            # When b == 0, the best-fit line is horizontal 
+            # so no use of new y data is made
+            x = a
         else:
+            x = (y - a)/b
+            
+        if x_label is not None:
             x = result( (y - a)/b, label=x_label )
 
         return x
@@ -268,13 +273,19 @@ Relative Weighted Least-Squares Results:
         )            
 
         append_real_ensemble(a,y)
-        
-        if x_label is None:
-            x = (y - a)/b
+
+        if abs(b) < 1E-15:
+            # When b == 0, the best-fit line is horizontal 
+            # so no use of new y data is made
+            x = a
         else:
+            x = (y - a)/b
+            
+        if x_label is not None:
             x = result( (y - a)/b, label=x_label )
 
         return x
+        
 
     def y_from_x(self,x,s_y,s_label=None,y_label=None):
         """Return an uncertain number ``y`` that predicts the response to ``x``
@@ -337,15 +348,15 @@ Weighted Least-Squares Results:
 '''
         return header + LineFit.__str__(self)
 
-    def x_from_y(self,yseq,u_yseq,x_label=None,y_label=None):
-        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
+    def x_from_y(self,y_data,u_y_data,x_label=None,y_label=None):
+        """Estimate the stimulus ``x`` corresponding to the responses in ``y_data``
 
-        :arg yseq: a sequence of further observations of ``y``
-        :arg u_yseq: the standard uncertainty of the ``yseq`` data
+        :arg y: a sequence of further observations of ``y_data``
+        :arg u_y_data: the standard uncertainty of the ``y_data`` elements
         :arg x_label: a label for the return uncertain number `x` 
-        :arg y_label: a label for the estimate of `y` based on ``yseq``
+        :arg y_label: a label for the estimate of `y` based on ``y_data``
 
-        The variations in ``yseq`` values are assumed to result from 
+        The variations in ``y_data`` values are assumed to result from 
         independent random effects.
         
         .. note::
@@ -355,22 +366,27 @@ Weighted Least-Squares Results:
         """
         a, b = self._a_b
         
-        p = len(yseq)
-        y = math.fsum( yseq ) / p
+        p = len(y_data)
+        y = math.fsum( y_data ) / p
         
         y = ureal(
             y,
-            u_yseq / math.sqrt( p ),
+            u_y_data / math.sqrt( p ),
             inf,
             label=y_label,
             independent=False
         )            
 
         append_real_ensemble(a,y)
-        
-        if x_label is None:
-            x = (y - a)/b
+
+        if abs(b) < 1E-15:
+            # When b == 0, the best-fit line is horizontal 
+            # so no use of new y data is made
+            x = a
         else:
+            x = (y - a)/b
+            
+        if x_label is not None:
             x = result( (y - a)/b, label=x_label )
 
         return x
@@ -442,31 +458,29 @@ def line_fit(x,y,label=None):
             
     """
     N = len(x)
-    if N != len(y):
+    df = N-2
+    if df <= 0 or N != len(y):
         raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+            "Invalid sequences: len({!r}), len({!r})".format(x,y)
         )
     
     x = value_seq(x)
     y = value_seq(y)
 
-    df = N-2
-
-    S = N
     S_x = math.fsum( x )
     S_y = math.fsum( y )
         
-    k = S_x / S
+    k = S_x / N
     t = [ (x_i - k) for x_i in x ]
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
     b_ =  math.fsum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
-    a_ = (S_y - b_*S_x)/S
+    a_ = (S_y - b_*S_x)/N
 
-    siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
+    siga = math.sqrt( (1.0 + S_x*S_x/(N*S_tt))/N )
     sigb = math.sqrt( 1.0/S_tt )
-    r_ab = -S_x/(S*S_tt*siga*sigb)
+    r_ab = -S_x/(N*S_tt*siga*sigb)
     
     # Sum of squared residuals needed to correctly calculate parameter uncertainties
     f = lambda x_i,y_i: (y_i - a_ - b_*x_i)**2 
@@ -503,10 +517,6 @@ def _line_fit_wls(x,y,u_y):
     NB client must supply sequences `x` and `y` of pure numbers
     """
     N = len(x)
-    if N != len(y):
-        raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
-        )
 
     v = [ u_y_i*u_y_i for u_y_i in u_y ]
     S =  math.fsum( 1.0/v_i for v_i in v)
@@ -557,6 +567,12 @@ def line_fit_wls(x,y,u_y,label=None):
          b=ureal(2.056962025316...,0.177892016741...,inf))
         
     """
+    N = len(x)
+    if N-2 <= 0 or N != len(y) or N != len(u_y):
+        raise RuntimeError(
+            "Invalid sequences: len({!r}), len({!r}), len({!r})".format(x,y,u_y)
+        )
+        
     x = value_seq(x)
     y = value_seq(y)
 
@@ -621,13 +637,10 @@ def line_fit_rwls(x,y,s_y,label=None):
           
     """
     N = len(x)
-    if N != len(y):
+    df = N-2
+    if df <= 0 or N != len(y) or N != len(s_y):
         raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
-        )
-    if N < 3:
-        raise RuntimeError(
-            "At least three data points are required, got {}".format(N)
+            "Invalid sequences: len({!r}), len({!r}), len({!r})".format(x,y,s_y)
         )
         
     x = value_seq(x)
@@ -635,7 +648,6 @@ def line_fit_rwls(x,y,s_y,label=None):
     
     a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,s_y)
 
-    df = N-2
     sigma_hat = math.sqrt(ssr/df)
     siga *= sigma_hat
     sigb *= sigma_hat
@@ -706,9 +718,15 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
         ureal(-0.48053339...,0.057616740...,8)
     
     """
-    if len(x)!= len(y):
+    N = len(x)
+    df = N-2
+    if df <= 0 or N != len(y):
         raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+            "Invalid sequences: len({!r}), len({!r})".format(x,y)
+        )
+    if N != len(u_x) or N != len(u_y):
+        raise RuntimeError(
+            "Invalid sequences: len({!r}), len({!r})".format(u_x,u_y)
         )
 
     independent = r_xy is None
@@ -729,8 +747,6 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
     N = result.N
     ssr = result.ssr
     r_ab = a.get_correlation(b)
-    
-    df = N-2
     
     a = ureal(
         a.x,
