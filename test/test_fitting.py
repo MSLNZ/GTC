@@ -161,6 +161,29 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( abs(b.u-0.07115681) > 1E-8)
         self.assertTrue( abs(a.u*b.u*a.get_correlation(b)+0.01316456) > 1E-7)
 
+    def test_horizontal(self):
+        x = [1,2,3,4,5,6]
+        y = [2.0] * len(x)
+        u_y = [1.0] * len(x)
+        fit = type_a.line_fit_rwls(x,y,u_y)
+
+        x_fit = fit.x_from_y([1.5],.5)
+        equivalent(value(x_fit),value(fit.a_b[0]),TOL)
+        equivalent(uncertainty(x_fit),uncertainty(fit.a_b[0]),TOL)
+        
+    def test_illegal_inputs(self):
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit_wls,
+            [1, 2, 3, 4], [1, 2, 3, 4], [1, 1, 1, 1, 1, 1]
+        )
+        
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit_rwls,
+            [1, 2, 3], [1, 2, 3, 4], [1, 1, 1]
+        )
+
 #-----------------------------------------------------
 class TestLineFitWeighted(unittest.TestCase):
 
@@ -404,6 +427,25 @@ class TestLineFitWeighted(unittest.TestCase):
         
         # So should the correlation between `a` and `b`
         equivalent(r,a.get_correlation(b),TOL)             
+
+    def test_illegal_inputs(self):
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit_wls,
+            [], [1, 2, 3], [1, 1, 1],
+        )
+        
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit_wls,
+            [], [1, 2, 3], [1, 1, 1], [1, 1, 1]
+        )
+        
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit_wls,
+            [1, 2, 3, 4], [1, 2, 3, 4], [1, 1, 1, 1, 1, 1]
+        )
         
     def test_pearson_york(self):
         """
@@ -521,6 +563,33 @@ class UncertainLineTests(unittest.TestCase):
         equivalent(uncertainty(b),sig_b,TOL)
 
         equivalent(r,a.get_correlation(b),TOL)        
+        
+        # Horizontal line
+        x = [ float(x_i) for x_i in xrange(5) ]
+        y = [ ureal(2,1) for y_i in x ]
+        
+        fit = type_b.line_fit(x,y)
+        x_fit = fit.x_from_y([1.5])
+        equivalent(value(x_fit),value(fit.a_b[0]),TOL)
+        equivalent(uncertainty(x_fit),uncertainty(fit.a_b[0]),TOL)
+
+        fit = type_a.line_fit([1, 2, 3], [2, 2, 2])
+        x_fit = fit.x_from_y([1.5])
+        equivalent(value(x_fit),value(fit.a_b[0]),TOL)
+        equivalent(uncertainty(x_fit),uncertainty(fit.a_b[0]),TOL)
+
+        # Incompatible input sequences
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit,
+            [1, 2, 3], []
+         )
+
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit,
+            [1, 2, 3, 4], [1, 2, 3]
+         )
 
     def test_simple_errors_in_x_and_y(self):
         """Trivial straight line
@@ -593,6 +662,22 @@ class UncertainLineTests(unittest.TestCase):
         # So should the correlation between `a` and `b`
         equivalent(r,a.get_correlation(b),TOL)             
 
+    def test_horizontal_wls(self):
+        
+        # Horizontal line
+        x = [ float(x_i) for x_i in xrange(5) ]
+        y = [ ureal(2,1) for y_i in x ]
+        
+        fit = type_b.line_fit_wls(x,y)
+        x_fit = fit.x_from_y([1.5])
+        equivalent(value(x_fit),value(fit.a_b[0]),TOL)
+        equivalent(uncertainty(x_fit),uncertainty(fit.a_b[0]),TOL)
+
+        fit = type_a.line_fit_wls([1, 2, 3], [2, 2, 2], [1,1,1])
+        x_fit = fit.x_from_y([1.5],1)
+        equivalent(value(x_fit),value(fit.a_b[0]),TOL)
+        equivalent(uncertainty(x_fit),uncertainty(fit.a_b[0]),TOL)
+        
     def test_simple_scaled_errors_in_x_and_y(self):
         """Straight line with non-trivial `a` and `b`
 
