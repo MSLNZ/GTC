@@ -71,7 +71,7 @@ class TestTypeA(unittest.TestCase):
         rng = range(100)
         itr = iter(rng)
         self.assertTrue( equivalent( type_a.mean(itr) , type_a.mean(rng), TOL) )
-        
+                
     def testUNMean(self):
         """A sequence of uncertain numbers"""
         
@@ -878,6 +878,27 @@ class TestLineFit(unittest.TestCase):
 
     TOL = 1E-5
     
+    def test_invalid_inputs(self):
+        
+        # invalid cases should raise exceptions
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit,
+            [],[]
+        )
+
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit,
+            [],[1, 2]
+        )
+
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit,
+            [1,2],[1, 2]
+        )
+        
     def test_integer_x_values(self):
         """
         The integer arithmetic of Python can be a problem
@@ -1227,7 +1248,7 @@ class TestCombineComponents(unittest.TestCase):
 
     def test_illegal(self):
         """
-        Can't merge uncrtain numbers with different values 
+        Can't merge uncertain numbers with different values 
         """
         val = 0
         x1 = ureal(val,1)
@@ -1243,6 +1264,8 @@ class TestCombineComponents(unittest.TestCase):
         x = type_a.merge(x1,x2)
         self.assertTrue( equivalent(val,value(x)) )
   
+    
+
 #============================================================================
 if(__name__== '__main__'):
 
