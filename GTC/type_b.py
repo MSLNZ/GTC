@@ -283,10 +283,17 @@ Ordinary Least-Squares Results:
         
         y = mean( yseq ) 
         
-        if x_label is None:
-            return (y - a)/b
+        if abs(b) < 1E-15:
+            # When b == 0, the best-fit line is horizontal 
+            # so no use of new y data is made
+            x = a
         else:
-            return result( (y - a)/b, label=x_label )
+            x = (y - a)/b
+            
+        if x_label is not None:
+            x = result( x, label=x_label )
+            
+        return x
 
     def y_from_x(self,x,y_label=None):
         """Return an uncertain number ``y`` that predicts the response to ``x``
@@ -956,7 +963,8 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         ureal(-0.48053339...,0.057616740...,inf)
 
     """
-    if len(x)!= len(y):
+    N = len(x)
+    if N != len(y):
         raise RuntimeError(
             "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
         )
@@ -973,7 +981,12 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         elif (r_xy is None):
             # default value will be uncorrelated
             r_xy = [0] * len(u_x)
-            
+        
+        if len(u_x) != len(u_y) != N:
+            raise RuntimeError(
+                "incompatible sequence lengths: {!r}, {!r}".format(u_x,u_y)
+            )
+
     for x_i,y_i in izip(x,y):
         assert isinstance(x_i,UncertainReal), 'uncertain real required'
         assert isinstance(y_i,UncertainReal), 'uncertain real required'
