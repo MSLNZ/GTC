@@ -136,8 +136,8 @@ def mean(seq,*args,**kwargs):
         ureal(2.0,0.5773502691896257,inf)
         
     .. note::
-        When ``seq`` is an empty :class:`numpy.ndarray` or 
-        an :class:`~numpy.ndarray` containing any ``NaN`` elements
+        When ``seq`` is an empty :class:`~numpy.ndarray` or 
+        a :class:`~numpy.ndarray` containing any ``NaN`` elements
         ``NaN`` is returned. 
         
         In other cases, a :class:`ZeroDivisionError` is raised when there are no elements in ``seq``.
