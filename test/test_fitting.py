@@ -1052,6 +1052,60 @@ class TestLineFitTLS(unittest.TestCase):
     The WTSL is described in M Krystek and M Anton,
     Meas. Sci. Technol. 22 (2011) 035101 (9pp)
     """
+    def test_input_validation(self):
+        x = [ ureal(i,1) for i in range(5) ]
+        y = [ ureal(i,1) for i in range(6) ]
+        self.assertRaises(
+            RuntimeError,
+            tb.line_fit_wtls,
+            x,y
+        )
+        
+        x = [ i for i in range(5) ]
+        y = [ ureal(i,1) for i in range(5) ]
+        self.assertRaises(
+            AssertionError,
+            tb.line_fit_wtls,
+            x,y
+        )
+
+        x = [ ureal(i,1) for i in range(5) ]
+        y = [ i for i in range(5) ]
+        self.assertRaises(
+            AssertionError,
+            tb.line_fit_wtls,
+            x,y
+        )
+
+        x = [ ureal(i,1) for i in range(5) ]
+        y = [ ureal(i,1) for i in range(5) ]
+        u_x = [ .3 ] * 5
+        u_y = [ .4 ] * 6
+        self.assertRaises(
+            RuntimeError,
+            tb.line_fit_wtls,
+            x,y, u_x, u_y
+        )
+        u_x = [ .3 ] * 6
+        u_y = [ .4 ] * 5
+        self.assertRaises(
+            RuntimeError,
+            tb.line_fit_wtls,
+            x,y, u_x, u_y
+        )
+        u_x = [ .4 ] * 5
+        self.assertRaises(
+            RuntimeError,
+            tb.line_fit_wtls,
+            x,y, u_x
+        )
+        u_y = [ .4 ] * 5
+        self.assertRaises(
+            RuntimeError,
+            tb.line_fit_wtls,
+            x,y, u_y = u_y
+        )
+
     def test_iso_ts28037_2010_fn(self):
         """p21 of the standard
         """

@@ -969,10 +969,6 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
             "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
         )
 
-    ureal = lambda x,u: UncertainReal._elementary(
-            x,u,inf,None,True
-    )    
-
     if (u_x is not None or u_y is not None):
         if (u_x is None or u_y is None):
             raise RuntimeError(
@@ -982,7 +978,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
             # default value will be uncorrelated
             r_xy = [0] * len(u_x)
         
-        if len(u_x) != len(u_y) != N:
+        if len(u_x) != N or len(u_y) != N:
             raise RuntimeError(
                 "incompatible sequence lengths: {!r}, {!r}".format(u_x,u_y)
             )
@@ -990,6 +986,11 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
     for x_i,y_i in izip(x,y):
         assert isinstance(x_i,UncertainReal), 'uncertain real required'
         assert isinstance(y_i,UncertainReal), 'uncertain real required'
+
+    # Needed to define UNs locally
+    ureal = lambda x,u: UncertainReal._elementary(
+            x,u,inf,None,True
+    )    
 
     if a_b is None:
         a_b = line_fit_wls(x, y, u_y).a_b
