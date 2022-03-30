@@ -184,7 +184,7 @@ Ordinary Least-Squares Results:
             x = (y - a)/b
             
         if x_label is not None:
-            x = result( (y - a)/b, label=x_label )
+            x = result( x, label=x_label )
 
         return x
         
@@ -282,7 +282,7 @@ Relative Weighted Least-Squares Results:
             x = (y - a)/b
             
         if x_label is not None:
-            x = result( (y - a)/b, label=x_label )
+            x = result( x, label=x_label )
 
         return x
         
@@ -351,7 +351,7 @@ Weighted Least-Squares Results:
     def x_from_y(self,y_data,u_y_data,x_label=None,y_label=None):
         """Estimate the stimulus ``x`` corresponding to the responses in ``y_data``
 
-        :arg y: a sequence of further observations of ``y_data``
+        :arg y_data: a sequence of further observations of ``y``
         :arg u_y_data: the standard uncertainty of the ``y_data`` elements
         :arg x_label: a label for the return uncertain number `x` 
         :arg y_label: a label for the estimate of `y` based on ``y_data``
@@ -387,7 +387,7 @@ Weighted Least-Squares Results:
             x = (y - a)/b
             
         if x_label is not None:
-            x = result( (y - a)/b, label=x_label )
+            x = result( x, label=x_label )
 
         return x
 
