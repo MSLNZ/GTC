@@ -120,17 +120,6 @@ pygments_style = None
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 if on_rtd:
     html_theme = 'default'
-
-    from unittest.mock import MagicMock
-
-    class Mock(MagicMock):
-        @classmethod
-        def __getattr__(cls, name):
-            return MagicMock()
-
-    MOCK_MODULES = ['numpy', 'scipy']
-    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
 else:
     html_theme = 'sphinx_rtd_theme'
 
