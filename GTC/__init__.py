@@ -96,6 +96,18 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
+if sys.version_info[:2] < (3, 7):
+    import warnings
+    warnings.simplefilter('once', DeprecationWarning)
+    warnings.warn(
+        'GTC will stop supporting Python %d.%d in 2023 (GTC version 2.0). '
+        'GTC 2.0 will require Python 3.7, or above. '
+        'Please update your version of Python.' % sys.version_info[:2],
+        DeprecationWarning,
+        stacklevel=2
+    )
+    del warnings
+#----------------------------------------------------------------------------
 version = "1.3.8.dev0"
 
 copyright = """Copyright (c) 2022, \
