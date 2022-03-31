@@ -1208,7 +1208,7 @@ distribution = dict(
     uniform_disk = uniform_disk,
     # 'uncertain_ring': uncertain_ring
 )
-"""Maps ``distribution[name]`` -> `function` for standard uncertainty
+"""Maps ``distribution[name]`` :math:`\\rightarrow` `function` for standard uncertainty
 
     **Example**::
 
