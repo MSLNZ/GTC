@@ -333,6 +333,7 @@ def sensitivity(y,x):
         as being absent from the analytical model, so a sensitivity of 0 is reported. 
 
         For example ::
+        
             >>> z1 = ucomplex(1+2j,[0,1])
             >>> z2 = ucomplex(-1.2-0.9j,[1,0])
             >>> z = z1*z2
@@ -350,6 +351,7 @@ def sensitivity(y,x):
         to assign all standard uncertainty values to unity.
         
         Using the same example as above ::
+        
             >>> z1 = ucomplex(1+2j,1)
             >>> z2 = ucomplex(-1.2-0.9j,1)
             >>> z = z1*z2
