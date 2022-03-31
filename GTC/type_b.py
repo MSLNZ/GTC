@@ -438,7 +438,7 @@ def line_fit(x,y):
 #--------------------------------------------------------------------
 #
 def line_fit_wls(x,y,u_y=None):
-    """-> Weighted least-squares linear regression
+    """Weighted least-squares linear regression
     
     .. versionadded:: 1.2
     
