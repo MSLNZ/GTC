@@ -713,21 +713,21 @@ def components(y,**kwargs):
     
 #----------------------------------------------------------------------------
 def budget(y,**kwargs):
-    """Return a sequence of `Influence` objects
+    r"""Return a sequence of `Influence` objects
 
-    arg:
-        y (:class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`):  an uncertain number
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`:  an uncertain number
 
-    keyword args:
-        | influences: a sequence of uncertain numbers
-        | key (str): a sorting key ('u' or 'label')
-        | reverse (bool): the sorting order (forward or reverse)
-        | trim (float): to control smallest reported magnitudes 
-        | max_number (int): to return no more than `max_number` components
-        | intermediate (bool): to report all intermediate components
-    
-    Returns a sequence of :obj:`~named_tuples.Influence` namedtuples. 
-    
+    :arg \**kwargs: Keyword arguments:
+
+            * influences: a sequence of uncertain numbers
+            * key (:class:`str`): a sorting key (``'u'`` or ``'label'``)
+            * reverse (:class:`bool`): the sorting order (forward or reverse)
+            * trim (:class:`float`): to control the smallest reported magnitudes
+            * max_number (:class:`int`): to return no more than `max_number` components
+            * intermediate (:class:`bool`): to report all intermediate components
+
+    :returns: A sequence of :obj:`~named_tuples.Influence` namedtuples.
+
     Each :obj:`~named_tuples.Influence` has three attributes: ``label``, ``u``, ``uid``.
     
         * ``label`` is the label assigned to the uncertain number.
