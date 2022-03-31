@@ -82,6 +82,7 @@ def complex_to_seq(z):
     can be used to represent ``z`` in matrix computations. 
 
     **Examples**::
+
         >>> import numpy
         >>> z = 1 + 2j
         >>> function.complex_to_seq(z)

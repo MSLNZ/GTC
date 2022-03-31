@@ -1211,6 +1211,7 @@ distribution = dict(
 """Maps ``distribution[name]`` -> `function` for standard uncertainty
 
     **Example**::
+
         >>> type_b.distribution['arcsine'](1.5)
         1.06066017177982...
 """
