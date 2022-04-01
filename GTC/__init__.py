@@ -108,7 +108,7 @@ if sys.version_info[:2] < (3, 7):
     )
     del warnings
 #----------------------------------------------------------------------------
-version = "1.3.8.dev0"
+version = "1.3.8"
 
 copyright = """Copyright (c) 2022, \
 Measurement Standards Laboratory of New Zealand"""

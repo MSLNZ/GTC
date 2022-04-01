@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 1.3.8 (2022-??-??)
+Version 1.3.8 (2022-04-01)
 ==========================
     
     * A `bug <https://github.com/MSLNZ/GTC/issues/20>`_ in function :func:`reporting.sensitivity` has been corrected. The function now returns zero when the independent term (``x``) in the argument has a standard uncertainty of zero. Previously, for example, an exception would be raised if the argument ``x`` was an uncertain complex number with a real or imaginary component having zero standard uncertainty. The docstring has been updated to explain the function's behaviour in more detail. 
