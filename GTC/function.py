@@ -78,10 +78,12 @@ def complex_to_seq(z):
 
     :arg z: a number
 
-    If ``z = x + yj``, then an array of the form ``[[x,-y],[y,x]]`` 
-    can be used to represent ``z`` in matrix computations. 
+    This function produces a sequence of the form ``[x, -y, y, x]`` 
+    for a complex number ``z = x + yj``.
 
-    **Examples**::
+    See also :func:`seq_to_complex`
+
+    **Example**::
 
         >>> import numpy
         >>> z = 1 + 2j
@@ -93,7 +95,23 @@ def complex_to_seq(z):
         >>> print( m )
         [[ 1. -2.]
          [ 2.  1.]]
+
+    .. note::
+    
+        A matrix of the form ``[[x,-y],[y,x]]`` can be used to represent ``z``
+        in matrix computations. 
+    
+        **Example**::
         
+            >>> z = 1 + 2j
+            >>> m1 = numpy.array( function.complex_to_seq(z) )
+            >>> m1.shape = (2,2)
+            >>> m2 = numpy.array( function.complex_to_seq( z.conjugate() ) )
+            >>> m2.shape = (2,2)
+            >>> print( numpy.matmul(m1,m2) )
+            [[5. 0.]
+             [0.  5.]]
+
     """
     z = complex(z)
     return (z.real,-z.imag,z.imag,z.real)
@@ -105,6 +123,12 @@ def seq_to_complex(seq):
     :arg seq:   a 4-element sequence
     :raises RuntimeError: if ``seq`` is ill-conditioned
 
+    The legitimate form of elements in ``seq`` is 
+    ``[x, -y, y, x]``, where ``x`` is the real component 
+    and ``y`` is the imaginary component of a complex number.
+    
+    See also :func:`complex_to_seq` 
+    
     **Examples**::
 
         >>> import numpy
