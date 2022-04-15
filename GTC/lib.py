@@ -40,6 +40,11 @@ from GTC import (
     inf_dof, 
     is_sequence,
 )
+from GTC.formatting import (
+    create_format,
+    display,
+    parse,
+)
 
 LOG10_E = math.log10(math.e)
   
@@ -466,10 +471,16 @@ class UncertainReal(object):
 
     #------------------------------------------------------------------------
     def __str__(self):
-        # Use 2-digit fixed-point format for the uncertainty          
-        gself = self._round(2,0)
-        return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
-             
+        # Use 2-digit fixed-point format for the uncertainty
+        # gself = self._round(2,0)
+        # return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
+        fmt = create_format(self, sign=' ', precision=2, df_decimals=0, mode='B')
+        return display(self, fmt)
+
+    def __format__(self, format_spec):
+        fmt = create_format(self, **parse(format_spec))
+        return display(self, fmt)
+
     #------------------------------------------------------------------------
     def sensitivity(self,x):
         """
@@ -2704,15 +2715,21 @@ class UncertainComplex(object):
         return s
 
     #------------------------------------------------------------------------
-    def __str__(self):  
-        gself = self._round(2,0)
-        return "({1.real:+.{0}f}({2}){1.imag:+.{0}f}({3})j)".format(
-            gself.precision,
-            gself.x,
-            gself.re_u_digits,
-            gself.im_u_digits
-        )
-        
+    def __str__(self):
+        # gself = self._round(2,0)
+        # return "({1.real:+.{0}f}({2}){1.imag:+.{0}f}({3})j)".format(
+        #     gself.precision,
+        #     gself.x,
+        #     gself.re_u_digits,
+        #     gself.im_u_digits
+        # )
+        fmt = create_format(self, sign='+', precision=2, df_decimals=0, mode='B')
+        return display(self, fmt)
+
+    def __format__(self, format_spec):
+        fmt = create_format(self, **parse(format_spec))
+        return display(self, fmt)
+
     #------------------------------------------------------------------------
     def sensitivity(self,x):
         """
