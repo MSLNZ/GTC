@@ -187,10 +187,11 @@ InterceptSlope = namedtuple('InterceptSlope','a b')
    :class:`~.lib.UncertainReal`: slope
  """
 
-GroomedUncertainReal = namedtuple('ureal','x u df label precision df_decimals u_digits')
-GroomedUncertainComplex = namedtuple(
-    'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
-)
+# TODO can these now be removed?
+# GroomedUncertainReal = namedtuple('ureal','x u df label precision df_decimals u_digits')
+# GroomedUncertainComplex = namedtuple(
+#     'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
+# )
 
 
 

@@ -30,8 +30,9 @@ from GTC.named_tuples import (
     JacobianMatrix,
     CorrelationMatrix,
     CovarianceMatrix,
-    GroomedUncertainReal,
-    GroomedUncertainComplex,
+    # TODO remove these imports
+    # GroomedUncertainReal,
+    # GroomedUncertainComplex,
 )
 
 from GTC import (
@@ -41,8 +42,8 @@ from GTC import (
     is_sequence,
 )
 from GTC.formatting import (
-    create_format,
-    display,
+    convert,
+    create,
     parse,
 )
 
@@ -354,100 +355,101 @@ class UncertainReal(object):
         
     #-------------------------------------------------------------------------
     # TODO: consider making this a free function so that it can be used for
-    # expanded uncertainty too. 
-    def _round(self,digits,df_decimals):
-        """
-        Return a ``GroomedUncertainReal`` 
-        
-        `digits` specifies the number of significant digits 
-        in the uncertainty that will be retained. The value will use 
-        the same precision. The degrees-of-freedom will be  
-        represented using `df_decimals` decimal places.
-
-        `df_decimals` specifies the number of decimal places 
-        reported for the degrees-of-freedom.
-        
-        Degrees-of-freedom are greater than 1E6 are set to `inf`.
-        
-        """
-        if (
-            math.isnan(self.x) or math.isinf(self.x) or 
-            math.isnan(self.u) or math.isinf(self.u)
-        ):
-            return GroomedUncertainReal(
-                x = self.x,
-                u = self.u,
-                df = self.df,
-                label = self.label,  
-                precision = digits,
-                df_decimals = df_decimals,
-                u_digits = '({})'.format(self.u)
-            )
-            
-        elif self.u != 0:
-            log10_u = math.log10( self.u )
-            if log10_u.is_integer(): log10_u += 1 
-            
-            # The least power of 10 above the value of `u`
-            exponent = math.ceil( log10_u ) 
-            
-            # In fixed-point, precision is the number of decimal places. 
-            decimal_places = 0 if exponent-digits >= 0 else int(digits-exponent)
-        
-            factor = 10**(exponent-digits)
-            
-            x = factor*round(self.x/factor)
-            u = factor*round(self.u/factor)
-            
-            # Get the numerals representing uncertainty 
-            # When the uncertainty is to the left of the 
-            # decimal point there will be `digits` numerals 
-            # but to the right of the decimal point there will
-            # be sufficient to reach the units column.
-            
-            # TODO: generalise so that we can use the format 
-            # specifier to control this. Let the precision parameter
-            # be the number of significant digits in the uncertainty 
-            # and format the result accordingly.
-            
-            # Also need to generalise so that it works with 
-            # E and G presentations
-            if decimal_places <= 1:
-                u_digits = "{1:.{0}f}".format(decimal_places,u)
-            else:
-                u_digits = "{:.0f}".format(self.u/factor)
-
-            df = self.df
-            if not math.isnan(df):
-                if df > inf_dof:
-                    df = inf
-                else:
-                    df_factor = 10 ** (-df_decimals)
-                    df = df_factor * math.floor(df / df_factor)
-
-            return GroomedUncertainReal(
-                x = x,
-                u = u,
-                df = df,
-                label = self.label,
-                precision = decimal_places,
-                df_decimals = df_decimals,
-                u_digits = "({})".format(u_digits)
-            )
-            
-        elif _is_uncertain_real_constant(self) or self.u == 0.0:
-            # Use default fixed-point precision
-            return GroomedUncertainReal(
-                x = self.x,
-                u = 0,
-                df = inf,
-                label = self.label,
-                precision = 6,
-                df_decimals = 0,
-                u_digits = ""
-            )  
-        else:
-            assert False, "unexpected"
+    #  expanded uncertainty too.
+    #  Can this now be removed?
+    # def _round(self,digits,df_decimals):
+    #     """
+    #     Return a ``GroomedUncertainReal``
+    #
+    #     `digits` specifies the number of significant digits
+    #     in the uncertainty that will be retained. The value will use
+    #     the same precision. The degrees-of-freedom will be
+    #     represented using `df_decimals` decimal places.
+    #
+    #     `df_decimals` specifies the number of decimal places
+    #     reported for the degrees-of-freedom.
+    #
+    #     Degrees-of-freedom are greater than 1E6 are set to `inf`.
+    #
+    #     """
+    #     if (
+    #         math.isnan(self.x) or math.isinf(self.x) or
+    #         math.isnan(self.u) or math.isinf(self.u)
+    #     ):
+    #         return GroomedUncertainReal(
+    #             x = self.x,
+    #             u = self.u,
+    #             df = self.df,
+    #             label = self.label,
+    #             precision = digits,
+    #             df_decimals = df_decimals,
+    #             u_digits = '({})'.format(self.u)
+    #         )
+    #
+    #     elif self.u != 0:
+    #         log10_u = math.log10( self.u )
+    #         if log10_u.is_integer(): log10_u += 1
+    #
+    #         # The least power of 10 above the value of `u`
+    #         exponent = math.ceil( log10_u )
+    #
+    #         # In fixed-point, precision is the number of decimal places.
+    #         decimal_places = 0 if exponent-digits >= 0 else int(digits-exponent)
+    #
+    #         factor = 10**(exponent-digits)
+    #
+    #         x = factor*round(self.x/factor)
+    #         u = factor*round(self.u/factor)
+    #
+    #         # Get the numerals representing uncertainty
+    #         # When the uncertainty is to the left of the
+    #         # decimal point there will be `digits` numerals
+    #         # but to the right of the decimal point there will
+    #         # be sufficient to reach the units column.
+    #
+    #         # TODO: generalise so that we can use the format
+    #         # specifier to control this. Let the precision parameter
+    #         # be the number of significant digits in the uncertainty
+    #         # and format the result accordingly.
+    #
+    #         # Also need to generalise so that it works with
+    #         # E and G presentations
+    #         if decimal_places <= 1:
+    #             u_digits = "{1:.{0}f}".format(decimal_places,u)
+    #         else:
+    #             u_digits = "{:.0f}".format(self.u/factor)
+    #
+    #         df = self.df
+    #         if not math.isnan(df):
+    #             if df > inf_dof:
+    #                 df = inf
+    #             else:
+    #                 df_factor = 10 ** (-df_decimals)
+    #                 df = df_factor * math.floor(df / df_factor)
+    #
+    #         return GroomedUncertainReal(
+    #             x = x,
+    #             u = u,
+    #             df = df,
+    #             label = self.label,
+    #             precision = decimal_places,
+    #             df_decimals = df_decimals,
+    #             u_digits = "({})".format(u_digits)
+    #         )
+    #
+    #     elif _is_uncertain_real_constant(self) or self.u == 0.0:
+    #         # Use default fixed-point precision
+    #         return GroomedUncertainReal(
+    #             x = self.x,
+    #             u = 0,
+    #             df = inf,
+    #             label = self.label,
+    #             precision = 6,
+    #             df_decimals = 0,
+    #             u_digits = ""
+    #         )
+    #     else:
+    #         assert False, "unexpected"
         
     #------------------------------------------------------------------------
     def __repr__(self):
@@ -475,14 +477,14 @@ class UncertainReal(object):
         # Use 2-digit fixed-point format for the uncertainty
         # gself = self._round(2,0)
         # return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
-        fmt = create_format(self, sign=' ', precision=2, type='f', df_decimals=0, mode='B')
-        return display(self, fmt)
+        fmt = create(self, sign=' ', precision=2, type='f', df_decimals=0, mode='B')
+        return convert(self, fmt)
 
     def __format__(self, format_spec):
         if not format_spec:
             format_spec = ' .2f.0B'  # for backwards compatibility
-        fmt = create_format(self, **parse(format_spec))
-        return display(self, fmt)
+        fmt = create(self, **parse(format_spec))
+        return convert(self, fmt)
 
     #------------------------------------------------------------------------
     def sensitivity(self,x):
@@ -2560,133 +2562,134 @@ class UncertainComplex(object):
         
     #------------------------------------------------------------------------
     # TODO: consider making a free function so that it can be used with 
-    # expanded uncertainty too.
-    def _round(self,digits,df_decimals):
-        """
-        `digits` specifies the number of significant digits of 
-        in the least component uncertainty that will be retained. 
-        
-        The components of the value will use the same precision. 
-        
-        The degrees-of-freedom will be represented using 
-        `df_decimals` decimal places.
-
-        `df_decimals` specifies the number of decimal places 
-        reported for the degrees-of-freedom.
-        
-        Degrees-of-freedom are greater than `inf_dof` are set to `inf`.
-        
-        """
-        v11, v12, v21, v22 = self.v 
-        re_u = math.sqrt( v11 )
-        im_u = math.sqrt( v22 )
-        
-        if (
-            cmath.isnan(self.x) or cmath.isinf(self.x) or 
-            math.isnan(re_u) or math.isinf(re_u) or 
-            math.isnan(im_u) or math.isinf(im_u) 
-        ):
-            return GroomedUncertainComplex(
-                x = self.x,
-                u = [re_u,im_u],
-                r = None,
-                df = self.df,
-                label = self.label,
-                precision = digits,
-                df_decimals = df_decimals,
-                re_u_digits = '{}'.format(re_u),
-                im_u_digits = '{}'.format(im_u)
-            )
-            
-        elif v11 != 0 or v22 != 0:
-            re = self.real 
-            im = self.imag 
-            
-            # Real and imaginary component uncertainties are different
-            # find the lesser uncertainty and round to two digits,
-            # then express the results in this precision.
-            u = min(re.u, im.u)
-            # However, if one component has no uncertainty use the other 
-            if u == 0.0:
-                u = max(re.u, im.u)
-        
-            log10_u = math.log10( u )
-            if log10_u.is_integer(): log10_u += 1 
-            
-            # The least power of 10 above the value of `u`
-            exponent = math.ceil( log10_u ) 
-            
-            # In fixed-point, precision is the number of decimal places. 
-            decimal_places = 0 if exponent-digits >= 0 else int(digits-exponent)
-        
-            factor = 10**(exponent-digits)
-            
-            re_x = factor*round(re.x/factor)
-            re_u = factor*round(re.u/factor)
-            
-            im_x = factor*round(im.x/factor)
-            im_u = factor*round(im.u/factor)
-
-            # Get the decimal places representing uncertainty 
-            # When the uncertainty is to the left of the 
-            # decimal point there will be `digits` 
-            # but to the right of the decimal point there must
-            # be sufficient to reach the units column.
-            
-            # TODO: generalise so that we can use the format 
-            # specifier to control this. Let the precision parameter
-            # be the number of significant digits in the uncertainty 
-            # and format the result accordingly.
-            
-            # Also need to generalise so that it works with 
-            # E and G presentations
-            if decimal_places <= 1:
-                re_u_digits = "{1:.{0}f}".format(decimal_places,re_u)
-                im_u_digits = "{1:.{0}f}".format(decimal_places,im_u)
-            else:
-                re_u_digits = "{:.0f}".format(re_u/factor)
-                im_u_digits = "{:.0f}".format(im_u/factor)
-
-            den = (re_u*im_u)
-            r = v12/den if v12 != 0.0 else 0.0
-            r_factor = 10**(-3)
-            r = r_factor*round(r/r_factor)
-
-            df = self.df
-            if not math.isnan(df):
-                if df > inf_dof:
-                    df = inf
-                else:
-                    df_factor = 10**(-df_decimals)
-                    df = df_factor*math.floor(self.df/df_factor)
-            
-            return GroomedUncertainComplex(
-                x = complex(re_x,im_x),
-                u = [re_u,im_u],
-                r = r,
-                df = df,
-                label = self.label,
-                precision = decimal_places,
-                df_decimals = df_decimals,
-                re_u_digits = re_u_digits,
-                im_u_digits = im_u_digits
-            )
-        elif _is_uncertain_complex_constant(self):
-            # Just use Python's default fixed-point precision
-            return GroomedUncertainComplex(
-                x = self.x,
-                u = [0.0, 0.0],
-                r = None,
-                df = inf,
-                label = self.label,
-                precision = 6,
-                df_decimals = 0,
-                re_u_digits = 0,
-                im_u_digits = 0
-            )
-            
-        else:
-            assert False, 'unexpected'
+    #  expanded uncertainty too.
+    #  Can this now be removed?
+    # def _round(self,digits,df_decimals):
+    #     """
+    #     `digits` specifies the number of significant digits of
+    #     in the least component uncertainty that will be retained.
+    #
+    #     The components of the value will use the same precision.
+    #
+    #     The degrees-of-freedom will be represented using
+    #     `df_decimals` decimal places.
+    #
+    #     `df_decimals` specifies the number of decimal places
+    #     reported for the degrees-of-freedom.
+    #
+    #     Degrees-of-freedom are greater than `inf_dof` are set to `inf`.
+    #
+    #     """
+    #     v11, v12, v21, v22 = self.v
+    #     re_u = math.sqrt( v11 )
+    #     im_u = math.sqrt( v22 )
+    #
+    #     if (
+    #         cmath.isnan(self.x) or cmath.isinf(self.x) or
+    #         math.isnan(re_u) or math.isinf(re_u) or
+    #         math.isnan(im_u) or math.isinf(im_u)
+    #     ):
+    #         return GroomedUncertainComplex(
+    #             x = self.x,
+    #             u = [re_u,im_u],
+    #             r = None,
+    #             df = self.df,
+    #             label = self.label,
+    #             precision = digits,
+    #             df_decimals = df_decimals,
+    #             re_u_digits = '{}'.format(re_u),
+    #             im_u_digits = '{}'.format(im_u)
+    #         )
+    #
+    #     elif v11 != 0 or v22 != 0:
+    #         re = self.real
+    #         im = self.imag
+    #
+    #         # Real and imaginary component uncertainties are different
+    #         # find the lesser uncertainty and round to two digits,
+    #         # then express the results in this precision.
+    #         u = min(re.u, im.u)
+    #         # However, if one component has no uncertainty use the other
+    #         if u == 0.0:
+    #             u = max(re.u, im.u)
+    #
+    #         log10_u = math.log10( u )
+    #         if log10_u.is_integer(): log10_u += 1
+    #
+    #         # The least power of 10 above the value of `u`
+    #         exponent = math.ceil( log10_u )
+    #
+    #         # In fixed-point, precision is the number of decimal places.
+    #         decimal_places = 0 if exponent-digits >= 0 else int(digits-exponent)
+    #
+    #         factor = 10**(exponent-digits)
+    #
+    #         re_x = factor*round(re.x/factor)
+    #         re_u = factor*round(re.u/factor)
+    #
+    #         im_x = factor*round(im.x/factor)
+    #         im_u = factor*round(im.u/factor)
+    #
+    #         # Get the decimal places representing uncertainty
+    #         # When the uncertainty is to the left of the
+    #         # decimal point there will be `digits`
+    #         # but to the right of the decimal point there must
+    #         # be sufficient to reach the units column.
+    #
+    #         # TODO: generalise so that we can use the format
+    #         # specifier to control this. Let the precision parameter
+    #         # be the number of significant digits in the uncertainty
+    #         # and format the result accordingly.
+    #
+    #         # Also need to generalise so that it works with
+    #         # E and G presentations
+    #         if decimal_places <= 1:
+    #             re_u_digits = "{1:.{0}f}".format(decimal_places,re_u)
+    #             im_u_digits = "{1:.{0}f}".format(decimal_places,im_u)
+    #         else:
+    #             re_u_digits = "{:.0f}".format(re_u/factor)
+    #             im_u_digits = "{:.0f}".format(im_u/factor)
+    #
+    #         den = (re_u*im_u)
+    #         r = v12/den if v12 != 0.0 else 0.0
+    #         r_factor = 10**(-3)
+    #         r = r_factor*round(r/r_factor)
+    #
+    #         df = self.df
+    #         if not math.isnan(df):
+    #             if df > inf_dof:
+    #                 df = inf
+    #             else:
+    #                 df_factor = 10**(-df_decimals)
+    #                 df = df_factor*math.floor(self.df/df_factor)
+    #
+    #         return GroomedUncertainComplex(
+    #             x = complex(re_x,im_x),
+    #             u = [re_u,im_u],
+    #             r = r,
+    #             df = df,
+    #             label = self.label,
+    #             precision = decimal_places,
+    #             df_decimals = df_decimals,
+    #             re_u_digits = re_u_digits,
+    #             im_u_digits = im_u_digits
+    #         )
+    #     elif _is_uncertain_complex_constant(self):
+    #         # Just use Python's default fixed-point precision
+    #         return GroomedUncertainComplex(
+    #             x = self.x,
+    #             u = [0.0, 0.0],
+    #             r = None,
+    #             df = inf,
+    #             label = self.label,
+    #             precision = 6,
+    #             df_decimals = 0,
+    #             re_u_digits = 0,
+    #             im_u_digits = 0
+    #         )
+    #
+    #     else:
+    #         assert False, 'unexpected'
             
     #------------------------------------------------------------------------
     def __repr__(self):
@@ -2727,14 +2730,14 @@ class UncertainComplex(object):
         #     gself.re_u_digits,
         #     gself.im_u_digits
         # )
-        fmt = create_format(self, sign='+', precision=2, type='f', df_decimals=0, mode='B')
-        return display(self, fmt)
+        fmt = create(self, sign='+', precision=2, type='f', df_decimals=0, mode='B')
+        return convert(self, fmt)
 
     def __format__(self, format_spec):
         if not format_spec:
             format_spec = '+.2f.0B'  # for backwards compatibility
-        fmt = create_format(self, **parse(format_spec))
-        return display(self, fmt)
+        fmt = create(self, **parse(format_spec))
+        return convert(self, fmt)
 
     #------------------------------------------------------------------------
     def sensitivity(self,x):
