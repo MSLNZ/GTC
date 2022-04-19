@@ -285,11 +285,13 @@ def _nan_or_inf(*args):
     # args: float, complex
     # returns bool
     for arg in args:
+        # TODO use cmath.isfinite and math.isfinite when
+        #  dropping Python 2.7 support
         if isinstance(arg, complex):
-            if not cmath.isfinite(arg):
+            if cmath.isinf(arg) or cmath.isnan(arg):
                 return True
         else:
-            if not math.isfinite(arg):
+            if math.isinf(arg) or math.isnan(arg):
                 return True
     return False
 
