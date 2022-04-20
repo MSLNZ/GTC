@@ -70,6 +70,7 @@ class Format(object):
         self.factor = 1.0
         self.u_factor = 1.0
         self.u_precision = 0
+        self.u_exponent = 0
 
     def __repr__(self):
         df_decimals = '' if self.df_decimals is None else '.{:d}'.format(self.df_decimals)
@@ -188,7 +189,7 @@ def create(obj, **kwargs):
                                         Should it (and/or n) be an allowed option?
             * df_decimals (:class:`int`): The number of decimal places reported for the degrees-of-freedom.
                                           TODO the df_decimals was used in the un._round() methods
-                                               but dof was never included of the output of __str__.
+                                               but dof was never included in the output of __str__.
                                                Do we still want df_decimals?
             * mode (:class:`str`): The mode to use. Must be one of:
 
@@ -206,7 +207,9 @@ def create(obj, **kwargs):
     """
     for item in ('hash', 'zero', 'grouping'):
         if kwargs.get(item) is not None:
-            raise ValueError('The option {!r} is not supported'.format(item))
+            raise ValueError(
+                'The formatting option {!r} is currently not supported'.format(item)
+            )
 
     def maybe_update(key, default):
         if kwargs.get(key) is None:
@@ -218,18 +221,19 @@ def create(obj, **kwargs):
     maybe_update('df_decimals', 0)
     maybe_update('mode', 'B')
 
+    if kwargs['mode'] not in ('B', 'R'):
+        raise ValueError(
+            'The formatting mode {!r} is not supported. '
+            'Must be B or R'.format(kwargs['mode'])
+        )
+
     try:
         u = obj.u
     except AttributeError:
         u = obj
 
-    # at this point, u is either a float, complex or StandardUncertainty
-
     fmt = Format(**kwargs)
-    if kwargs['mode'] == 'B':
-        _create_bracket(u, fmt)
-    else:
-        raise ValueError('Mode {!r} is not supported'.format(kwargs['mode']))
+    _determine_num_digits(u, fmt)
     return fmt
 
 
@@ -247,44 +251,34 @@ def convert(obj, fmt):
     :rtype: str
     """
     if isinstance(obj, Number):
-        return fmt.format(obj)
-
-    if isinstance(obj, StandardUncertainty):
-        return fmt.format(complex(obj.real, obj.imag))
-
-    # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
-    #      We could check isinstance(), but then we will need to deal
-    #      with circular import issues with lib.py. An UncertainReal
-    #      object has no attribute _value.
-    x = u = re_x = re_u = im_x = im_u = None
-    try:
-        obj._value
-        real, imag = obj.real, obj.imag
-        re_x, re_u = real.x, real.u
-        im_x, im_u = imag.x, imag.u
-    except AttributeError:
-        x, u = obj.x, obj.u
-
-    if fmt.mode == 'B':
-        # bracket mode
-        if im_x is None:
-            # UncertainReal
-            x_u_str = _convert_bracket_type_f(x, u, fmt)
-            return fmt.format(x_u_str, sign=None, precision=None, type='s')
-        else:
-            # UncertainComplex
-            re_str = _convert_bracket_type_f(re_x, re_u, fmt)
-            im_str = _convert_bracket_type_f(im_x, im_u, fmt, sign='+')
-            out = '({0}{1}j)'.format(re_str, im_str)
-            return fmt.format(out, sign=None, precision=None, type='s')
-
-    raise ValueError('Unsupported mode {!r}'.format(fmt.mode))
+        result = fmt.format(obj)
+    elif isinstance(obj, StandardUncertainty):
+        result = fmt.format(complex(obj.real, obj.imag))
+    else:
+        try:
+            # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
+            #  We could check isinstance(), but then we will need to deal with
+            #  circular import issues with lib.py.
+            #  An UncertainReal object has no attribute _value.
+            obj._value
+            real, imag = obj.real, obj.imag
+        except AttributeError:
+            real, imag = obj, None
+        result = _convert_ureal(real, fmt)
+        if imag is not None:
+            imag_str = _convert_ureal(imag, fmt, sign='+')
+            result = '({0}{1}j)'.format(result, imag_str)
+        result = fmt.format(result, sign=None, precision=None, type='s')
+    return _stylize(result, fmt)
 
 
 def _nan_or_inf(*args):
-    # check if any of the args are infinity or NaN
-    # args: float, complex
-    # returns bool
+    """Check if any of the args are infinity or NaN.
+
+    args: float, complex
+
+    returns: bool
+    """
     for arg in args:
         # TODO use cmath.isfinite and math.isfinite when
         #  dropping Python 2.7 support
@@ -297,11 +291,16 @@ def _nan_or_inf(*args):
     return False
 
 
-def _create_bracket(uncertainty, fmt):
-    # uncertainty: float, StandardUncertainty
-    # fmt: Format
-    # returns None, `fmt` is modified
+def _determine_num_digits(uncertainty, fmt):
+    """Determine the number digits that is required to display `uncertainty`.
 
+    The Format `fmt` gets modified, so this function does not return anything.
+
+    uncertainty: float, complex, StandardUncertainty
+    fmt: Format
+
+    returns: None
+    """
     if isinstance(uncertainty, (complex, StandardUncertainty)):
         # Real and imaginary component uncertainties are different.
         # Find the lesser uncertainty.
@@ -328,48 +327,101 @@ def _create_bracket(uncertainty, fmt):
     exponent = math.ceil(log10_u)
     factor = 10. ** (exponent - fmt.precision)
 
-    if fmt.type in 'fF':
-        precision = 0 if exponent - fmt.precision >= 0 else int(fmt.precision - exponent)
-        if 0 < precision < fmt.precision:
-            fmt.u_factor = 1.0
-            fmt.u_precision = precision
-        else:
-            fmt.u_factor = factor
-            fmt.u_precision = 0
+    precision = 0 if exponent - fmt.precision >= 0 else int(fmt.precision - exponent)
+    if 0 < precision < fmt.precision:
+        fmt.u_factor = 1.0
+        fmt.u_precision = precision
     else:
-        raise ValueError('Type {!r} is not supported'.format(fmt.type))
+        fmt.u_factor = factor
+        fmt.u_precision = 0
 
     fmt.factor = factor
     fmt.precision = precision
+    fmt.u_exponent = exponent
 
 
-def _convert_bracket_type_f(value, uncertainty, fmt, **kwargs):
-    if uncertainty == 0:
-        # TODO Historically, ureal did not include (0) and ucomplex
-        #  did include (0) on the real and imaginary parts, e.g.,
-        #    ureal -> ' 1.234568'
-        #    ucomplex -> '(+1.234568(0)+9.876543(0)j)'
-        #  Now, we adopt the ureal version (do not include the (0))
-        return fmt.format(value, **kwargs)
+def _round(value, uncertainty, fmt):
+    """Round a value and an uncertainty to the appropriate number of digits.
 
-    if _nan_or_inf(value, uncertainty):
-        return '{0}({1:{2}})'.format(
-            fmt.format(value, **kwargs),
-            uncertainty,
-            fmt.type
-        )
+    value: float
+    uncertainty: float
+    fmt: Format
 
+    returns: (value_rounded, uncertainty_rounded)
+    """
     v = fmt.factor * round(value / fmt.factor)
     u = fmt.u_factor * round(uncertainty / fmt.u_factor, fmt.u_precision)
     if fmt.precision > 1:
         u /= fmt.u_factor
+    return v, u
 
-    value_str = fmt.format(v, fill=None, align=None, width=None, **kwargs)
-    result = '{0}({1:.{2}f})'.format(value_str, u, fmt.u_precision)
 
-    found = _exponent_regex.search(result)
+def _check_for_exponent(text):
+    """Check if `text` contains an exponent term.
+
+    If it does, then return (before: str, match: str, after: str)
+    where `before` and `after` correspond to the substring before
+    and after `match` and `match` is the exponent term that was
+    found in `text`. Otherwise, returns None.
+
+    Examples
+    --------
+    '1.2e+02' -> ('1.2', 'e+02', '')
+    '1.2345' -> None
+    """
+    found = _exponent_regex.search(text)
     if found:
         start, end = found.span()
-        result = ''.join([result[:start], result[end:], found.group()])
+        return text[:start], found.group(), text[end:]
 
-    return result
+
+def _stylize(text, fmt):
+    """Apply the formatting style to `text`.
+
+    text: str
+    fmt: Format
+
+    returns: the stylized text
+    """
+    if not fmt.style:
+        return text
+
+    raise ValueError(
+        'The formatting style {!r} is not supported'.format(fmt.style)
+    )
+
+
+def _convert_ureal(ureal, fmt, **kwargs):
+    """Convert an UncertainReal to a string.
+
+    ureal: UncertainReal
+    fmt: Format
+    kwargs: passed to Format.format()
+
+    returns: `ureal` as a string
+    """
+    x, u = ureal.x, ureal.u
+
+    if u == 0:
+        # TODO Historically, UncertainReal did not include (0) and
+        #  UncertainComplex did include (0) with the real and imaginary parts,
+        #  e.g.,
+        #    ureal(1.23, 0) -> ' 1.23'
+        #    ucomplex(1.23+9.87j, 0) -> '(+1.23(0)+9.87(0)j)'
+        #  We adopt the UncertainReal version -- do not include the (0)
+        return fmt.format(x, **kwargs)
+
+    if _nan_or_inf(x, u):
+        x_str = fmt.format(x, **kwargs)
+        u_str = '{0:{1}}'.format(u, fmt.type)
+        if fmt.mode == 'B':
+            return '{}({})'.format(x_str, u_str)
+        else:
+            return '{} +/- {}'.format(x_str, u_str)
+
+    value, uncert = _round(x, u, fmt)
+    if fmt.mode == 'B':
+        value_str = fmt.format(value, fill=None, align=None, width=None, **kwargs)
+        return '{0}({1:.{2}f})'.format(value_str, uncert, fmt.u_precision)
+
+    assert False, 'should not get here'

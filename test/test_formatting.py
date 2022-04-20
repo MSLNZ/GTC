@@ -203,6 +203,29 @@ class TestFormatting(unittest.TestCase):
         self.assertTrue(nan_or_inf(complex(nan, -inf)))
         self.assertTrue(nan_or_inf(complex(nan, nan)))
 
+    def test_check_for_exponent(self):
+        check_for_exponent = formatting._check_for_exponent
+        self.assertIsNone(check_for_exponent(''))
+        self.assertIsNone(check_for_exponent('e'))
+        self.assertIsNone(check_for_exponent('+'))
+        self.assertIsNone(check_for_exponent('1'))
+        self.assertIsNone(check_for_exponent('e1'))
+        self.assertIsNone(check_for_exponent('ed+01'))
+        self.assertIsNone(check_for_exponent('1.0e11'))
+        self.assertIsNone(check_for_exponent('+01'))
+        self.assertIsNone(check_for_exponent('x+01'))
+        self.assertIsNone(check_for_exponent('abcd-09'))
+        self.assertEqual(check_for_exponent('e+1'), ('', 'e+1', ''))
+        self.assertEqual(check_for_exponent('E-1'), ('', 'E-1', ''))
+        self.assertEqual(check_for_exponent('e+01'), ('', 'e+01', ''))
+        self.assertEqual(check_for_exponent('E+01'), ('', 'E+01', ''))
+        self.assertEqual(check_for_exponent('e-301'), ('', 'e-301', ''))
+        self.assertEqual(check_for_exponent('1.2023E-09(679)'), ('1.2023', 'E-09', '(679)'))
+        self.assertEqual(check_for_exponent('1.2023e+19 '), ('1.2023', 'e+19', ' '))
+        self.assertEqual(check_for_exponent('01234abcde+123fgh'), ('01234abcd', 'e+123', 'fgh'))
+        self.assertEqual(check_for_exponent('01+23E-i4AJe12KHAGTAasE-122edge1287q4tnq4tgh'),
+                         ('01+23E-i4AJe12KHAGTAas', 'E-122', 'edge1287q4tnq4tgh'))
+
     def test_repr_ureal(self):
         def check(ur, expected):
             # different ways to get the same result
