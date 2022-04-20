@@ -72,8 +72,9 @@ class Format(object):
         self.u_precision = 0
 
     def __repr__(self):
-        return 'Format<format_spec={!r} df_decimal={} mode={!r} style={!r}>'.\
-            format(self.format_spec, self.df_decimals, self.mode, self.style)
+        df_decimals = '' if self.df_decimals is None else '.{:d}'.format(self.df_decimals)
+        return 'Format{%s%s%s%s}' % (self.format_spec, df_decimals,
+                                     self.mode or '', self.style or '')
 
     def format(self, obj, **kwargs):
         """Format an object using the builtin :func:`format` function.

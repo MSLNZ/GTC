@@ -140,7 +140,22 @@ class TestFormatting(unittest.TestCase):
     def test_Format(self):
         f = formatting.Format()
         self.assertEqual(f.format_spec, '')
+        self.assertEqual(repr(f), 'Format{}')
+        self.assertEqual(str(f), 'Format{}')
 
+        f = formatting.Format(fill='*', align='>', sign=' ', hash='#', zero='0',
+                              width=20, grouping=',', precision=3, type='g',
+                              df_decimals=0, mode='B', style='L')
+        self.assertEqual(f.format_spec, '*> #020,.3g')
+        self.assertEqual(repr(f), 'Format{*> #020,.3g.0BL}')
+        self.assertEqual(str(f), 'Format{*> #020,.3g.0BL}')
+
+        f = formatting.Format(width=10, type='f', mode='B')
+        self.assertEqual(f.format_spec, '10f')
+        self.assertEqual(repr(f), 'Format{10fB}')
+        self.assertEqual(str(f), 'Format{10fB}')
+
+        f = formatting.Format()
         number = -9.3+123.456789j
         self.assertEqual(f.format(number), '{}'.format(number))
         number = 123.456789
