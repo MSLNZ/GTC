@@ -47,6 +47,8 @@ class TestFormatting(unittest.TestCase):
         check(ValueError, '5!.2f')  # invalid <grouping> character
         check(ValueError, '!.2f')  # <fill> without <align> or invalid <sign> character
         check(ValueError, '5.2fA')  # invalid <option> character and too many builtin fields
+        check(ValueError, 'BR')  # two modes specified
+        check(ValueError, 'LP')  # two styles specified
 
     def test_parse(self):
         # also call the builtin format(float, format_spec) to verify
