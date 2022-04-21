@@ -371,7 +371,7 @@ def _round(value, uncertainty, fmt):
     return v, u
 
 
-def _exponent(text):
+def _parse_for_exponent(text):
     """Check if `text` has an exponent term.
 
     If it does, then return (before: str, match: str, after: str)

@@ -203,27 +203,27 @@ class TestFormatting(unittest.TestCase):
         self.assertTrue(nan_or_inf(complex(nan, -inf)))
         self.assertTrue(nan_or_inf(complex(nan, nan)))
 
-    def test_exponent(self):
-        exponent = formatting._exponent
-        self.assertIsNone(exponent(''))
-        self.assertIsNone(exponent('e'))
-        self.assertIsNone(exponent('+'))
-        self.assertIsNone(exponent('1'))
-        self.assertIsNone(exponent('e1'))
-        self.assertIsNone(exponent('ed+01'))
-        self.assertIsNone(exponent('1.0e11'))
-        self.assertIsNone(exponent('+01'))
-        self.assertIsNone(exponent('x+01'))
-        self.assertIsNone(exponent('abcd-09'))
-        self.assertEqual(exponent('e+1'), ('', 'e+1', ''))
-        self.assertEqual(exponent('E-1'), ('', 'E-1', ''))
-        self.assertEqual(exponent('e+01'), ('', 'e+01', ''))
-        self.assertEqual(exponent('E+01'), ('', 'E+01', ''))
-        self.assertEqual(exponent('e-301'), ('', 'e-301', ''))
-        self.assertEqual(exponent('1.2023E-09(679)'), ('1.2023', 'E-09', '(679)'))
-        self.assertEqual(exponent('1.2023e+19 '), ('1.2023', 'e+19', ' '))
-        self.assertEqual(exponent('01234abcde+123fgh'), ('01234abcd', 'e+123', 'fgh'))
-        self.assertEqual(exponent('01+23E-i4AJe12KHAGTAasE-122edge1287q4tnq4tgh'),
+    def test_parse_for_exponent(self):
+        parse = formatting._parse_for_exponent
+        self.assertIsNone(parse(''))
+        self.assertIsNone(parse('e'))
+        self.assertIsNone(parse('+'))
+        self.assertIsNone(parse('1'))
+        self.assertIsNone(parse('e1'))
+        self.assertIsNone(parse('ed+01'))
+        self.assertIsNone(parse('1.0e11'))
+        self.assertIsNone(parse('+01'))
+        self.assertIsNone(parse('x+01'))
+        self.assertIsNone(parse('abcd-09'))
+        self.assertEqual(parse('e+1'), ('', 'e+1', ''))
+        self.assertEqual(parse('E-1'), ('', 'E-1', ''))
+        self.assertEqual(parse('e+01'), ('', 'e+01', ''))
+        self.assertEqual(parse('E+01'), ('', 'E+01', ''))
+        self.assertEqual(parse('e-301'), ('', 'e-301', ''))
+        self.assertEqual(parse('1.2023E-09(679)'), ('1.2023', 'E-09', '(679)'))
+        self.assertEqual(parse('1.2023e+19 '), ('1.2023', 'e+19', ' '))
+        self.assertEqual(parse('01234abcde+123fgh'), ('01234abcd', 'e+123', 'fgh'))
+        self.assertEqual(parse('01+23E-i4AJe12KHAGTAasE-122edge1287q4tnq4tgh'),
                          ('01+23E-i4AJe12KHAGTAas', 'E-122', 'edge1287q4tnq4tgh'))
 
     def test_repr_ureal(self):
