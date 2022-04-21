@@ -42,9 +42,9 @@ from GTC import (
     is_sequence,
 )
 from GTC.formatting import (
-    convert,
-    create,
+    create_format,
     parse,
+    to_string,
 )
 
 LOG10_E = math.log10(math.e)
@@ -477,14 +477,14 @@ class UncertainReal(object):
         # Use 2-digit fixed-point format for the uncertainty
         # gself = self._round(2,0)
         # return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
-        fmt = create(self, sign=' ', precision=2, type='f', df_decimals=0, mode='B')
-        return convert(self, fmt)
+        fmt = create_format(self, sign=' ', digits=2, type='f', df_decimals=0, mode='B')
+        return to_string(self, fmt)
 
     def __format__(self, format_spec):
         if not format_spec:
             format_spec = ' .2f.0B'  # for backwards compatibility
-        fmt = create(self, **parse(format_spec))
-        return convert(self, fmt)
+        fmt = create_format(self, **parse(format_spec))
+        return to_string(self, fmt)
 
     #------------------------------------------------------------------------
     def sensitivity(self,x):
@@ -2730,14 +2730,14 @@ class UncertainComplex(object):
         #     gself.re_u_digits,
         #     gself.im_u_digits
         # )
-        fmt = create(self, sign='+', precision=2, type='f', df_decimals=0, mode='B')
-        return convert(self, fmt)
+        fmt = create_format(self, sign='+', digits=2, type='f', df_decimals=0, mode='B')
+        return to_string(self, fmt)
 
     def __format__(self, format_spec):
         if not format_spec:
             format_spec = '+.2f.0B'  # for backwards compatibility
-        fmt = create(self, **parse(format_spec))
-        return convert(self, fmt)
+        fmt = create_format(self, **parse(format_spec))
+        return to_string(self, fmt)
 
     #------------------------------------------------------------------------
     def sensitivity(self,x):

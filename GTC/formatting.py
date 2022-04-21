@@ -71,6 +71,7 @@ class Format(object):
         self.u_factor = 1.0
         self.u_precision = 0
         self.u_exponent = 0
+        self.digits = 0
 
     def __repr__(self):
         df_decimals = '' if self.df_decimals is None else '.{:d}'.format(self.df_decimals)
@@ -168,7 +169,7 @@ def parse(format_spec):
     return d
 
 
-def create(obj, **kwargs):
+def create_format(obj, **kwargs):
     r"""Create a format specification.
 
     :param obj: An object to use create the format specification.
@@ -182,7 +183,7 @@ def create(obj, **kwargs):
             * align (:class:`str`): Can be one of < > = ^ (see :ref:`formatspec`).
             * sign (:class:`str`): Can be one of + - `space` (see :ref:`formatspec`).
             * width (:class:`int`): The minimum width (see :ref:`formatspec`).
-            * precision (:class:`int`): The number of significant digits in the uncertainty component to retain.
+            * digits (:class:`int`): The number of significant digits in the uncertainty component to retain.
             * type (:class:`str`): Can be one of eEfFgGn% (see :ref:`formatspec`)
                                    TODO should % only make the uncertainty be a percentage of the value
                                         instead of operating on both the value and uncertainty?
@@ -221,11 +222,11 @@ def create(obj, **kwargs):
     maybe_update('df_decimals', 0)
     maybe_update('mode', 'B')
 
-    if kwargs['mode'] not in ('B', 'R'):
-        raise ValueError(
-            'The formatting mode {!r} is not supported. '
-            'Must be B or R'.format(kwargs['mode'])
-        )
+    digits = kwargs.pop('digits', None)
+    if digits is None:
+        digits = kwargs['precision']
+    else:
+        kwargs['precision'] = digits
 
     try:
         u = obj.u
@@ -233,18 +234,19 @@ def create(obj, **kwargs):
         u = obj
 
     fmt = Format(**kwargs)
+    fmt.digits = digits
     _determine_num_digits(u, fmt)
     return fmt
 
 
-def convert(obj, fmt):
+def to_string(obj, fmt):
     """Convert an object to a string.
 
     :param obj: An object.
     :type obj: float, complex, :class:`~GTC.lib.UncertainReal`,
                :class:`~GTC.lib.UncertainComplex`
                or :class:`~GTC.named_tuples.StandardUncertainty`
-    :param fmt: The format to use to convert `obj`. See :func:`create`.
+    :param fmt: The format to use to convert `obj`. See :func:`create_format`.
     :type fmt: :class:`Format`
 
     :return: The string representation of `obj`.
@@ -264,9 +266,9 @@ def convert(obj, fmt):
             real, imag = obj.real, obj.imag
         except AttributeError:
             real, imag = obj, None
-        result = _convert_ureal(real, fmt)
+        result = _to_string_ureal(real, fmt)
         if imag is not None:
-            imag_str = _convert_ureal(imag, fmt, sign='+')
+            imag_str = _to_string_ureal(imag, fmt, sign='+')
             result = '({0}{1}j)'.format(result, imag_str)
         result = fmt.format(result, sign=None, precision=None, type='s')
     return _stylize(result, fmt)
@@ -319,13 +321,7 @@ def _determine_num_digits(uncertainty, fmt):
         fmt.u_precision = 0
         return
 
-    log10_u = math.log10(u)
-    if log10_u.is_integer():
-        log10_u += 1
-
-    # The least power of 10 above the value of `u`
-    exponent = math.ceil(log10_u)
-    factor = 10. ** (exponent - fmt.precision)
+    exponent, factor = _exponent_factor(u, fmt)
 
     precision = 0 if exponent - fmt.precision >= 0 else int(fmt.precision - exponent)
     if 0 < precision < fmt.precision:
@@ -338,6 +334,25 @@ def _determine_num_digits(uncertainty, fmt):
     fmt.factor = factor
     fmt.precision = precision
     fmt.u_exponent = exponent
+
+
+def _exponent_factor(value, fmt):
+    """Get the least power of 10 above `value`.
+
+    value: float
+    fmt: Format
+
+    returns: (exponent: int, factor: float)
+    """
+    if value == 0:
+        return 0, 1.0
+
+    log10 = math.log10(abs(value))
+    if log10.is_integer():
+        log10 += 1
+    exponent = math.ceil(log10)
+    factor = 10. ** (exponent - fmt.precision)
+    return exponent, factor
 
 
 def _round(value, uncertainty, fmt):
@@ -356,8 +371,8 @@ def _round(value, uncertainty, fmt):
     return v, u
 
 
-def _check_for_exponent(text):
-    """Check if `text` contains an exponent term.
+def _exponent(text):
+    """Check if `text` has an exponent term.
 
     If it does, then return (before: str, match: str, after: str)
     where `before` and `after` correspond to the substring before
@@ -391,7 +406,7 @@ def _stylize(text, fmt):
     )
 
 
-def _convert_ureal(ureal, fmt, **kwargs):
+def _to_string_ureal(ureal, fmt, **kwargs):
     """Convert an UncertainReal to a string.
 
     ureal: UncertainReal
@@ -415,13 +430,18 @@ def _convert_ureal(ureal, fmt, **kwargs):
         x_str = fmt.format(x, **kwargs)
         u_str = '{0:{1}}'.format(u, fmt.type)
         if fmt.mode == 'B':
-            return '{}({})'.format(x_str, u_str)
-        else:
-            return '{} +/- {}'.format(x_str, u_str)
+            return '{0}({1})'.format(x_str, u_str)
+        return '{0} +/- {1}'.format(x_str, u_str)
 
-    value, uncert = _round(x, u, fmt)
+    x_r, u_r = _round(x, u, fmt)
+
     if fmt.mode == 'B':
-        value_str = fmt.format(value, fill=None, align=None, width=None, **kwargs)
-        return '{0}({1:.{2}f})'.format(value_str, uncert, fmt.u_precision)
+        if fmt.type in 'fF':
+            x_str = fmt.format(x_r, fill=None, align=None, width=None, **kwargs)
+            u_str = '{0:.{1}f}'.format(u_r, fmt.u_precision)
+            return '{0}({1})'.format(x_str, u_str)
 
-    assert False, 'should not get here'
+    raise ValueError(
+        'The formatting mode {!r} is not supported. '
+        'Must be B or R'.format(fmt.mode)
+    )
