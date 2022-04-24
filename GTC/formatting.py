@@ -64,7 +64,7 @@ _exponent_table = {
 }
 
 
-Rounded = namedtuple('Rounded', 'value precision exponent exponent_str type')
+_Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
 
 
 class Format(object):
@@ -279,7 +279,7 @@ def to_string(obj, fmt):
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
         result = '{0:{1}.{2}{3}}{4}'.format(
-            r.value, fmt.sign or '', r.precision, r.type, r.exponent_str
+            r.value, fmt.sign or '', r.precision, r.type, r.suffix
         )
         result = _stylize(result, fmt)
         return fmt.format(result, sign=None, precision=None, type='s')
@@ -287,11 +287,11 @@ def to_string(obj, fmt):
     if isinstance(obj, (complex, StandardUncertainty)):
         r = _round(obj.real, fmt)
         re_str = '{0:{1}.{2}{3}}{4}'.format(
-            r.value, fmt.sign or '', r.precision, r.type, r.exponent_str)
+            r.value, fmt.sign or '', r.precision, r.type, r.suffix)
 
         i = _round(obj.imag, fmt)
         im_str = '{0:+.{1}{2}}{3}'.format(
-            i.value, i.precision, i.type, i.exponent_str)
+            i.value, i.precision, i.type, i.suffix)
 
         join = u'({0}{1}j)'.format(_stylize(re_str, fmt), _stylize(im_str, fmt))
         return fmt.format(join, sign=None, precision=None, type='s')
@@ -432,13 +432,13 @@ def _round(value, fmt, exponent=None):
     fmt: Format
     exponent: int | None
 
-    returns: Rounded
+    returns: _Rounded
     """
     _type = 'F' if fmt.type in 'EFG' else 'f'
 
     if _nan_or_inf(value):
-        # value precision exponent exponent_str type
-        return Rounded(value, 0, 0, '', _type)
+        # value precision type exponent suffix
+        return _Rounded(value, 0, _type, 0, '')
 
     if exponent is None:
         exponent = _order_of_magnitude(value)
@@ -451,15 +451,15 @@ def _round(value, fmt, exponent=None):
         factor = 1.0
         precision = max(-fmt.u_exponent, 0)
         digits = -fmt.u_exponent
-        exponent_str = ''
+        suffix = ''
     else:
         factor = 10. ** exponent
         precision = max(exponent - fmt.u_exponent, 0)
         digits = precision
-        exponent_str = '{0:.0{1}}'.format(factor, fmt.type)
+        suffix = '{0:.0{1}}'.format(factor, fmt.type)[1:]
 
     val = round(value / factor, digits)
-    return Rounded(val, precision, exponent, exponent_str[1:], _type)
+    return _Rounded(val, precision, _type, exponent, suffix)
 
 
 def _to_string_ureal(ureal, fmt, sign=None):
@@ -518,12 +518,12 @@ def _to_string_ureal(ureal, fmt, sign=None):
             u_str = '{0:.{1}f}'.format(u_r, precision)
         else:
             u_str = '{:.0f}'.format(round(u_r * 10. ** precision))
-        return '{0}({1}){2}'.format(x_str, u_str, result.exponent_str)
+        return '{0}({1}){2}'.format(x_str, u_str, result.suffix)
     elif fmt.mode == 'R':
         u_str = '{0:.{1}f}'.format(u_r, precision)
         x_u_str = '{0}+/-{1}'.format(x_str, u_str)
-        if result.exponent_str:
-            return '({0}){1}'.format(x_u_str, result.exponent_str)
+        if result.suffix:
+            return '({0}){1}'.format(x_u_str, result.suffix)
         return x_u_str
 
     raise ValueError(
