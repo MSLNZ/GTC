@@ -535,6 +535,8 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur.x, fmt), '1.23')
         self.assertEqual(to_string(ur.u, fmt), '0.01')
         self.assertEqual(to_string(1, fmt),    '1.00')
+        self.assertEqual(to_string(nan, fmt),  'nan')
+        self.assertEqual(to_string(-inf, fmt), '-inf')
 
         fmt = create_format(ur, digits=2)
         self.assertEqual(to_string(ur, fmt),   '1.235(12)')
@@ -1158,13 +1160,15 @@ class TestFormatting(unittest.TestCase):
         fmt = create_format(ur, digits=5, type='f')
         self.assertEqual(to_string(ur, fmt), '59000(97770000)')
 
-
     def test_bracket_type_f_ucomplex(self):
         uc = ucomplex(1.23456789e6 + 9.87654321j, [1234.56789, 0.342567])
         fmt = create_format(uc, sign='+')
-        self.assertEqual(to_string(uc, fmt),  '(+1234567.89(1234.57)+9.88(34)j)')
+        self.assertEqual(to_string(uc, fmt),   '(+1234567.89(1234.57)+9.88(34)j)')
         self.assertEqual(to_string(uc.x, fmt), '(+1234567.89+9.88j)')
         self.assertEqual(to_string(uc.u, fmt), '(+1234.57+0.34j)')
+        self.assertEqual(to_string(9.87654321j, fmt), '(+0.00+9.88j)')
+        self.assertEqual(to_string(1.23456789e6 + 9.87654321j, fmt), '(+1234567.89+9.88j)')
+        self.assertEqual(to_string(complex(1.23456789e6, 9.87654321), fmt), '(+1234567.89+9.88j)')
 
         uc = ucomplex(1.23456789e6 + 9.87654321j, [0.342567, 13.56789])
         fmt = create_format(uc, sign='+')
