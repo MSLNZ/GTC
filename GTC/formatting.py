@@ -44,9 +44,11 @@ _format_spec_regex = re.compile(
 
 _exponent_regex = re.compile(r'[eE][+-]\d+')
 
+# TODO replace u'' with '' when dropping support for
+#  Python 2.7. There a multiple occurrences in this module.
 _exponent_table = {
-    ord('e'): u' \u00D7 10',
-    ord('E'): u' \u00D7 10',
+    ord('e'): u'\u00D710',
+    ord('E'): u'\u00D710',
     ord('+'): u'\u207A',
     ord('-'): u'\u207B',
     ord('0'): u'\u2070',
@@ -129,7 +131,7 @@ class Format(object):
                     v = '{:d}'.format(v)
             _dict[k] = v
         format_spec = self._join(_dict)
-        return '{0:{1}}'.format(obj, format_spec)
+        return u'{0:{1}}'.format(obj, format_spec)
 
     @property
     def format_spec(self):
@@ -276,11 +278,11 @@ def to_string(obj, fmt):
     """
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
-        result = '{0}{1}'.format(
-            fmt.format(r.value, precision=r.precision, type=r.type),
-            r.exponent_str
+        result = '{0:{1}.{2}{3}}{4}'.format(
+            r.value, fmt.sign or '', r.precision, r.type, r.exponent_str
         )
-        return _stylize(result, fmt)
+        result = _stylize(result, fmt)
+        return fmt.format(result, sign=None, precision=None, type='s')
 
     if isinstance(obj, (complex, StandardUncertainty)):
         r = _round(obj.real, fmt)
@@ -291,9 +293,8 @@ def to_string(obj, fmt):
         im_str = '{0:+.{1}{2}}{3}'.format(
             i.value, i.precision, i.type, i.exponent_str)
 
-        join = '({0}{1}j)'.format(re_str, im_str)
-        result = fmt.format(join, sign=None, precision=None, type='s')
-        return _stylize(result, fmt)
+        join = u'({0}{1}j)'.format(_stylize(re_str, fmt), _stylize(im_str, fmt))
+        return fmt.format(join, sign=None, precision=None, type='s')
 
     try:
         # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
@@ -305,12 +306,11 @@ def to_string(obj, fmt):
     except AttributeError:
         real, imag = obj, None
 
-    result = _to_string_ureal(real, fmt)
+    result = _stylize(_to_string_ureal(real, fmt), fmt)
     if imag is not None:
         imag_str = _to_string_ureal(imag, fmt, sign='+')
-        result = '({0}{1}j)'.format(result, imag_str)
-    result = fmt.format(result, sign=None, precision=None, type='s')
-    return _stylize(result, fmt)
+        result = u'({0}{1}j)'.format(result, _stylize(imag_str, fmt))
+    return fmt.format(result, sign=None, precision=None, type='s')
 
 
 def _nan_or_inf(*args):
@@ -411,8 +411,9 @@ def _stylize(text, fmt):
         exp = _exponent_regex.search(text)
         if exp:
             start, end = exp.span()
-            translated = exp.group().translate(_exponent_table)
-            text = '{0}{1}{2}'.format(text[:start], translated, text[end:])
+            e = u'{}'.format(exp.group())
+            translated = e.translate(_exponent_table)
+            text = u'{0}{1}{2}'.format(text[:start], translated, text[end:])
 
         mapping = {r'\+/\-': u'\u00B1'}
         for pattern, repl in mapping.items():
