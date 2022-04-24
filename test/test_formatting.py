@@ -1672,44 +1672,52 @@ class TestFormatting(unittest.TestCase):
     def test_pretty_print(self):
         ur = ureal(18.5424, 0.94271)
 
-        fmt = create_format(ur, digits=2, type='f', mode='B', style='P')
-        self.assertEqual(to_string(ur, fmt),   '18.54(94)')
-        self.assertEqual(to_string(ur.x, fmt), '18.54')
-        self.assertEqual(to_string(ur.u, fmt), '0.94')
+        for t in ['f', 'F']:
+            fmt = create_format(ur, digits=2, type=t, mode='B', style='P')
+            self.assertEqual(to_string(ur, fmt),   '18.54(94)')
+            self.assertEqual(to_string(ur.x, fmt), '18.54')
+            self.assertEqual(to_string(ur.u, fmt), '0.94')
 
-        fmt = create_format(ur, digits=2, type='e', mode='B', style='P')
-        self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10⁺⁰¹')
-        self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
-        self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
+        for t in ['e', 'E']:
+            fmt = create_format(ur, digits=2, type=t, mode='B', style='P')
+            self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10⁺⁰¹')
+            self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
+            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
 
-        fmt = create_format(ur, digits=2, type='f', mode='R', style='P')
-        self.assertEqual(to_string(ur, fmt),   u'18.54±0.94')
-        self.assertEqual(to_string(ur.x, fmt), u'18.54')
-        self.assertEqual(to_string(ur.u, fmt), u'0.94')
+        for t in ['f', 'F']:
+            fmt = create_format(ur, digits=2, type=t, mode='R', style='P')
+            self.assertEqual(to_string(ur, fmt),   u'18.54±0.94')
+            self.assertEqual(to_string(ur.x, fmt), '18.54')
+            self.assertEqual(to_string(ur.u, fmt), '0.94')
 
-        fmt = create_format(ur, digits=2, type='e', mode='R', style='P')
-        self.assertEqual(to_string(ur, fmt),   u'(1.854±0.094)×10⁺⁰¹')
-        self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
-        self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
+        for t in ['e', 'E']:
+            fmt = create_format(ur, digits=2, type=t, mode='R', style='P')
+            self.assertEqual(to_string(ur, fmt),   u'(1.854±0.094)×10⁺⁰¹')
+            self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
+            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
 
         uc = ucomplex(18.5424+1.2j, 0.94271)
 
-        fmt = create_format(uc, digits=2, type='f', mode='B', style='P')
-        self.assertEqual(to_string(uc, fmt),   '(18.54(94)+1.20(94)j)')
-        self.assertEqual(to_string(uc.x, fmt), '(18.54+1.20j)')
-        self.assertEqual(to_string(uc.u, fmt), '(0.94+0.94j)')
+        for t in ['f', 'F']:
+            fmt = create_format(uc, digits=2, type=t, mode='B', style='P')
+            self.assertEqual(to_string(uc, fmt),   '(18.54(94)+1.20(94)j)')
+            self.assertEqual(to_string(uc.x, fmt), '(18.54+1.20j)')
+            self.assertEqual(to_string(uc.u, fmt), '(0.94+0.94j)')
 
-        fmt = create_format(uc, digits=2, type='e', mode='B', style='P')
-        self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10⁺⁰¹+1.20(94)×10⁺⁰⁰j)')
-        self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
-        self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
+        for t in ['e', 'E']:
+            fmt = create_format(uc, digits=2, type=t, mode='B', style='P')
+            self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10⁺⁰¹+1.20(94)×10⁺⁰⁰j)')
+            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
+            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
 
-        fmt = create_format(uc, digits=2, type='f', mode='R', style='P')
-        self.assertEqual(to_string(uc, fmt),   u'(18.54±0.94+1.20±0.94j)')
-        self.assertEqual(to_string(uc.x, fmt), u'(18.54+1.20j)')
-        self.assertEqual(to_string(uc.u, fmt), u'(0.94+0.94j)')
+        for t in ['f', 'F']:
+            fmt = create_format(uc, digits=2, type=t, mode='R', style='P')
+            self.assertEqual(to_string(uc, fmt),   u'(18.54±0.94+1.20±0.94j)')
+            self.assertEqual(to_string(uc.x, fmt), '(18.54+1.20j)')
+            self.assertEqual(to_string(uc.u, fmt), '(0.94+0.94j)')
 
-        fmt = create_format(uc, digits=2, type='e', mode='R', style='P')
-        self.assertEqual(to_string(uc, fmt),   u'((1.854±0.094)×10⁺⁰¹(+1.20±0.94)×10⁺⁰⁰j)')
-        self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
-        self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
+        for t in ['e', 'E']:
+            fmt = create_format(uc, digits=2, type=t, mode='R', style='P')
+            self.assertEqual(to_string(uc, fmt),   u'((1.854±0.094)×10⁺⁰¹(+1.20±0.94)×10⁺⁰⁰j)')
+            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
+            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
