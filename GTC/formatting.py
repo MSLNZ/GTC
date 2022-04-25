@@ -2,10 +2,7 @@
 import re
 import math
 import cmath
-from collections import (
-    namedtuple,
-    OrderedDict,
-)
+from collections import namedtuple
 
 from GTC.named_tuples import StandardUncertainty
 
@@ -74,100 +71,97 @@ class Format(object):
 
         Do not instantiate this class directly.
         """
+        def get(key, default):
+            value = kwargs.get(key)
+            if value is None:
+                return default
+            return value
+
         # builtin fields
-        self.fill = kwargs.get('fill')
-        self.align = kwargs.get('align')
-        self.sign = kwargs.get('sign')
-        self.hash = kwargs.get('hash')
-        self.zero = kwargs.get('zero')
-        self.width = kwargs.get('width')
-        self.grouping = kwargs.get('grouping')
-        self.precision = kwargs.get('precision')
-        self.type = kwargs.get('type')
+        self.fill = get('fill', '')
+        self.align = get('align', '')
+        self.sign = get('sign', '')
+        self.hash = get('hash', '')
+        self.zero = get('zero', '')
+        self.width = get('width', '')
+        self.grouping = get('grouping', '')
+        self.precision = int(get('precision', 2))
+        self.type = get('type', 'f')
 
         # GTC fields
-        self.df_decimals = kwargs.get('df_decimals')
-        self.mode = kwargs.get('mode')
-        self.style = kwargs.get('style')
+        self.df_decimals = int(get('df_decimals', 0))
+        self.mode = get('mode', 'B')
+        self.style = get('style', '')
 
-        # these attributes are used for rounding the value and uncertainty
-        self.digits = None
-        self.u_exponent = None
+        # these attributes are used when rounding
+        self.digits = int(get('digits', 2))
+        self.u_exponent = 0
 
     def __repr__(self):
-        if self.df_decimals is None:
+
+        # don't include the default GTC fields in the output
+        mode = '' if self.mode == 'B' else self.mode
+        if self.df_decimals == 0:
             df_decimals = ''
         else:
             df_decimals = '.{:d}'.format(self.df_decimals)
-        return 'Format{%s%s%s%s}' % (self.format_spec, df_decimals,
-                                     self.mode or '', self.style or '')
 
-    def format(self, obj, **kwargs):
-        """Format an object using the builtin :func:`format` function.
+        return 'Format{{{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
+               '.{precision}{type}{df_decimals}{mode}{style}}}'.format(
+                fill=self.fill,
+                align=self.align,
+                sign=self.sign,
+                hash=self.hash,
+                zero=self.zero,
+                width=self.width,
+                grouping=self.grouping,
+                precision=self.precision,
+                type=self.type,
+                df_decimals=df_decimals,
+                mode=mode,
+                style=self.style)
 
-        By specifying keyword arguments you can override an attribute of
-        the :class:`Format` instance before calling :func:`format` on `obj`.
-        Overriding an attribute does not actually change the value of the
-        attribute for the :class:`Format` instance. You can think of overriding
-        as a temporary modification that occurs only when this :meth:`.format`
-        method is called.
+    def result(self, text):
+        """Formats the result.
 
-        Only the builtin fields can be overridden. To know the names of the
-        builtin fields, you can look at the keys that are returned by
-        :meth:`.format_spec_dict`. For more information see :ref:`formatspec`.
+        Uses the fill, align and width format specifications.
 
-        :param obj: An object to pass to :func:`format`.
-
-        :return: A formatted version of `obj`.
+        :param text: The text to format.
+        :type text: str
+        :return: The `text` formatted.
         :rtype: str
         """
-        _dict = self.format_spec_dict
-        for k, v in kwargs.items():
-            if v is not None:
-                # purposely use {:d} since width and precision must be integers
-                if k == 'precision':
-                    v = '.{:d}'.format(v)
-                elif k == 'width':
-                    v = '{:d}'.format(v)
-            _dict[k] = v
-        format_spec = self._join(_dict)
-        return u'{0:{1}}'.format(obj, format_spec)
+        return u'{0:{fill}{align}{width}s}'.format(
+            text,
+            fill=self.fill,
+            align=self.align,
+            width=self.width
+        )
 
-    @property
-    def format_spec(self):
-        """str: Return the format specification as a string."""
-        return self._join(self.format_spec_dict)
+    def value(self, value, precision=None, type=None, sign=None):
+        """Format a value."""
+        if sign is None:
+            sign = self.sign
 
-    @property
-    def format_spec_dict(self):
-        """dict: Return the format specification as a dictionary."""
+        if precision is None:
+            precision = self.precision
 
-        # purposely use {:d} since width and precision must be integers
-        width = self.width
-        if width is not None:
-            width = '{:d}'.format(width)
+        if type is None:
+            type = self.type
 
-        precision = self.precision
-        if precision is not None:
-            precision = '.{:d}'.format(precision)
+        return '{0:{sign}{hash}{zero}{grouping}.{precision}{type}}'.format(
+            value,
+            sign=sign,
+            hash=self.hash,
+            zero=self.zero,
+            grouping=self.grouping,
+            precision=precision,
+            type=type
+        )
 
-        # TODO return a regular dict when dropping support for Python < 3.6
-        #  since as of Python 3.6 insertion order for a dict is preserved
-        return OrderedDict([
-            ('fill', self.fill),
-            ('align', self.align),
-            ('sign', self.sign),
-            ('hash', self.hash),
-            ('zero', self.zero),
-            ('width', width),
-            ('grouping', self.grouping),
-            ('precision', precision),
-            ('type', self.type)
-        ])
-
-    @staticmethod
-    def _join(d):
-        return ''.join(v for v in d.values() if v is not None)
+    def uncertainty(self, uncertainty, precision=None, type='f'):
+        """Format an uncertainty."""
+        return self.value(uncertainty, precision=precision, type=type, sign='')
 
 
 def parse(format_spec):
@@ -203,15 +197,19 @@ def create_format(obj, **kwargs):
 
     :param \**kwargs: Keyword arguments:
 
+[[fill]align][sign][#][0][width][grouping][.precision][type][.GTC_df_decimals][GTC_mode][GTC_style]
             * fill (:class:`str`): Can be a single character (see :ref:`formatspec`).
-            * align (:class:`str`): Can be one of < > = ^ (see :ref:`formatspec`).
+            * align (:class:`str`): Can be one of < > ^ (see :ref:`formatspec`).
             * sign (:class:`str`): Can be one of + - `space` (see :ref:`formatspec`).
-            * width (:class:`int`): The minimum width (see :ref:`formatspec`).
-            * digits (:class:`int`): The number of significant digits in the uncertainty component to retain.
+            * hash (:class:`bool`): Whether to include the # symbol (see :ref:`formatspec`).
+            * zero (:class:`bool`): Whether to include the 0 symbol (see :ref:`formatspec`).
+            * width (:class:`int`): The width of the return string (see :ref:`formatspec`).
+            * grouping (:class:`str`): Can be one of , _ (see :ref:`formatspec`).
             * type (:class:`str`): Can be one of eEfFgGn% (see :ref:`formatspec`)
                                    TODO should % only make the uncertainty be a percentage of the value
                                         instead of operating on both the value and uncertainty?
                                         Should it (and/or n) be an allowed option?
+            * digits (:class:`int`): The number of significant digits in the uncertainty component to retain.
             * df_decimals (:class:`int`): The number of decimal places reported for the degrees-of-freedom.
                                           TODO the df_decimals was used in the un._round() methods
                                                but dof was never included in the output of __str__.
@@ -230,27 +228,14 @@ def create_format(obj, **kwargs):
     :return: The format specification.
     :rtype: :class:`Format`
     """
-    for item in ('hash', 'zero', 'grouping'):
-        if kwargs.get(item) is not None:
-            raise ValueError(
-                'The formatting option {!r} is currently not supported'.format(item)
-            )
+    if 'digits' not in kwargs and 'precision' in kwargs:
+        kwargs['digits'] = kwargs['precision']
 
-    def maybe_update(key, default):
-        if kwargs.get(key) is None:
-            kwargs[key] = default
+    if kwargs.get('hash'):
+        kwargs['hash'] = '#'
 
-    # default values (only if not specified)
-    maybe_update('precision', 2)
-    maybe_update('type', 'f')
-    maybe_update('df_decimals', 0)
-    maybe_update('mode', 'B')
-
-    digits = kwargs.pop('digits', None)
-    if digits is None:
-        digits = kwargs['precision']
-    else:
-        kwargs['precision'] = digits
+    if kwargs.get('zero'):
+        kwargs['zero'] = '0'
 
     try:
         u = obj.u
@@ -258,7 +243,6 @@ def create_format(obj, **kwargs):
         u = obj
 
     fmt = Format(**kwargs)
-    fmt.digits = digits
     _determine_num_digits(u, fmt)
     return fmt
 
@@ -278,23 +262,21 @@ def to_string(obj, fmt):
     """
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
-        result = '{0:{1}.{2}{3}}{4}'.format(
-            r.value, fmt.sign or '', r.precision, r.type, r.suffix
-        )
-        result = _stylize(result, fmt)
-        return fmt.format(result, sign=None, precision=None, type='s')
+        v_str = fmt.value(r.value, precision=r.precision, type=r.type)
+        result = _stylize(v_str + r.suffix, fmt)
+        return fmt.result(result)
 
     if isinstance(obj, (complex, StandardUncertainty)):
         r = _round(obj.real, fmt)
-        re_str = '{0:{1}.{2}{3}}{4}'.format(
-            r.value, fmt.sign or '', r.precision, r.type, r.suffix)
+        re_val = fmt.value(r.value, precision=r.precision, type=r.type)
+        re_str = _stylize(re_val + r.suffix, fmt)
 
         i = _round(obj.imag, fmt)
-        im_str = '{0:+.{1}{2}}{3}'.format(
-            i.value, i.precision, i.type, i.suffix)
+        im_val = fmt.value(i.value, precision=i.precision, type=i.type, sign='+')
+        im_str = _stylize(im_val + i.suffix, fmt)
 
-        join = u'({0}{1}j)'.format(_stylize(re_str, fmt), _stylize(im_str, fmt))
-        return fmt.format(join, sign=None, precision=None, type='s')
+        result = u'({0}{1}j)'.format(re_str, im_str)
+        return fmt.result(result)
 
     try:
         # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
@@ -310,7 +292,7 @@ def to_string(obj, fmt):
     if imag is not None:
         imag_str = _to_string_ureal(imag, fmt, sign='+')
         result = u'({0}{1}j)'.format(result, _stylize(imag_str, fmt))
-    return fmt.format(result, sign=None, precision=None, type='s')
+    return fmt.result(result)
 
 
 def _nan_or_inf(*args):
@@ -471,8 +453,6 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     returns: `ureal` as a string
     """
-    sign = sign or fmt.sign or ''
-
     x, u = ureal.x, ureal.u
 
     if u == 0:
@@ -482,18 +462,19 @@ def _to_string_ureal(ureal, fmt, sign=None):
         #    ureal(1.23, 0) -> ' 1.23'
         #    ucomplex(1.23+9.87j, 0) -> '(+1.23(0)+9.87(0)j)'
         #  We adopt the UncertainReal version -- do not include the (0)
-        return fmt.format(x, sign=sign)
+        return fmt.result(fmt.value(x, sign=sign))
 
     if _nan_or_inf(x, u):
-        x_str = fmt.format(x, sign=sign)
-        u_str = '{0:.{1}{2}}'.format(u, fmt.precision, fmt.type)
+        x_str = fmt.value(x, sign=sign)
+        u_str = fmt.uncertainty(u, type=None)
 
         if fmt.mode == 'B':
             result = '{0}({1})'.format(x_str, u_str)
         else:
             result = '{0}+/-{1}'.format(x_str, u_str)
 
-        # move the exponential to the end
+        # if either the real or imaginary part has an exponential term,
+        # then move it to the end
         exp = _exponent_regex.search(result)
         if exp:
             start, end = exp.span()
@@ -507,20 +488,21 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     x_result = _round(x, fmt, exponent=exponent)
     u_result = _round(u, fmt, exponent=exponent)
-    u_r = u_result.value
 
-    x_str = '{0:{1}.{2}f}'.format(x_result.value, sign, precision)
+    x_str = fmt.value(x_result.value, precision=precision, sign=sign, type='f')
 
     if fmt.mode == 'B':
+        u_r = u_result.value
         if _order_of_magnitude(u_r) >= 0 and precision > 0:
             # the uncertainty straddles the decimal point so
             # keep the decimal point in the result
-            u_str = '{0:.{1}f}'.format(u_r, precision)
+            u_str = fmt.uncertainty(u_r, precision=precision)
         else:
-            u_str = '{:.0f}'.format(round(u_r * 10. ** precision))
+            u_str = fmt.uncertainty(
+                round(u_r * 10. ** precision), precision=0)
         return '{0}({1}){2}'.format(x_str, u_str, result.suffix)
     elif fmt.mode == 'R':
-        u_str = '{0:.{1}f}'.format(u_r, precision)
+        u_str = fmt.uncertainty(u_result.value, precision=precision)
         x_u_str = '{0}+/-{1}'.format(x_str, u_str)
         if result.suffix:
             return '({0}){1}'.format(x_u_str, result.suffix)

@@ -148,49 +148,68 @@ class TestFormatting(unittest.TestCase):
 
     def test_Format(self):
         f = Format()
-        self.assertEqual(f.format_spec, '')
-        self.assertEqual(repr(f), 'Format{}')
-        self.assertEqual(str(f), 'Format{}')
+        self.assertEqual(repr(f), 'Format{.2f}')
+        self.assertEqual(str(f), 'Format{.2f}')
+        self.assertEqual(f.digits, 2)
+        self.assertEqual(f.u_exponent, 0)
 
         f = Format(fill='*', align='>', sign=' ', hash='#', zero='0',
                    width=20, grouping=',', precision=3, type='g',
-                   df_decimals=0, mode='B', style='L')
-        self.assertEqual(f.format_spec, '*> #020,.3g')
-        self.assertEqual(repr(f), 'Format{*> #020,.3g.0BL}')
-        self.assertEqual(str(f), 'Format{*> #020,.3g.0BL}')
+                   df_decimals=2, mode='R', style='L')
+        self.assertEqual(repr(f), 'Format{*> #020,.3g.2RL}')
+        self.assertEqual(str(f), 'Format{*> #020,.3g.2RL}')
 
-        f = Format(width=10, type='f', mode='B')
-        self.assertEqual(f.format_spec, '10f')
-        self.assertEqual(repr(f), 'Format{10fB}')
-        self.assertEqual(str(f), 'Format{10fB}')
+        f = Format(width=10, sign='+')
+        self.assertEqual(repr(f), 'Format{+10.2f}')
+        self.assertEqual(str(f), 'Format{+10.2f}')
+
+        f = Format(precision=0, digits=1)
+        self.assertEqual(f.precision, 0)
+        self.assertEqual(f.digits, 1)
+        self.assertEqual(f.u_exponent, 0)
 
         f = Format()
         number = -9.3+123.456789j
-        self.assertEqual(f.format(number), '{}'.format(number))
+        self.assertEqual(f.value(number), '{:.2f}'.format(number))
         number = 123.456789
-        self.assertEqual(f.format(number), '{}'.format(number))
-        self.assertEqual(f.format(number, sign=' ', precision=4, type='f'),
+        self.assertEqual(f.value(number, precision=4, type='f', sign=' '),
                          '{: .4f}'.format(number))
 
-        f = Format(precision=4, sign='', width=20)
-        self.assertEqual(f.format_spec, '20.4')
+        f = Format(precision=4, sign='+')
         number = 123.456789
-        self.assertEqual(f.format(number), '{:20.4}'.format(number))
+        self.assertEqual(f.value(number), '{:+.4f}'.format(number))
         number = -9.3+123.456789j
-        self.assertEqual(f.format(number), '{:20.4}'.format(number))
+        self.assertEqual(f.value(number), '{:+.4f}'.format(number))
 
-        f = Format(precision=4, sign='+', type='f')
-        self.assertEqual(f.format_spec, '+.4f')
+        f = Format(precision=4, sign='+', width=20, fill='*', align='>')
         number = 123.456789
-        self.assertEqual(f.format(number), '{:+.4f}'.format(number))
-        number = -9.3+123.456789j
-        self.assertEqual(f.format(number), '{:+.4f}'.format(number))
+        self.assertEqual(f.result(f.value(number)),
+                         '{:*>+20.4f}'.format(number))
 
-        f = Format(fill='*', align='^', width=20, grouping=',',
-                   precision=0, type='f')
-        self.assertEqual(f.format_spec, '*^20,.0f')
+        f = Format(precision=4, sign='+', type='e')
+        number = 123.456789
+        self.assertEqual(f.value(number), '{:+.4e}'.format(number))
+        number = -9.3+123.456789j
+        self.assertEqual(f.value(number, type='E'), '{:+.4E}'.format(number))
+
+        f = Format(grouping=',', precision=0, type='f')
         number = 123456789
-        self.assertEqual(f.format(number), '{:*^20,.0f}'.format(number))
+        self.assertEqual(f.value(number), '{:,.0f}'.format(number))
+
+        f = create_format(1.23)
+        self.assertEqual(f.precision, 3)
+        self.assertEqual(f.digits, 2)
+        self.assertEqual(f.u_exponent, -1)
+
+        f = create_format(1.234, precision=4)
+        self.assertEqual(f.precision, 5)
+        self.assertEqual(f.digits, 4)
+        self.assertEqual(f.u_exponent, -3)
+
+        f = create_format(0, digits=20)
+        self.assertEqual(f.precision, 6)
+        self.assertEqual(f.digits, 20)
+        self.assertEqual(f.u_exponent, 0)
 
     def test_nan_or_inf(self):
         nan_or_inf = _nan_or_inf
