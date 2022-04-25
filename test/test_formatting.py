@@ -1745,13 +1745,10 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
 
+    @unittest.skipIf(sys.version_info.major == 2, 'not supported for this version of Python')
     def test_hash_symbol(self):
-        if sys.version_info.major == 2:
-            # Python 2 does not support the # field, get the following
-            # ValueError: Alternate form (#) not allowed in float format specifier
-            return
-
         ur = ureal(5.4, 1.2)
+
         fmt = create_format(ur, digits=1, hash='#')
         self.assertEqual('{:#.1}'.format(ur), '5.(1.)')
         self.assertEqual(to_string(ur, fmt), '5.(1.)')
@@ -1796,12 +1793,8 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur.x, fmt), '(123,457,000-987,654,000j)')
         self.assertEqual(to_string(ur.u, fmt), '(123,000+654,000j)')
 
+    @unittest.skipIf(sys.version_info[:2] <= (3, 9), 'not supported for this version of Python')
     def test_zero_field(self):
-        if sys.version_info[:2] <= (3, 9):
-            # These Python versions do not support the 0 field, get the following
-            # ValueError: '=' alignment not allowed in string format specifier
-            return
-
         ur = ureal(1.342, 0.0041)
         fmt = create_format(ur, digits=1, zero='0', width=15)
         self.assertEqual('{:<015.1}'.format(ur),  '1.342(4)0000000')
