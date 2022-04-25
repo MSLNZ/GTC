@@ -1666,8 +1666,15 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur, fmt), '0.009227(2.903000)e+07')
 
     def test_type_g(self):
+        ur = ureal(43.842, 0.0123)
+        self.assertEqual('{:.1g}'.format(ur), '43.84(1)')
+
+        ur = ureal(4384.2, 1.23)
+        self.assertEqual('{:.3g}'.format(ur), '4384.20(1.23)')
+        self.assertEqual('{:.1G}'.format(ur), '4.384(1)E+03')
+
         ur = ureal(123456789., 1234.56789)
-        self.assertEqual('{:.4g}'.format(ur), '123456789(1235)')
+        self.assertEqual('{:.4g}'.format(ur), '1.23456789(1235)e+08')
         self.assertEqual('{:.2G}'.format(ur), '1.234568(12)E+08')
 
         ur = ureal(7.2524e-8, 5.429e-10)
@@ -1675,7 +1682,7 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual('{:.1G}'.format(ur), '7.25(5)E-08')
 
         ur = ureal(7.2524e4, 5.429e3)
-        self.assertEqual('{:.4g}'.format(ur), '72524(5429)')
+        self.assertEqual('{:.4G}'.format(ur), '7.2524(5429)E+04')
         self.assertEqual('{:.1g}'.format(ur), '7.3(5)e+04')
 
         uc = ucomplex(12.3456789 + 0.87654321j, 0.31532)

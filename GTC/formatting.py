@@ -459,7 +459,7 @@ def _round(value, fmt, exponent=None):
 
     f_or_g_as_f = (fmt.type in 'fF') or \
                   ((fmt.type in 'gG') and
-                   (-4 <= exponent < exponent - fmt.u_exponent + 1))
+                   (-4 <= exponent < exponent - fmt.u_exponent))
 
     if f_or_g_as_f:
         factor = 1.0
