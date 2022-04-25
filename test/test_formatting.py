@@ -1662,9 +1662,8 @@ class TestFormatting(unittest.TestCase):
         ur = ureal(92270., 29030000.)
         fmt = create_format(ur, digits=1, type='e')
         self.assertEqual(to_string(ur, fmt), '0(3)e+07')
-        if sys.version_info.major > 2:  # a numeric limitation on Python 2.7?
-            fmt = create_format(ur, digits=7, type='e')
-            self.assertEqual(to_string(ur, fmt), '0.009227(2.903000)e+07')
+        fmt = create_format(ur, digits=7, type='e')
+        self.assertEqual(to_string(ur, fmt), '0.009227(2.903000)e+07')
 
     def test_type_g(self):
         ur = ureal(123456789., 1234.56789)

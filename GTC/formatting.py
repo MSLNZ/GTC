@@ -363,7 +363,7 @@ def _order_of_magnitude(value):
     """
     if value == 0:
         return 0
-    return int(math.floor(math.log10(abs(value))))
+    return int(math.floor(math.log10(math.fabs(value))))
 
 
 def _determine_num_digits(uncertainty, fmt):
