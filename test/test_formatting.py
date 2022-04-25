@@ -10,6 +10,7 @@ from GTC.formatting import (
     Format,
     _nan_or_inf,
     _order_of_magnitude,
+    _si_prefix_factor,
 )
 from GTC.lib import UncertainReal, UncertainComplex
 
@@ -72,7 +73,7 @@ class TestFormatting(unittest.TestCase):
                 'fill': None, 'align': None, 'sign': None, 'hash': None,
                 'zero': None, 'width': None, 'grouping': None,
                 'precision': None, 'type': None, 'df_decimals': None,
-                'mode': None, 'style': None
+                'mode': None, 'style': None, 'si': None
             }
             out.update(**kwargs)
             return out
@@ -107,14 +108,16 @@ class TestFormatting(unittest.TestCase):
         # additional GTC-specific fields
         self.assertEqual(_parse('B', False),
                          expect(mode='B'))
+        self.assertEqual(_parse('U', False),
+                         expect(style='U'))
         self.assertEqual(_parse('S', False),
-                         expect(style='S'))
+                         expect(si='S'))
         self.assertEqual(_parse('GB', False),
                          expect(type='G', mode='B'))
         self.assertEqual(_parse('GBL', False),
                          expect(type='G', mode='B', style='L'))
-        self.assertEqual(_parse('.2P', False),
-                         expect(precision=2, style='P'))
+        self.assertEqual(_parse('.2U', False),
+                         expect(precision=2, style='U'))
         self.assertEqual(_parse('9R', False),
                          expect(width=9, mode='R'))
         self.assertEqual(_parse('.7.5', False),
@@ -131,20 +134,20 @@ class TestFormatting(unittest.TestCase):
                                 precision=4, type='f', style='L'))
         self.assertEqual(_parse('^^03S', False),
                          expect(fill='^', align='^', zero='0', width=3,
-                                style='S'))
-        self.assertEqual(_parse('^^03BS', False),
+                                si='S'))
+        self.assertEqual(_parse('^^03BUS', False),
                          expect(fill='^', align='^', zero='0', width=3,
-                                mode='B', style='S'))
+                                mode='B', style='U', si='S'))
         self.assertEqual(_parse('^^03gBS', False),
                          expect(fill='^', align='^', zero='0', width=3,
-                                type='g', mode='B', style='S'))
+                                type='g', mode='B', si='S'))
         self.assertEqual(_parse('^^03gB', False),
                          expect(fill='^', align='^', zero='0', width=3,
                                 type='g', mode='B'))
-        self.assertEqual(_parse('*> #011,.2g.8S', False),
+        self.assertEqual(_parse('*> #011,.2g.8L', False),
                          expect(fill='*', align='>', sign=' ', hash='#',
                                 zero='0', width=11, grouping=',', precision=2,
-                                type='g', df_decimals=8, style='S'))
+                                type='g', df_decimals=8, style='L'))
 
     def test_Format(self):
         f = Format()
@@ -1698,29 +1701,29 @@ class TestFormatting(unittest.TestCase):
         uc = ucomplex(1.23 - 0.231j, 0.03145)
         self.assertEqual('{:.2eR}'.format(uc), '((1.230+/-0.031)e+00(-2.31+/-0.31)e-01j)')
 
-    def test_pretty_print(self):
+    def test_unicode(self):
         ur = ureal(18.5424, 0.94271)
 
         for t in ['f', 'F']:
-            fmt = create_format(ur, digits=2, type=t, mode='B', style='P')
+            fmt = create_format(ur, digits=2, type=t, mode='B', style='U')
             self.assertEqual(to_string(ur, fmt),   '18.54(94)')
             self.assertEqual(to_string(ur.x, fmt), '18.54')
             self.assertEqual(to_string(ur.u, fmt), '0.94')
 
         for t in ['e', 'E']:
-            fmt = create_format(ur, digits=2, type=t, mode='B', style='P')
+            fmt = create_format(ur, digits=2, type=t, mode='B', style='U')
             self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10⁺⁰¹')
             self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
             self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
 
         for t in ['f', 'F']:
-            fmt = create_format(ur, digits=2, type=t, mode='R', style='P')
+            fmt = create_format(ur, digits=2, type=t, mode='R', style='U')
             self.assertEqual(to_string(ur, fmt),   u'18.54±0.94')
             self.assertEqual(to_string(ur.x, fmt), '18.54')
             self.assertEqual(to_string(ur.u, fmt), '0.94')
 
         for t in ['e', 'E']:
-            fmt = create_format(ur, digits=2, type=t, mode='R', style='P')
+            fmt = create_format(ur, digits=2, type=t, mode='R', style='U')
             self.assertEqual(to_string(ur, fmt),   u'(1.854±0.094)×10⁺⁰¹')
             self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
             self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
@@ -1728,25 +1731,25 @@ class TestFormatting(unittest.TestCase):
         uc = ucomplex(18.5424+1.2j, 0.94271)
 
         for t in ['f', 'F']:
-            fmt = create_format(uc, digits=2, type=t, mode='B', style='P')
+            fmt = create_format(uc, digits=2, type=t, mode='B', style='U')
             self.assertEqual(to_string(uc, fmt),   '(18.54(94)+1.20(94)j)')
             self.assertEqual(to_string(uc.x, fmt), '(18.54+1.20j)')
             self.assertEqual(to_string(uc.u, fmt), '(0.94+0.94j)')
 
         for t in ['e', 'E']:
-            fmt = create_format(uc, digits=2, type=t, mode='B', style='P')
+            fmt = create_format(uc, digits=2, type=t, mode='B', style='U')
             self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10⁺⁰¹+1.20(94)×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
 
         for t in ['f', 'F']:
-            fmt = create_format(uc, digits=2, type=t, mode='R', style='P')
+            fmt = create_format(uc, digits=2, type=t, mode='R', style='U')
             self.assertEqual(to_string(uc, fmt),   u'(18.54±0.94+1.20±0.94j)')
             self.assertEqual(to_string(uc.x, fmt), '(18.54+1.20j)')
             self.assertEqual(to_string(uc.u, fmt), '(0.94+0.94j)')
 
         for t in ['e', 'E']:
-            fmt = create_format(uc, digits=2, type=t, mode='R', style='P')
+            fmt = create_format(uc, digits=2, type=t, mode='R', style='U')
             self.assertEqual(to_string(uc, fmt),   u'((1.854±0.094)×10⁺⁰¹(+1.20±0.94)×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
@@ -1814,3 +1817,241 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(uc, fmt),      '000(+5.4(1.4)+7.2(1.2)j)')
         self.assertEqual(to_string(uc.x, fmt),    '0000000000000(+5.4+7.2j)')
         self.assertEqual(to_string(uc.u, fmt),    '0000000000000(+1.4+1.2j)')
+
+    def test_si_prefix_factor(self):
+        prefix, factor = _si_prefix_factor(-30)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e-6)
+
+        prefix, factor = _si_prefix_factor(-29)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e-5)
+
+        prefix, factor = _si_prefix_factor(-28)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e-4)
+
+        prefix, factor = _si_prefix_factor(-27)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e-3)
+
+        prefix, factor = _si_prefix_factor(-26)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e-2)
+
+        prefix, factor = _si_prefix_factor(-25)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e-1)
+
+        prefix, factor = _si_prefix_factor(-24)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-23)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-22)
+        self.assertEqual(prefix, 'y')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-21)
+        self.assertEqual(prefix, 'z')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-20)
+        self.assertEqual(prefix, 'z')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-19)
+        self.assertEqual(prefix, 'z')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-18)
+        self.assertEqual(prefix, 'a')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-17)
+        self.assertEqual(prefix, 'a')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-16)
+        self.assertEqual(prefix, 'a')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-15)
+        self.assertEqual(prefix, 'f')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-14)
+        self.assertEqual(prefix, 'f')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-13)
+        self.assertEqual(prefix, 'f')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-12)
+        self.assertEqual(prefix, 'p')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-11)
+        self.assertEqual(prefix, 'p')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-10)
+        self.assertEqual(prefix, 'p')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-9)
+        self.assertEqual(prefix, 'n')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-8)
+        self.assertEqual(prefix, 'n')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-7)
+        self.assertEqual(prefix, 'n')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-6)
+        self.assertEqual(prefix, 'u')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-5)
+        self.assertEqual(prefix, 'u')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-4)
+        self.assertEqual(prefix, 'u')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(-3)
+        self.assertEqual(prefix, 'm')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(-2)
+        self.assertEqual(prefix, 'm')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(-1)
+        self.assertEqual(prefix, 'm')
+        self.assertEqual(factor, 1e2)
+
+        for e in [0, 1, 2]:
+            prefix, factor = _si_prefix_factor(e)
+            self.assertEqual(prefix, '')
+            self.assertEqual(factor, 1.0)
+
+        prefix, factor = _si_prefix_factor(3)
+        self.assertEqual(prefix, 'k')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(4)
+        self.assertEqual(prefix, 'k')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(5)
+        self.assertEqual(prefix, 'k')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(6)
+        self.assertEqual(prefix, 'M')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(7)
+        self.assertEqual(prefix, 'M')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(8)
+        self.assertEqual(prefix, 'M')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(9)
+        self.assertEqual(prefix, 'G')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(10)
+        self.assertEqual(prefix, 'G')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(11)
+        self.assertEqual(prefix, 'G')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(12)
+        self.assertEqual(prefix, 'T')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(13)
+        self.assertEqual(prefix, 'T')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(14)
+        self.assertEqual(prefix, 'T')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(15)
+        self.assertEqual(prefix, 'P')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(16)
+        self.assertEqual(prefix, 'P')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(17)
+        self.assertEqual(prefix, 'P')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(18)
+        self.assertEqual(prefix, 'E')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(19)
+        self.assertEqual(prefix, 'E')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(20)
+        self.assertEqual(prefix, 'E')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(21)
+        self.assertEqual(prefix, 'Z')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(22)
+        self.assertEqual(prefix, 'Z')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(23)
+        self.assertEqual(prefix, 'Z')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(24)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(25)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(26)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e2)
+
+        prefix, factor = _si_prefix_factor(27)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e3)
+
+        prefix, factor = _si_prefix_factor(28)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e4)
+
+        prefix, factor = _si_prefix_factor(29)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e5)
+
+        prefix, factor = _si_prefix_factor(30)
+        self.assertEqual(prefix, 'Y')
+        self.assertEqual(factor, 1e6)

@@ -31,9 +31,13 @@ _format_spec_regex = re.compile(
     # NOTE: these characters cannot be in <type>
     r'(?P<mode>[BR])?'
 
-    # Latex, Pretty or SI prefix
-    # NOTE: these characters cannot be in <type> nor in <mode>
-    r'(?P<style>[LPS])?'
+    # Latex or Unicode
+    # NOTE: these characters cannot be in <type> nor <mode>
+    r'(?P<style>[LU])?'
+
+    # SI prefix
+    # NOTE: this character cannot be in <type>, <mode> nor <style>
+    r'(?P<si>S)?'
     
     # the regex must match until the end of the string
     r'$'
@@ -60,6 +64,7 @@ _exponent_table = {
     ord('9'): u'\u2079',
 }
 
+_si_map = {i*3: pre for i, pre in enumerate('yzafpnum kMGTPEZY', start=-8)}
 
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
 
@@ -92,6 +97,7 @@ class Format(object):
         self.df_decimals = int(get('df_decimals', 0))
         self.mode = get('mode', 'B')
         self.style = get('style', '')
+        self.si = get('si', '')
 
         # these attributes are used when rounding
         self.digits = int(get('digits', 2))
@@ -106,7 +112,7 @@ class Format(object):
             df_decimals = '.{:d}'.format(self.df_decimals)
 
         return 'Format{{{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
-               '.{precision}{type}{df_decimals}{mode}{style}}}'.format(
+               '.{precision}{type}{df_decimals}{mode}{style}{si}}}'.format(
                 fill=self.fill,
                 align=self.align,
                 sign=self.sign,
@@ -118,7 +124,8 @@ class Format(object):
                 type=self.type,
                 df_decimals=df_decimals,
                 mode=mode,
-                style=self.style)
+                style=self.style,
+                si=self.si)
 
     def result(self, text):
         """Formats the result.
@@ -145,7 +152,7 @@ class Format(object):
         format-specification fields.
 
         :param value: The value to format.
-        :type value: float
+        :type value: int, float, complex
         :param precision: Indicates how many digits should be displayed after
                           the decimal point for presentation types 'f' and 'F',
                           or before and after the decimal point for
@@ -230,13 +237,17 @@ def create_format(obj, **kwargs):
 
     :param \**kwargs: Keyword arguments:
 
-            * fill (:class:`str`): Can be a single character (see :ref:`formatspec`).
-            * align (:class:`str`): Can be one of ``'<'``, ``'>'``, ``'^'`` (see :ref:`formatspec`).
-            * sign (:class:`str`): Can be one of ``'+'``, ``'-'``, ``' '`` (see :ref:`formatspec`).
-            * hash (:class:`bool` or :class:`str`): Whether to include the ``#`` symbol (see :ref:`formatspec`).
-            * zero (:class:`bool` or :class:`str`): Whether to include the ``0`` symbol (see :ref:`formatspec`).
+            * fill (:class:`str`): Can be a single character, except for ``{`` or ``}`` (see :ref:`formatspec`).
+            * align (:class:`str`): Can be one of ``<``, ``>``, ``^`` (see :ref:`formatspec`).
+            * sign (:class:`str`): Can be one of ``+``, ``-``, ``' '`` (see :ref:`formatspec`).
+            * hash (any): Whether to include the ``#`` symbol (see :ref:`formatspec`).
+                          Only the truthiness of the value is checked, so it
+                          can be any type and value.
+            * zero (any): Whether to include the ``0`` symbol (see :ref:`formatspec`).
+                          Only the truthiness of the value is checked, so it
+                          can be any type and value.
             * width (:class:`int`): The width of the returned string (see :ref:`formatspec`).
-            * grouping (:class:`str`): Can be one of ``','``, ``'_'`` (see :ref:`formatspec`).
+            * grouping (:class:`str`): Can be one of ``,``, ``_`` (see :ref:`formatspec`).
             * type (:class:`str`): Can be one of 'e', 'E', 'f', 'F', 'g', 'G', 'n', '%' (see :ref:`formatspec`)
                                    TODO should % only make the uncertainty be a percentage of the value
                                         instead of operating on both the value and uncertainty?
@@ -248,14 +259,17 @@ def create_format(obj, **kwargs):
                                                Do we still want df_decimals?
             * mode (:class:`str`): The mode to use. Must be one of:
 
-                   - B: bracket notation, e.g., 3.142(10)
-                   - R: raw plus-minus notation, e.g., 3.142 +/- 0.010
+                   - B: bracket notation, e.g., 3.142(13)
+                   - R: raw plus-minus notation, e.g., 3.142+/-0.013
 
-            * style (:class:`str`): The style to use. Must be one of:
+            * style (:class:`str`): The style to use. One of:
 
                    - L: latex notation, stuff like \infty \times \pm \mathrm
-                   - P: pretty print, e.g., (12.3 ± 5.0) × 10⁻¹² or 12.3(2) × 10⁶
-                   - S: SI prefix, e.g., (12.3 ± 5.0) p or 12.3(2) M
+                   - U: unicode, e.g., (12.3±5.0)×10⁻¹² or 12.3(2)×10⁶
+
+            * si (any): Whether to use an SI prefix. Only the truthiness of the
+                        value is checked, so it can be any type and value.
+                        For example, 1.23(6)e+07 becomes 12.3(6) M.
 
     :return: The format specification.
     :rtype: :class:`Format`
@@ -268,6 +282,9 @@ def create_format(obj, **kwargs):
 
     if kwargs.get('zero'):
         kwargs['zero'] = '0'
+
+    if kwargs.get('si'):
+        kwargs['si'] = 'S'
 
     try:
         u = obj.u
@@ -409,6 +426,29 @@ def _determine_num_digits(uncertainty, fmt):
     fmt.u_exponent = u_exponent
 
 
+def _si_prefix_factor(exponent):
+    """Determine the SI prefix and scaling factor.
+
+    :param exponent: The exponent, e.g., 10 ** exponent
+    :type exponent: int
+
+    :returns: tuple -> (prefix: str, factor: float)
+    """
+    mod = exponent % 3
+    prefix = _si_map.get(exponent - mod)
+    factor = 10. ** mod
+    if exponent < 0 and prefix is None:
+        prefix = 'y'
+        factor = 10. ** (exponent + 24)
+    elif 0 <= exponent < 3:
+        prefix = ''
+        factor = 1.0
+    elif prefix is None:
+        prefix = 'Y'
+        factor = 10. ** (exponent - 24)
+    return prefix, factor
+
+
 def _stylize(text, fmt):
     """Apply the formatting style to `text`.
 
@@ -420,8 +460,7 @@ def _stylize(text, fmt):
     if not fmt.style:
         return text
 
-    if fmt.style == 'P':
-        # pretty print
+    if fmt.style == 'U':
         exp = _exponent_regex.search(text)
         if exp:
             start, end = exp.span()
@@ -429,7 +468,7 @@ def _stylize(text, fmt):
             translated = e.translate(_exponent_table)
             text = u'{0}{1}{2}'.format(text[:start], translated, text[end:])
 
-        mapping = {r'\+/\-': u'\u00B1'}
+        mapping = {r'\+/\-': u'\u00B1', r'u': u'\u00B5'}
         for pattern, repl in mapping.items():
             text = re.sub(pattern, repl, text)
         return text
