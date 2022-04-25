@@ -1744,3 +1744,74 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(uc, fmt),   u'((1.854±0.094)×10⁺⁰¹(+1.20±0.94)×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
             self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
+
+    def test_hash_symbol(self):
+        if sys.version_info.major == 2:
+            # Python 2 does not support the # field, get the following
+            # ValueError: Alternate form (#) not allowed in float format specifier
+            return
+
+        ur = ureal(5.4, 1.2)
+        fmt = create_format(ur, digits=1, hash='#')
+        self.assertEqual('{:#.1}'.format(ur), '5.(1.)')
+        self.assertEqual(to_string(ur, fmt), '5.(1.)')
+        self.assertEqual(to_string(ur.x, fmt), '5.')
+        self.assertEqual(to_string(ur.u, fmt), '1.')
+        self.assertEqual(to_string(3, fmt), '3.')
+
+        fmt = create_format(ur, digits=2, hash=True)
+        self.assertEqual('{:#.2}'.format(ur), '5.4(1.2)')
+        self.assertEqual(to_string(ur, fmt), '5.4(1.2)')
+        self.assertEqual(to_string(ur.x, fmt), '5.4')
+        self.assertEqual(to_string(ur.u, fmt), '1.2')
+        self.assertEqual(to_string(3, fmt), '3.0')
+
+        uc = ucomplex(5.4 + 7.2j, (1.4, 1.2))
+        fmt = create_format(uc, digits=1, hash='#')
+        self.assertEqual('{:#.1}'.format(uc), '(5.(1.)+7.(1.)j)')
+        self.assertEqual(to_string(uc, fmt), '(5.(1.)+7.(1.)j)')
+        self.assertEqual(to_string(uc.x, fmt), '(5.+7.j)')
+        self.assertEqual(to_string(uc.u, fmt), '(1.+1.j)')
+
+    def test_grouping_field(self):
+        ur = ureal(123456789, 123456)
+
+        fmt = create_format(ur, digits=6, grouping=',')
+        self.assertEqual('{:,.6}'.format(ur), '123,456,789(123,456)')
+        self.assertEqual(to_string(ur, fmt), '123,456,789(123,456)')
+        self.assertEqual(to_string(ur.x, fmt), '123,456,789')
+        self.assertEqual(to_string(ur.u, fmt), '123,456')
+
+        fmt = create_format(ur, digits=2, grouping=',')
+        self.assertEqual('{:,.2}'.format(ur), '123,460,000(120,000)')
+        self.assertEqual(to_string(ur, fmt), '123,460,000(120,000)')
+        self.assertEqual(to_string(ur.x, fmt), '123,460,000')
+        self.assertEqual(to_string(ur.u, fmt), '120,000')
+
+        ur = ucomplex(123456789-987654321j, (123456, 654321))
+
+        fmt = create_format(ur, digits=3, grouping=',')
+        self.assertEqual('{:,.3}'.format(ur), '(123,457,000(123,000)-987,654,000(654,000)j)')
+        self.assertEqual(to_string(ur, fmt), '(123,457,000(123,000)-987,654,000(654,000)j)')
+        self.assertEqual(to_string(ur.x, fmt), '(123,457,000-987,654,000j)')
+        self.assertEqual(to_string(ur.u, fmt), '(123,000+654,000j)')
+
+    def test_zero_field(self):
+        if sys.version_info[:2] <= (3, 9):
+            # These Python versions do not support the 0 field, get the following
+            # ValueError: '=' alignment not allowed in string format specifier
+            return
+
+        ur = ureal(1.342, 0.0041)
+        fmt = create_format(ur, digits=1, zero='0', width=15)
+        self.assertEqual('{:<015.1}'.format(ur),  '1.342(4)0000000')
+        self.assertEqual(to_string(ur, fmt),      '1.342(4)0000000')
+        self.assertEqual(to_string(ur.x, fmt),    '1.3420000000000')
+        self.assertEqual(to_string(ur.u, fmt),    '0.0040000000000')
+
+        uc = ucomplex(5.4 + 7.2j, (1.4, 1.2))
+        fmt = create_format(uc, digits=2, zero='0', width=24, align='>', sign='+')
+        self.assertEqual('{:>+024.2}'.format(uc), '000(+5.4(1.4)+7.2(1.2)j)')
+        self.assertEqual(to_string(uc, fmt),      '000(+5.4(1.4)+7.2(1.2)j)')
+        self.assertEqual(to_string(uc.x, fmt),    '0000000000000(+5.4+7.2j)')
+        self.assertEqual(to_string(uc.u, fmt),    '0000000000000(+1.4+1.2j)')

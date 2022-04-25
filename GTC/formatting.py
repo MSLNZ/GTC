@@ -98,7 +98,6 @@ class Format(object):
         self.u_exponent = 0
 
     def __repr__(self):
-
         # don't include the default GTC fields in the output
         mode = '' if self.mode == 'B' else self.mode
         if self.df_decimals == 0:
@@ -124,22 +123,41 @@ class Format(object):
     def result(self, text):
         """Formats the result.
 
-        Uses the fill, align and width format specifications.
+        Uses the fill, align, zero and width format-specification fields.
 
         :param text: The text to format.
         :type text: str
         :return: The `text` formatted.
         :rtype: str
         """
-        return u'{0:{fill}{align}{width}s}'.format(
+        return u'{0:{fill}{align}{zero}{width}s}'.format(
             text,
             fill=self.fill,
             align=self.align,
+            zero=self.zero,
             width=self.width
         )
 
     def value(self, value, precision=None, type=None, sign=None):
-        """Format a value."""
+        """Format a value.
+
+        Uses the sign, hash symbol, grouping, precision and type
+        format-specification fields.
+
+        :param value: The value to format.
+        :type value: float
+        :param precision: Indicates how many digits should be displayed after
+                          the decimal point for presentation types 'f' and 'F',
+                          or before and after the decimal point for
+                          presentation types 'g' or 'G'.
+        :type precision: int
+        :param type: Can be one of: 'e', 'E', 'f', 'F', 'g', 'G'
+        :type type: str
+        :param sign: Can be one of: '+', '-', ' '
+        :type sign: str
+        :return: The `value` formatted.
+        :rtype: str
+        """
         if sign is None:
             sign = self.sign
 
@@ -149,18 +167,33 @@ class Format(object):
         if type is None:
             type = self.type
 
-        return '{0:{sign}{hash}{zero}{grouping}.{precision}{type}}'.format(
+        return '{0:{sign}{hash}{grouping}.{precision}{type}}'.format(
             value,
             sign=sign,
             hash=self.hash,
-            zero=self.zero,
             grouping=self.grouping,
             precision=precision,
             type=type
         )
 
     def uncertainty(self, uncertainty, precision=None, type='f'):
-        """Format an uncertainty."""
+        """Format an uncertainty.
+
+        Uses the sign, hash symbol, grouping, precision and type
+        format-specification fields.
+
+        :param uncertainty: The uncertainty to format.
+        :type uncertainty: float
+        :param precision: Indicates how many digits should be displayed after
+                          the decimal point for presentation types 'f' and 'F',
+                          or before and after the decimal point for
+                          presentation types 'g' or 'G'.
+        :type precision: int
+        :param type: Can be one of: 'e', 'E', 'f', 'F', 'g', 'G'
+        :type type: str
+        :return: The `uncertainty` formatted.
+        :rtype: str
+        """
         return self.value(uncertainty, precision=precision, type=type, sign='')
 
 
@@ -197,15 +230,14 @@ def create_format(obj, **kwargs):
 
     :param \**kwargs: Keyword arguments:
 
-[[fill]align][sign][#][0][width][grouping][.precision][type][.GTC_df_decimals][GTC_mode][GTC_style]
             * fill (:class:`str`): Can be a single character (see :ref:`formatspec`).
-            * align (:class:`str`): Can be one of < > ^ (see :ref:`formatspec`).
-            * sign (:class:`str`): Can be one of + - `space` (see :ref:`formatspec`).
-            * hash (:class:`bool`): Whether to include the # symbol (see :ref:`formatspec`).
-            * zero (:class:`bool`): Whether to include the 0 symbol (see :ref:`formatspec`).
-            * width (:class:`int`): The width of the return string (see :ref:`formatspec`).
-            * grouping (:class:`str`): Can be one of , _ (see :ref:`formatspec`).
-            * type (:class:`str`): Can be one of eEfFgGn% (see :ref:`formatspec`)
+            * align (:class:`str`): Can be one of ``'<'``, ``'>'``, ``'^'`` (see :ref:`formatspec`).
+            * sign (:class:`str`): Can be one of ``'+'``, ``'-'``, ``' '`` (see :ref:`formatspec`).
+            * hash (:class:`bool` or :class:`str`): Whether to include the ``#`` symbol (see :ref:`formatspec`).
+            * zero (:class:`bool` or :class:`str`): Whether to include the ``0`` symbol (see :ref:`formatspec`).
+            * width (:class:`int`): The width of the returned string (see :ref:`formatspec`).
+            * grouping (:class:`str`): Can be one of ``','``, ``'_'`` (see :ref:`formatspec`).
+            * type (:class:`str`): Can be one of 'e', 'E', 'f', 'F', 'g', 'G', 'n', '%' (see :ref:`formatspec`)
                                    TODO should % only make the uncertainty be a percentage of the value
                                         instead of operating on both the value and uncertainty?
                                         Should it (and/or n) be an allowed option?
