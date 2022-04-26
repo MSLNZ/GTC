@@ -2125,14 +2125,14 @@ class TestFormatting(unittest.TestCase):
         ur_groomed = apply_format(ur, fmt)
         self.assertEqual(
             str(ur_groomed),
-            "ureal(x=1.2346, u=0.0044, df=8, label='MSL')"
+            "FormattedUncertainReal(x=1.2346, u=0.0044, df=8, label='MSL')"
         )
 
         fmt = create_format(ur, digits=1, df_precision=3)
         ur_groomed = apply_format(ur, fmt)
         self.assertEqual(
             str(ur_groomed),
-            "ureal(x=1.235, u=0.004, df=8.835, label='MSL')"
+            "FormattedUncertainReal(x=1.235, u=0.004, df=8.835, label='MSL')"
         )
 
         uc = ucomplex(5.47265413 + 7.27262513j, (1.46184, 0.52141, 0.52141, 1.272654431))
@@ -2141,12 +2141,12 @@ class TestFormatting(unittest.TestCase):
         uc_groomed = apply_format(uc, fmt)
         self.assertEqual(
             str(uc_groomed),
-            'ucomplex(x=(5.5+7.3j), u=StandardUncertainty(real=1.2, imag=1.1), r=0.382, df=inf, label=None)'
+            'FormattedUncertainComplex(x=(5.5+7.3j), u=StandardUncertainty(real=1.2, imag=1.1), r=0.382, df=inf, label=None)'
         )
 
         fmt = create_format(uc, digits=3, r_precision=1, df_precision=99)
         uc_groomed = apply_format(uc, fmt)
         self.assertEqual(
             str(uc_groomed),
-            'ucomplex(x=(5.47+7.27j), u=StandardUncertainty(real=1.21, imag=1.13), r=0.4, df=inf, label=None)'
+            'FormattedUncertainComplex(x=(5.47+7.27j), u=StandardUncertainty(real=1.21, imag=1.13), r=0.4, df=inf, label=None)'
         )

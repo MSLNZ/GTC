@@ -69,8 +69,8 @@ _si_map = {i*3: pre for i, pre in enumerate('yzafpnum kMGTPEZY', start=-8)}
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
 
 # TODO review the typename value
-_GroomedUncertainReal = namedtuple('ureal', 'x u df label')
-_GroomedUncertainComplex = namedtuple('ucomplex', 'x u r df label')
+_FormattedUncertainReal = namedtuple('FormattedUncertainReal', 'x u df label')
+_FormattedUncertainComplex = namedtuple('FormattedUncertainComplex', 'x u r df label')
 
 
 class Format(object):
@@ -251,7 +251,7 @@ def apply_format(un, fmt):
         df = _round_dof(un.df, fmt.df_precision)
         r = round(un.r, fmt.r_precision)
 
-        return _GroomedUncertainComplex(
+        return _FormattedUncertainComplex(
             complex(re_x, im_x),
             StandardUncertainty(re_u, im_u),
             r, df, un.label)
@@ -260,7 +260,7 @@ def apply_format(un, fmt):
         x = _round(un.x, fmt).value
         u = _round(un.u, fmt).value
         dof = _round_dof(un.df, fmt.df_precision)
-        return _GroomedUncertainReal(x, u, dof, un.label)
+        return _FormattedUncertainReal(x, u, dof, un.label)
 
 
 def create_format(obj, digits=None, df_precision=None, r_precision=None,
