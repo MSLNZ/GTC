@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
+import math
 import sys
 import unittest
 
 from GTC import ureal, ucomplex, inf_dof, inf, nan
 from GTC.formatting import (
+    Format,
     create_format,
     to_string,
     parse,
-    Format,
+    apply_format,
     _nan_or_inf,
     _order_of_magnitude,
     _si_prefix_factor,
+    _round_dof,
 )
 from GTC.lib import UncertainReal, UncertainComplex
 
@@ -72,8 +75,8 @@ class TestFormatting(unittest.TestCase):
             out = {
                 'fill': None, 'align': None, 'sign': None, 'hash': None,
                 'zero': None, 'width': None, 'grouping': None,
-                'precision': None, 'type': None, 'df_decimals': None,
-                'mode': None, 'style': None, 'si': None
+                'precision': None, 'type': None, 'mode': None,
+                'style': None, 'si': None
             }
             out.update(**kwargs)
             return out
@@ -88,22 +91,22 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(_parse('<<'),
                          expect(fill='<', align='<'))
         self.assertEqual(_parse(' 10.1'),
-                         expect(sign=' ', width=10, precision=1))
+                         expect(sign=' ', width='10', precision='1'))
         self.assertEqual(_parse('0'),
                          expect(zero='0'))
         self.assertEqual(_parse('0.0'),
-                         expect(zero='0', precision=0))
+                         expect(zero='0', precision='0'))
         self.assertEqual(_parse('02'),
-                         expect(zero='0', width=2))
+                         expect(zero='0', width='2'))
         self.assertEqual(_parse('02.0'),
-                         expect(zero='0', width=2, precision=0))
+                         expect(zero='0', width='2', precision='0'))
         self.assertEqual(_parse('.10'),
-                         expect(precision=10))
+                         expect(precision='10'))
         self.assertEqual(_parse('07.2f'),
-                         expect(zero='0', width=7, precision=2, type='f'))
+                         expect(zero='0', width='7', precision='2', type='f'))
         self.assertEqual(_parse('*<-06,.4E'),
                          expect(fill='*', align='<', sign='-', zero='0',
-                                width=6, grouping=',', precision=4, type='E'))
+                                width='6', grouping=',', precision='4', type='E'))
 
         # additional GTC-specific fields
         self.assertEqual(_parse('B', False),
@@ -117,59 +120,77 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(_parse('GBL', False),
                          expect(type='G', mode='B', style='L'))
         self.assertEqual(_parse('.2U', False),
-                         expect(precision=2, style='U'))
+                         expect(precision='2', style='U'))
         self.assertEqual(_parse('9R', False),
-                         expect(width=9, mode='R'))
-        self.assertEqual(_parse('.7.5', False),
-                         expect(precision=7, df_decimals=5))
-        self.assertEqual(_parse('e.11', False),
-                         expect(type='e', df_decimals=11))
-        self.assertEqual(_parse('.2f.0', False),
-                         expect(precision=2, type='f', df_decimals=0))
-        self.assertEqual(_parse('.2f.3R', False),
-                         expect(precision=2, type='f', df_decimals=3,
-                                mode='R'))
+                         expect(width='9', mode='R'))
+        self.assertEqual(_parse('.7', False),
+                         expect(precision='7'))
+        self.assertEqual(_parse('e', False),
+                         expect(type='e'))
+        self.assertEqual(_parse('.2f', False),
+                         expect(precision='2', type='f'))
+        self.assertEqual(_parse('.2fR', False),
+                         expect(precision='2', type='f', mode='R'))
         self.assertEqual(_parse(' ^16.4fL', False),
-                         expect(fill=' ', align='^', width=16,
-                                precision=4, type='f', style='L'))
+                         expect(fill=' ', align='^', width='16',
+                                precision='4', type='f', style='L'))
         self.assertEqual(_parse('^^03S', False),
-                         expect(fill='^', align='^', zero='0', width=3,
+                         expect(fill='^', align='^', zero='0', width='3',
                                 si='S'))
         self.assertEqual(_parse('^^03BUS', False),
-                         expect(fill='^', align='^', zero='0', width=3,
+                         expect(fill='^', align='^', zero='0', width='3',
                                 mode='B', style='U', si='S'))
         self.assertEqual(_parse('^^03gBS', False),
-                         expect(fill='^', align='^', zero='0', width=3,
+                         expect(fill='^', align='^', zero='0', width='3',
                                 type='g', mode='B', si='S'))
         self.assertEqual(_parse('^^03gB', False),
-                         expect(fill='^', align='^', zero='0', width=3,
+                         expect(fill='^', align='^', zero='0', width='3',
                                 type='g', mode='B'))
-        self.assertEqual(_parse('*> #011,.2g.8L', False),
+        self.assertEqual(_parse('*> #011,.2gL', False),
                          expect(fill='*', align='>', sign=' ', hash='#',
-                                zero='0', width=11, grouping=',', precision=2,
-                                type='g', df_decimals=8, style='L'))
+                                zero='0', width='11', grouping=',', precision='2',
+                                type='g', style='L'))
 
     def test_Format(self):
         f = Format()
-        self.assertEqual(repr(f), 'Format{.2f}')
-        self.assertEqual(str(f), 'Format{.2f}')
+        self.assertEqual(repr(f), 'Format{.2fB}')
+        self.assertEqual(str(f), 'Format{.2fB}')
         self.assertEqual(f.digits, 2)
         self.assertEqual(f.u_exponent, 0)
+        self.assertEqual(f.df_precision, 0)
+        self.assertEqual(f.r_precision, 3)
 
         f = Format(fill='*', align='>', sign=' ', hash='#', zero='0',
-                   width=20, grouping=',', precision=3, type='g',
-                   df_decimals=2, mode='R', style='L')
-        self.assertEqual(repr(f), 'Format{*> #020,.3g.2RL}')
-        self.assertEqual(str(f), 'Format{*> #020,.3g.2RL}')
+                   width=20, grouping=',', digits=3, type='g',
+                   mode='R', style='L', df_precision=1)
+        self.assertEqual(repr(f), 'Format{*> #020,.3gRL}')
+        self.assertEqual(str(f), 'Format{*> #020,.3gRL}')
+        self.assertEqual(f.digits, 3)
+        self.assertEqual(f.u_exponent, 0)
+        self.assertEqual(f.df_precision, 1)
+        self.assertEqual(f.r_precision, 3)
 
-        f = Format(width=10, sign='+')
-        self.assertEqual(repr(f), 'Format{+10.2f}')
-        self.assertEqual(str(f), 'Format{+10.2f}')
+        f = Format(width=10, sign='+', r_precision=1, df_precision=None)
+        self.assertEqual(repr(f), 'Format{+10.2fB}')
+        self.assertEqual(str(f), 'Format{+10.2fB}')
+        self.assertEqual(f.digits, 2)
+        self.assertEqual(f.u_exponent, 0)
+        self.assertEqual(f.df_precision, 0)
+        self.assertEqual(f.r_precision, 1)
 
-        f = Format(precision=0, digits=1)
+        f = Format(precision=0, digits=1, r_precision=None, df_precision=7)
         self.assertEqual(f.precision, 0)
         self.assertEqual(f.digits, 1)
         self.assertEqual(f.u_exponent, 0)
+        self.assertEqual(f.df_precision, 7)
+        self.assertEqual(f.r_precision, 3)
+
+        f = Format(precision=0, digits=1, r_precision=6, df_precision=4)
+        self.assertEqual(f.precision, 0)
+        self.assertEqual(f.digits, 1)
+        self.assertEqual(f.u_exponent, 0)
+        self.assertEqual(f.df_precision, 4)
+        self.assertEqual(f.r_precision, 6)
 
         f = Format()
         number = -9.3+123.456789j
@@ -311,7 +332,13 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(str(ur), expected)
             self.assertEqual('{}'.format(ur), expected)
             self.assertEqual('{!s}'.format(ur), expected)
-            self.assertEqual('{: .2f.0B}'.format(ur), expected)
+            self.assertEqual('{: }'.format(ur), expected)
+            self.assertEqual('{: f}'.format(ur), expected)
+            self.assertEqual('{: B}'.format(ur), expected)
+            self.assertEqual('{: .2}'.format(ur), expected)
+            self.assertEqual('{: .2f}'.format(ur), expected)
+            self.assertEqual('{: fB}'.format(ur), expected)
+            self.assertEqual('{: .2fB}'.format(ur), expected)
 
         check(ureal(1.23456789, 1000), ' 0(1000)')
         check(ureal(1.23456789, 100), ' 0(100)')
@@ -338,7 +365,13 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(str(uc), expected)
             self.assertEqual('{}'.format(uc), expected)
             self.assertEqual('{!s}'.format(uc), expected)
-            self.assertEqual('{:+.2f.0B}'.format(uc), expected)
+            self.assertEqual('{:+.2fB}'.format(uc), expected)
+            self.assertEqual('{:+.2f}'.format(uc), expected)
+            self.assertEqual('{:+.2}'.format(uc), expected)
+            self.assertEqual('{:+f}'.format(uc), expected)
+            self.assertEqual('{:+B}'.format(uc), expected)
+            self.assertEqual('{:+.2B}'.format(uc), expected)
+            self.assertEqual('{:+fB}'.format(uc), expected)
 
         check(ucomplex(1.23456789 + 9.87654321j, 1000),
               '(+0(1000)+0(1000)j)')
@@ -2055,3 +2088,65 @@ class TestFormatting(unittest.TestCase):
         prefix, factor = _si_prefix_factor(30)
         self.assertEqual(prefix, 'Y')
         self.assertEqual(factor, 1e6)
+
+    def test_round_dof(self):
+        dof = _round_dof(inf, None)
+        self.assertTrue(math.isinf(dof))
+
+        dof = _round_dof(nan, None)
+        self.assertTrue(math.isnan(dof))
+
+        dof = _round_dof(inf_dof+1.0, None)
+        self.assertTrue(math.isinf(dof))
+
+        dof = _round_dof(1e308, None)
+        self.assertTrue(math.isinf(dof))
+
+        dof = _round_dof(9.386583765876, 0)
+        self.assertEqual(dof, 9)
+        self.assertIsInstance(dof, int)
+
+        dof = _round_dof(9.386583765876, 1)
+        self.assertEqual(dof, 9.3)
+
+        dof = _round_dof(9.386583765876, 2)
+        self.assertEqual(dof, 9.38)
+
+        dof = _round_dof(9.386583765876, 3)
+        self.assertEqual(dof, 9.386)
+
+        dof = _round_dof(9.386583765876, 4)
+        self.assertEqual(dof, 9.3865)
+
+    def test_apply_format(self):
+        ur = ureal(1.23456789, 0.004371543, df=8.835223, label='MSL')
+
+        fmt = create_format(ur)
+        ur_groomed = apply_format(ur, fmt)
+        self.assertEqual(
+            str(ur_groomed),
+            "ureal(x=1.2346, u=0.0044, df=8, label='MSL')"
+        )
+
+        fmt = create_format(ur, digits=1, df_precision=3)
+        ur_groomed = apply_format(ur, fmt)
+        self.assertEqual(
+            str(ur_groomed),
+            "ureal(x=1.235, u=0.004, df=8.835, label='MSL')"
+        )
+
+        uc = ucomplex(5.47265413 + 7.27262513j, (1.46184, 0.52141, 0.52141, 1.272654431))
+
+        fmt = create_format(uc)
+        uc_groomed = apply_format(uc, fmt)
+        self.assertEqual(
+            str(uc_groomed),
+            'ucomplex(x=(5.5+7.3j), u=StandardUncertainty(real=1.2, imag=1.1), r=0.382, df=inf, label=None)'
+        )
+
+        fmt = create_format(uc, digits=3, r_precision=1, df_precision=99)
+        uc_groomed = apply_format(uc, fmt)
+        self.assertEqual(
+            str(uc_groomed),
+            'ucomplex(x=(5.47+7.27j), u=StandardUncertainty(real=1.21, imag=1.13), r=0.4, df=inf, label=None)'
+        )

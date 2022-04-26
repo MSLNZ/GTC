@@ -4,6 +4,10 @@ import math
 import cmath
 from collections import namedtuple
 
+from GTC import (
+    inf,
+    inf_dof,
+)
 from GTC.named_tuples import StandardUncertainty
 
 # The regular expression to parse a format specification (format_spec)
@@ -22,10 +26,6 @@ _format_spec_regex = re.compile(
     r'(?P<grouping>[_,])?'
     r'((\.)(?P<precision>\d+))?'
     r'(?P<type>[bcdeEfFgGnosxX%])?'
-    
-    # number of degrees-of-freedom decimal places
-    # NOTE: <precision> and/or <type> must also be specified for this to match
-    r'((\.)(?P<df_decimals>\d+))?' 
     
     # Bracket or Raw "+/-"
     # NOTE: these characters cannot be in <type>
@@ -68,6 +68,10 @@ _si_map = {i*3: pre for i, pre in enumerate('yzafpnum kMGTPEZY', start=-8)}
 
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
 
+# TODO review the typename value
+_GroomedUncertainReal = namedtuple('ureal', 'x u df label')
+_GroomedUncertainComplex = namedtuple('ucomplex', 'x u r df label')
+
 
 class Format(object):
 
@@ -82,7 +86,7 @@ class Format(object):
                 return default
             return value
 
-        # builtin fields
+        # builtin grammar fields
         self.fill = get('fill', '')
         self.align = get('align', '')
         self.sign = get('sign', '')
@@ -93,8 +97,7 @@ class Format(object):
         self.precision = int(get('precision', 2))
         self.type = get('type', 'f')
 
-        # GTC fields
-        self.df_decimals = int(get('df_decimals', 0))
+        # GTC grammar fields
         self.mode = get('mode', 'B')
         self.style = get('style', '')
         self.si = get('si', '')
@@ -102,17 +105,12 @@ class Format(object):
         # these attributes are used when rounding
         self.digits = int(get('digits', 2))
         self.u_exponent = 0
+        self.df_precision = int(get('df_precision', 0))
+        self.r_precision = int(get('r_precision', 3))
 
     def __repr__(self):
-        # don't include the default GTC fields in the output
-        mode = '' if self.mode == 'B' else self.mode
-        if self.df_decimals == 0:
-            df_decimals = ''
-        else:
-            df_decimals = '.{:d}'.format(self.df_decimals)
-
         return 'Format{{{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
-               '.{precision}{type}{df_decimals}{mode}{style}{si}}}'.format(
+               '.{digits}{type}{mode}{style}{si}}}'.format(
                 fill=self.fill,
                 align=self.align,
                 sign=self.sign,
@@ -120,10 +118,9 @@ class Format(object):
                 zero=self.zero,
                 width=self.width,
                 grouping=self.grouping,
-                precision=self.precision,
+                digits=self.digits,  # use digits, not precision
                 type=self.type,
-                df_decimals=df_decimals,
-                mode=mode,
+                mode=self.mode,
                 style=self.style,
                 si=self.si)
 
@@ -134,6 +131,7 @@ class Format(object):
 
         :param text: The text to format.
         :type text: str
+
         :return: The `text` formatted.
         :rtype: str
         """
@@ -154,14 +152,15 @@ class Format(object):
         :param value: The value to format.
         :type value: int, float, complex
         :param precision: Indicates how many digits should be displayed after
-                          the decimal point for presentation types 'f' and 'F',
-                          or before and after the decimal point for
-                          presentation types 'g' or 'G'.
+                          the decimal point for presentation types ``f`` and
+                          ``F``, or before and after the decimal point for
+                          presentation types ``g`` or ``G``.
         :type precision: int
-        :param type: Can be one of: 'e', 'E', 'f', 'F', 'g', 'G'
+        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g`` or ``G``
         :type type: str
-        :param sign: Can be one of: '+', '-', ' '
+        :param sign: Can be one of: ``+``, ``-``, ``' '`` (i.e., a 'space')
         :type sign: str
+
         :return: The `value` formatted.
         :rtype: str
         """
@@ -198,6 +197,7 @@ class Format(object):
         :type precision: int
         :param type: Can be one of: 'e', 'E', 'f', 'F', 'g', 'G'
         :type type: str
+
         :return: The `uncertainty` formatted.
         :rtype: str
         """
@@ -220,71 +220,128 @@ def parse(format_spec):
     match = _format_spec_regex.match(format_spec)
     if not match:
         raise ValueError('Invalid format specifier {!r}'.format(format_spec))
-    d = match.groupdict()
-    for key in ('width', 'precision', 'df_decimals'):
-        if d[key] is not None:
-            d[key] = int(d[key])
-    return d
+    return match.groupdict()
 
 
-def create_format(obj, **kwargs):
+def apply_format(un, fmt):
+    """Apply the format to an uncertain number.
+
+    .. versionadded:: 1.4.0
+
+    :param un: An uncertain number.
+    :type un: :class:`~GTC.lib.UncertainReal` or :class:`~GTC.lib.UncertainComplex`
+    :param fmt: The format to apply to `un`. See :func:`create_format`.
+    :type fmt: :class:`Format`
+
+    :return: The uncertain number with the format applied.
+    :rtype collections.namedtuple
+    """
+    try:
+        # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
+        #  We could check isinstance(), but then we will need to deal with
+        #  circular import issues with lib.py.
+        #  An UncertainReal object has no attribute _value.
+        un._value
+        real, imag = un.real, un.imag
+
+        re_x = _round(real.x, fmt).value
+        re_u = _round(real.u, fmt).value
+        im_x = _round(imag.x, fmt).value
+        im_u = _round(imag.u, fmt).value
+        df = _round_dof(un.df, fmt.df_precision)
+        r = round(un.r, fmt.r_precision)
+
+        return _GroomedUncertainComplex(
+            complex(re_x, im_x),
+            StandardUncertainty(re_u, im_u),
+            r, df, un.label)
+
+    except AttributeError:
+        x = _round(un.x, fmt).value
+        u = _round(un.u, fmt).value
+        dof = _round_dof(un.df, fmt.df_precision)
+        return _GroomedUncertainReal(x, u, dof, un.label)
+
+
+def create_format(obj, digits=None, df_precision=None, r_precision=None,
+                  mode=None, style=None, si=None, **kwargs):
     r"""Create a format specification.
+
+    .. versionadded:: 1.4.0
 
     :param obj: An object to use create the format specification.
     :type obj: float, complex, :class:`~GTC.lib.UncertainReal`,
                :class:`~GTC.lib.UncertainComplex`
                or :class:`~GTC.named_tuples.StandardUncertainty`
+    :param digits: The number of significant digits in the uncertainty
+                   component to retain. Default is 2.
+    :type digits: int
+    :param df_precision: The number of decimal places for the
+                         degrees-of-freedom to retain. Default is 0.
+    :type df_precision: int
+    :param r_precision: The number of decimal places for the correlation
+                        coefficient to retain. Default is 3.
+    :type r_precision: int
+    :param mode: The mode to use. Must be one of:
 
-    :param \**kwargs: Keyword arguments:
+               - B: bracket notation, e.g., 3.142(13)
+               - R: raw plus-minus notation, e.g., 3.142+/-0.013 (TODO link to GUM)
 
-            * fill (:class:`str`): Can be a single character, except for ``{`` or ``}`` (see :ref:`formatspec`).
-            * align (:class:`str`): Can be one of ``<``, ``>``, ``^`` (see :ref:`formatspec`).
-            * sign (:class:`str`): Can be one of ``+``, ``-``, ``' '`` (see :ref:`formatspec`).
-            * hash (any): Whether to include the ``#`` symbol (see :ref:`formatspec`).
-                          Only the truthiness of the value is checked, so it
+    :type mode: str
+    :param style: The style to use. One of:
+
+               - L: latex notation, stuff like \infty \times \pm \mathrm
+               - U: unicode, e.g., (12.3±5.0)×10⁻¹² or 12.3(2)×10⁶
+
+    :type style: str
+    :param si: Whether to use an SI prefix. Only the truthiness of the
+               value is checked, so it can be any type and value.
+               Enabling this feature would convert, for example,
+               1.23(6)e+07 to 12.3(6) M.
+    :type si: Any
+
+    :param \**kwargs:
+
+            All additional keyword arguments correspond to the
+            format-specification fields (see :ref:`formatspec`).
+
+            * fill (:class:`str`): Can be any character, except for ``{`` or ``}``.
+            * align (:class:`str`): Can be one of ``<``, ``>`` or ``^``.
+            * sign (:class:`str`): Can be one of ``+``, ``-`` or ``' '`` (i.e., a 'space').
+            * hash (Any): Whether to include the ``#`` symbol. Only the
+                          truthiness of the value is checked, so it can
+                          be any type and value.
+            * zero (Any): Whether to include the ``0`` symbol. Only the
+                          truthiness of the value is checked, so it
                           can be any type and value.
-            * zero (any): Whether to include the ``0`` symbol (see :ref:`formatspec`).
-                          Only the truthiness of the value is checked, so it
-                          can be any type and value.
-            * width (:class:`int`): The width of the returned string (see :ref:`formatspec`).
-            * grouping (:class:`str`): Can be one of ``,``, ``_`` (see :ref:`formatspec`).
-            * type (:class:`str`): Can be one of 'e', 'E', 'f', 'F', 'g', 'G', 'n', '%' (see :ref:`formatspec`)
-                                   TODO should % only make the uncertainty be a percentage of the value
-                                        instead of operating on both the value and uncertainty?
-                                        Should it (and/or n) be an allowed option?
-            * digits (:class:`int`): The number of significant digits in the uncertainty component to retain.
-            * df_decimals (:class:`int`): The number of decimal places reported for the degrees-of-freedom.
-                                          TODO the df_decimals was used in the un._round() methods
-                                               but dof was never included in the output of __str__.
-                                               Do we still want df_decimals?
-            * mode (:class:`str`): The mode to use. Must be one of:
-
-                   - B: bracket notation, e.g., 3.142(13)
-                   - R: raw plus-minus notation, e.g., 3.142+/-0.013
-
-            * style (:class:`str`): The style to use. One of:
-
-                   - L: latex notation, stuff like \infty \times \pm \mathrm
-                   - U: unicode, e.g., (12.3±5.0)×10⁻¹² or 12.3(2)×10⁶
-
-            * si (any): Whether to use an SI prefix. Only the truthiness of the
-                        value is checked, so it can be any type and value.
-                        For example, 1.23(6)e+07 becomes 12.3(6) M.
+            * width (:class:`int`): The width of the returned string.
+            * grouping (:class:`str`): Can be one of ``,`` or ``_``.
+            * type (:class:`str`): Can be one of ``e`, ``E``, ``f``, ``F``,
+                                   ``g``, ``G``, ``n`` or ``%``
+                TODO should % only make the uncertainty be a percentage of the
+                 value instead of operating on both the value and uncertainty?
+                 Should it (and/or n) even be a supported option?
 
     :return: The format specification.
     :rtype: :class:`Format`
     """
-    if 'digits' not in kwargs and 'precision' in kwargs:
-        kwargs['digits'] = kwargs['precision']
+    kwargs['mode'] = mode
+    kwargs['style'] = style
+    kwargs['df_precision'] = df_precision
+    kwargs['r_precision'] = r_precision
+
+    if digits is not None and digits < 1:
+        raise ValueError('digits must be >= 1')
+    kwargs['digits'] = digits or kwargs.get('precision')
+
+    if si:
+        kwargs['si'] = 'S'
 
     if kwargs.get('hash'):
         kwargs['hash'] = '#'
 
     if kwargs.get('zero'):
         kwargs['zero'] = '0'
-
-    if kwargs.get('si'):
-        kwargs['si'] = 'S'
 
     try:
         u = obj.u
@@ -298,6 +355,8 @@ def create_format(obj, **kwargs):
 
 def to_string(obj, fmt):
     """Convert a numeric object to a string.
+
+    .. versionadded:: 1.4.0
 
     :param obj: A numeric object.
     :type obj: int, float, complex, :class:`~GTC.lib.UncertainReal`,
@@ -515,6 +574,28 @@ def _round(value, fmt, exponent=None):
     return _Rounded(val, precision, _type, exponent, suffix)
 
 
+def _round_dof(dof, precision):
+    """Round the degrees of freedom to the specified precision.
+
+    dof: float
+    precision: int
+
+    returns: `dof` rounded
+    """
+    if _nan_or_inf(dof):
+        return dof
+
+    if dof > inf_dof:
+        return inf
+
+    factor = 10. ** (-precision)
+    rounded = round(factor * math.floor(dof / factor), precision)
+    # TODO if precision == 0 should an int be returned?
+    if precision == 0:
+        return int(rounded)
+    return rounded
+
+
 def _to_string_ureal(ureal, fmt, sign=None):
     """Convert an UncertainReal to a string.
 
@@ -541,8 +622,13 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
         if fmt.mode == 'B':
             result = '{0}({1})'.format(x_str, u_str)
-        else:
+        elif fmt.mode == 'R':
             result = '{0}+/-{1}'.format(x_str, u_str)
+        else:
+            raise ValueError(
+                'The formatting mode {!r} is not supported. '
+                'Must be B or R'.format(fmt.mode)
+            )
 
         # if either the real or imaginary part has an exponential term,
         # then move it to the end
@@ -572,6 +658,7 @@ def _to_string_ureal(ureal, fmt, sign=None):
             u_str = fmt.uncertainty(
                 round(u_r * 10. ** precision), precision=0)
         return '{0}({1}){2}'.format(x_str, u_str, result.suffix)
+
     elif fmt.mode == 'R':
         u_str = fmt.uncertainty(u_result.value, precision=precision)
         x_u_str = '{0}+/-{1}'.format(x_str, u_str)
