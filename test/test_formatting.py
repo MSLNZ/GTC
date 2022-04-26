@@ -153,8 +153,8 @@ class TestFormatting(unittest.TestCase):
 
     def test_Format(self):
         f = Format()
-        self.assertEqual(repr(f), 'Format{.2fB}')
-        self.assertEqual(str(f), 'Format{.2fB}')
+        self.assertEqual(repr(f), "Format(format_spec='.2fB', df_precision=0, r_precision=3)")
+        self.assertEqual(str(f), "Format(format_spec='.2fB', df_precision=0, r_precision=3)")
         self.assertEqual(f.digits, 2)
         self.assertEqual(f.u_exponent, 0)
         self.assertEqual(f.df_precision, 0)
@@ -163,16 +163,14 @@ class TestFormatting(unittest.TestCase):
         f = Format(fill='*', align='>', sign=' ', hash='#', zero='0',
                    width=20, grouping=',', digits=3, type='g',
                    mode='R', style='L', df_precision=1)
-        self.assertEqual(repr(f), 'Format{*> #020,.3gRL}')
-        self.assertEqual(str(f), 'Format{*> #020,.3gRL}')
+        self.assertEqual(repr(f), "Format(format_spec='*> #020,.3gRL', df_precision=1, r_precision=3)")
         self.assertEqual(f.digits, 3)
         self.assertEqual(f.u_exponent, 0)
         self.assertEqual(f.df_precision, 1)
         self.assertEqual(f.r_precision, 3)
 
         f = Format(width=10, sign='+', r_precision=1, df_precision=None)
-        self.assertEqual(repr(f), 'Format{+10.2fB}')
-        self.assertEqual(str(f), 'Format{+10.2fB}')
+        self.assertEqual(repr(f), "Format(format_spec='+10.2fB', df_precision=0, r_precision=1)")
         self.assertEqual(f.digits, 2)
         self.assertEqual(f.u_exponent, 0)
         self.assertEqual(f.df_precision, 0)

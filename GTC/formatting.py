@@ -11,9 +11,9 @@ from GTC import (
 from GTC.named_tuples import StandardUncertainty
 
 # The regular expression to parse a format specification (format_spec)
-# with additional (and optional) characters at the end for GTC-specific formats
+# with additional (and optional) characters at the end for GTC-specific fields.
 #
-# format_spec ::= [[fill]align][sign][#][0][width][grouping][.precision][type][.GTC_df_decimals][GTC_mode][GTC_style]
+# format_spec ::= [[fill]align][sign][#][0][width][grouping][.precision][type][mode][style][si]
 # https://docs.python.org/3/library/string.html#format-specification-mini-language
 _format_spec_regex = re.compile(
     # the builtin grammar fields
@@ -109,8 +109,8 @@ class Format(object):
         self.r_precision = int(get('r_precision', 3))
 
     def __repr__(self):
-        return 'Format{{{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
-               '.{digits}{type}{mode}{style}{si}}}'.format(
+        spec = '{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
+               '.{digits}{type}{mode}{style}{si}'.format(
                 fill=self.fill,
                 align=self.align,
                 sign=self.sign,
@@ -123,6 +123,8 @@ class Format(object):
                 mode=self.mode,
                 style=self.style,
                 si=self.si)
+        return 'Format(format_spec={!r}, df_precision={}, r_precision={})'.format(
+            spec, self.df_precision, self.r_precision)
 
     def result(self, text):
         """Formats the result.
@@ -191,11 +193,11 @@ class Format(object):
         :param uncertainty: The uncertainty to format.
         :type uncertainty: float
         :param precision: Indicates how many digits should be displayed after
-                          the decimal point for presentation types 'f' and 'F',
-                          or before and after the decimal point for
-                          presentation types 'g' or 'G'.
+                          the decimal point for presentation types ``f`` and
+                          ``F``, or before and after the decimal point for
+                          presentation types ``g`` or ``G``.
         :type precision: int
-        :param type: Can be one of: 'e', 'E', 'f', 'F', 'g', 'G'
+        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g`` or ``G``
         :type type: str
 
         :return: The `uncertainty` formatted.
