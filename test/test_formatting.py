@@ -503,6 +503,7 @@ class TestFormatting(unittest.TestCase):
         ur = UncertainReal._elementary(nan, 3.141e8, inf, None, True)
         self.assertEqual(str(ur), ' nan(314100000)')
         self.assertEqual('{: E}'.format(ur), ' NAN(3)E+08')
+        self.assertEqual('{: eR}'.format(ur), '( nan+/-3)e+08')
 
     def test_bracket_nan_inf_ucomplex(self):
         uc = UncertainComplex._elementary(

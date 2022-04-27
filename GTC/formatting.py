@@ -632,12 +632,16 @@ def _to_string_ureal(ureal, fmt, sign=None):
                 'Must be B or R'.format(fmt.mode)
             )
 
-        # if either the real or imaginary part has an exponential term,
-        # then move it to the end
+        # if there is an exponential term in the result, move it
+        # to the end of the string
         exp = _exponent_regex.search(result)
         if exp:
             start, end = exp.span()
-            result = '{0}{1}{2}'.format(result[:start], result[end:], exp.group())
+            combined = [result[:start], result[end:], exp.group()]
+            if fmt.mode == 'R':
+                result = '({0}{1}){2}'.format(*combined)
+            else:
+                result = '{0}{1}{2}'.format(*combined)
 
         return result
 
