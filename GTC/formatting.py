@@ -651,7 +651,9 @@ def _round_dof(dof, precision):
 
     factor = 10. ** (-precision)
     rounded = round(factor * math.floor(dof / factor), precision)
-    # TODO if precision == 0 should an int be returned?
+    # TODO if precision=0 should an int be returned? Also,
+    #  discuss that the desired result is obtained if, for example,
+    #  precision=0 and dof=7.99999. This function returns 7 not 8.
     if precision == 0:
         return int(rounded)
     return rounded
