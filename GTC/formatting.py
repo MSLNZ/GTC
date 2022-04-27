@@ -116,6 +116,10 @@ class Format(object):
         self.r_precision = int(get('r_precision', 3))
 
     def __repr__(self):
+        # Use .digits instead of .precision in the result.
+        # This will allow users to see what the equivalent format_spec
+        # string would be, instead of them importing and calling
+        # create_format() to simply print an uncertain number.
         spec = '{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
                '.{digits}{type}{mode}{style}{si}'.format(
                 fill=self.fill,
@@ -125,7 +129,7 @@ class Format(object):
                 zero=self.zero,
                 width=self.width,
                 grouping=self.grouping,
-                digits=self.digits,  # use digits, not precision
+                digits=self.digits,
                 type=self.type,
                 mode=self.mode,
                 style=self.style,
