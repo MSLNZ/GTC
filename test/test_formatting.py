@@ -233,6 +233,17 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(f.digits, 20)
         self.assertEqual(f.u_exponent, 0)
 
+    def test_create_format_raises(self):
+        for m in 'bpA-&':
+            self.assertRaises(ValueError, create_format, 1, mode=m)
+
+        for d in [0, -1, 0.99999, '0']:
+            self.assertRaises(ValueError, create_format, 1, digits=d)
+            self.assertRaises(ValueError, create_format, 1, precision=d)
+
+        for s in 'luKJA*{&':
+            self.assertRaises(ValueError, create_format, 1, style=s)
+
     def test_nan_or_inf(self):
         nan_or_inf = _nan_or_inf
         self.assertTrue(not nan_or_inf())
@@ -485,12 +496,12 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(str(ur), ' 3.141000(inf)')
         self.assertEqual('{: F}'.format(ur), ' 3.141000(INF)')
 
-        # TODO should .0 have an effect if the uncertainty is infinity or NaN?
+        # TODO should .1 have an effect if the uncertainty is infinity or NaN?
         #  Should discuss nan and inf.
         ur = UncertainReal._elementary(3.141e8, inf, inf, None, True)
         self.assertEqual(str(ur), ' 314100000.000000(inf)')
-        self.assertEqual('{: .0F}'.format(ur), ' 314100000.000000(INF)')
-        self.assertEqual('{: .0e}'.format(ur), ' 3.141000(inf)e+08')
+        self.assertEqual('{: .1F}'.format(ur), ' 314100000.000000(INF)')
+        self.assertEqual('{: .1e}'.format(ur), ' 3.141000(inf)e+08')
 
         ur = UncertainReal._elementary(3.141, nan, inf, None, True)
         self.assertEqual(str(ur), ' 3.141000(nan)')

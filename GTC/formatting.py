@@ -342,9 +342,10 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
     kwargs['df_precision'] = df_precision
     kwargs['r_precision'] = r_precision
 
-    if digits is not None and digits < 1:
-        raise ValueError('digits must be >= 1')
-    kwargs['digits'] = digits or kwargs.get('precision')
+    if digits is None:
+        kwargs['digits'] = kwargs.get('precision')
+    else:
+        kwargs['digits'] = digits
 
     if si:
         kwargs['type'] = 'e'
@@ -363,6 +364,25 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
 
     fmt = Format(**kwargs)
     _update_format(u, fmt)
+
+    if fmt.mode not in ('B', 'P'):
+        raise ValueError(
+            'Formatting mode {!r} is not supported. '
+            'Must be B or P'.format(fmt.mode)
+        )
+
+    if fmt.style not in ('', 'L', 'U'):
+        raise ValueError(
+            'Formatting style {!r} is not supported. '
+            'Must be L or U'.format(fmt.style)
+        )
+
+    if fmt.digits <= 0:
+        raise ValueError(
+            'The number of digits must be > 0 '
+            '[digits={}]'.format(fmt.digits)
+        )
+
     return fmt
 
 
@@ -681,13 +701,8 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
         if fmt.mode == 'B':
             result = '{0}({1})'.format(x_str, u_str)
-        elif fmt.mode == 'P':
-            result = '{0}+/-{1}'.format(x_str, u_str)
         else:
-            raise ValueError(
-                'The formatting mode {!r} is not supported. '
-                'Must be B or P'.format(fmt.mode)
-            )
+            result = '{0}+/-{1}'.format(x_str, u_str)
 
         # if there is an exponential term in the result, move it
         # to the end of the string
@@ -695,10 +710,10 @@ def _to_string_ureal(ureal, fmt, sign=None):
         if exp:
             start, end = exp.span()
             combined = [result[:start], result[end:], exp.group()]
-            if fmt.mode == 'P':
-                result = '({0}{1}){2}'.format(*combined)
-            else:
+            if fmt.mode == 'B':
                 result = '{0}{1}{2}'.format(*combined)
+            else:
+                result = '({0}{1}){2}'.format(*combined)
 
         return result
 
@@ -720,14 +735,9 @@ def _to_string_ureal(ureal, fmt, sign=None):
                 round(u_r * 10. ** precision), precision=0)
         return '{0}({1}){2}'.format(x_str, u_str, suffix)
 
-    elif fmt.mode == 'P':
-        u_str = fmt.uncertainty(u_r, precision=precision)
-        x_u_str = '{0}+/-{1}'.format(x_str, u_str)
-        if suffix:
-            return '({0}){1}'.format(x_u_str, suffix)
-        return x_u_str
-
-    raise ValueError(
-        'The formatting mode {!r} is not supported. '
-        'Must be B or P'.format(fmt.mode)
-    )
+    # Plus-minus mode
+    u_str = fmt.uncertainty(u_r, precision=precision)
+    x_u_str = '{0}+/-{1}'.format(x_str, u_str)
+    if suffix:
+        return '({0}){1}'.format(x_u_str, suffix)
+    return x_u_str
