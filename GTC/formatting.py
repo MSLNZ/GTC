@@ -76,7 +76,7 @@ _FormattedUncertainReal = namedtuple(
 )
 _FormattedUncertainComplex = namedtuple(
     'FormattedUncertainComplex',
-    'x u r df label re_si_prefix, im_si_prefix'
+    'x u r df label real_si_prefix, imag_si_prefix'
 )
 
 

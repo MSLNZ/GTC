@@ -2189,8 +2189,8 @@ class TestFormatting(unittest.TestCase):
                          'r=0.382, '
                          'df=inf, '
                          'label=None, '
-                         're_si_prefix=None, '
-                         'im_si_prefix=None)')
+                         'real_si_prefix=None, '
+                         'imag_si_prefix=None)')
 
         fmt = create_format(uc, digits=3, r_precision=1, df_precision=99)
         formatted = apply_format(uc, fmt)
@@ -2201,8 +2201,8 @@ class TestFormatting(unittest.TestCase):
                          'r=0.4, '
                          'df=inf, '
                          'label=None, '
-                         're_si_prefix=None, '
-                         'im_si_prefix=None)')
+                         'real_si_prefix=None, '
+                         'imag_si_prefix=None)')
 
         uc = ucomplex(1.2878239e8 + 9.14234e4j, (0.06153624e8, 0.005433919e4))
 
@@ -2215,8 +2215,8 @@ class TestFormatting(unittest.TestCase):
                          "r=0.0, "
                          "df=inf, "
                          "label=None, "
-                         "re_si_prefix='M', "
-                         "im_si_prefix='k')")
+                         "real_si_prefix='M', "
+                         "imag_si_prefix='k')")
 
     def test_si(self):
         ur = ureal(4.638174e-30, 0.0635119e-30)
