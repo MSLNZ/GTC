@@ -2370,3 +2370,18 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur, fmt), '1640(770) Y')
         fmt = create_format(ur, digits=4, si=True, mode='R')
         self.assertEqual(to_string(ur, fmt), '(1638.3+/-773.1) Y')
+
+    def test_latex(self):
+        ur = ureal(1.23456789, 0.123456789)
+        self.assertEqual('{:.3eBL}'.format(ur * 1e-6), r'1.235\left(123\right)\times10^{-6}')
+        self.assertEqual('{:.3eBLS}'.format(ur * 1e-6), r'1.235\left(123\right) \mu')
+        self.assertEqual('{:.3eRL}'.format(ur * 1e12), r'\left(1.235\pm0.123\right)\times10^{12}')
+
+        ur = UncertainReal._elementary(3.14159, nan, inf, None, True)
+        self.assertEqual('{:fBL}'.format(ur), r'3.141590\left(\mathrm{NaN}\right)')
+
+        ur = UncertainReal._elementary(nan, 3.142, inf, None, True)
+        self.assertEqual('{:FRL}'.format(ur), r'\mathrm{NaN}\pm3.142')
+
+        ur = UncertainReal._elementary(-inf, inf, inf, None, True)
+        self.assertEqual('{:FRL}'.format(ur), r'-\infty\pm\infty')

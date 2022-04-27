@@ -540,6 +540,27 @@ def _stylize(text, fmt):
             text = re.sub(pattern, repl, text)
         return text
 
+    if fmt.style == 'L':
+        exp = _exponent_regex.search(text)
+        if exp:
+            start, end = exp.span()
+            translated = r'\times10^{{{}}}'.format(int(exp.group()[1:]))
+            text = '{0}{1}{2}'.format(text[:start], translated, text[end:])
+
+        mapping = {
+            r'\+/\-': r'\\pm',
+            r'u': r'\\mu',
+            r'\(': r'\\left(',
+            r'\)': r'\\right)',
+            r'nan': r'\\mathrm{NaN}',
+            r'NAN': r'\\mathrm{NaN}',
+            r'inf': r'\\infty',
+            r'INF': r'\\infty',
+        }
+        for pattern, repl in mapping.items():
+            text = re.sub(pattern, repl, text)
+        return text
+
     raise ValueError(
         'The formatting style {!r} is not supported'.format(fmt.style)
     )
