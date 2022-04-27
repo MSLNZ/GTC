@@ -27,9 +27,9 @@ _format_spec_regex = re.compile(
     r'((\.)(?P<precision>\d+))?'
     r'(?P<type>[bcdeEfFgGnosxX%])?'
     
-    # Bracket or Raw "+/-"
+    # Bracket or Plus-minus
     # NOTE: these characters cannot be in <type>
-    r'(?P<mode>[BR])?'
+    r'(?P<mode>[BP])?'
 
     # Latex or Unicode
     # NOTE: these characters cannot be in <type> nor <mode>
@@ -47,7 +47,7 @@ _exponent_regex = re.compile(r'[eE][+-]\d+')
 
 # TODO replace u'' with '' when dropping support for
 #  Python 2.7. There a multiple occurrences in this module.
-_exponent_table = {
+_unicode_table = {
     ord('e'): u'\u00D710',
     ord('E'): u'\u00D710',
     ord('+'): u'\u207A',
@@ -76,7 +76,7 @@ _FormattedUncertainReal = namedtuple(
 )
 _FormattedUncertainComplex = namedtuple(
     'FormattedUncertainComplex',
-    'x u r df label real_si_prefix, imag_si_prefix'
+    'x u r df label real_si_prefix imag_si_prefix'
 )
 
 
@@ -293,12 +293,12 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
     :param mode: The mode to use. Must be one of:
 
                - B: bracket notation, e.g., 3.142(13)
-               - R: raw plus-minus notation, e.g., 3.142+/-0.013 (TODO link to GUM)
+               - P: plus-minus notation, e.g., 3.142+/-0.013 (TODO link to GUM)
 
     :type mode: str
     :param style: The style to use. One of:
 
-               - L: latex notation, stuff like \infty \times \pm \mathrm
+               - L: latex, stuff like \infty \times \pm \mathrm
                - U: unicode, e.g., (12.3±5.0)×10⁻¹² or 12.3(2)×10⁶
 
     :type style: str
@@ -358,7 +358,7 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
         u = obj
 
     fmt = Format(**kwargs)
-    _determine_num_digits(u, fmt)
+    _update_format(u, fmt)
     return fmt
 
 
@@ -451,10 +451,10 @@ def _order_of_magnitude(value):
     return int(math.floor(math.log10(math.fabs(value))))
 
 
-def _determine_num_digits(uncertainty, fmt):
-    """Determine the number of significant digits in `uncertainty`.
+def _update_format(uncertainty, fmt):
+    """Update the `precision` and `u_exponent` attributes of `fmt`.
 
-    The Format `fmt` gets modified, so this function does not return anything.
+    `fmt` gets modified, so this function does not return anything.
 
     uncertainty: float, complex, StandardUncertainty
     fmt: Format
@@ -532,7 +532,7 @@ def _stylize(text, fmt):
         if exp:
             start, end = exp.span()
             e = u'{}'.format(exp.group())
-            translated = e.translate(_exponent_table)
+            translated = e.translate(_unicode_table)
             text = u'{0}{1}{2}'.format(text[:start], translated, text[end:])
 
         mapping = {r'\+/\-': u'\u00B1', r'u': u'\u00B5'}
@@ -645,9 +645,9 @@ def _round_ureal(ureal, fmt):
     """
     x, u = ureal.x, ureal.u
     maximum = round(max(math.fabs(x), u), -fmt.u_exponent)
-    common = _round(maximum, fmt)
-    x_rounded = _round(x, fmt, exponent=common.exponent)
-    u_rounded = _round(u, fmt, exponent=common.exponent)
+    rounded = _round(maximum, fmt)
+    x_rounded = _round(x, fmt, exponent=rounded.exponent)
+    u_rounded = _round(u, fmt, exponent=rounded.exponent)
     return x_rounded, u_rounded
 
 
@@ -677,12 +677,12 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
         if fmt.mode == 'B':
             result = '{0}({1})'.format(x_str, u_str)
-        elif fmt.mode == 'R':
+        elif fmt.mode == 'P':
             result = '{0}+/-{1}'.format(x_str, u_str)
         else:
             raise ValueError(
                 'The formatting mode {!r} is not supported. '
-                'Must be B or R'.format(fmt.mode)
+                'Must be B or P'.format(fmt.mode)
             )
 
         # if there is an exponential term in the result, move it
@@ -691,20 +691,20 @@ def _to_string_ureal(ureal, fmt, sign=None):
         if exp:
             start, end = exp.span()
             combined = [result[:start], result[end:], exp.group()]
-            if fmt.mode == 'R':
+            if fmt.mode == 'P':
                 result = '({0}{1}){2}'.format(*combined)
             else:
                 result = '{0}{1}{2}'.format(*combined)
 
         return result
 
-    x_result, u_result = _round_ureal(ureal, fmt)
+    x_rounded, u_rounded = _round_ureal(ureal, fmt)
 
-    exponent, precision, suffix = x_result.exponent, x_result.precision, x_result.suffix
+    precision, suffix = x_rounded.precision, x_rounded.suffix
 
-    x_str = fmt.value(x_result.value, precision=precision, sign=sign, type='f')
+    x_str = fmt.value(x_rounded.value, precision=precision, sign=sign, type='f')
 
-    u_r = u_result.value
+    u_r = u_rounded.value
 
     if fmt.mode == 'B':
         if _order_of_magnitude(u_r) >= 0 and precision > 0:
@@ -716,7 +716,7 @@ def _to_string_ureal(ureal, fmt, sign=None):
                 round(u_r * 10. ** precision), precision=0)
         return '{0}({1}){2}'.format(x_str, u_str, suffix)
 
-    elif fmt.mode == 'R':
+    elif fmt.mode == 'P':
         u_str = fmt.uncertainty(u_r, precision=precision)
         x_u_str = '{0}+/-{1}'.format(x_str, u_str)
         if suffix:
@@ -725,5 +725,5 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     raise ValueError(
         'The formatting mode {!r} is not supported. '
-        'Must be B or R'.format(fmt.mode)
+        'Must be B or P'.format(fmt.mode)
     )
