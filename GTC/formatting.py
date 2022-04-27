@@ -551,43 +551,46 @@ def _stylize(text, fmt):
     if not fmt.style or not text:
         return text
 
+    exponent = ''
+    exp_match = _exponent_regex.search(text)
+
     if fmt.style == 'U':
-        exp = _exponent_regex.search(text)
-        if exp:
-            start, end = exp.span()
-            e = u'{}'.format(exp.group())
-            translated = e.translate(_unicode_table)
-            text = u'{0}{1}{2}'.format(text[:start], translated, text[end:])
+        if exp_match:
+            e = u'{}'.format(exp_match.group())
+            exponent = e.translate(_unicode_table)
 
-        mapping = {r'\+/\-': u'\u00B1', r'u': u'\u00B5'}
-        for pattern, repl in mapping.items():
-            text = re.sub(pattern, repl, text)
-        return text
+        replacements = [
+            ('+/-', u'\u00B1'),
+            ('u', u'\u00B5')
+        ]
 
-    if fmt.style == 'L':
-        exp = _exponent_regex.search(text)
-        if exp:
-            start, end = exp.span()
-            translated = r'\times10^{{{}}}'.format(int(exp.group()[1:]))
-            text = '{0}{1}{2}'.format(text[:start], translated, text[end:])
+    elif fmt.style == 'L':
+        if exp_match:
+            e = exp_match.group()[1:]
+            exponent = r'\times10^{{{}}}'.format(int(e))
 
-        mapping = {
-            r'\+/\-': r'\\pm',
-            r'u': r'\\mu',
-            r'\(': r'\\left(',
-            r'\)': r'\\right)',
-            r'nan': r'\\mathrm{NaN}',
-            r'NAN': r'\\mathrm{NaN}',
-            r'inf': r'\\infty',
-            r'INF': r'\\infty',
-        }
-        for pattern, repl in mapping.items():
-            text = re.sub(pattern, repl, text)
-        return text
+        replacements = [
+            ('+/-', r'\pm'),
+            ('u', r'\mu'),
+            ('(', r'\left('),
+            (')', r'\right)'),
+            ('nan', r'\mathrm{NaN}'),
+            ('NAN', r'\mathrm{NaN}'),
+            ('inf', r'\infty'),  # must come before 'INF'
+            ('INF', r'\infty')
+        ]
 
-    raise ValueError(
-        'The formatting style {!r} is not supported'.format(fmt.style)
-    )
+    else:
+        assert False, 'should not get here'
+
+    if exp_match:
+        start, end = exp_match.span()
+        text = u'{0}{1}{2}'.format(text[:start], exponent, text[end:])
+
+    for old, new in replacements:
+        text = text.replace(old, new)
+
+    return text
 
 
 def _round(value, fmt, exponent=None):
