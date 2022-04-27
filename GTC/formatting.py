@@ -68,9 +68,16 @@ _si_map = {i*3: pre for i, pre in enumerate('yzafpnum kMGTPEZY', start=-8)}
 
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
 
-# TODO review the typename value
-_FormattedUncertainReal = namedtuple('FormattedUncertainReal', 'x u df label')
-_FormattedUncertainComplex = namedtuple('FormattedUncertainComplex', 'x u r df label')
+# TODO consider a different typename and decide whether SI prefixes should
+#  be included in the namedtuple or if the x and u values get rescaled
+_FormattedUncertainReal = namedtuple(
+    'FormattedUncertainReal',
+    'x u df label si_prefix'
+)
+_FormattedUncertainComplex = namedtuple(
+    'FormattedUncertainComplex',
+    'x u r df label re_si_prefix, im_si_prefix'
+)
 
 
 class Format(object):
@@ -238,31 +245,30 @@ def apply_format(un, fmt):
     :return: The uncertain number with the format applied.
     :rtype collections.namedtuple
     """
+    def _prefix(rounded):
+        if not fmt.si:
+            return None
+        return _stylize(rounded.suffix.lstrip(), fmt)
+
     try:
         # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
         #  We could check isinstance(), but then we will need to deal with
         #  circular import issues with lib.py.
         #  An UncertainReal object has no attribute _value.
         un._value
-        real, imag = un.real, un.imag
-
-        re_x = _round(real.x, fmt).value
-        re_u = _round(real.u, fmt).value
-        im_x = _round(imag.x, fmt).value
-        im_u = _round(imag.u, fmt).value
+        re_x, re_u = _round_ureal(un.real, fmt)
+        im_x, im_u = _round_ureal(un.imag, fmt)
         df = _round_dof(un.df, fmt.df_precision)
         r = round(un.r, fmt.r_precision)
-
         return _FormattedUncertainComplex(
-            complex(re_x, im_x),
-            StandardUncertainty(re_u, im_u),
-            r, df, un.label)
+            complex(re_x.value, im_x.value),
+            StandardUncertainty(re_u.value, im_u.value),
+            r, df, un.label, _prefix(re_x), _prefix(im_x))
 
     except AttributeError:
-        x = _round(un.x, fmt).value
-        u = _round(un.u, fmt).value
+        x, u = _round_ureal(un, fmt)
         dof = _round_dof(un.df, fmt.df_precision)
-        return _FormattedUncertainReal(x, u, dof, un.label)
+        return _FormattedUncertainReal(x.value, u.value, dof, un.label, _prefix(x))
 
 
 def create_format(obj, digits=None, df_precision=None, r_precision=None,
@@ -337,6 +343,7 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
     kwargs['digits'] = digits or kwargs.get('precision')
 
     if si:
+        kwargs['type'] = 'e'
         kwargs['si'] = 'S'
 
     if kwargs.get('hash'):
@@ -503,7 +510,6 @@ def _si_prefix_factor(exponent):
         factor = 10. ** (exponent + 24)
     elif 0 <= exponent < 3:
         prefix = ''
-        factor = 1.0
     elif prefix is None:
         prefix = 'Y'
         factor = 10. ** (exponent - 24)
@@ -518,7 +524,7 @@ def _stylize(text, fmt):
 
     returns: the stylized text
     """
-    if not fmt.style:
+    if not fmt.style or not text:
         return text
 
     if fmt.style == 'U':
@@ -572,7 +578,15 @@ def _round(value, fmt, exponent=None):
         digits = precision
         suffix = '{0:.0{1}}'.format(factor, fmt.type)[1:]
 
-    val = round(value / factor, digits)
+    if fmt.si:
+        prefix, si_factor = _si_prefix_factor(exponent)
+        n = _order_of_magnitude(si_factor)
+        precision = max(0, precision - n)
+        val = round(value * si_factor / factor, digits - n)
+        suffix = ' {}'.format(prefix) if prefix else ''
+    else:
+        val = round(value / factor, digits)
+
     return _Rounded(val, precision, _type, exponent, suffix)
 
 
@@ -598,12 +612,30 @@ def _round_dof(dof, precision):
     return rounded
 
 
+def _round_ureal(ureal, fmt):
+    """Round an UncertainReal.
+
+    This function ensures that both x and u get scaled by the same factor.
+
+    ureal: UncertainReal
+    fmt: Format
+
+    :return: tuple -> (x: _Rounded, u: _Rounded)
+    """
+    x, u = ureal.x, ureal.u
+    maximum = round(max(math.fabs(x), u), -fmt.u_exponent)
+    common = _round(maximum, fmt)
+    x_rounded = _round(x, fmt, exponent=common.exponent)
+    u_rounded = _round(u, fmt, exponent=common.exponent)
+    return x_rounded, u_rounded
+
+
 def _to_string_ureal(ureal, fmt, sign=None):
     """Convert an UncertainReal to a string.
 
     ureal: UncertainReal
     fmt: Format
-    sign: str: <space> + -
+    sign: str, one of <space> + -
 
     returns: `ureal` as a string
     """
@@ -645,17 +677,15 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
         return result
 
-    maximum = round(max(abs(x), u), -fmt.u_exponent)
-    result = _round(maximum, fmt)
-    exponent, precision = result.exponent, result.precision
+    x_result, u_result = _round_ureal(ureal, fmt)
 
-    x_result = _round(x, fmt, exponent=exponent)
-    u_result = _round(u, fmt, exponent=exponent)
+    exponent, precision, suffix = x_result.exponent, x_result.precision, x_result.suffix
 
     x_str = fmt.value(x_result.value, precision=precision, sign=sign, type='f')
 
+    u_r = u_result.value
+
     if fmt.mode == 'B':
-        u_r = u_result.value
         if _order_of_magnitude(u_r) >= 0 and precision > 0:
             # the uncertainty straddles the decimal point so
             # keep the decimal point in the result
@@ -663,13 +693,13 @@ def _to_string_ureal(ureal, fmt, sign=None):
         else:
             u_str = fmt.uncertainty(
                 round(u_r * 10. ** precision), precision=0)
-        return '{0}({1}){2}'.format(x_str, u_str, result.suffix)
+        return '{0}({1}){2}'.format(x_str, u_str, suffix)
 
     elif fmt.mode == 'R':
-        u_str = fmt.uncertainty(u_result.value, precision=precision)
+        u_str = fmt.uncertainty(u_r, precision=precision)
         x_u_str = '{0}+/-{1}'.format(x_str, u_str)
-        if result.suffix:
-            return '({0}){1}'.format(x_u_str, result.suffix)
+        if suffix:
+            return '({0}){1}'.format(x_u_str, suffix)
         return x_u_str
 
     raise ValueError(

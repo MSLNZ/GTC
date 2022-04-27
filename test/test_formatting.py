@@ -1971,10 +1971,17 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(prefix, 'm')
         self.assertEqual(factor, 1e2)
 
-        for e in [0, 1, 2]:
-            prefix, factor = _si_prefix_factor(e)
-            self.assertEqual(prefix, '')
-            self.assertEqual(factor, 1.0)
+        prefix, factor = _si_prefix_factor(0)
+        self.assertEqual(prefix, '')
+        self.assertEqual(factor, 1e0)
+
+        prefix, factor = _si_prefix_factor(1)
+        self.assertEqual(prefix, '')
+        self.assertEqual(factor, 1e1)
+
+        prefix, factor = _si_prefix_factor(2)
+        self.assertEqual(prefix, '')
+        self.assertEqual(factor, 1e2)
 
         prefix, factor = _si_prefix_factor(3)
         self.assertEqual(prefix, 'k')
@@ -2121,31 +2128,245 @@ class TestFormatting(unittest.TestCase):
         ur = ureal(1.23456789, 0.004371543, df=8.835223, label='MSL')
 
         fmt = create_format(ur)
-        ur_groomed = apply_format(ur, fmt)
-        self.assertEqual(
-            str(ur_groomed),
-            "FormattedUncertainReal(x=1.2346, u=0.0044, df=8, label='MSL')"
-        )
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(str(formatted),
+                         "FormattedUncertainReal("
+                         "x=1.2346, "
+                         "u=0.0044, "
+                         "df=8, "
+                         "label='MSL', "
+                         "si_prefix=None)")
 
         fmt = create_format(ur, digits=1, df_precision=3)
-        ur_groomed = apply_format(ur, fmt)
-        self.assertEqual(
-            str(ur_groomed),
-            "FormattedUncertainReal(x=1.235, u=0.004, df=8.835, label='MSL')"
-        )
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(str(formatted),
+                         "FormattedUncertainReal("
+                         "x=1.235, "
+                         "u=0.004, "
+                         "df=8.835, "
+                         "label='MSL', "
+                         "si_prefix=None)")
+
+        fmt = create_format(ur, digits=1, si=True)
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(str(formatted),
+                         "FormattedUncertainReal("
+                         "x=1.235, "
+                         "u=0.004, "
+                         "df=8, "
+                         "label='MSL', "
+                         "si_prefix='')")
+
+        ur = ureal(7.568131e-5, 0.0262576e-5)
+
+        fmt = create_format(ur, style='U', si=True)
+        formatted = apply_format(ur, fmt)
+        if sys.version_info.major == 2:
+            self.assertEqual(str(formatted),
+                             "FormattedUncertainReal("
+                             "x=75.68, "
+                             "u=0.26, "
+                             "df=inf, "
+                             "label=None, "
+                             "si_prefix=u'\\xb5')")
+        else:
+            self.assertEqual(str(formatted),
+                             "FormattedUncertainReal("
+                             "x=75.68, "
+                             "u=0.26, "
+                             "df=inf, "
+                             "label=None, "
+                             "si_prefix='µ')")
 
         uc = ucomplex(5.47265413 + 7.27262513j, (1.46184, 0.52141, 0.52141, 1.272654431))
 
         fmt = create_format(uc)
-        uc_groomed = apply_format(uc, fmt)
-        self.assertEqual(
-            str(uc_groomed),
-            'FormattedUncertainComplex(x=(5.5+7.3j), u=StandardUncertainty(real=1.2, imag=1.1), r=0.382, df=inf, label=None)'
-        )
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainComplex('
+                         'x=(5.5+7.3j), '
+                         'u=StandardUncertainty(real=1.2, imag=1.1), '
+                         'r=0.382, '
+                         'df=inf, '
+                         'label=None, '
+                         're_si_prefix=None, '
+                         'im_si_prefix=None)')
 
         fmt = create_format(uc, digits=3, r_precision=1, df_precision=99)
-        uc_groomed = apply_format(uc, fmt)
-        self.assertEqual(
-            str(uc_groomed),
-            'FormattedUncertainComplex(x=(5.47+7.27j), u=StandardUncertainty(real=1.21, imag=1.13), r=0.4, df=inf, label=None)'
-        )
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainComplex('
+                         'x=(5.47+7.27j), '
+                         'u=StandardUncertainty(real=1.21, imag=1.13), '
+                         'r=0.4, '
+                         'df=inf, '
+                         'label=None, '
+                         're_si_prefix=None, '
+                         'im_si_prefix=None)')
+
+        uc = ucomplex(1.2878239e8 + 9.14234e4j, (0.06153624e8, 0.005433919e4))
+
+        fmt = create_format(uc, si=True)
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(str(formatted),
+                         "FormattedUncertainComplex("
+                         "x=(128.78239+91.423j), "
+                         "u=StandardUncertainty(real=6.153624, imag=0.054), "
+                         "r=0.0, "
+                         "df=inf, "
+                         "label=None, "
+                         "re_si_prefix='M', "
+                         "im_si_prefix='k')")
+
+    def test_si(self):
+        ur = ureal(4.638174e-30, 0.0635119e-30)
+        fmt = create_format(ur, digits=2, si=True)
+        self.assertEqual(to_string(ur, fmt), '0.000004638(64) y')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(0.00000464+/-0.00000006) y')
+
+        ur = ureal(9.092349e-25, 0.0038964e-25)
+        fmt = create_format(ur, digits=3, si=True)
+        self.assertEqual(to_string(ur, fmt), '0.909235(390) y')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(0.90923+/-0.00039) y')
+
+        ur = ureal(5.206637324e-24, 0.415002e-24)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '5.2(4) y')
+        fmt = create_format(ur, digits=5, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(5.20664+/-0.41500) y')
+
+        ur = ureal(9.6490243e-22, 0.058476272e-22)
+        fmt = create_format(ur, digits=4, si=True)
+        self.assertEqual(to_string(ur, fmt), '964.902(5.848) y')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(965+/-6) y')
+
+        ur = ureal(6.2860846e-20, 0.02709243e-20)
+        fmt = create_format(ur, digits=2, si=True)
+        self.assertEqual(to_string(ur, fmt), '62.86(27) z')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(62.86+/-0.27) z')
+
+        ur = ureal(5.2032008e-17, 0.00084681469e-17)
+        fmt = create_format(ur, digits=2, si=True)
+        self.assertEqual(to_string(ur, fmt), '52.0320(85) a')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(52.0320+/-0.0085) a')
+
+        ur = ureal(8.541971e-15, 1.93486e-15)
+        fmt = create_format(ur, digits=3, si=True)
+        self.assertEqual(to_string(ur, fmt), '8.54(1.93) f')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(9+/-2) f')
+
+        ur = ureal(8.541971e-14, 1.93486e-14)
+        fmt = create_format(ur, digits=3, si=True)
+        self.assertEqual(to_string(ur, fmt), '85.4(19.3) f')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(90+/-20) f')
+
+        ur = ureal(8.125524e-10, 0.043966e-10)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '813(4) p')
+        fmt = create_format(ur, digits=4, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(812.552+/-4.397) p')
+
+        ur = ureal(1.7540272e-9, 6.5160764e-9)
+        fmt = create_format(ur, digits=3, si=True)
+        self.assertEqual(to_string(ur, fmt), '1.75(6.52) n')
+        fmt = create_format(ur, digits=3, si=True, type='F')
+        self.assertEqual(to_string(ur, fmt), '1.75(6.52) n')
+        fmt = create_format(ur, digits=4, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(1.754+/-6.516) n')
+
+        ur = ureal(4.5569880e-7, 0.004160764e-7)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '455.7(4) n')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(455.70+/-0.42) n')
+
+        ur = ureal(9.2863e-4, 0.70230056610e-4)
+        fmt = create_format(ur, digits=2, si=True)
+        self.assertEqual(to_string(ur, fmt), '929(70) u')
+        fmt = create_format(ur, digits=2, si=True, style='U')
+        self.assertEqual(to_string(ur, fmt), u'929(70) µ')
+        fmt = create_format(ur, digits=6, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(928.6300+/-70.2301) u')
+        fmt = create_format(ur, digits=6, si=True, mode='R', style='U')
+        self.assertEqual(to_string(ur, fmt), u'(928.6300±70.2301) µ')
+        self.assertEqual(u'{:.2fUS}'.format(ur), u'929(70) µ')
+        self.assertEqual(u'{:.6RUS}'.format(ur), u'(928.6300±70.2301) µ')
+
+        ur = ureal(5.6996491e-2, 0.5302890e-2)
+        fmt = create_format(ur, digits=4, si=True)
+        self.assertEqual(to_string(ur, fmt), '56.996(5.303) m')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(57+/-5) m')
+
+        ur = ureal(2.69364683, 0.00236666)
+        fmt = create_format(ur, digits=2, si=True, style='U')
+        self.assertEqual(to_string(ur, fmt), '2.6936(24)')
+        fmt = create_format(ur, digits=3, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '2.69365+/-0.00237')
+
+        ur = ureal(4.4733994e2, 0.1085692e2)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '450(10)')
+        fmt = create_format(ur, digits=4, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '447.34+/-10.86')
+
+        ur = ureal(8.50987467e4, 0.6095151e4)
+        fmt = create_format(ur, digits=2, si=True)
+        self.assertEqual(to_string(ur, fmt), '85.1(6.1) k')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(85+/-6) k')
+
+        ur = ureal(1.8e6, 0.0453589e6)
+        fmt = create_format(ur, digits=4, si=True)
+        self.assertEqual(to_string(ur, fmt), '1.80000(4536) M')
+        fmt = create_format(ur, digits=3, si=True, mode='R', style='U')
+        self.assertEqual(to_string(ur, fmt), u'(1.8000±0.0454) M')
+
+        ur = ureal(1.8667540e8, 0.00771431e8)
+        fmt = create_format(ur, digits=3, si=True)
+        self.assertEqual(to_string(ur, fmt), '186.675(771) M')
+        fmt = create_format(ur, digits=3, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(186.675+/-0.771) M')
+
+        ur = ureal(7.789499e9, 0.7852736e9)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '7.8(8) G')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(7.79+/-0.79) G')
+
+        ur = ureal(2.2038646e13, 12.743090e13)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '0(100) T')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(20+/-130) T')
+
+        ur = ureal(6.084734e16, 1.2485885e16)
+        fmt = create_format(ur, digits=3, si=True)
+        self.assertEqual(to_string(ur, fmt), '60.8(12.5) P')
+        fmt = create_format(ur, digits=2, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(61+/-12) P')
+
+        ur = ureal(7.66790e18, 0.05647e18)
+        fmt = create_format(ur, digits=4, si=True)
+        self.assertEqual(to_string(ur, fmt), '7.66790(5647) E')
+        fmt = create_format(ur, digits=6, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(7.6679000+/-0.0564700) E')
+
+        ur = ureal(3.273545e22, 0.004964854e22)
+        fmt = create_format(ur, digits=1, si=True)
+        self.assertEqual(to_string(ur, fmt), '32.74(5) Z')
+        fmt = create_format(ur, digits=1, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(32.74+/-0.05) Z')
+
+        ur = ureal(1.638324e27, 0.773148e27)
+        fmt = create_format(ur, digits=2, si=True)
+        self.assertEqual(to_string(ur, fmt), '1640(770) Y')
+        fmt = create_format(ur, digits=4, si=True, mode='R')
+        self.assertEqual(to_string(ur, fmt), '(1638.3+/-773.1) Y')
