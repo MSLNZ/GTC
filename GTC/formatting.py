@@ -332,10 +332,16 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
 
     :param style: The style to use when formatting an uncertain number as a
         string. Can be either ``'L'`` (:math:`\LaTeX`) or ``'U'`` (Unicode).
-        Default is to not use styling.
+        When a style is used, the + sign and any leading 0's are removed from
+        the exponent, for example, ``e+06`` becomes :math:`10^{6}` instead of
+        :math:`10^{+06}`. Also, if the exponential term is equal to ``e+00``
+        then the exponential term is completely removed (i.e., it becomes an
+        empty string instead of :math:`10^{+00}`). Default is to not use
+        styling.
     :type style: :class:`str`
 
     :param si: Whether to use an SI prefix when formatting an uncertain number.
+        For example, ``1.23(4)e+07`` becomes ``12.3(4) M``.
         Default is to not use an SI prefix.
     :type si: :class:`bool`
 
@@ -599,7 +605,8 @@ def _stylize(text, fmt):
     if not fmt._style or not text:
         return text
 
-    exponent = exp_number = None
+    exponent = ''
+    exp_number = None
     exp_match = _exponent_regex.search(text)
     if exp_match:
         # don't care whether it starts with e or E and
@@ -608,13 +615,10 @@ def _stylize(text, fmt):
         exp_number = int(group[1:])
 
     if fmt._style == 'U':
-        if exp_match:
-            if exp_number != 0:
-                e = u'{}'.format(exp_number)
-                translated = e.translate(_unicode_superscripts)
-                exponent = u'\u00D710{}'.format(translated)
-            else:
-                exponent = ''
+        if exp_match and exp_number != 0:
+            e = u'{}'.format(exp_number)
+            translated = e.translate(_unicode_superscripts)
+            exponent = u'\u00D710{}'.format(translated)
 
         replacements = [
             ('+/-', u'\u00B1'),
@@ -622,7 +626,7 @@ def _stylize(text, fmt):
         ]
 
     elif fmt._style == 'L':
-        if exp_match:
+        if exp_match and exp_number != 0:
             exponent = r'\times10^{{{}}}'.format(exp_number)
 
         replacements = [

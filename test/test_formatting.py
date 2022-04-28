@@ -1773,6 +1773,14 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(ur.x, fmt), u'1.854×10¹')
             self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻¹')
 
+        ur = ureal(1.23456789, 0.123456789)
+        self.assertEqual('{:.3eBU}'.format(ur), '1.235(123)')
+        self.assertEqual(u'{:.3EBU}'.format(ur * 1e-6), u'1.235(123)×10⁻⁶')
+        self.assertEqual(u'{:.3eBUS}'.format(ur * 1e-6), u'1.235(123) µ')
+        self.assertEqual(u'{:.3EPU}'.format(ur * 1e12), u'(1.235±0.123)×10¹²')
+        self.assertEqual(u'{:.3ePU}'.format(ur * 1e100), u'(1.235±0.123)×10¹⁰⁰')
+        self.assertEqual(u'{:.3EBU}'.format(ur * 1e-100), u'1.235(123)×10⁻¹⁰⁰')
+
         uc = ucomplex(18.5424+1.2j, 0.94271)
 
         for t in ['f', 'F']:
@@ -2386,9 +2394,12 @@ class TestFormatting(unittest.TestCase):
 
     def test_latex(self):
         ur = ureal(1.23456789, 0.123456789)
-        self.assertEqual('{:.3eBL}'.format(ur * 1e-6), r'1.235\left(123\right)\times10^{-6}')
+        self.assertEqual('{:.3eBL}'.format(ur), r'1.235\left(123\right)')
+        self.assertEqual('{:.3EBL}'.format(ur * 1e-6), r'1.235\left(123\right)\times10^{-6}')
         self.assertEqual('{:.3eBLS}'.format(ur * 1e-6), r'1.235\left(123\right) \mu')
-        self.assertEqual('{:.3ePL}'.format(ur * 1e12), r'\left(1.235\pm0.123\right)\times10^{12}')
+        self.assertEqual('{:.3EPL}'.format(ur * 1e12), r'\left(1.235\pm0.123\right)\times10^{12}')
+        self.assertEqual('{:.3ePL}'.format(ur * 1e100), r'\left(1.235\pm0.123\right)\times10^{100}')
+        self.assertEqual('{:.3EBL}'.format(ur * 1e-100), r'1.235\left(123\right)\times10^{-100}')
 
         ur = UncertainReal._elementary(3.14159, nan, inf, None, True)
         self.assertEqual('{:fBL}'.format(ur), r'3.141590\left(\mathrm{NaN}\right)')
