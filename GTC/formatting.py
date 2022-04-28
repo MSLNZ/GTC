@@ -47,9 +47,7 @@ _exponent_regex = re.compile(r'[eE][+-]\d+')
 
 # TODO replace u'' with '' when dropping support for
 #  Python 2.7. There a multiple occurrences in this module.
-_unicode_table = {
-    ord('e'): u'\u00D710',
-    ord('E'): u'\u00D710',
+_unicode_superscripts = {
     ord('+'): u'\u207A',
     ord('-'): u'\u207B',
     ord('0'): u'\u2070',
@@ -551,13 +549,22 @@ def _stylize(text, fmt):
     if not fmt.style or not text:
         return text
 
-    exponent = ''
+    exponent = exp_number = None
     exp_match = _exponent_regex.search(text)
+    if exp_match:
+        # don't care whether it starts with e or E and
+        # don't want to include the + symbol
+        group = exp_match.group()
+        exp_number = int(group[1:])
 
     if fmt.style == 'U':
         if exp_match:
-            e = u'{}'.format(exp_match.group())
-            exponent = e.translate(_unicode_table)
+            if exp_number != 0:
+                e = u'{}'.format(exp_number)
+                translated = e.translate(_unicode_superscripts)
+                exponent = u'\u00D710{}'.format(translated)
+            else:
+                exponent = ''
 
         replacements = [
             ('+/-', u'\u00B1'),
@@ -566,8 +573,7 @@ def _stylize(text, fmt):
 
     elif fmt.style == 'L':
         if exp_match:
-            e = exp_match.group()[1:]
-            exponent = r'\times10^{{{}}}'.format(int(e))
+            exponent = r'\times10^{{{}}}'.format(exp_number)
 
         replacements = [
             ('+/-', r'\pm'),

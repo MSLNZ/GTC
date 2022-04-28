@@ -1755,9 +1755,9 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(ur, digits=2, type=t, mode='B', style='U')
-            self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10⁺⁰¹')
-            self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
-            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
+            self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10¹')
+            self.assertEqual(to_string(ur.x, fmt), u'1.854×10¹')
+            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻¹')
 
         for t in ['f', 'F']:
             fmt = create_format(ur, digits=2, type=t, mode='P', style='U')
@@ -1767,9 +1767,9 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(ur, digits=2, type=t, mode='P', style='U')
-            self.assertEqual(to_string(ur, fmt),   u'(1.854±0.094)×10⁺⁰¹')
-            self.assertEqual(to_string(ur.x, fmt), u'1.854×10⁺⁰¹')
-            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻⁰¹')
+            self.assertEqual(to_string(ur, fmt),   u'(1.854±0.094)×10¹')
+            self.assertEqual(to_string(ur.x, fmt), u'1.854×10¹')
+            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻¹')
 
         uc = ucomplex(18.5424+1.2j, 0.94271)
 
@@ -1781,9 +1781,9 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(uc, digits=2, type=t, mode='B', style='U')
-            self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10⁺⁰¹+1.20(94)×10⁺⁰⁰j)')
-            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
-            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
+            self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10¹+1.20(94)j)')
+            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10¹+1.20j)')
+            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻¹+9.4×10⁻¹j)')
 
         for t in ['f', 'F']:
             fmt = create_format(uc, digits=2, type=t, mode='P', style='U')
@@ -1793,9 +1793,9 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(uc, digits=2, type=t, mode='P', style='U')
-            self.assertEqual(to_string(uc, fmt),   u'((1.854±0.094)×10⁺⁰¹(+1.20±0.94)×10⁺⁰⁰j)')
-            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10⁺⁰¹+1.20×10⁺⁰⁰j)')
-            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻⁰¹+9.4×10⁻⁰¹j)')
+            self.assertEqual(to_string(uc, fmt),   u'((1.854±0.094)×10¹(+1.20±0.94)j)')
+            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10¹+1.20j)')
+            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻¹+9.4×10⁻¹j)')
 
     @unittest.skipIf(sys.version_info.major == 2, 'not supported for this version of Python')
     def test_hash_symbol(self):
