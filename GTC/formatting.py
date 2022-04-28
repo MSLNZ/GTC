@@ -252,12 +252,12 @@ def apply_format(un, fmt):
     .. versionadded:: 1.4.0
 
     :param un: An uncertain number.
-    :type un: :class:`~GTC.lib.UncertainReal` or :class:`~GTC.lib.UncertainComplex`
+    :type un: :class:`~.lib.UncertainReal` or :class:`~.lib.UncertainComplex`
+
     :param fmt: The format to apply to `un`. See :func:`create_format`.
     :type fmt: :class:`Format`
 
-    :return: The uncertain number with the format applied.
-    :rtype collections.namedtuple
+    :rtype: :obj:`~collections.namedtuple`
     """
     def _prefix(rounded):
         if not fmt._si:
@@ -289,62 +289,87 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
                   mode=None, style=None, si=None, **kwargs):
     r"""Create a format specification.
 
+    Formatting an uncertain number rounds the value and the uncertainty to the
+    specified number of significant digits (based on the uncertainty component)
+    and rounds the degrees of freedom and the correlation coefficient to the
+    specified precision (the number of digits after the decimal point) so that
+    an uncertain number can be displayed in a more user-friendly way.
+
     .. versionadded:: 1.4.0
 
-    :param obj: An object to use create the format specification.
-    :type obj: float, complex, :class:`~GTC.lib.UncertainReal`,
-               :class:`~GTC.lib.UncertainComplex`
-               or :class:`~GTC.named_tuples.StandardUncertainty`
+    :param obj: An object to use to create the format specification. If an
+        :class:`~.lib.UncertainReal` or an :class:`~.lib.UncertainComplex`,
+        then the uncertainty component is used when creating the format.
+        Otherwise this function assumes that the uncertainty component was
+        passed in as `obj`.
+    :type obj: :class:`float`, :class:`complex`, :class:`~.lib.UncertainReal`,
+        :class:`~.lib.UncertainComplex` or :class:`~.named_tuples.StandardUncertainty`
+
     :param digits: The number of significant digits in the uncertainty
-                   component to retain. Default is 2.
-    :type digits: int
-    :param df_precision: The number of decimal places for the
-                         degrees-of-freedom to retain. Default is 0.
-    :type df_precision: int
-    :param r_precision: The number of decimal places for the correlation
-                        coefficient to retain. Default is 3.
-    :type r_precision: int
-    :param mode: The mode to use. Must be one of:
+        component to retain. Default is 2.
+    :type digits: :class:`int`
 
-               - B: bracket notation, e.g., 3.142(13)
-               - P: plus-minus notation, e.g., 3.142+/-0.013 (TODO link to GUM)
+    :param df_precision: The number of digits that should be kept after the
+        decimal point for the degrees of freedom. Default is 0.
+    :type df_precision: :class:`int`
 
-    :type mode: str
-    :param style: The style to use. One of:
+    :param r_precision: The number of digits that should be kept after the
+        decimal point for the correlation coefficient. Default is 3.
+    :type r_precision: :class:`int`
 
-               - L: latex, stuff like \infty \times \pm \mathrm
-               - U: unicode, e.g., (12.3±5.0)×10⁻¹² or 12.3(2)×10⁶
+    :param mode: The mode to use when formatting an uncertain number as a
+        string. Must be either ``'B'`` (Bracket) or ``'P'`` (Plus-minus, +/-).
+        Default is ``'B'``.
 
-    :type style: str
-    :param si: Whether to use an SI prefix. Only the truthiness of the
-               value is checked, so it can be any type and value.
-               Enabling this feature would convert, for example,
-               1.23(6)e+07 to 12.3(6) M.
-    :type si: Any
+        .. important::
+           The :math:`\pm` mode should be avoided whenever possible because it
+           has traditionally been used to indicate an interval corresponding to
+           a high level of confidence and thus may be confused with expanded
+           uncertainty. For more details, refer to Section 7.2.2 of the
+           `GUM <https://www.bipm.org/en/committees/jc/jcgm/publications>`_.
+
+    :type mode: :class:`str`
+
+    :param style: The style to use when formatting an uncertain number as a
+        string. Can be either ``'L'`` (:math:`\LaTeX`) or ``'U'`` (Unicode).
+        Default is to not use styling.
+    :type style: :class:`str`
+
+    :param si: Whether to use an SI prefix when formatting an uncertain number.
+        Default is to not use an SI prefix.
+    :type si: :class:`bool`
 
     :param \**kwargs:
 
-            All additional keyword arguments correspond to the
-            format-specification fields (see :ref:`formatspec`).
+        All additional keyword arguments correspond to the format-specification
+        fields (see :ref:`formatspec`). These fields are used when formatting
+        an uncertain number as a string.
 
-            * fill (:class:`str`): Can be any character, except for ``{`` or ``}``.
-            * align (:class:`str`): Can be one of ``<``, ``>`` or ``^``.
-            * sign (:class:`str`): Can be one of ``+``, ``-`` or ``' '`` (i.e., a 'space').
-            * hash (Any): Whether to include the ``#`` symbol. Only the
-                          truthiness of the value is checked, so it can
-                          be any type and value.
-            * zero (Any): Whether to include the ``0`` symbol. Only the
-                          truthiness of the value is checked, so it
-                          can be any type and value.
-            * width (:class:`int`): The width of the returned string.
-            * grouping (:class:`str`): Can be one of ``,`` or ``_``.
-            * type (:class:`str`): Can be one of ``e`, ``E``, ``f``, ``F``,
-                                   ``g``, ``G``, ``n`` or ``%``
-                TODO should % only make the uncertainty be a percentage of the
-                 value instead of operating on both the value and uncertainty?
-                 Should it (and/or n) even be a supported option?
+        - *fill* (:class:`str`): Can be any character, except for
+          ``'{'`` or ``'}'``.
+        - *align* (:class:`str`): Can be one of ``'<'``, ``'>'``,
+          ``'='`` or ``'^'``.
+        - *sign* (:class:`str`): Can be one of ``'+'``, ``'-'`` or
+          ``' '`` (i.e., a *space*).
+        - *hash* (:class:`bool`): Whether to include the ``#`` field.
+        - *zero* (:class:`bool`): Whether to include the ``0`` field.
+        - *width* (:class:`int`): The total width of the string.
+        - *grouping* (:class:`str`): Can be one of ``','`` or ``'_'``.
+        - *type* (:class:`str`): Can be one of ``'e'``, ``'E'``, ``'f'``,
+          ``'F'``, ``'g'``, ``'G'``, ``'n'`` or ``'%'``.
 
-    :return: The format specification.
+        .. danger::
+           TODO should % only make the uncertainty be a percentage of the
+           value instead of multiplying the value and uncertainty by 100?
+           Should it (and/or n) even be a supported option?
+
+        .. note::
+           The *precision* field is treated differently for uncertain
+           numbers in GTC. The *digits* keyword argument (number of
+           significant digits) is used instead of the typical concept
+           of *precision* (number of digits, either after the decimal
+           place or in total depending on the value of *type*).
+
     :rtype: :class:`Format`
     """
     # need to check for spelling mistakes of a named keyword argument since this
@@ -414,14 +439,15 @@ def to_string(obj, fmt):
     .. versionadded:: 1.4.0
 
     :param obj: A numeric object.
-    :type obj: int, float, complex, :class:`~GTC.lib.UncertainReal`,
-               :class:`~GTC.lib.UncertainComplex`
-               or :class:`~GTC.named_tuples.StandardUncertainty`
-    :param fmt: The format to use to convert `obj`. See :func:`create_format`.
+    :type obj: :class:`int`, :class:`float`, :class:`complex`,
+        :class:`~.lib.UncertainReal`, :class:`~.lib.UncertainComplex`
+        or :class:`~.named_tuples.StandardUncertainty`
+
+    :param fmt: The format to use to convert `obj` to a string.
+        See :func:`create_format`.
     :type fmt: :class:`Format`
 
-    :return: The string representation of `obj`.
-    :rtype: str
+    :rtype: :class:`str`
     """
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
