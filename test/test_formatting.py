@@ -244,6 +244,8 @@ class TestFormatting(unittest.TestCase):
         for s in 'luKJA*{&':
             self.assertRaises(ValueError, create_format, 1, style=s)
 
+        self.assertRaises(ValueError, create_format, 1, digit=3)
+
     def test_nan_or_inf(self):
         nan_or_inf = _nan_or_inf
         self.assertTrue(not nan_or_inf())

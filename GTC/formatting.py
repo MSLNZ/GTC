@@ -347,6 +347,18 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
     :return: The format specification.
     :rtype: :class:`Format`
     """
+    # need to check for spelling mistakes of a named keyword argument since this
+    # can be frustrating for an end user if, for example, digit=3 was specified.
+    # The proper name to use is digits=3. In this situation the digits value would
+    # remain at 2 and this would confuse the user why they only see 2 significant
+    # digits in the result since no error was raised in their code notifying them
+    # of their spelling mistake
+    expected = ('fill', 'align', 'sign', 'hash', 'zero',
+                'width', 'grouping', 'precision', 'type')
+    for key in kwargs:
+        if key not in expected:
+            raise ValueError('Unrecognised argument {!r}'.format(key))
+
     kwargs['mode'] = mode
     kwargs['style'] = style
     kwargs['df_precision'] = df_precision
