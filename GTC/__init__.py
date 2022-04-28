@@ -93,6 +93,9 @@ __all__ = (
     ,   'inf'
     ,   'nan'
     ,   'EPSILON'
+    ,   'create_format'
+    ,   'apply_format'
+    ,   'to_string'
 )
 
 #----------------------------------------------------------------------------
@@ -114,3 +117,4 @@ copyright = """Copyright (c) 2022, \
 Measurement Standards Laboratory of New Zealand"""
 
 from .core import *
+from .formatting import *
