@@ -168,3 +168,4 @@ The following functions are available.
 
 .. automodule:: GTC.formatting
    :members: apply_format, create_format, to_string, Format
+   :member-order: bysource
