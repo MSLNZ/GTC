@@ -85,12 +85,18 @@ _FormattedUncertainComplex = namedtuple(
 
 
 class Format(object):
+    """Format specification for an uncertain number.
+
+    Do not instantiate this class directly. The proper way to create a
+    *Format* object is via the :func:`create_format` function.
+
+    This class does not have any user-facing attributes. It is only meant to
+    be passed as an argument to :func:`apply_format` or :func:`to_string`.
+
+    .. versionadded:: 1.4.0
+    """
 
     def __init__(self, **kwargs):
-        """Format specification of an uncertain number.
-
-        Do not instantiate this class directly.
-        """
         def get(key, default):
             value = kwargs.get(key)
             if value is None:
@@ -98,26 +104,26 @@ class Format(object):
             return value
 
         # builtin grammar fields
-        self.fill = get('fill', '')
-        self.align = get('align', '')
-        self.sign = get('sign', '')
-        self.hash = get('hash', '')
-        self.zero = get('zero', '')
-        self.width = get('width', '')
-        self.grouping = get('grouping', '')
-        self.precision = int(get('precision', 2))
-        self.type = get('type', 'f')
+        self._fill = get('fill', '')
+        self._align = get('align', '')
+        self._sign = get('sign', '')
+        self._hash = get('hash', '')
+        self._zero = get('zero', '')
+        self._width = get('width', '')
+        self._grouping = get('grouping', '')
+        self._precision = int(get('precision', 2))
+        self._type = get('type', 'f')
 
         # GTC grammar fields
-        self.mode = get('mode', 'B')
-        self.style = get('style', '')
-        self.si = get('si', '')
+        self._mode = get('mode', 'B')
+        self._style = get('style', '')
+        self._si = get('si', '')
 
         # these attributes are used when rounding
-        self.digits = int(get('digits', 2))
-        self.u_exponent = 0
-        self.df_precision = int(get('df_precision', 0))
-        self.r_precision = int(get('r_precision', 3))
+        self._digits = int(get('digits', 2))
+        self._u_exponent = 0
+        self._df_precision = int(get('df_precision', 0))
+        self._r_precision = int(get('r_precision', 3))
 
     def __repr__(self):
         # Use .digits instead of .precision in the result.
@@ -126,22 +132,22 @@ class Format(object):
         # create_format() to simply print an uncertain number.
         spec = '{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
                '.{digits}{type}{mode}{style}{si}'.format(
-                fill=self.fill,
-                align=self.align,
-                sign=self.sign,
-                hash=self.hash,
-                zero=self.zero,
-                width=self.width,
-                grouping=self.grouping,
-                digits=self.digits,
-                type=self.type,
-                mode=self.mode,
-                style=self.style,
-                si=self.si)
+                fill=self._fill,
+                align=self._align,
+                sign=self._sign,
+                hash=self._hash,
+                zero=self._zero,
+                width=self._width,
+                grouping=self._grouping,
+                digits=self._digits,
+                type=self._type,
+                mode=self._mode,
+                style=self._style,
+                si=self._si)
         return 'Format(format_spec={!r}, df_precision={}, r_precision={})'.format(
-            spec, self.df_precision, self.r_precision)
+            spec, self._df_precision, self._r_precision)
 
-    def result(self, text):
+    def _result(self, text):
         """Formats the result.
 
         Uses the fill, align, zero and width format-specification fields.
@@ -154,13 +160,13 @@ class Format(object):
         """
         return u'{0:{fill}{align}{zero}{width}s}'.format(
             text,
-            fill=self.fill,
-            align=self.align,
-            zero=self.zero,
-            width=self.width
+            fill=self._fill,
+            align=self._align,
+            zero=self._zero,
+            width=self._width
         )
 
-    def value(self, value, precision=None, type=None, sign=None):
+    def _value(self, value, precision=None, type=None, sign=None):
         """Format a value.
 
         Uses the sign, hash symbol, grouping, precision and type
@@ -182,24 +188,24 @@ class Format(object):
         :rtype: str
         """
         if sign is None:
-            sign = self.sign
+            sign = self._sign
 
         if precision is None:
-            precision = self.precision
+            precision = self._precision
 
         if type is None:
-            type = self.type
+            type = self._type
 
         return '{0:{sign}{hash}{grouping}.{precision}{type}}'.format(
             value,
             sign=sign,
-            hash=self.hash,
-            grouping=self.grouping,
+            hash=self._hash,
+            grouping=self._grouping,
             precision=precision,
             type=type
         )
 
-    def uncertainty(self, uncertainty, precision=None, type='f'):
+    def _uncertainty(self, uncertainty, precision=None, type='f'):
         """Format an uncertainty.
 
         Uses the sign, hash symbol, grouping, precision and type
@@ -218,7 +224,7 @@ class Format(object):
         :return: The `uncertainty` formatted.
         :rtype: str
         """
-        return self.value(uncertainty, precision=precision, type=type, sign='')
+        return self._value(uncertainty, precision=precision, type=type, sign='')
 
 
 def parse(format_spec):
@@ -254,7 +260,7 @@ def apply_format(un, fmt):
     :rtype collections.namedtuple
     """
     def _prefix(rounded):
-        if not fmt.si:
+        if not fmt._si:
             return None
         return _stylize(rounded.suffix.lstrip(), fmt)
 
@@ -266,8 +272,8 @@ def apply_format(un, fmt):
         un._value
         re_x, re_u = _round_ureal(un.real, fmt)
         im_x, im_u = _round_ureal(un.imag, fmt)
-        df = _round_dof(un.df, fmt.df_precision)
-        r = round(un.r, fmt.r_precision)
+        df = _round_dof(un.df, fmt._df_precision)
+        r = round(un.r, fmt._r_precision)
         return _FormattedUncertainComplex(
             complex(re_x.value, im_x.value),
             StandardUncertainty(re_u.value, im_u.value),
@@ -275,7 +281,7 @@ def apply_format(un, fmt):
 
     except AttributeError:
         x, u = _round_ureal(un, fmt)
-        dof = _round_dof(un.df, fmt.df_precision)
+        dof = _round_dof(un.df, fmt._df_precision)
         return _FormattedUncertainReal(x.value, u.value, dof, un.label, _prefix(x))
 
 
@@ -369,22 +375,22 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
     fmt = Format(**kwargs)
     _update_format(u, fmt)
 
-    if fmt.mode not in ('B', 'P'):
+    if fmt._mode not in ('B', 'P'):
         raise ValueError(
             'Formatting mode {!r} is not supported. '
-            'Must be B or P'.format(fmt.mode)
+            'Must be B or P'.format(fmt._mode)
         )
 
-    if fmt.style not in ('', 'L', 'U'):
+    if fmt._style not in ('', 'L', 'U'):
         raise ValueError(
             'Formatting style {!r} is not supported. '
-            'Must be L or U'.format(fmt.style)
+            'Must be L or U'.format(fmt._style)
         )
 
-    if fmt.digits <= 0:
+    if fmt._digits <= 0:
         raise ValueError(
             'The number of digits must be > 0 '
-            '[digits={}]'.format(fmt.digits)
+            '[digits={}]'.format(fmt._digits)
         )
 
     return fmt
@@ -407,21 +413,21 @@ def to_string(obj, fmt):
     """
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
-        v_str = fmt.value(r.value, precision=r.precision, type=r.type)
+        v_str = fmt._value(r.value, precision=r.precision, type=r.type)
         result = _stylize(v_str + r.suffix, fmt)
-        return fmt.result(result)
+        return fmt._result(result)
 
     if isinstance(obj, (complex, StandardUncertainty)):
         r = _round(obj.real, fmt)
-        re_val = fmt.value(r.value, precision=r.precision, type=r.type)
+        re_val = fmt._value(r.value, precision=r.precision, type=r.type)
         re_str = _stylize(re_val + r.suffix, fmt)
 
         i = _round(obj.imag, fmt)
-        im_val = fmt.value(i.value, precision=i.precision, type=i.type, sign='+')
+        im_val = fmt._value(i.value, precision=i.precision, type=i.type, sign='+')
         im_str = _stylize(im_val + i.suffix, fmt)
 
         result = u'({0}{1}j)'.format(re_str, im_str)
-        return fmt.result(result)
+        return fmt._result(result)
 
     try:
         # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
@@ -437,7 +443,7 @@ def to_string(obj, fmt):
     if imag is not None:
         imag_str = _to_string_ureal(imag, fmt, sign='+')
         result = u'({0}{1}j)'.format(result, _stylize(imag_str, fmt))
-    return fmt.result(result)
+    return fmt._result(result)
 
 
 def _nan_or_inf(*args):
@@ -501,17 +507,17 @@ def _update_format(uncertainty, fmt):
 
     # set these values for backwards compatibility
     if u == 0 or _nan_or_inf(u):
-        fmt.precision = 6
-        fmt.u_exponent = 0
+        fmt._precision = 6
+        fmt._u_exponent = 0
         return
 
     exponent = _order_of_magnitude(u)
-    if exponent - fmt.precision + 1 >= 0:
-        fmt.precision = 0
+    if exponent - fmt._precision + 1 >= 0:
+        fmt._precision = 0
     else:
-        fmt.precision = int(fmt.precision - exponent + 1)
+        fmt._precision = int(fmt._precision - exponent + 1)
 
-    u_exponent = exponent - fmt.digits + 1
+    u_exponent = exponent - fmt._digits + 1
 
     # edge case, for example, if 0.099 rounds to 0.1
     rounded = round(u, -u_exponent)
@@ -519,7 +525,7 @@ def _update_format(uncertainty, fmt):
     if e_rounded > exponent:
         u_exponent += 1
 
-    fmt.u_exponent = u_exponent
+    fmt._u_exponent = u_exponent
 
 
 def _si_prefix_factor(exponent):
@@ -552,7 +558,7 @@ def _stylize(text, fmt):
 
     returns: the stylized text
     """
-    if not fmt.style or not text:
+    if not fmt._style or not text:
         return text
 
     exponent = exp_number = None
@@ -563,7 +569,7 @@ def _stylize(text, fmt):
         group = exp_match.group()
         exp_number = int(group[1:])
 
-    if fmt.style == 'U':
+    if fmt._style == 'U':
         if exp_match:
             if exp_number != 0:
                 e = u'{}'.format(exp_number)
@@ -577,7 +583,7 @@ def _stylize(text, fmt):
             ('u', u'\u00B5')
         ]
 
-    elif fmt.style == 'L':
+    elif fmt._style == 'L':
         if exp_match:
             exponent = r'\times10^{{{}}}'.format(exp_number)
 
@@ -614,7 +620,7 @@ def _round(value, fmt, exponent=None):
 
     returns: _Rounded
     """
-    _type = 'F' if fmt.type in 'EFG' else 'f'
+    _type = 'F' if fmt._type in 'EFG' else 'f'
 
     if _nan_or_inf(value):
         # value precision type exponent suffix
@@ -623,22 +629,22 @@ def _round(value, fmt, exponent=None):
     if exponent is None:
         exponent = _order_of_magnitude(value)
 
-    f_or_g_as_f = (fmt.type in 'fF') or \
-                  ((fmt.type in 'gG') and
-                   (-4 <= exponent < exponent - fmt.u_exponent))
+    f_or_g_as_f = (fmt._type in 'fF') or \
+                  ((fmt._type in 'gG') and
+                   (-4 <= exponent < exponent - fmt._u_exponent))
 
     if f_or_g_as_f:
         factor = 1.0
-        precision = max(-fmt.u_exponent, 0)
-        digits = -fmt.u_exponent
+        precision = max(-fmt._u_exponent, 0)
+        digits = -fmt._u_exponent
         suffix = ''
     else:
         factor = 10. ** exponent
-        precision = max(exponent - fmt.u_exponent, 0)
+        precision = max(exponent - fmt._u_exponent, 0)
         digits = precision
-        suffix = '{0:.0{1}}'.format(factor, fmt.type)[1:]
+        suffix = '{0:.0{1}}'.format(factor, fmt._type)[1:]
 
-    if fmt.si:
+    if fmt._si:
         prefix, si_factor = _si_prefix_factor(exponent)
         n = _order_of_magnitude(si_factor)
         precision = max(0, precision - n)
@@ -685,7 +691,7 @@ def _round_ureal(ureal, fmt):
     :return: tuple -> (x: _Rounded, u: _Rounded)
     """
     x, u = ureal.x, ureal.u
-    maximum = round(max(math.fabs(x), u), -fmt.u_exponent)
+    maximum = round(max(math.fabs(x), u), -fmt._u_exponent)
     rounded = _round(maximum, fmt)
     x_rounded = _round(x, fmt, exponent=rounded.exponent)
     u_rounded = _round(u, fmt, exponent=rounded.exponent)
@@ -710,13 +716,13 @@ def _to_string_ureal(ureal, fmt, sign=None):
         #    ureal(1.23, 0) -> ' 1.23'
         #    ucomplex(1.23+9.87j, 0) -> '(+1.23(0)+9.87(0)j)'
         #  We adopt the UncertainReal version -- do not include the (0)
-        return fmt.result(fmt.value(x, sign=sign))
+        return fmt._result(fmt._value(x, sign=sign))
 
     if _nan_or_inf(x, u):
-        x_str = fmt.value(x, sign=sign)
-        u_str = fmt.uncertainty(u, type=None)
+        x_str = fmt._value(x, sign=sign)
+        u_str = fmt._uncertainty(u, type=None)
 
-        if fmt.mode == 'B':
+        if fmt._mode == 'B':
             result = '{0}({1})'.format(x_str, u_str)
         else:
             result = '{0}+/-{1}'.format(x_str, u_str)
@@ -727,7 +733,7 @@ def _to_string_ureal(ureal, fmt, sign=None):
         if exp:
             start, end = exp.span()
             combined = [result[:start], result[end:], exp.group()]
-            if fmt.mode == 'B':
+            if fmt._mode == 'B':
                 result = '{0}{1}{2}'.format(*combined)
             else:
                 result = '({0}{1}){2}'.format(*combined)
@@ -738,22 +744,22 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     precision, suffix = x_rounded.precision, x_rounded.suffix
 
-    x_str = fmt.value(x_rounded.value, precision=precision, sign=sign, type='f')
+    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign, type='f')
 
     u_r = u_rounded.value
 
-    if fmt.mode == 'B':
+    if fmt._mode == 'B':
         if _order_of_magnitude(u_r) >= 0 and precision > 0:
             # the uncertainty straddles the decimal point so
             # keep the decimal point in the result
-            u_str = fmt.uncertainty(u_r, precision=precision)
+            u_str = fmt._uncertainty(u_r, precision=precision)
         else:
-            u_str = fmt.uncertainty(
+            u_str = fmt._uncertainty(
                 round(u_r * 10. ** precision), precision=0)
         return '{0}({1}){2}'.format(x_str, u_str, suffix)
 
     # Plus-minus mode
-    u_str = fmt.uncertainty(u_r, precision=precision)
+    u_str = fmt._uncertainty(u_r, precision=precision)
     x_u_str = '{0}+/-{1}'.format(x_str, u_str)
     if suffix:
         return '({0}){1}'.format(x_u_str, suffix)

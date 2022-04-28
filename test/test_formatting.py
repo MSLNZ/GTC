@@ -155,83 +155,83 @@ class TestFormatting(unittest.TestCase):
         f = Format()
         self.assertEqual(repr(f), "Format(format_spec='.2fB', df_precision=0, r_precision=3)")
         self.assertEqual(str(f), "Format(format_spec='.2fB', df_precision=0, r_precision=3)")
-        self.assertEqual(f.digits, 2)
-        self.assertEqual(f.u_exponent, 0)
-        self.assertEqual(f.df_precision, 0)
-        self.assertEqual(f.r_precision, 3)
+        self.assertEqual(f._digits, 2)
+        self.assertEqual(f._u_exponent, 0)
+        self.assertEqual(f._df_precision, 0)
+        self.assertEqual(f._r_precision, 3)
 
         f = Format(fill='*', align='>', sign=' ', hash='#', zero='0',
                    width=20, grouping=',', digits=3, type='g',
                    mode='P', style='L', df_precision=1)
         self.assertEqual(repr(f), "Format(format_spec='*> #020,.3gPL', df_precision=1, r_precision=3)")
-        self.assertEqual(f.digits, 3)
-        self.assertEqual(f.u_exponent, 0)
-        self.assertEqual(f.df_precision, 1)
-        self.assertEqual(f.r_precision, 3)
+        self.assertEqual(f._digits, 3)
+        self.assertEqual(f._u_exponent, 0)
+        self.assertEqual(f._df_precision, 1)
+        self.assertEqual(f._r_precision, 3)
 
         f = Format(width=10, sign='+', r_precision=1, df_precision=None)
         self.assertEqual(repr(f), "Format(format_spec='+10.2fB', df_precision=0, r_precision=1)")
-        self.assertEqual(f.digits, 2)
-        self.assertEqual(f.u_exponent, 0)
-        self.assertEqual(f.df_precision, 0)
-        self.assertEqual(f.r_precision, 1)
+        self.assertEqual(f._digits, 2)
+        self.assertEqual(f._u_exponent, 0)
+        self.assertEqual(f._df_precision, 0)
+        self.assertEqual(f._r_precision, 1)
 
         f = Format(precision=0, digits=1, r_precision=None, df_precision=7)
-        self.assertEqual(f.precision, 0)
-        self.assertEqual(f.digits, 1)
-        self.assertEqual(f.u_exponent, 0)
-        self.assertEqual(f.df_precision, 7)
-        self.assertEqual(f.r_precision, 3)
+        self.assertEqual(f._precision, 0)
+        self.assertEqual(f._digits, 1)
+        self.assertEqual(f._u_exponent, 0)
+        self.assertEqual(f._df_precision, 7)
+        self.assertEqual(f._r_precision, 3)
 
         f = Format(precision=0, digits=1, r_precision=6, df_precision=4)
-        self.assertEqual(f.precision, 0)
-        self.assertEqual(f.digits, 1)
-        self.assertEqual(f.u_exponent, 0)
-        self.assertEqual(f.df_precision, 4)
-        self.assertEqual(f.r_precision, 6)
+        self.assertEqual(f._precision, 0)
+        self.assertEqual(f._digits, 1)
+        self.assertEqual(f._u_exponent, 0)
+        self.assertEqual(f._df_precision, 4)
+        self.assertEqual(f._r_precision, 6)
 
         f = Format()
         number = -9.3+123.456789j
-        self.assertEqual(f.value(number), '{:.2f}'.format(number))
+        self.assertEqual(f._value(number), '{:.2f}'.format(number))
         number = 123.456789
-        self.assertEqual(f.value(number, precision=4, type='f', sign=' '),
+        self.assertEqual(f._value(number, precision=4, type='f', sign=' '),
                          '{: .4f}'.format(number))
 
         f = Format(precision=4, sign='+')
         number = 123.456789
-        self.assertEqual(f.value(number), '{:+.4f}'.format(number))
+        self.assertEqual(f._value(number), '{:+.4f}'.format(number))
         number = -9.3+123.456789j
-        self.assertEqual(f.value(number), '{:+.4f}'.format(number))
+        self.assertEqual(f._value(number), '{:+.4f}'.format(number))
 
         f = Format(precision=4, sign='+', width=20, fill='*', align='>')
         number = 123.456789
-        self.assertEqual(f.result(f.value(number)),
+        self.assertEqual(f._result(f._value(number)),
                          '{:*>+20.4f}'.format(number))
 
         f = Format(precision=4, sign='+', type='e')
         number = 123.456789
-        self.assertEqual(f.value(number), '{:+.4e}'.format(number))
+        self.assertEqual(f._value(number), '{:+.4e}'.format(number))
         number = -9.3+123.456789j
-        self.assertEqual(f.value(number, type='E'), '{:+.4E}'.format(number))
+        self.assertEqual(f._value(number, type='E'), '{:+.4E}'.format(number))
 
         f = Format(grouping=',', precision=0, type='f')
         number = 123456789
-        self.assertEqual(f.value(number), '{:,.0f}'.format(number))
+        self.assertEqual(f._value(number), '{:,.0f}'.format(number))
 
         f = create_format(1.23)
-        self.assertEqual(f.precision, 3)
-        self.assertEqual(f.digits, 2)
-        self.assertEqual(f.u_exponent, -1)
+        self.assertEqual(f._precision, 3)
+        self.assertEqual(f._digits, 2)
+        self.assertEqual(f._u_exponent, -1)
 
         f = create_format(1.234, precision=4)
-        self.assertEqual(f.precision, 5)
-        self.assertEqual(f.digits, 4)
-        self.assertEqual(f.u_exponent, -3)
+        self.assertEqual(f._precision, 5)
+        self.assertEqual(f._digits, 4)
+        self.assertEqual(f._u_exponent, -3)
 
         f = create_format(0, digits=20)
-        self.assertEqual(f.precision, 6)
-        self.assertEqual(f.digits, 20)
-        self.assertEqual(f.u_exponent, 0)
+        self.assertEqual(f._precision, 6)
+        self.assertEqual(f._digits, 20)
+        self.assertEqual(f._u_exponent, 0)
 
     def test_create_format_raises(self):
         for m in 'bpA-&':
