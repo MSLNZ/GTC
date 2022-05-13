@@ -477,12 +477,12 @@ class UncertainReal(object):
         # Use 2-digit fixed-point format for the uncertainty
         # gself = self._round(2,0)
         # return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
-        fmt = create_format(self, sign=' ', digits=2, type='f', mode='B')
+        fmt = create_format(self, sign=' ', digits=2, type='f')
         return to_string(self, fmt)
 
     def __format__(self, format_spec):
         if not format_spec:
-            format_spec = ' .2fB'  # for backwards compatibility
+            format_spec = ' .2f'  # for backwards compatibility
         fmt = create_format(self, **parse(format_spec))
         return to_string(self, fmt)
 
@@ -2730,12 +2730,12 @@ class UncertainComplex(object):
         #     gself.re_u_digits,
         #     gself.im_u_digits
         # )
-        fmt = create_format(self, sign='+', digits=2, type='f', mode='B')
+        fmt = create_format(self, sign='+', digits=2, type='f')
         return to_string(self, fmt)
 
     def __format__(self, format_spec):
         if not format_spec:
-            format_spec = '+.2fB'  # for backwards compatibility
+            format_spec = '+.2f'  # for backwards compatibility
         fmt = create_format(self, **parse(format_spec))
         return to_string(self, fmt)
 

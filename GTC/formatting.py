@@ -8,7 +8,11 @@ from GTC import (
     inf,
     inf_dof,
 )
-from GTC.named_tuples import StandardUncertainty
+from GTC.named_tuples import (
+    StandardUncertainty,
+    FormattedUncertainReal,
+    FormattedUncertainComplex,
+)
 
 __all__ = (
     'apply_format',
@@ -17,9 +21,9 @@ __all__ = (
 )
 
 # The regular expression to parse a format specification (format_spec)
-# with additional (and optional) characters at the end for GTC-specific fields.
+# with additional (and optional) character(s) at the end for GTC-specific fields.
 #
-# format_spec ::= [[fill]align][sign][#][0][width][grouping][.precision][type][mode][style][si]
+# format_spec ::= [[fill]align][sign][#][0][width][grouping][.precision][type][style]
 # https://docs.python.org/3/library/string.html#format-specification-mini-language
 _format_spec_regex = re.compile(
     # the builtin grammar fields
@@ -33,17 +37,8 @@ _format_spec_regex = re.compile(
     r'((\.)(?P<precision>\d+))?'
     r'(?P<type>[bcdeEfFgGnosxX%])?'
     
-    # Bracket or Plus-minus
-    # NOTE: these characters cannot be in <type>
-    r'(?P<mode>[BP])?'
-
-    # Latex or Unicode
-    # NOTE: these characters cannot be in <type> nor <mode>
+    # Latex or Unicode -- these characters cannot be in <type>
     r'(?P<style>[LU])?'
-
-    # SI prefix
-    # NOTE: this character cannot be in <type>, <mode> nor <style>
-    r'(?P<si>S)?'
     
     # the regex must match until the end of the string
     r'$'
@@ -68,20 +63,7 @@ _unicode_superscripts = {
     ord('9'): u'\u2079',
 }
 
-_si_map = {i*3: pre for i, pre in enumerate('yzafpnum kMGTPEZY', start=-8)}
-
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
-
-# TODO consider a different typename and decide whether SI prefixes should
-#  be included in the namedtuple or if the x and u values get rescaled
-_FormattedUncertainReal = namedtuple(
-    'FormattedUncertainReal',
-    'x u df label si_prefix'
-)
-_FormattedUncertainComplex = namedtuple(
-    'FormattedUncertainComplex',
-    'x u r df label real_si_prefix imag_si_prefix'
-)
 
 
 class Format(object):
@@ -115,9 +97,7 @@ class Format(object):
         self._type = get('type', 'f')
 
         # GTC grammar fields
-        self._mode = get('mode', 'B')
         self._style = get('style', '')
-        self._si = get('si', '')
 
         # these attributes are used when rounding
         self._digits = int(get('digits', 2))
@@ -131,7 +111,7 @@ class Format(object):
         # string would be, instead of them importing and calling
         # create_format() to simply print an uncertain number.
         spec = '{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
-               '.{digits}{type}{mode}{style}{si}'.format(
+               '.{digits}{type}{style}'.format(
                 fill=self._fill,
                 align=self._align,
                 sign=self._sign,
@@ -141,9 +121,7 @@ class Format(object):
                 grouping=self._grouping,
                 digits=self._digits,
                 type=self._type,
-                mode=self._mode,
-                style=self._style,
-                si=self._si)
+                style=self._style)
         return 'Format(format_spec={!r}, df_precision={}, r_precision={})'.format(
             spec, self._df_precision, self._r_precision)
 
@@ -257,13 +235,8 @@ def apply_format(un, fmt):
     :param fmt: The format to apply to `un`. See :func:`create_format`.
     :type fmt: :class:`Format`
 
-    :rtype: :obj:`~collections.namedtuple`
+    :rtype: :obj:`~named_tuples.FormattedUncertainReal` or :obj:`~named_tuples.FormattedUncertainComplex`
     """
-    def _prefix(rounded):
-        if not fmt._si:
-            return None
-        return _stylize(rounded.suffix.lstrip(), fmt)
-
     try:
         # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
         #  We could check isinstance(), but then we will need to deal with
@@ -274,19 +247,18 @@ def apply_format(un, fmt):
         im_x, im_u = _round_ureal(un.imag, fmt)
         df = _round_dof(un.df, fmt._df_precision)
         r = round(un.r, fmt._r_precision)
-        return _FormattedUncertainComplex(
+        return FormattedUncertainComplex(
             complex(re_x.value, im_x.value),
             StandardUncertainty(re_u.value, im_u.value),
-            r, df, un.label, _prefix(re_x), _prefix(im_x))
+            r, df, un.label)
 
     except AttributeError:
         x, u = _round_ureal(un, fmt)
         dof = _round_dof(un.df, fmt._df_precision)
-        return _FormattedUncertainReal(x.value, u.value, dof, un.label, _prefix(x))
+        return FormattedUncertainReal(x.value, u.value, dof, un.label)
 
 
-def create_format(obj, digits=None, df_precision=None, r_precision=None,
-                  mode=None, style=None, si=None, **kwargs):
+def create_format(obj, digits=None, df_precision=None, r_precision=None, style=None, **kwargs):
     r"""Create a format specification.
 
     Formatting an uncertain number rounds the value and the uncertainty to the
@@ -317,19 +289,6 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
         decimal point for the correlation coefficient. Default is 3.
     :type r_precision: :class:`int`
 
-    :param mode: The mode to use when formatting an uncertain number as a
-        string. Must be either ``'B'`` (Bracket) or ``'P'`` (Plus-minus, +/-).
-        Default is ``'B'``.
-
-        .. important::
-           The :math:`\pm` mode should be avoided whenever possible because it
-           has traditionally been used to indicate an interval corresponding to
-           a high level of confidence and thus may be confused with expanded
-           uncertainty. For more details, refer to Section 7.2.2 of the
-           `GUM <https://www.bipm.org/en/committees/jc/jcgm/publications>`_.
-
-    :type mode: :class:`str`
-
     :param style: The style to use when formatting an uncertain number as a
         string. Can be either ``'L'`` (:math:`\LaTeX`) or ``'U'`` (Unicode).
         When a style is used, the + sign and any leading 0's are removed from
@@ -339,11 +298,6 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
         empty string instead of :math:`10^{+00}`). Default is to not use
         styling.
     :type style: :class:`str`
-
-    :param si: Whether to use an SI prefix when formatting an uncertain number.
-        For example, ``1.23(4)e+07`` becomes ``12.3(4) M``.
-        Default is to not use an SI prefix.
-    :type si: :class:`bool`
 
     :param \**kwargs:
 
@@ -390,7 +344,6 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
         if key not in expected:
             raise ValueError('Unrecognised argument {!r}'.format(key))
 
-    kwargs['mode'] = mode
     kwargs['style'] = style
     kwargs['df_precision'] = df_precision
     kwargs['r_precision'] = r_precision
@@ -399,10 +352,6 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
         kwargs['digits'] = kwargs.get('precision')
     else:
         kwargs['digits'] = digits
-
-    if si:
-        kwargs['type'] = 'e'
-        kwargs['si'] = 'S'
 
     if kwargs.get('hash'):
         kwargs['hash'] = '#'
@@ -417,12 +366,6 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
 
     fmt = Format(**kwargs)
     _update_format(u, fmt)
-
-    if fmt._mode not in ('B', 'P'):
-        raise ValueError(
-            'Formatting mode {!r} is not supported. '
-            'Must be B or P'.format(fmt._mode)
-        )
 
     if fmt._style not in ('', 'L', 'U'):
         raise ValueError(
@@ -572,28 +515,6 @@ def _update_format(uncertainty, fmt):
     fmt._u_exponent = u_exponent
 
 
-def _si_prefix_factor(exponent):
-    """Determine the SI prefix and scaling factor.
-
-    :param exponent: The exponent, e.g., 10 ** exponent
-    :type exponent: int
-
-    :returns: tuple -> (prefix: str, factor: float)
-    """
-    mod = exponent % 3
-    prefix = _si_map.get(exponent - mod)
-    factor = 10. ** mod
-    if exponent < 0 and prefix is None:
-        prefix = 'y'
-        factor = 10. ** (exponent + 24)
-    elif 0 <= exponent < 3:
-        prefix = ''
-    elif prefix is None:
-        prefix = 'Y'
-        factor = 10. ** (exponent - 24)
-    return prefix, factor
-
-
 def _stylize(text, fmt):
     """Apply the formatting style to `text`.
 
@@ -605,6 +526,7 @@ def _stylize(text, fmt):
     if not fmt._style or not text:
         return text
 
+    replacements = []
     exponent = ''
     exp_number = None
     exp_match = _exponent_regex.search(text)
@@ -620,18 +542,11 @@ def _stylize(text, fmt):
             translated = e.translate(_unicode_superscripts)
             exponent = u'\u00D710{}'.format(translated)
 
-        replacements = [
-            ('+/-', u'\u00B1'),
-            ('u', u'\u00B5')
-        ]
-
     elif fmt._style == 'L':
         if exp_match and exp_number != 0:
             exponent = r'\times10^{{{}}}'.format(exp_number)
 
         replacements = [
-            ('+/-', r'\pm'),
-            ('u', r'\mu'),
             ('(', r'\left('),
             (')', r'\right)'),
             ('nan', r'\mathrm{NaN}'),
@@ -686,15 +601,7 @@ def _round(value, fmt, exponent=None):
         digits = precision
         suffix = '{0:.0{1}}'.format(factor, fmt._type)[1:]
 
-    if fmt._si:
-        prefix, si_factor = _si_prefix_factor(exponent)
-        n = _order_of_magnitude(si_factor)
-        precision = max(0, precision - n)
-        val = round(value * si_factor / factor, digits - n)
-        suffix = ' {}'.format(prefix) if prefix else ''
-    else:
-        val = round(value / factor, digits)
-
+    val = round(value / factor, digits)
     return _Rounded(val, precision, _type, exponent, suffix)
 
 
@@ -763,23 +670,12 @@ def _to_string_ureal(ureal, fmt, sign=None):
     if _nan_or_inf(x, u):
         x_str = fmt._value(x, sign=sign)
         u_str = fmt._uncertainty(u, type=None)
-
-        if fmt._mode == 'B':
-            result = '{0}({1})'.format(x_str, u_str)
-        else:
-            result = '{0}+/-{1}'.format(x_str, u_str)
-
-        # if there is an exponential term in the result, move it
-        # to the end of the string
+        result = '{0}({1})'.format(x_str, u_str)
+        # move an exponential term (if it exists) to the end of the string
         exp = _exponent_regex.search(result)
         if exp:
             start, end = exp.span()
-            combined = [result[:start], result[end:], exp.group()]
-            if fmt._mode == 'B':
-                result = '{0}{1}{2}'.format(*combined)
-            else:
-                result = '({0}{1}){2}'.format(*combined)
-
+            result = '{0}{1}{2}'.format(result[:start], result[end:], exp.group())
         return result
 
     x_rounded, u_rounded = _round_ureal(ureal, fmt)
@@ -789,20 +685,11 @@ def _to_string_ureal(ureal, fmt, sign=None):
     x_str = fmt._value(x_rounded.value, precision=precision, sign=sign, type='f')
 
     u_r = u_rounded.value
-
-    if fmt._mode == 'B':
-        if _order_of_magnitude(u_r) >= 0 and precision > 0:
-            # the uncertainty straddles the decimal point so
-            # keep the decimal point in the result
-            u_str = fmt._uncertainty(u_r, precision=precision)
-        else:
-            u_str = fmt._uncertainty(
-                round(u_r * 10. ** precision), precision=0)
-        return '{0}({1}){2}'.format(x_str, u_str, suffix)
-
-    # Plus-minus mode
-    u_str = fmt._uncertainty(u_r, precision=precision)
-    x_u_str = '{0}+/-{1}'.format(x_str, u_str)
-    if suffix:
-        return '({0}){1}'.format(x_u_str, suffix)
-    return x_u_str
+    if _order_of_magnitude(u_r) >= 0 and precision > 0:
+        # the uncertainty straddles the decimal point so
+        # keep the decimal point in the result
+        u_str = fmt._uncertainty(u_r, precision=precision)
+    else:
+        u_str = fmt._uncertainty(
+            round(u_r * 10. ** precision), precision=0)
+    return '{0}({1}){2}'.format(x_str, u_str, suffix)

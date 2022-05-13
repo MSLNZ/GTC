@@ -22,15 +22,15 @@ VarianceCovariance = namedtuple('VarianceCovariance','rr, ri, ir, ii')
   
 .. attribute:: ri
   
-   :class:`float`: covariance between th real and imaginary components
+   :class:`float`: covariance between the real and imaginary components
  
 .. attribute:: ir
   
-   :class:`float`: covariance between th real and imaginary components
+   :class:`float`: covariance between the real and imaginary components
    
 .. attribute:: ii
   
-   :class:`float`:  variance in the imaginary component
+   :class:`float`: variance in the imaginary component
 
    """
 
@@ -193,5 +193,53 @@ InterceptSlope = namedtuple('InterceptSlope','a b')
 #     'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
 # )
 
+# TODO should the r attribute be added for symmetry with the complex case?
+FormattedUncertainReal = namedtuple('FormattedUncertainReal', 'x u df label')
+""":obj:`~collections.namedtuple`: The formatted representation of an :class:`~.lib.UncertainReal` number.
 
+.. versionadded:: 1.4.0
 
+.. attribute:: x
+
+   :class:`float`: value 
+
+.. attribute:: u
+
+   :class:`float`: standard uncertainty
+
+.. attribute:: df
+
+   :class:`float`: degrees of freedom
+
+.. attribute:: label
+
+   :class:`str`: the label of the :class:`~.lib.UncertainReal` number
+
+"""
+
+FormattedUncertainComplex = namedtuple('FormattedUncertainComplex', 'x u r df label')
+""":obj:`~collections.namedtuple`: The formatted representation of an :class:`~.lib.UncertainComplex` number.
+
+.. versionadded:: 1.4.0
+
+.. attribute:: x
+
+   :class:`complex`: value 
+
+.. attribute:: u
+
+   :class:`StandardUncertainty`: standard uncertainty
+
+.. attribute:: r
+
+   :class:`float`: correlation coefficient between real and imaginary components
+
+.. attribute:: df
+
+   :class:`float`: degrees of freedom
+
+.. attribute:: label
+
+   :class:`str`: the label of the :class:`~.lib.UncertainComplex` number
+
+"""
