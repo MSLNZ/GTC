@@ -25,7 +25,7 @@ Generating strings
 
 As an example, consider the following uncertain number
 
-    >>> un = ureal(3.14159e-3, 2.71828e-4, 9.246)
+    >>> un = ureal(3.14159e-3, 2.71828e-4, 9.876)
 
 We create an object to control the format using the
 :func:`~GTC.formatting.create_format` function
@@ -137,16 +137,16 @@ complex numbers) that have been manipulated to have exactly the specified number
     0.00314
 
 We can specify that 3 significant digits will be used for the uncertainty (and value) and
-2 digits of precision for the degrees of freedom
+truncate the degrees of freedom to 2 digits of precision
 
     >>> fmt = create_format(un, digits=3, df_precision=2)
     >>> formatted = apply_format(un, fmt)
     >>> formatted
-    FormattedUncertainReal(x=0.003142, u=0.000272, df=9.24, label=None)
+    FormattedUncertainReal(x=0.003142, u=0.000272, df=9.87, label=None)
     >>> formatted.x
     0.003142
     >>> formatted.df
-    9.24
+    9.87
 
 The following functions are available.
 

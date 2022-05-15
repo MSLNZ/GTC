@@ -245,7 +245,7 @@ def apply_format(un, fmt):
         un._value
         re_x, re_u = _round_ureal(un.real, fmt)
         im_x, im_u = _round_ureal(un.imag, fmt)
-        df = _round_dof(un.df, fmt._df_precision)
+        df = _truncate_dof(un.df, fmt._df_precision)
         r = round(un.r, fmt._r_precision)
         return FormattedUncertainComplex(
             complex(re_x.value, im_x.value),
@@ -254,7 +254,7 @@ def apply_format(un, fmt):
 
     except AttributeError:
         x, u = _round_ureal(un, fmt)
-        dof = _round_dof(un.df, fmt._df_precision)
+        dof = _truncate_dof(un.df, fmt._df_precision)
         return FormattedUncertainReal(x.value, u.value, dof, un.label)
 
 
@@ -262,10 +262,9 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None, style=N
     r"""Create a format specification.
 
     Formatting an uncertain number rounds the value and the uncertainty to the
-    specified number of significant digits (based on the uncertainty component)
-    and rounds the degrees of freedom and the correlation coefficient to the
-    specified precision (the number of digits after the decimal point) so that
-    an uncertain number can be displayed in a more user-friendly way.
+    specified number of significant digits (based on the uncertainty component), and
+    truncates the degrees of freedom and rounds the correlation coefficient to the
+    specified precision (the number of digits after the decimal point).
 
     .. versionadded:: 1.4.0
 
@@ -282,11 +281,13 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None, style=N
     :type digits: :class:`int`
 
     :param df_precision: The number of digits that should be kept after the
-        decimal point for the degrees of freedom. Default is 0.
+        decimal point for the degrees of freedom. The value is truncated.
+        Default is 0.
     :type df_precision: :class:`int`
 
     :param r_precision: The number of digits that should be kept after the
-        decimal point for the correlation coefficient. Default is 3.
+        decimal point for the correlation coefficient. The value is rounded.
+        Default is 3.
     :type r_precision: :class:`int`
 
     :param style: The style to use when formatting an uncertain number as a
@@ -605,8 +606,8 @@ def _round(value, fmt, exponent=None):
     return _Rounded(val, precision, _type, exponent, suffix)
 
 
-def _round_dof(dof, precision):
-    """Round the degrees of freedom to the specified precision.
+def _truncate_dof(dof, precision):
+    """Truncate the degrees of freedom to the specified precision.
 
     dof: float
     precision: int
@@ -620,13 +621,13 @@ def _round_dof(dof, precision):
         return inf
 
     factor = 10. ** (-precision)
-    rounded = round(factor * math.floor(dof / factor), precision)
+    truncated = round(factor * math.floor(dof / factor), precision)
     # TODO if precision=0 should an int be returned? Also,
     #  discuss that the desired result is obtained if, for example,
     #  precision=0 and dof=7.99999. This function returns 7 not 8.
     if precision == 0:
-        return int(rounded)
-    return rounded
+        return int(truncated)
+    return truncated
 
 
 def _round_ureal(ureal, fmt):

@@ -12,7 +12,7 @@ from GTC.formatting import (
     apply_format,
     _nan_or_inf,
     _order_of_magnitude,
-    _round_dof,
+    _truncate_dof,
 )
 from GTC.lib import UncertainReal, UncertainComplex
 
@@ -1809,32 +1809,32 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(uc.u, fmt),    '0000000000000(+1.4+1.2j)')
 
     def test_round_dof(self):
-        dof = _round_dof(inf, None)
+        dof = _truncate_dof(inf, None)
         self.assertTrue(math.isinf(dof))
 
-        dof = _round_dof(nan, None)
+        dof = _truncate_dof(nan, None)
         self.assertTrue(math.isnan(dof))
 
-        dof = _round_dof(inf_dof+1.0, None)
+        dof = _truncate_dof(inf_dof + 1.0, None)
         self.assertTrue(math.isinf(dof))
 
-        dof = _round_dof(1e308, None)
+        dof = _truncate_dof(1e308, None)
         self.assertTrue(math.isinf(dof))
 
-        dof = _round_dof(9.386583765876, 0)
+        dof = _truncate_dof(9.386583765876, 0)
         self.assertEqual(dof, 9)
         self.assertIsInstance(dof, int)
 
-        dof = _round_dof(9.386583765876, 1)
+        dof = _truncate_dof(9.386583765876, 1)
         self.assertEqual(dof, 9.3)
 
-        dof = _round_dof(9.386583765876, 2)
+        dof = _truncate_dof(9.386583765876, 2)
         self.assertEqual(dof, 9.38)
 
-        dof = _round_dof(9.386583765876, 3)
+        dof = _truncate_dof(9.386583765876, 3)
         self.assertEqual(dof, 9.386)
 
-        dof = _round_dof(9.386583765876, 4)
+        dof = _truncate_dof(9.386583765876, 4)
         self.assertEqual(dof, 9.3865)
 
     def test_apply_format(self):
