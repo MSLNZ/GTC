@@ -113,7 +113,7 @@ In this case, the text output may not be easy to interpret in Python, but
 it becomes :math:`3.1416\left(2718\right)\times10^{-3}` when
 rendered in a :math:`\LaTeX` document.
 
-Fill with ``*``, align right ``>``, use a ``+`` sign, a width of 20 characters and 1 significant digit
+Fill with ``*``, align right ``>``, show a ``+`` sign with positive values, a width of 20 characters and 1 significant digit
 
     >>> fmt = create_format(un, fill='*', align='>', sign='+', width=20, digits=1)
     >>> to_string(un, fmt)
@@ -125,9 +125,7 @@ Generating formatted attributes
 -------------------------------
 
 The :func:`~GTC.formatting.apply_format` function formats an uncertain number.
-The returned object is a :obj:`~collections.namedtuple` with attributes for the value,
-uncertainty, degrees of freedom, and correlation coefficient (for uncertain
-complex numbers) that have been manipulated to have exactly the specified number of digits.
+The returned object is a :obj:`~collections.namedtuple` with numerical attributes that have been manipulated to have the specified number of digits for: value, uncertainty, degrees of freedom, and correlation coefficient (for uncertain complex numbers).
 
     >>> fmt = create_format(un)
     >>> formatted = apply_format(un, fmt)
