@@ -323,6 +323,19 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None, style=N
            TODO should % only make the uncertainty be a percentage of the
            value instead of multiplying the value and uncertainty by 100?
            Should it (and/or n) even be a supported option?
+           BDH: if % were applied to both, it would be consistent I think.
+           For example, an UN of 0.15(01) could become 15(01)%.
+           The risk for confusion is when uncertainty is specified as relative 
+           to a value that is not itself a fraction. E.g., 10 V with relative 
+           uncertainty of 5%: how would that be handled? Badly, one would suppose!
+           I suggest we include the following note
+           
+        .. note::
+           The ``'%'`` type applies to both the value and standard uncertainty.
+           In keeping with the behaviour of ``'%'`` for floats, the value and 
+           standard uncertainty will be multiplied by 100 and displayed in 
+           fixed ``'f'`` format followed by a percent sign.
+            
 
         .. note::
            The *precision* field is treated differently for uncertain
