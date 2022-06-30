@@ -241,6 +241,8 @@ def apply_format(un, fmt):
         # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
         #  We could check isinstance(), but then we will need to deal with
         #  circular import issues with lib.py.
+        # BDH: reporting.py imports from lib.py. I don't see why formatting could not also do this.
+        # 
         #  An UncertainReal object has no attribute _value.
         un._value
         re_x, re_u = _round_ureal(un.real, fmt)
@@ -638,6 +640,10 @@ def _truncate_dof(dof, precision):
     # TODO if precision=0 should an int be returned? Also,
     #  discuss that the desired result is obtained if, for example,
     #  precision=0 and dof=7.99999. This function returns 7 not 8.
+    # BDH truncation is what it is: return 7 not 8
+    #  Regarding int or float, I would not coerce the type to int.
+    #  If you did this, people using a Formatted object would need to 
+    #  test the type.
     if precision == 0:
         return int(truncated)
     return truncated
@@ -679,6 +685,7 @@ def _to_string_ureal(ureal, fmt, sign=None):
         #    ureal(1.23, 0) -> ' 1.23'
         #    ucomplex(1.23+9.87j, 0) -> '(+1.23(0)+9.87(0)j)'
         #  We adopt the UncertainReal version -- do not include the (0)
+        # BDH: OK
         return fmt._result(fmt._value(x, sign=sign))
 
     if _nan_or_inf(x, u):

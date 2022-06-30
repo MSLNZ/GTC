@@ -31,6 +31,7 @@ from GTC.named_tuples import (
     CorrelationMatrix,
     CovarianceMatrix,
     # TODO remove these imports
+    # BDH OK
     # GroomedUncertainReal,
     # GroomedUncertainComplex,
 )
@@ -355,6 +356,7 @@ class UncertainReal(object):
         
     #-------------------------------------------------------------------------
     # TODO: consider making this a free function so that it can be used for
+    # BDH This can be deleted now that we have formatting elsewhere
     #  expanded uncertainty too.
     #  Can this now be removed?
     # def _round(self,digits,df_decimals):
