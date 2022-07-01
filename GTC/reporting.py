@@ -60,12 +60,6 @@ except ImportError:
     izip = zip
     long = int
 
-from GTC.lib import (
-    UncertainReal,
-    UncertainComplex,
-    _is_uncertain_real_constant,
-    _is_uncertain_complex_constant
-)
 from GTC.named_tuples import (
     ComponentOfUncertainty,     # relates to complex quantities
     Influence,
@@ -107,7 +101,10 @@ def is_ureal(x):
         True
         
     """
-    return isinstance(x,UncertainReal)
+    try:
+        return x.is_ureal
+    except AttributeError:
+        return False
     
 #--------------------------------------------------------------------------
 def is_ucomplex(z):
@@ -120,8 +117,11 @@ def is_ucomplex(z):
         True
 
     """
-    return isinstance(z,UncertainComplex)
-
+    try:
+        return z.is_ucomplex
+    except AttributeError:
+        return False
+        
 #------------------------------------------------------------
 def _df_k2(k2,p,nu1,TOL):
     """
@@ -537,7 +537,7 @@ def components(y,**kwargs):
             "'influences' cannot be specified when 'intermediate' is True"
         )
     
-    if isinstance(y,UncertainReal):
+    if is_ureal(y):
         if influences is None and not intermediate:
             nodes = y._u_components.keys()
             
@@ -564,11 +564,11 @@ def components(y,**kwargs):
             uids = []
             values = []
             for i in influences:
-                if isinstance(i,UncertainReal):
+                if is_ureal(i):
                     uids.append( i.uid )
                     values.append( math.fabs(u_component(y,i)) ) 
                     
-                elif isinstance(i,UncertainComplex):
+                elif i.is_complex:
                     uids.append( i.real.uid )
                     values.append( math.fabs(u_component(y,i.real)) ) 
                     uids.append( i.imag.uid )
@@ -587,7 +587,7 @@ def components(y,**kwargs):
         else:
             this_budget = [ ]
         
-    elif isinstance(y,UncertainComplex):        
+    elif is_ucomplex(y):        
         if influences is None and not intermediate:
             
             # Ensure that the influence vectors have the same keys
@@ -803,7 +803,7 @@ def budget(y,**kwargs):
             "'influences' cannot be specified when 'intermediate' is True"
         )
     
-    if isinstance(y,UncertainReal):
+    if is_ureal(y):
         if influences is None and not intermediate:
             nodes = y._u_components.keys()
             uids = [ n_i.uid for n_i in nodes ]
@@ -842,12 +842,12 @@ def budget(y,**kwargs):
             labels = []
             values = []
             for i in influences:
-                if isinstance(i,UncertainReal):
+                if is_ureal(i):
                     uids.append( i.uid ) 
                     labels.append( i.label )
                     values.append( math.fabs(u_component(y,i)) ) 
                     
-                elif isinstance(i,UncertainComplex):
+                elif is_ucomplex(i):
                     uids.append( i.real.uid ) 
                     labels.append( i.real.label )
                     values.append( math.fabs(u_component(y,i.real)) ) 
@@ -868,7 +868,7 @@ def budget(y,**kwargs):
         else:
             this_budget = [ ]
         
-    elif isinstance(y,UncertainComplex):        
+    elif is_ucomplex(y):        
         if influences is None and not intermediate:
             
             # Ensure that the influence vectors have the same keys
