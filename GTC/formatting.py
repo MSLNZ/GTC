@@ -8,10 +8,16 @@ from GTC import (
     inf,
     inf_dof,
 )
+
 from GTC.named_tuples import (
     StandardUncertainty,
     FormattedUncertainReal,
     FormattedUncertainComplex,
+)
+
+from GTC.reporting import (
+    is_ureal, 
+    is_ucomplex,
 )
 
 __all__ = (
@@ -432,15 +438,13 @@ def to_string(obj, fmt):
         result = u'({0}{1}j)'.format(re_str, im_str)
         return fmt._result(result)
 
-    try:
-        # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
-        #  We could check isinstance(), but then we will need to deal with
-        #  circular import issues with lib.py.
-        #  An UncertainReal object has no attribute _value.
-        obj._value
-        real, imag = obj.real, obj.imag
-    except AttributeError:
+
+    if is_ureal(obj):
         real, imag = obj, None
+    elif is_ucomplex(obj):
+        real, imag = obj.real, obj.imag
+    else:
+        raise RuntimeError("unexpected type: {!r}".format(obj))
 
     result = _stylize(_to_string_ureal(real, fmt), fmt)
     if imag is not None:
