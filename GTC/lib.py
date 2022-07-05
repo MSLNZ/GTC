@@ -30,10 +30,6 @@ from GTC.named_tuples import (
     JacobianMatrix,
     CorrelationMatrix,
     CovarianceMatrix,
-    # TODO remove these imports
-    # BDH OK
-    # GroomedUncertainReal,
-    # GroomedUncertainComplex,
 )
 
 from GTC import (
