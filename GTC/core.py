@@ -530,7 +530,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
 
         >>> uc = ucomplex(1+2j,(.5,.5),3,label='x')
         >>> uc
-        ucomplex((1+2j), u=[0.5,0.5], r=0.0, df=3.0, label=x)
+        ucomplex((1+2j), u=[0.5,0.5], r=0.0, df=3.0, label='x')
    
     >>> cv = (1.2,0.7,0.7,2.2)
     >>> uc = ucomplex(0.2-.5j, cv)

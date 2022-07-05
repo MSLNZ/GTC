@@ -310,9 +310,8 @@ class TestFormatting(unittest.TestCase):
               'ucomplex((1.23456789+0.12345j), u=[0.1,0.1], r=0.0, df=8.0)')
         check(ucomplex(1.23456789e13 + 0.12345e10j, 1.3e9, df=inf_dof*2),
               'ucomplex((12345678900000+1234500000j), u=[1300000000.0,1300000000.0], r=0.0, df=inf)')
-        # TODO was expecting label='MSL' not label=MSL
         check(ucomplex(1.23456789 + 0.12345j, 0.1, df=8, label='MSL'),
-              'ucomplex((1.23456789+0.12345j), u=[0.1,0.1], r=0.0, df=8.0, label=MSL)')
+              "ucomplex((1.23456789+0.12345j), u=[0.1,0.1], r=0.0, df=8.0, label='MSL')")
 
     def test_str_ureal(self):
         def check(ur, expected):

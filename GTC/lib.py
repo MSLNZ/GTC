@@ -2487,7 +2487,7 @@ class UncertainComplex(object):
             s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
                 "u=[{1[0]!r},{1[1]!r}], "
                 "r={2!r}, df={3!r}, "
-                "label={4}"
+                "label={4!r}"
                 ")").format( 
                 x,u,r,df,self.label
             )        
