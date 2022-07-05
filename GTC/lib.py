@@ -375,10 +375,6 @@ class UncertainReal(object):
 
     #------------------------------------------------------------------------
     def __str__(self):
-        # TODO remove the old way when formatted prints are working
-        # Use 2-digit fixed-point format for the uncertainty
-        # gself = self._round(2,0)
-        # return "{1.x: .{0}f}{1.u_digits}".format( gself.precision, gself )
         fmt = create_format(self, sign=' ', digits=2, type='f')
         return to_string(self, fmt)
 
@@ -2496,14 +2492,6 @@ class UncertainComplex(object):
 
     #------------------------------------------------------------------------
     def __str__(self):
-        # TODO remove the old way when formatted prints are working
-        # gself = self._round(2,0)
-        # return "({1.real:+.{0}f}({2}){1.imag:+.{0}f}({3})j)".format(
-        #     gself.precision,
-        #     gself.x,
-        #     gself.re_u_digits,
-        #     gself.im_u_digits
-        # )
         fmt = create_format(self, sign='+', digits=2, type='f')
         return to_string(self, fmt)
 
