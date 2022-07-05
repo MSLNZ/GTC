@@ -75,6 +75,7 @@ from GTC import (
 
 __all__ = (
     'budget',
+    'components',
     'k_factor',
     'k_to_dof',
     'k2_factor_sq',
@@ -499,27 +500,29 @@ def components(y,**kwargs):
 
     keyword args:
         | influences: a sequence of uncertain numbers
-        | trim (float): control smallest reported magnitudes 
+        | trim (float): control of the smallest included magnitude for ``u`` 
         | max_number (int): return no more than ``max_number`` components
         | intermediate (bool): report all intermediate components
     
     A sequence of :obj:`~named_tuples.Component` namedtuples is 
     returned, each with the attributes ``uid`` and ``u`` for a 
     component of uncertainty (see :func:`u_component`). 
+    
+    The sequence is sorted in descending order of magnitude for ``u``.
 
     The keyword argument ``influences`` can be used to report on  
     specific influences.
     
     The keyword argument ``trim`` can be used to set a minimum relative 
-    magnitude of components returned. The components of uncertainty 
-    with a magnitude greater than ``trim`` times the largest component 
+    magnitude of ``u`` for the components returned. Components of uncertainty 
+    with a magnitude greater than ``trim`` times the largest value of ``u`` 
     will be reported. Set ``trim=0`` for a complete list.
 
-    The keyword argument ``max_number`` can be used to restrict the 
-    number of components returned.  
+    The keyword argument ``max_number`` can be used to set an upper 
+    limit on the number of components returned.  
     
-    The keyword argument ``intermediate`` causes all the components 
-    of uncertainty with respect to all intermediate results to be reported.
+    Setting keyword argument ``intermediate=True`` causes all the components 
+    of uncertainty with respect to intermediate results to be reported.
     When ``intermediate`` is ``True``, ``influences`` cannot be specified. 
     
     .. versionadded 1.3.7::
@@ -568,7 +571,7 @@ def components(y,**kwargs):
                     uids.append( i.uid )
                     values.append( math.fabs(u_component(y,i)) ) 
                     
-                elif i.is_complex:
+                elif is_ucomplex(i):
                     uids.append( i.real.uid )
                     values.append( math.fabs(u_component(y,i.real)) ) 
                     uids.append( i.imag.uid )
@@ -706,6 +709,9 @@ def components(y,**kwargs):
     else:
         this_budget = []
 
+    # Sort by magnitude of uncertainty with largest first
+    this_budget.sort( key=getter('u'),reverse=True )
+        
     if max_number is not None and len(this_budget) > max_number:
         this_budget = this_budget[:max_number]
         
