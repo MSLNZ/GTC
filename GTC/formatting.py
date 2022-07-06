@@ -515,10 +515,8 @@ def _update_format(uncertainty, fmt):
     else:
         u = uncertainty
 
-    # set these values for backwards compatibility
     if u == 0 or _nan_or_inf(u):
         fmt._precision = fmt._digits
-        fmt._u_exponent = 0
         return
 
     exponent = _order_of_magnitude(u)
