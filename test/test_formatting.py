@@ -1879,6 +1879,9 @@ class TestFormatting(unittest.TestCase):
                          'df=inf, '
                          'label=None)')
 
+        self.assertRaises(RuntimeError, apply_format, 1.0, fmt)
+        self.assertRaises(RuntimeError, apply_format, 1.0j, fmt)
+
     def test_latex(self):
         ur = ureal(1.23456789, 0.123456789)
         self.assertEqual('{:.3eL}'.format(ur), r'1.235\left(123\right)')

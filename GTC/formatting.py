@@ -243,14 +243,11 @@ def apply_format(un, fmt):
 
     :rtype: :obj:`~named_tuples.FormattedUncertainReal` or :obj:`~named_tuples.FormattedUncertainComplex`
     """
-    try:
-        # TODO Need to know if `obj` is UncertainReal or UncertainComplex.
-        #  We could check isinstance(), but then we will need to deal with
-        #  circular import issues with lib.py.
-        # BDH: reporting.py imports from lib.py. I don't see why formatting could not also do this.
-        # 
-        #  An UncertainReal object has no attribute _value.
-        un._value
+    if is_ureal(un):
+        x, u = _round_ureal(un, fmt)
+        dof = _truncate_dof(un.df, fmt._df_precision)
+        return FormattedUncertainReal(x.value, u.value, dof, un.label)
+    elif is_ucomplex(un):
         re_x, re_u = _round_ureal(un.real, fmt)
         im_x, im_u = _round_ureal(un.imag, fmt)
         df = _truncate_dof(un.df, fmt._df_precision)
@@ -259,11 +256,8 @@ def apply_format(un, fmt):
             complex(re_x.value, im_x.value),
             StandardUncertainty(re_u.value, im_u.value),
             r, df, un.label)
-
-    except AttributeError:
-        x, u = _round_ureal(un, fmt)
-        dof = _truncate_dof(un.df, fmt._df_precision)
-        return FormattedUncertainReal(x.value, u.value, dof, un.label)
+    else:
+        raise RuntimeError("unexpected type: {!r}".format(un))
 
 
 def create_format(obj, digits=None, df_precision=None, r_precision=None, style=None, **kwargs):
