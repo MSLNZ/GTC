@@ -12,6 +12,7 @@ A number of :obj:`~collections.namedtuple` class are used in ``GTC`` to return t
 .. autoclass:: named_tuples.StandardDeviation
 .. autoclass:: named_tuples.ComponentOfUncertainty
 .. autoclass:: named_tuples.Influence
+.. autoclass:: named_tuples.Component
 .. autoclass:: named_tuples.CovarianceMatrix
 .. autoclass:: named_tuples.CorrelationMatrix
 .. autoclass:: named_tuples.InterceptSlope

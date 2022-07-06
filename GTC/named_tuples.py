@@ -100,7 +100,7 @@ JacobianMatrix = namedtuple('JacobianMatrix','rr, ri, ir, ii')
   
    :class:`float`: imaginary component with respect to imaginary component
 
-   """
+"""
 
 Influence = namedtuple('Influence','label, u, uid')
 """:obj:`~collections.namedtuple`: label, value, and identifier of a component of uncertainty
@@ -121,6 +121,7 @@ Influence = namedtuple('Influence','label, u, uid')
     The attribute `uid` has been added
         
 """
+
 Component = namedtuple('Component','uid, u')
 """:obj:`~collections.namedtuple`: unique identifier and value of a component of uncertainty
  
@@ -133,6 +134,7 @@ Component = namedtuple('Component','uid, u')
    :class:`float`: component of uncertainty
    
 """
+
 CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")
 """:obj:`~collections.namedtuple`: Correlation coefficients for a pair of quantities ``x`` and ``y``
  
@@ -152,7 +154,7 @@ CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")
   
    :class:`float`: correlation between ``x.imag`` and ``y.imag``
 
-   """
+"""
 
 CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
 """:obj:`~collections.namedtuple`: Values of covariance for a pair of quantities ``x`` and ``y``
@@ -173,7 +175,7 @@ CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
   
    :class:`float`: covariance between ``x.imag`` and ``y.imag``
 
-   """
+"""
 
 InterceptSlope = namedtuple('InterceptSlope','a b')
 """:obj:`~collections.namedtuple`: Values for intercept ``a`` and slope ``b``
@@ -185,7 +187,7 @@ InterceptSlope = namedtuple('InterceptSlope','a b')
 .. attribute:: b
   
    :class:`~.lib.UncertainReal`: slope
- """
+"""
 
 # TODO should the r attribute be added for symmetry with the complex case?
 FormattedUncertainReal = namedtuple('FormattedUncertainReal', 'x u df label')
