@@ -493,22 +493,21 @@ def v_bar(cv):
 
 #----------------------------------------------------------------------------
 def components(y,**kwargs):
-    """Return a sequence of uid-component of uncertainty pairs
+    r"""Return a sequence of uid-component of uncertainty pairs
 
-    arg:
-        y (:class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`):  an uncertain number
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`:  an uncertain number
 
-    keyword args:
-        | influences: a sequence of uncertain numbers
-        | trim (float): control of the smallest included magnitude for ``u`` 
-        | max_number (int): return no more than ``max_number`` components
-        | intermediate (bool): report all intermediate components
-    
-    A sequence of :obj:`~named_tuples.Component` namedtuples is 
-    returned, each with the attributes ``uid`` and ``u`` for a 
-    component of uncertainty (see :func:`u_component`). 
-    
-    The sequence is sorted in descending order of magnitude for ``u``.
+    :arg \**kwargs: Keyword arguments:
+
+        * influences: a sequence of uncertain numbers
+        * trim (:class:`float`): control of the smallest included magnitude for ``u``
+        * max_number (:class:`int`): return no more than ``max_number`` components
+        * intermediate (:class:`bool`): report all intermediate components
+
+    :returns: A sequence of :obj:`~named_tuples.Component` namedtuples is
+        returned, each with the attributes ``uid`` and ``u`` for a
+        component of uncertainty (see :func:`u_component`). The sequence is
+        sorted in descending order of magnitude for ``u``.
 
     The keyword argument ``influences`` can be used to report on  
     specific influences.
