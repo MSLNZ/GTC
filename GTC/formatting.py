@@ -111,6 +111,10 @@ class Format(object):
         self._df_precision = int(get('df_precision', 0))
         self._r_precision = int(get('r_precision', 3))
 
+        # keeps a record of whether the Format was created for
+        # an uncertain number with an uncertainty of 0, NaN or INF
+        self._nonzero_and_finite = True
+
     def __repr__(self):
         # Use .digits instead of .precision in the result.
         # This will allow users to see what the equivalent format_spec
@@ -517,6 +521,7 @@ def _update_format(uncertainty, fmt):
 
     if u == 0 or _nan_or_inf(u):
         fmt._precision = fmt._digits
+        fmt._nonzero_and_finite = False
         return
 
     exponent = _order_of_magnitude(u)
@@ -603,6 +608,10 @@ def _round(value, fmt, exponent=None):
     if _nan_or_inf(value):
         # value precision type exponent suffix
         return _Rounded(value, 0, _type, 0, '')
+
+    if not fmt._nonzero_and_finite:
+        # value precision type exponent suffix
+        return _Rounded(value, fmt._precision, fmt._type, 0, '')
 
     if exponent is None:
         exponent = _order_of_magnitude(value)
