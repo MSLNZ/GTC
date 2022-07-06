@@ -47,7 +47,7 @@ from GTC.core import (
 
 from GTC import inf, nan
 from GTC.uncertain_array import UncertainArray, _isinf, _isnan
-from GTC.named_tuples import StandardUncertainty, VarianceCovariance  #, GroomedUncertainReal
+from GTC.named_tuples import StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
 from GTC import type_a, function, linear_algebra
 from GTC.linear_algebra import matmul, uarray
