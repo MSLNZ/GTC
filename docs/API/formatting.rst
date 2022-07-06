@@ -130,7 +130,7 @@ The returned object is a :obj:`~collections.namedtuple` with numerical attribute
     >>> fmt = create_format(un)
     >>> formatted = apply_format(un, fmt)
     >>> formatted
-    FormattedUncertainReal(x=0.00314, u=0.00027, df=9, label=None)
+    FormattedUncertainReal(x=0.00314, u=0.00027, df=9.0, label=None)
     >>> formatted.x
     0.00314
 

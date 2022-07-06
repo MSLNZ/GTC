@@ -634,17 +634,7 @@ def _truncate_dof(dof, precision):
         return inf
 
     factor = 10. ** (-precision)
-    truncated = round(factor * math.floor(dof / factor), precision)
-    # TODO if precision=0 should an int be returned? Also,
-    #  discuss that the desired result is obtained if, for example,
-    #  precision=0 and dof=7.99999. This function returns 7 not 8.
-    # BDH truncation is what it is: return 7 not 8
-    #  Regarding int or float, I would not coerce the type to int.
-    #  If you did this, people using a Formatted object would need to 
-    #  test the type.
-    if precision == 0:
-        return int(truncated)
-    return truncated
+    return round(factor * math.floor(dof / factor), precision)
 
 
 def _round_ureal(ureal, fmt):

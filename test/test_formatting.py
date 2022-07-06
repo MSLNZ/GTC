@@ -1821,8 +1821,7 @@ class TestFormatting(unittest.TestCase):
         self.assertTrue(math.isinf(dof))
 
         dof = _truncate_dof(9.386583765876, 0)
-        self.assertEqual(dof, 9)
-        self.assertIsInstance(dof, int)
+        self.assertEqual(dof, 9.0)
 
         dof = _truncate_dof(9.386583765876, 1)
         self.assertEqual(dof, 9.3)
@@ -1845,7 +1844,7 @@ class TestFormatting(unittest.TestCase):
                          "FormattedUncertainReal("
                          "x=1.2346, "
                          "u=0.0044, "
-                         "df=8, "
+                         "df=8.0, "
                          "label='MSL')")
 
         fmt = create_format(ur, digits=1, df_precision=3)
