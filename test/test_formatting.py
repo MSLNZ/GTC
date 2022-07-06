@@ -1807,7 +1807,7 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(uc.x, fmt),    '0000000000000(+5.4+7.2j)')
         self.assertEqual(to_string(uc.u, fmt),    '0000000000000(+1.4+1.2j)')
 
-    def test_round_dof(self):
+    def test_truncate_dof(self):
         dof = _truncate_dof(inf, None)
         self.assertTrue(math.isinf(dof))
 
@@ -1834,6 +1834,15 @@ class TestFormatting(unittest.TestCase):
 
         dof = _truncate_dof(9.386583765876, 4)
         self.assertEqual(dof, 9.3865)
+
+        dof = _truncate_dof(7.9999999, 0)
+        self.assertEqual(dof, 7.0)
+
+        dof = _truncate_dof(7.9999999, 1)
+        self.assertEqual(dof, 7.9)
+
+        dof = _truncate_dof(7.9999999, 5)
+        self.assertEqual(dof, 7.99999)
 
     def test_apply_format(self):
         ur = ureal(1.23456789, 0.004371543, df=8.835223, label='MSL')
