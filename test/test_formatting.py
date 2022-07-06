@@ -208,7 +208,7 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(f._u_exponent, -3)
 
         f = create_format(0, digits=20)
-        self.assertEqual(f._precision, 6)
+        self.assertEqual(f._precision, 20)
         self.assertEqual(f._digits, 20)
         self.assertEqual(f._u_exponent, 0)
 
@@ -328,7 +328,7 @@ class TestFormatting(unittest.TestCase):
         check(ureal(1.23456789, 100), ' 0(100)')
         check(ureal(1.23456789, 10), ' 1(10)')
         check(ureal(1.23456789, 1), ' 1.2(1.0)')
-        check(ureal(1.23456789, 0), ' 1.234568')
+        check(ureal(1.23456789, 0), ' 1.23')
         check(ureal(1.23456789, 0.1), ' 1.23(10)')
         check(ureal(1.23456789, 0.01), ' 1.235(10)')
         check(ureal(1.23456789, 0.001), ' 1.2346(10)')
@@ -464,19 +464,20 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(ur.u, fmt), 'NAN')
 
         ur = UncertainReal._elementary(3.141, inf, inf, None, True)
-        self.assertEqual(str(ur), ' 3.141000(inf)')
-        self.assertEqual('{: F}'.format(ur), ' 3.141000(INF)')
+        self.assertEqual(str(ur), ' 3.14(inf)')
+        self.assertEqual('{: F}'.format(ur), ' 3.14(INF)')
+        self.assertEqual('{: .3f}'.format(ur), ' 3.141(inf)')
 
-        # TODO should .1 have an effect if the uncertainty is infinity or NaN?
-        #  Should discuss nan and inf.
         ur = UncertainReal._elementary(3.141e8, inf, inf, None, True)
-        self.assertEqual(str(ur), ' 314100000.000000(inf)')
-        self.assertEqual('{: .1F}'.format(ur), ' 314100000.000000(INF)')
-        self.assertEqual('{: .1e}'.format(ur), ' 3.141000(inf)e+08')
+        self.assertEqual(str(ur), ' 314100000.00(inf)')
+        self.assertEqual('{: .1F}'.format(ur), ' 314100000.0(INF)')
+        self.assertEqual('{: .1e}'.format(ur), ' 3.1(inf)e+08')
+        self.assertEqual('{: .4E}'.format(ur), ' 3.1410(INF)E+08')
 
         ur = UncertainReal._elementary(3.141, nan, inf, None, True)
-        self.assertEqual(str(ur), ' 3.141000(nan)')
-        self.assertEqual('{: F}'.format(ur), ' 3.141000(NAN)')
+        self.assertEqual(str(ur), ' 3.14(nan)')
+        self.assertEqual('{: F}'.format(ur), ' 3.14(NAN)')
+        self.assertEqual('{: .1F}'.format(ur), ' 3.1(NAN)')
 
         ur = UncertainReal._elementary(nan, 3.141, inf, None, True)
         self.assertEqual(str(ur), ' nan(3.141)')
@@ -547,7 +548,7 @@ class TestFormatting(unittest.TestCase):
             None, inf, None, True
         )
         fmt = create_format(uc, sign='+')
-        self.assertEqual(to_string(uc, fmt), '(+1.200000(inf)-3.400000(nan)j)')
+        self.assertEqual(to_string(uc, fmt), '(+1.20(inf)-3.40(nan)j)')
         self.assertEqual(to_string(uc.x, fmt), '(+1-3j)')
         self.assertEqual(to_string(uc.u, fmt), '(+inf+nanj)')
 
@@ -1240,47 +1241,69 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(uc.u, fmt), '(0.34257+0.00057j)*****************')
 
     def test_uncertainty_is_zero(self):
-        # TODO discuss uncertainty=0 cases
-        #  Historically, ucomplex would have returned
-        #      '(+1.234568(0)+9.876543(0)j)'
-        #  For the case of print(ureal(1.23456789, 0)) the result is
-        #      ' 1.234568'
-        #  i.e., there is no '(0)' at the end.
-        #  What do we want if the uncertainty=0?
-
         ur = ureal(1.23456789, 0)
 
-        fmt = create_format(ur, type='f')  # precision defaults to 6
-        self.assertEqual(to_string(ur, fmt),   '1.234568')
-        self.assertEqual(to_string(ur.x, fmt), '1')
-        self.assertEqual(to_string(ur.u, fmt), '0')
+        fmt = create_format(ur, type='f')
+        self.assertEqual('{:.2f}'.format(ur.x), '1.23')
+        self.assertEqual(to_string(ur, fmt),    '1.23')
+        self.assertEqual(to_string(ur.x, fmt),  '1')
+        self.assertEqual(to_string(ur.u, fmt),  '0')
 
-        fmt = create_format(ur, type='g')  # precision defaults to 6
-        self.assertEqual(to_string(ur, fmt),   '1.23457')
-        self.assertEqual(to_string(ur.x, fmt), '1')
-        self.assertEqual(to_string(ur.u, fmt), '0')
+        fmt = create_format(ur, type='f', digits=4)
+        self.assertEqual('{:.4f}'.format(ur.x), '1.2346')
+        self.assertEqual(to_string(ur, fmt),    '1.2346')
+        self.assertEqual(to_string(ur.x, fmt),  '1')
+        self.assertEqual(to_string(ur.u, fmt),  '0')
 
-        fmt = create_format(ur, type='E')  # precision defaults to 6
-        self.assertEqual(to_string(ur, fmt),   '1.234568E+00')
-        self.assertEqual(to_string(ur.x, fmt), '1E+00')
-        self.assertEqual(to_string(ur.u, fmt), '0E+00')
+        fmt = create_format(ur, type='g')
+        self.assertEqual('{:.2g}'.format(ur.x), '1.2')
+        self.assertEqual(to_string(ur, fmt),    '1.2')
+        self.assertEqual(to_string(ur.x, fmt),  '1')
+        self.assertEqual(to_string(ur.u, fmt),  '0')
+
+        fmt = create_format(ur, type='g', digits=5)
+        self.assertEqual('{:.5g}'.format(ur.x), '1.2346')
+        self.assertEqual(to_string(ur, fmt),    '1.2346')
+        self.assertEqual(to_string(ur.x, fmt),  '1')
+        self.assertEqual(to_string(ur.u, fmt),  '0')
+
+        fmt = create_format(ur, type='E')
+        self.assertEqual('{:.2E}'.format(ur.x), '1.23E+00')
+        self.assertEqual(to_string(ur, fmt),    '1.23E+00')
+        self.assertEqual(to_string(ur.x, fmt),  '1E+00')
+        self.assertEqual(to_string(ur.u, fmt),  '0E+00')
 
         fmt = create_format(ur, type='E', digits=1)
-        self.assertEqual(to_string(ur, fmt),   '1.234568E+00')
-        self.assertEqual(to_string(ur.x, fmt), '1E+00')
-        self.assertEqual(to_string(ur.u, fmt), '0E+00')
+        self.assertEqual('{:.1E}'.format(ur.x), '1.2E+00')
+        self.assertEqual(to_string(ur, fmt),    '1.2E+00')
+        self.assertEqual(to_string(ur.x, fmt),  '1E+00')
+        self.assertEqual(to_string(ur.u, fmt),  '0E+00')
 
         uc = ucomplex(12.3456789 + 0.87654321j, 0)
 
-        fmt = create_format(uc, type='f')  # precision defaults to 6
-        self.assertEqual(to_string(uc, fmt),   '(12.345679+0.876543j)')
+        fmt = create_format(uc, type='f')
+        self.assertEqual('{:.2f}'.format(uc.x), '12.35+0.88j')
+        self.assertEqual(to_string(uc, fmt),   '(12.35+0.88j)')
         self.assertEqual(to_string(uc.x, fmt), '(12+1j)')
         self.assertEqual(to_string(uc.u, fmt), '(0+0j)')
 
-        fmt = create_format(uc, type='E')  # precision defaults to 6
-        self.assertEqual(to_string(uc, fmt),   '(1.234568E+01+8.765432E-01j)')
+        fmt = create_format(uc, type='f', digits=4)
+        self.assertEqual('{:.4f}'.format(uc.x), '12.3457+0.8765j')
+        self.assertEqual(to_string(uc, fmt),   '(12.3457+0.8765j)')
+        self.assertEqual(to_string(uc.x, fmt), '(12+1j)')
+        self.assertEqual(to_string(uc.u, fmt), '(0+0j)')
+
+        fmt = create_format(uc, type='E')
+        self.assertEqual('{:.2E}'.format(uc.x), '1.23E+01+8.77E-01j')
+        self.assertEqual(to_string(uc, fmt),   '(1.23E+01+8.77E-01j)')
         self.assertEqual(to_string(uc.x, fmt), '(1.2E+01+9E-01j)')
         self.assertEqual(to_string(uc.u, fmt), '(0E+00+0E+00j)')
+
+        fmt = create_format(uc, type='e', digits=1)
+        self.assertEqual('{:.1e}'.format(uc.x), '1.2e+01+8.8e-01j')
+        self.assertEqual(to_string(uc, fmt),   '(1.2e+01+8.8e-01j)')
+        self.assertEqual(to_string(uc.x, fmt), '(1.2e+01+9e-01j)')
+        self.assertEqual(to_string(uc.u, fmt), '(0e+00+0e+00j)')
 
     def test_bracket_type_e_ureal(self):
         ur = ureal(1.23456789, 0.0001)
@@ -1899,7 +1922,8 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual('{:.3EL}'.format(ur * 1e-100), r'1.235\left(123\right)\times10^{-100}')
 
         ur = UncertainReal._elementary(3.14159, nan, inf, None, True)
-        self.assertEqual('{:fL}'.format(ur), r'3.141590\left(\mathrm{NaN}\right)')
+        self.assertEqual('{:fL}'.format(ur), r'3.14\left(\mathrm{NaN}\right)')
+        self.assertEqual('{:.4fL}'.format(ur), r'3.1416\left(\mathrm{NaN}\right)')
 
         ur = UncertainReal._elementary(nan, 3.142, inf, None, True)
         self.assertEqual('{:L}'.format(ur), r'\mathrm{NaN}\left(3.142\right)')

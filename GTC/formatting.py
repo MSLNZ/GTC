@@ -346,6 +346,15 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None, style=N
            of *precision* (number of digits, either after the decimal
            place or in total depending on the value of *type*).
 
+        .. note::
+           If the uncertainty component is 0 then the string representation
+           of the uncertain number does not include the uncertainty in
+           parenthesis and *digits* is equivalent to *precision*.
+
+           >>> ur = ureal(3.1415926536, 0)
+           >>> '{:.5f}'.format(ur)
+           '3.14159'
+
     :rtype: :class:`Format`
     """
     # need to check for spelling mistakes of a named keyword argument since this
@@ -508,7 +517,7 @@ def _update_format(uncertainty, fmt):
 
     # set these values for backwards compatibility
     if u == 0 or _nan_or_inf(u):
-        fmt._precision = 6
+        fmt._precision = fmt._digits
         fmt._u_exponent = 0
         return
 
@@ -667,13 +676,6 @@ def _to_string_ureal(ureal, fmt, sign=None):
     x, u = ureal.x, ureal.u
 
     if u == 0:
-        # TODO Historically, UncertainReal did not include (0) and
-        #  UncertainComplex did include (0) with the real and imaginary parts,
-        #  e.g.,
-        #    ureal(1.23, 0) -> ' 1.23'
-        #    ucomplex(1.23+9.87j, 0) -> '(+1.23(0)+9.87(0)j)'
-        #  We adopt the UncertainReal version -- do not include the (0)
-        # BDH: OK
         return fmt._result(fmt._value(x, sign=sign))
 
     if _nan_or_inf(x, u):
