@@ -267,14 +267,23 @@ def apply_format(un, fmt):
     if is_ureal(un):
         x, u = _round_ureal(un, fmt)
         dof = _truncate_dof(un.df, fmt._df_precision)
-        return FormattedUncertainReal(x.value, u.value, dof, un.label)
+        if fmt._nonzero_and_finite:
+            x_value = x.value
+        else:
+            x_value = round(x.value, x.precision)
+        return FormattedUncertainReal(x_value, u.value, dof, un.label)
     elif is_ucomplex(un):
         re_x, re_u = _round_ureal(un.real, fmt)
         im_x, im_u = _round_ureal(un.imag, fmt)
         df = _truncate_dof(un.df, fmt._df_precision)
         r = round(un.r, fmt._r_precision)
+        if fmt._nonzero_and_finite:
+            real, imag = re_x.value, im_x.value
+        else:
+            real = round(re_x.value, re_x.precision)
+            imag = round(im_x.value, im_x.precision)
         return FormattedUncertainComplex(
-            complex(re_x.value, im_x.value),
+            complex(real, imag),
             StandardUncertainty(re_u.value, im_u.value),
             r, df, un.label)
     else:

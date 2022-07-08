@@ -1925,6 +1925,68 @@ class TestFormatting(unittest.TestCase):
         self.assertRaises(RuntimeError, apply_format, 1.0, fmt)
         self.assertRaises(RuntimeError, apply_format, 1.0j, fmt)
 
+        ur = ureal(1.23456789, 0)
+        fmt = create_format(ur)
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainReal('
+                         'x=1.23, '
+                         'u=0.0, '
+                         'df=inf, '
+                         'label=None)')
+        fmt = create_format(ur, digits=5)
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainReal('
+                         'x=1.23457, '
+                         'u=0.0, '
+                         'df=inf, '
+                         'label=None)')
+
+        ur = UncertainReal._elementary(12345.6789, inf, 23.8231, 'hello', True)
+        fmt = create_format(ur, digits=1)
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(str(formatted),
+                         "FormattedUncertainReal("
+                         "x=12345.7, "
+                         "u=inf, "
+                         "df=23.0, "
+                         "label='hello')")
+
+        uc = ucomplex(98.7654321-0.786124j, 0)
+        fmt = create_format(uc)
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainComplex('
+                         'x=(98.77-0.79j), '
+                         'u=StandardUncertainty(real=0.0, imag=0.0), '
+                         'r=0.0, '
+                         'df=inf, '
+                         'label=None)')
+        fmt = create_format(uc, digits=1)
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainComplex('
+                         'x=(98.8-0.8j), '
+                         'u=StandardUncertainty(real=0.0, imag=0.0), '
+                         'r=0.0, '
+                         'df=inf, '
+                         'label=None)')
+
+        uc = UncertainComplex._elementary(
+            complex(inf, -1.0), inf, nan,
+            None, 12.34, 'abc', True
+        )
+        fmt = create_format(uc)
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(str(formatted),
+                         "FormattedUncertainComplex("
+                         "x=(inf-1j), "
+                         "u=StandardUncertainty(real=inf, imag=nan), "
+                         "r=0.0, "
+                         "df=12.0, "
+                         "label='abc')")
+
     def test_latex(self):
         ur = ureal(1.23456789, 0.123456789)
         self.assertEqual('{:.3eL}'.format(ur), r'1.235\left(123\right)')
