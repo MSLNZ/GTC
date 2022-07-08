@@ -1942,3 +1942,89 @@ class TestFormatting(unittest.TestCase):
 
         ur = UncertainReal._elementary(-inf, inf, inf, None, True)
         self.assertEqual('{:FL}'.format(ur), r'-\infty\left(\infty\right)')
+
+    def test_percent_type(self):
+        ur = ureal(0.1548175123, 0.0123456)
+
+        fmt = create_format(ur, digits=1, type='%')
+        self.assertEqual('{:.1%}'.format(ur),  '15(1)%')
+        self.assertEqual(to_string(ur, fmt),   '15(1)%')
+        self.assertEqual(to_string(ur.x, fmt), '15%')
+        self.assertEqual(to_string(ur.u, fmt), '1%')
+
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(fmt._type, '%')
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainReal('
+                         'x=0.15, '
+                         'u=0.01, '
+                         'df=inf, '
+                         'label=None)')
+
+        fmt = create_format(ur, digits=3, type='%', style='L')
+        self.assertEqual('{:.3%L}'.format(ur), r'15.48\left(1.23\right)\%')
+        self.assertEqual(to_string(ur, fmt),   r'15.48\left(1.23\right)\%')
+        self.assertEqual(to_string(ur.x, fmt), r'15.48\%')
+        self.assertEqual(to_string(ur.u, fmt), r'1.23\%')
+
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(fmt._type, '%')
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainReal('
+                         'x=0.1548, '
+                         'u=0.0123, '
+                         'df=inf, '
+                         'label=None)')
+
+        ur = ureal(0.1548175123, 0.000123456)
+
+        fmt = create_format(ur, type='%', style='L')
+        self.assertEqual('{:%L}'.format(ur),  r'15.482\left(12\right)\%')
+        self.assertEqual(to_string(ur, fmt),  r'15.482\left(12\right)\%')
+        self.assertEqual(to_string(ur.x, fmt), r'15.482\%')
+        self.assertEqual(to_string(ur.u, fmt), r'0.012\%')
+
+        formatted = apply_format(ur, fmt)
+        self.assertEqual(fmt._type, '%')
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainReal('
+                         'x=0.15482, '
+                         'u=0.00012, '
+                         'df=inf, '
+                         'label=None)')
+
+        uc = ucomplex(1548175.123+4321.45j, (123.456, 1.32))
+
+        fmt = create_format(uc, digits=1, type='%')
+        self.assertEqual('{:.1%}'.format(uc),  '(154817500(12300)+432100(100)j)%')
+        self.assertEqual(to_string(uc, fmt),   '(154817500(12300)+432100(100)j)%')
+        self.assertEqual(to_string(uc.x, fmt), '(154817500+432100j)%')
+        self.assertEqual(to_string(uc.u, fmt), '(12300+100j)%')
+
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(fmt._type, '%')
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainComplex('
+                         'x=(1548175+4321j), '
+                         'u=StandardUncertainty(real=123.0, imag=1.0), '
+                         'r=0.0, '
+                         'df=inf, '
+                         'label=None)')
+
+        uc = ucomplex(0.062872513, 0.00023164)
+
+        fmt = create_format(uc, digits=3, type='%', style='L')
+        self.assertEqual('{:.3%L}'.format(uc),  r'\left(6.2873\left(232\right)+0.0000\left(232\right)j\right)\%')
+        self.assertEqual(to_string(uc, fmt),   r'\left(6.2873\left(232\right)+0.0000\left(232\right)j\right)\%')
+        self.assertEqual(to_string(uc.x, fmt), r'\left(6.2873+0.0000j\right)\%')
+        self.assertEqual(to_string(uc.u, fmt), r'\left(0.0232+0.0232j\right)\%')
+
+        formatted = apply_format(uc, fmt)
+        self.assertEqual(fmt._type, '%')
+        self.assertEqual(str(formatted),
+                         'FormattedUncertainComplex('
+                         'x=(0.062873+0j), '
+                         'u=StandardUncertainty(real=0.000232, imag=0.000232), '
+                         'r=0.0, '
+                         'df=inf, '
+                         'label=None)')

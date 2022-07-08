@@ -107,13 +107,13 @@ class Format(object):
 
         # these attributes are used when rounding
         self._digits = int(get('digits', 2))
-        self._u_exponent = 0
+        self._u_exponent = int(get('u_exponent', 0))
         self._df_precision = int(get('df_precision', 0))
         self._r_precision = int(get('r_precision', 3))
 
         # keeps a record of whether the Format was created for
         # an uncertain number with an uncertainty of 0, NaN or INF
-        self._nonzero_and_finite = True
+        self._nonzero_and_finite = bool(get('nonzero_and_finite', True))
 
     def __repr__(self):
         # Use .digits instead of .precision in the result.
@@ -247,6 +247,23 @@ def apply_format(un, fmt):
 
     :rtype: :obj:`~named_tuples.FormattedUncertainReal` or :obj:`~named_tuples.FormattedUncertainComplex`
     """
+    if fmt._type == '%':
+        # JSB: It is a bad idea to apply type=% to an uncertain number. In the
+        # string representation it is okay because a "%" symbol is printed at
+        # the end; however, in a FormattedUncertain* object a user would not
+        # have an obvious way of knowing whether the value and uncertainty
+        # were multiplied by 100.
+        #
+        # Create a copy of Format so that the % to f substitution is only valid
+        # in the scope of this function. This ensures that the input Format
+        # object remains unaltered for the end user.
+        #
+        # Since dropping support for Python 2 is already planned, just call
+        # items() instead of checking whether to call iteritems() or items().
+        kwargs = dict((k[1:], v) for k, v in vars(fmt).items())
+        kwargs['type'] = 'f'
+        fmt = Format(**kwargs)
+
     if is_ureal(un):
         x, u = _round_ureal(un, fmt)
         dof = _truncate_dof(un.df, fmt._df_precision)
@@ -427,6 +444,10 @@ def to_string(obj, fmt):
 
     :rtype: :class:`str`
     """
+    def move_percent_symbol(text):
+        symbol = r'\%' if fmt._style == 'L' else '%'
+        return '{}{}'.format(text.replace(symbol, ''), symbol)
+
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
         v_str = fmt._value(r.value, precision=r.precision, type=r.type)
@@ -442,9 +463,11 @@ def to_string(obj, fmt):
         im_val = fmt._value(i.value, precision=i.precision, type=i.type, sign='+')
         im_str = _stylize(im_val + i.suffix, fmt)
 
-        result = u'({0}{1}j)'.format(re_str, im_str)
+        b1, b2 = _stylize('(', fmt), _stylize(')', fmt)
+        result = u'{0}{1}{2}j{3}'.format(b1, re_str, im_str, b2)
+        if fmt._type == '%':
+            result = move_percent_symbol(result)
         return fmt._result(result)
-
 
     if is_ureal(obj):
         real, imag = obj, None
@@ -456,7 +479,11 @@ def to_string(obj, fmt):
     result = _stylize(_to_string_ureal(real, fmt), fmt)
     if imag is not None:
         imag_str = _to_string_ureal(imag, fmt, sign='+')
-        result = u'({0}{1}j)'.format(result, _stylize(imag_str, fmt))
+        b1, b2 = _stylize('(', fmt), _stylize(')', fmt)
+        result = u'{0}{1}{2}j{3}'.format(b1, result, _stylize(imag_str, fmt), b2)
+        if fmt._type == '%':
+            result = move_percent_symbol(result)
+
     return fmt._result(result)
 
 
@@ -578,7 +605,8 @@ def _stylize(text, fmt):
             ('nan', r'\mathrm{NaN}'),
             ('NAN', r'\mathrm{NaN}'),
             ('inf', r'\infty'),  # must come before 'INF'
-            ('INF', r'\infty')
+            ('INF', r'\infty'),
+            ('%', r'\%'),
         ]
 
     else:
@@ -622,13 +650,18 @@ def _round(value, fmt, exponent=None):
 
     if f_or_g_as_f:
         factor = 1.0
-        precision = max(-fmt._u_exponent, 0)
         digits = -fmt._u_exponent
+        precision = max(digits, 0)
         suffix = ''
+    elif fmt._type == '%':
+        factor = 0.01
+        digits = -fmt._u_exponent - 2
+        precision = max(digits, 0)
+        suffix = '%'
     else:
         factor = 10. ** exponent
-        precision = max(exponent - fmt._u_exponent, 0)
-        digits = precision
+        digits = max(exponent - fmt._u_exponent, 0)
+        precision = digits
         suffix = '{0:.0{1}}'.format(factor, fmt._type)[1:]
 
     val = round(value / factor, digits)
