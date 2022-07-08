@@ -242,7 +242,9 @@ def apply_format(un, fmt):
     :param un: An uncertain number.
     :type un: :class:`~.lib.UncertainReal` or :class:`~.lib.UncertainComplex`
 
-    :param fmt: The format to apply to `un`. See :func:`create_format`.
+    :param fmt: The format to apply to `un`. If the format type is ``'%'``
+        then the type becomes ``'f'`` and the value and the uncertainty are
+        not multiplied by 100. See :func:`create_format` for more details.
     :type fmt: :class:`Format`
 
     :rtype: :obj:`~named_tuples.FormattedUncertainReal` or :obj:`~named_tuples.FormattedUncertainComplex`
@@ -448,7 +450,7 @@ def to_string(obj, fmt):
         or :class:`~.named_tuples.StandardUncertainty`
 
     :param fmt: The format to use to convert `obj` to a string.
-        See :func:`create_format`.
+        See :func:`create_format` for more details.
     :type fmt: :class:`Format`
 
     :rtype: :class:`str`
