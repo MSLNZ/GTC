@@ -642,21 +642,15 @@ def _round(value, fmt, exponent=None):
 
     returns: _Rounded
     """
-    _type = 'F' if fmt._type in 'EFG' else 'f'
-
-    if _nan_or_inf(value):
-        # value precision type exponent suffix
-        return _Rounded(value, 0, _type, 0, '')
-
-    if not fmt._nonzero_and_finite:
-        # value precision type exponent suffix
+    if not fmt._nonzero_and_finite or _nan_or_inf(value):
         return _Rounded(value, fmt._precision, fmt._type, 0, '')
 
     if exponent is None:
         exponent = _order_of_magnitude(value)
 
-    f_or_g_as_f = (fmt._type in 'fF') or \
-                  ((fmt._type in 'gG') and
+    _type = fmt._type
+    f_or_g_as_f = (_type in 'fF') or \
+                  ((_type in 'gG') and
                    (-4 <= exponent < exponent - fmt._u_exponent))
 
     if f_or_g_as_f:
@@ -664,7 +658,7 @@ def _round(value, fmt, exponent=None):
         digits = -fmt._u_exponent
         precision = max(digits, 0)
         suffix = ''
-    elif fmt._type == '%':
+    elif _type == '%':
         factor = 0.01
         digits = -fmt._u_exponent - 2
         precision = max(digits, 0)
@@ -673,8 +667,9 @@ def _round(value, fmt, exponent=None):
         factor = 10. ** exponent
         digits = max(exponent - fmt._u_exponent, 0)
         precision = digits
-        suffix = '{0:.0{1}}'.format(factor, fmt._type)[1:]
+        suffix = '{0:.0{1}}'.format(factor, _type)[1:]
 
+    _type = 'F' if _type in 'EFG' else 'f'
     val = round(value / factor, digits)
     return _Rounded(val, precision, _type, exponent, suffix)
 
