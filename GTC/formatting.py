@@ -743,7 +743,7 @@ def _to_string_ureal(ureal, fmt, sign=None):
     x_str = fmt._value(x_rounded.value, precision=precision, sign=sign, type=x_rounded.type)
 
     u_r = u_rounded.value
-    if _order_of_magnitude(u_r) >= 0 and precision > 0:
+    if precision > 0 and _order_of_magnitude(u_r) >= 0:
         # the uncertainty straddles the decimal point so
         # keep the decimal point in the result
         u_str = fmt._uncertainty(u_r, precision=precision, type=u_rounded.type)
