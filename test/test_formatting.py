@@ -1814,24 +1814,38 @@ class TestFormatting(unittest.TestCase):
         ur = ureal(123456789, 123456)
 
         fmt = create_format(ur, digits=6, grouping=',')
-        self.assertEqual('{:,.6}'.format(ur), '123,456,789(123,456)')
-        self.assertEqual(to_string(ur, fmt), '123,456,789(123,456)')
+        self.assertEqual('{:,.6}'.format(ur),  '123,456,789(123,456)')
+        self.assertEqual(to_string(ur, fmt),   '123,456,789(123,456)')
         self.assertEqual(to_string(ur.x, fmt), '123,456,789')
         self.assertEqual(to_string(ur.u, fmt), '123,456')
 
         fmt = create_format(ur, digits=2, grouping=',')
-        self.assertEqual('{:,.2}'.format(ur), '123,460,000(120,000)')
-        self.assertEqual(to_string(ur, fmt), '123,460,000(120,000)')
+        self.assertEqual('{:,.2}'.format(ur),  '123,460,000(120,000)')
+        self.assertEqual(to_string(ur, fmt),   '123,460,000(120,000)')
         self.assertEqual(to_string(ur.x, fmt), '123,460,000')
         self.assertEqual(to_string(ur.u, fmt), '120,000')
 
-        ur = ucomplex(123456789-987654321j, (123456, 654321))
+        if sys.version_info[:2] >= (3, 6):
+            fmt = create_format(ur, digits=1, grouping='_')
+            self.assertEqual('{:_.1}'.format(ur),  '123_500_000(100_000)')
+            self.assertEqual(to_string(ur, fmt),   '123_500_000(100_000)')
+            self.assertEqual(to_string(ur.x, fmt), '123_500_000')
+            self.assertEqual(to_string(ur.u, fmt), '100_000')
 
-        fmt = create_format(ur, digits=3, grouping=',')
-        self.assertEqual('{:,.3}'.format(ur), '(123,457,000(123,000)-987,654,000(654,000)j)')
-        self.assertEqual(to_string(ur, fmt), '(123,457,000(123,000)-987,654,000(654,000)j)')
-        self.assertEqual(to_string(ur.x, fmt), '(123,457,000-987,654,000j)')
-        self.assertEqual(to_string(ur.u, fmt), '(123,000+654,000j)')
+        uc = ucomplex(123456789-987654321j, (123456, 654321))
+
+        fmt = create_format(uc, digits=3, grouping=',')
+        self.assertEqual('{:,.3}'.format(uc),  '(123,457,000(123,000)-987,654,000(654,000)j)')
+        self.assertEqual(to_string(uc, fmt),   '(123,457,000(123,000)-987,654,000(654,000)j)')
+        self.assertEqual(to_string(uc.x, fmt), '(123,457,000-987,654,000j)')
+        self.assertEqual(to_string(uc.u, fmt), '(123,000+654,000j)')
+
+        if sys.version_info[:2] >= (3, 6):
+            fmt = create_format(uc, digits=4, grouping='_', sign=' ')
+            self.assertEqual('{: _.4}'.format(uc), '( 123_456_800(123_500)-987_654_300(654_300)j)')
+            self.assertEqual(to_string(uc, fmt),   '( 123_456_800(123_500)-987_654_300(654_300)j)')
+            self.assertEqual(to_string(uc.x, fmt), '( 123_456_800-987_654_300j)')
+            self.assertEqual(to_string(uc.u, fmt), '( 123_500+654_300j)')
 
     @unittest.skipIf(sys.version_info[:2] <= (3, 9), 'not supported for this version of Python')
     def test_zero_field(self):
