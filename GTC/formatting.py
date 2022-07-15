@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import locale
 import re
 import math
 import cmath
@@ -167,7 +168,7 @@ class Format(object):
                           ``F``, or before and after the decimal point for
                           presentation types ``g`` or ``G``.
         :type precision: int
-        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g`` or ``G``
+        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g``, ``G`` or ``n``
         :type type: str
         :param sign: Can be one of: ``+``, ``-``, ``' '`` (i.e., a 'space')
         :type sign: str
@@ -183,6 +184,11 @@ class Format(object):
 
         if type is None:
             type = self._type
+
+        if type == 'n':
+            fmt = '%{sign}{hash}.{precision}f'.format(
+                sign=sign, hash=self._hash, precision=precision)
+            return locale.format_string(fmt, value, grouping=True)
 
         return '{0:{sign}{hash}{grouping}.{precision}{type}}'.format(
             value,
@@ -206,7 +212,7 @@ class Format(object):
                           ``F``, or before and after the decimal point for
                           presentation types ``g`` or ``G``.
         :type precision: int
-        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g`` or ``G``
+        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g``, ``G`` or ``n``
         :type type: str
 
         :return: The `uncertainty` formatted.
@@ -353,23 +359,11 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None, style=N
         - *type* (:class:`str`): Can be one of ``'e'``, ``'E'``, ``'f'``,
           ``'F'``, ``'g'``, ``'G'``, ``'n'`` or ``'%'``.
 
-        .. danger::
-           TODO should % only make the uncertainty be a percentage of the
-           value instead of multiplying the value and uncertainty by 100?
-           Should it (and/or n) even be a supported option?
-           BDH: if % were applied to both, it would be consistent I think.
-           For example, an UN of 0.15(01) could become 15(01)%.
-           The risk for confusion is when uncertainty is specified as relative 
-           to a value that is not itself a fraction. E.g., 10 V with relative 
-           uncertainty of 5%: how would that be handled? Badly, one would suppose!
-           I suggest we include the following note
-           
         .. note::
            The ``'%'`` type applies to both the value and standard uncertainty.
            In keeping with the behaviour of ``'%'`` for floats, the value and 
            standard uncertainty will be multiplied by 100 and displayed in 
            fixed ``'f'`` format followed by a percent sign.
-            
 
         .. note::
            The *precision* field is treated differently for uncertain
@@ -435,6 +429,9 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None, style=N
             'The number of digits must be > 0 '
             '[digits={}]'.format(fmt._digits)
         )
+
+    if fmt._type == 'n' and fmt._grouping:
+        raise ValueError("Cannot specify {!r} with 'n'".format(fmt._grouping))
 
     return fmt
 
@@ -650,7 +647,7 @@ def _round(value, fmt, exponent=None):
 
     _type = fmt._type
     f_or_g_as_f = (_type in 'fF') or \
-                  ((_type in 'gG') and
+                  ((_type in 'gGn') and
                    (-4 <= exponent < exponent - fmt._u_exponent))
 
     if f_or_g_as_f:
@@ -669,7 +666,11 @@ def _round(value, fmt, exponent=None):
         precision = digits
         suffix = '{0:.0{1}}'.format(factor, _type)[1:]
 
-    _type = 'F' if _type in 'EFG' else 'f'
+    if _type in 'eg%':
+        _type = 'f'
+    elif _type in 'EG':
+        _type = 'F'
+
     val = round(value / factor, digits)
     return _Rounded(val, precision, _type, exponent, suffix)
 
@@ -739,13 +740,13 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     precision, suffix = x_rounded.precision, x_rounded.suffix
 
-    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign, type='f')
+    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign, type=x_rounded.type)
 
     u_r = u_rounded.value
     if _order_of_magnitude(u_r) >= 0 and precision > 0:
         # the uncertainty straddles the decimal point so
         # keep the decimal point in the result
-        u_str = fmt._uncertainty(u_r, precision=precision)
+        u_str = fmt._uncertainty(u_r, precision=precision, type=u_rounded.type)
     else:
         u_str = fmt._uncertainty(
             round(u_r * 10. ** precision), precision=0)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import locale
 import math
 import sys
 import unittest
@@ -15,6 +16,12 @@ from GTC.formatting import (
     _truncate_dof,
 )
 from GTC.lib import UncertainReal, UncertainComplex
+
+original_locale = locale.getlocale(locale.LC_NUMERIC)
+
+
+def tearDownModule():
+    locale.setlocale(locale.LC_NUMERIC, original_locale)
 
 
 class TestFormatting(unittest.TestCase):
@@ -2090,3 +2097,298 @@ class TestFormatting(unittest.TestCase):
                          'r=0.0, '
                          'df=inf, '
                          'label=None)')
+
+    def test_type_n_raises(self):
+        # can't specify both grouping and n
+        self.assertRaises(ValueError, create_format, 1.0, grouping='_', type='n')
+        self.assertRaises(ValueError, create_format, 1.0, grouping=',', type='n')
+
+    @unittest.skipIf(sys.version_info.major == 2, 'do not want to deal with unicode in Python 2')
+    def test_type_n_swiss(self):
+        # the locale is interesting because it can have non-ascii characters
+        if sys.platform == 'win32':
+            loc = 'German_Switzerland'
+        elif sys.platform == 'darwin':
+            loc = 'de_CH'
+        else:
+            loc = 'de_CH.utf8'
+        locale.setlocale(locale.LC_NUMERIC, loc)
+
+        ur = ureal(1.23456789, 0.987654321)
+        fmt = create_format(ur, type='n')
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),    '1,23(99)')
+            self.assertEqual(to_string(ur.x, fmt),  '1,23')
+            self.assertEqual('{:.3n}'.format(ur.x), '1,23')
+            self.assertEqual(to_string(ur.u, fmt),  '0,99')
+            self.assertEqual('{:.2n}'.format(ur.u), '0,99')
+        else:
+            self.assertEqual(to_string(ur, fmt),    '1.23(99)')
+            self.assertEqual(to_string(ur.x, fmt),  '1.23')
+            self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+            self.assertEqual(to_string(ur.u, fmt),  '0.99')
+            self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+
+        ur = ureal(1.2345678987e6, 0.987654321)
+        fmt = create_format(ur, type='n', digits=4)
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1234567,8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+        elif sys.version_info[:2] == (2, 7) or (sys.platform == 'win32' and
+                                                sys.version_info[:2] == (3, 5)):
+            if sys.platform == 'win32':
+                self.assertEqual(to_string(ur, fmt),     '1\x92234\x92567.8987(9877)')
+                self.assertEqual(to_string(ur.x, fmt),   '1\x92234\x92567.8987')
+                self.assertEqual('{:.11n}'.format(ur.x), '1\x92234\x92567.8987')
+                self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+                self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+            else:
+                self.assertEqual(to_string(ur, fmt),     '1\xe2\x80\x99234\xe2\x80\x99567.8987(9877)')
+                self.assertEqual(to_string(ur.x, fmt),   '1\xe2\x80\x99234\xe2\x80\x99567.8987')
+                self.assertEqual('{:.11n}'.format(ur.x), '1\xe2\x80\x99234\xe2\x80\x99567.8987')
+                self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+                self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+        else:
+            self.assertEqual(to_string(ur, fmt),     '1’234’567.8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1’234’567.8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1’234’567.8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+
+        ur = ureal(12345.6789, 9876.54321)
+        fmt = create_format(ur, type='n', digits=8)
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12345,6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9876,5432')
+        elif sys.version_info[:2] == (2, 7) or (sys.platform == 'win32' and
+                                                sys.version_info[:2] == (3, 5)):
+            if sys.platform == 'win32':
+                self.assertEqual(to_string(ur, fmt),    '12\x92345.6789(9\x92876.5432)')
+                self.assertEqual(to_string(ur.x, fmt),  '12\x92345.6789')
+                self.assertEqual('{:.9n}'.format(ur.x), '12\x92345.6789')
+                self.assertEqual(to_string(ur.u, fmt),  '9\x92876.5432')
+                self.assertEqual('{:.8n}'.format(ur.u), '9\x92876.5432')
+            else:
+                self.assertEqual(to_string(ur, fmt),    '12\xe2\x80\x99345.6789(9\xe2\x80\x99876.5432)')
+                self.assertEqual(to_string(ur.x, fmt),  '12\xe2\x80\x99345.6789')
+                self.assertEqual('{:.9n}'.format(ur.x), '12\xe2\x80\x99345.6789')
+                self.assertEqual(to_string(ur.u, fmt),  '9\xe2\x80\x99876.5432')
+                self.assertEqual('{:.8n}'.format(ur.u), '9\xe2\x80\x99876.5432')
+        else:
+            self.assertEqual(to_string(ur, fmt),    '12’345.6789(9’876.5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12’345.6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12’345.6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9’876.5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9’876.5432')
+
+    def test_type_n_german(self):
+        if sys.platform == 'win32':
+            loc = 'German_Germany'
+        elif sys.platform == 'darwin':
+            loc = 'de_DE'
+        else:
+            loc = 'de_DE.utf8'
+        locale.setlocale(locale.LC_NUMERIC, loc)
+
+        ur = ureal(1.23456789, 0.987654321)
+        fmt = create_format(ur, type='n')
+        self.assertEqual(to_string(ur, fmt),    '1,23(99)')
+        self.assertEqual(to_string(ur.x, fmt),  '1,23')
+        self.assertEqual('{:.3n}'.format(ur.x), '1,23')
+        self.assertEqual(to_string(ur.u, fmt),  '0,99')
+        self.assertEqual('{:.2n}'.format(ur.u), '0,99')
+
+        ur = ureal(1.2345678987e6, 0.987654321)
+        fmt = create_format(ur, type='n', digits=4)
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1234567,8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+        else:
+            self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1.234.567,8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+
+        ur = ureal(12345.6789, 9876.54321)
+        fmt = create_format(ur, type='n', digits=8)
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12345,6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9876,5432')
+        else:
+            self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12.345,6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9.876,5432')
+
+    def test_type_n_india(self):
+        # the locale is interesting because it can a different
+        # 'grouping' for the 'thousands_sep' key
+        if sys.platform == 'win32':
+            loc = 'English_India'
+        elif sys.platform == 'darwin':
+            loc = 'hi_IN.ISCII-DEV'
+        else:
+            loc = 'en_IN.utf8'
+        locale.setlocale(locale.LC_NUMERIC, loc)
+
+        ur = ureal(1.23456789, 0.987654321)
+        fmt = create_format(ur, type='n')
+        self.assertEqual(to_string(ur, fmt),    '1.23(99)')
+        self.assertEqual(to_string(ur.x, fmt),  '1.23')
+        self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+        self.assertEqual(to_string(ur.u, fmt),  '0.99')
+        self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+
+        ur = ureal(1.2345678987e6, 0.987654321)
+        fmt = create_format(ur, type='n', digits=4)
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),     '12,345,67.8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '12,345,67.8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '12,345,67.8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+        else:
+            self.assertEqual(to_string(ur, fmt),     '12,34,567.8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '12,34,567.8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '12,34,567.8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+
+        ur = ureal(12345.6789, 9876.54321)
+        fmt = create_format(ur, type='n', digits=8)
+        if sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),    '123,45.6789(98,76.5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '123,45.6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '123,45.6789')
+            self.assertEqual(to_string(ur.u, fmt),  '98,76.5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '98,76.5432')
+        else:
+            self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
+
+    def test_type_n_kiwi(self):
+        # make sure the native locale for MSL is good
+        if sys.platform == 'win32':
+            loc = 'English_New Zealand'
+        elif sys.platform == 'darwin':
+            loc = 'en_NZ'
+        else:
+            loc = 'en_NZ.utf8'
+        locale.setlocale(locale.LC_NUMERIC, loc)
+
+        ur = ureal(1.23456789, 0.987654321)
+        fmt = create_format(ur, type='n')
+        self.assertEqual(to_string(ur, fmt),    '1.23(99)')
+        self.assertEqual(to_string(ur.x, fmt),  '1.23')
+        self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+        self.assertEqual(to_string(ur.u, fmt),  '0.99')
+        self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+
+        ur = ureal(1.2345678987e6, 0.987654321)
+        fmt = create_format(ur, type='n', digits=4)
+        self.assertEqual(to_string(ur, fmt),     '1,234,567.8987(9877)')
+        self.assertEqual(to_string(ur.x, fmt),   '1,234,567.8987')
+        self.assertEqual('{:.11n}'.format(ur.x), '1,234,567.8987')
+        self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+        self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+
+        ur = ureal(12345.6789, 9876.54321)
+        fmt = create_format(ur, type='n', digits=8)
+        self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
+        self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
+        self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
+        self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
+        self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
+
+        ur = ureal(12345.6789, 9876.54321)
+        fmt = create_format(ur, type='n', digits=8, sign='+')
+        self.assertEqual(to_string(ur, fmt),     '+12,345.6789(9,876.5432)')
+        self.assertEqual(to_string(ur.x, fmt),   '+12,345.6789')
+        self.assertEqual('{:+.9n}'.format(ur.x), '+12,345.6789')
+        self.assertEqual(to_string(ur.u, fmt),   '+9,876.5432')
+        self.assertEqual('{:+.8n}'.format(ur.u), '+9,876.5432')
+
+    @unittest.skipIf(sys.version_info.major == 2, 'do not want to deal with unicode in Python 2')
+    def test_type_n_afrikaan(self):
+        # the locale is interesting because it can have non-ascii characters
+        if sys.platform == 'win32':
+            loc = 'English_South Africa'
+        elif sys.platform == 'darwin':
+            loc = 'af_ZA'
+        else:
+            loc = 'en_ZA.utf8'
+        locale.setlocale(locale.LC_NUMERIC, loc)
+
+        ur = ureal(1.23456789, 0.987654321)
+        fmt = create_format(ur, type='n')
+        if sys.platform.startswith('linux'):
+            self.assertEqual(to_string(ur, fmt),    '1.23(99)')
+            self.assertEqual(to_string(ur.x, fmt),  '1.23')
+            self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+            self.assertEqual(to_string(ur.u, fmt),  '0.99')
+            self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+        else:
+            self.assertEqual(to_string(ur, fmt),    '1,23(99)')
+            self.assertEqual(to_string(ur.x, fmt),  '1,23')
+            self.assertEqual('{:.3n}'.format(ur.x), '1,23')
+            self.assertEqual(to_string(ur.u, fmt),  '0,99')
+            self.assertEqual('{:.2n}'.format(ur.u), '0,99')
+
+        ur = ureal(1.2345678987e6, 0.987654321)
+        fmt = create_format(ur, type='n', digits=4)
+        if sys.platform == 'win32':
+            self.assertEqual(to_string(ur, fmt),     '1\xa0234\xa0567,8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1\xa0234\xa0567,8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1\xa0234\xa0567,8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+        elif sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1.234.567,8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+        else:
+            self.assertEqual(to_string(ur, fmt),     '1,234,567.8987(9877)')
+            self.assertEqual(to_string(ur.x, fmt),   '1,234,567.8987')
+            self.assertEqual('{:.11n}'.format(ur.x), '1,234,567.8987')
+            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+
+        ur = ureal(12345.6789, 9876.54321)
+        fmt = create_format(ur, type='n', digits=8)
+        if sys.platform == 'win32':
+            self.assertEqual(to_string(ur, fmt),    '12\xa0345,6789(9\xa0876,5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12\xa0345,6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12\xa0345,6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9\xa0876,5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9\xa0876,5432')
+        elif sys.platform == 'darwin':
+            self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12.345,6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9.876,5432')
+        else:
+            self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
+            self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
+            self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
+            self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
+            self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
