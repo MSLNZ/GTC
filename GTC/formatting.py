@@ -54,7 +54,7 @@ _format_spec_regex = re.compile(
 _exponent_regex = re.compile(r'[eE][+-]\d+')
 
 # TODO replace u'' with '' when dropping support for
-#  Python 2.7. There a multiple occurrences in this module.
+#  Python 2.7. There are multiple occurrences in this module.
 _unicode_superscripts = {
     ord('+'): u'\u207A',
     ord('-'): u'\u207B',
