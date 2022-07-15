@@ -1850,7 +1850,7 @@ class TestFormatting(unittest.TestCase):
     @unittest.skipIf(sys.version_info[:2] <= (3, 9), 'not supported for this version of Python')
     def test_zero_field(self):
         ur = ureal(1.342, 0.0041)
-        fmt = create_format(ur, digits=1, zero='0', width=15)
+        fmt = create_format(ur, digits=1, zero=True, width=15)
         self.assertEqual('{:<015.1}'.format(ur),  '1.342(4)0000000')
         self.assertEqual(to_string(ur, fmt),      '1.342(4)0000000')
         self.assertEqual(to_string(ur.x, fmt),    '1.3420000000000')
