@@ -1384,6 +1384,29 @@ class UncertainReal(object):
         """
         return UncertainReal._constant(0.0)
 
+    #-----------------------------------------------------------------
+    def _fmod(self,y):
+        """
+        Return ``self`` modulo ``y``.
+
+        :rtype: :class:`UncertainReal`
+        
+        .. Note::
+        
+            Modulo is calculated in the same way as ``math.fmod``
+            (which differs from the Python operator ``%``) 
+ 
+        .. Note::
+        
+            The standard uncertainty associated with ``self`` should be  
+            less than the magnitude of ``y`` (unchecked assumption).
+ 
+         .. versionadded:: 1.3.9
+         
+        """
+        x = self._x
+        return math.fmod(x,y) + (self - x)
+
 #----------------------------------------------------------------------------
 def _atan2_re_re(lhs,rhs): 
     """

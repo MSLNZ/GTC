@@ -81,6 +81,7 @@ __all__ = (
     ,   'mag_squared'
     ,   'magnitude'
     ,   'phase'
+    ,   'fmod'
     ,   'copyright',    'version'
     ,   'reporting',    'rp'
     ,   'function',     'fn'

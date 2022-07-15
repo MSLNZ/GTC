@@ -77,6 +77,7 @@ __all__ = (
     ,   'mag_squared'
     ,   'magnitude'
     ,   'phase'
+    ,   'fmod'
     ,   'copyright'
     ,   'version'
     ,   'reporting',    'rp'
@@ -1301,6 +1302,41 @@ def mag_squared(x):
 from GTC import linear_algebra
 la = linear_algebra
 
+#----------------------------------------------------------------------------
+def fmod(x,y):
+    """
+    Return ``x`` modulo ``y``
+
+    :arg x: an :class:`~lib.UncertainReal` or a number
+    :arg y: a number (int or float)
+
+    .. note::
+
+        If ``x`` is not an uncertain number,
+        returns :func:`math.fmod(x,y)<abs>`.    
+        
+    .. note::
+    
+        When ``x`` is an uncertain number, it is an untested assumption
+        that the standard uncertainty associated with ``x`` is not greater 
+        than the magnitude of ``y``. 
+ 
+
+    .. versionadded:: 1.3.9
+ 
+    """
+    try:
+        return x._fmod(y)
+    except AttributeError:
+        pass
+        
+    if isinstance(x,numbers.Real) and isinstance(y,numbers.Real):
+        return math.fmod(x,y)
+    else:
+        raise TypeError(
+            "illegal operation: fmod({!r},{!r})".format(x,y)
+        )
+        
 #============================================================================    
 if __name__ == "__main__":
     import doctest       
