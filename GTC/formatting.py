@@ -147,13 +147,13 @@ class Format(object):
         :return: The `text` formatted.
         :rtype: str
         """
-        return u'{0:{fill}{align}{zero}{width}s}'.format(
-            text,
-            fill=self._fill,
-            align=self._align,
-            zero=self._zero,
-            width=self._width
-        )
+        fmt = '{fill}{align}{zero}{width}s'.format(
+            fill=self._fill, align=self._align,
+            zero=self._zero, width=self._width)
+        try:
+            return u'{0:{1}}'.format(text, fmt)
+        except UnicodeError:
+            return '{0:{1}}'.format(text, fmt)
 
     def _value(self, value, precision=None, type=None, sign=None):
         """Format a value.

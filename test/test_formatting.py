@@ -2103,9 +2103,8 @@ class TestFormatting(unittest.TestCase):
         self.assertRaises(ValueError, create_format, 1.0, grouping='_', type='n')
         self.assertRaises(ValueError, create_format, 1.0, grouping=',', type='n')
 
-    @unittest.skipIf(sys.version_info.major == 2, 'do not want to deal with unicode in Python 2')
     def test_type_n_swiss(self):
-        # the locale is interesting because it can have non-ascii characters
+        # this locale is interesting because it can have non-ascii characters
         if sys.platform == 'win32':
             loc = 'German_Switzerland'
         elif sys.platform == 'darwin':
@@ -2235,7 +2234,7 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual('{:.8n}'.format(ur.u), '9.876,5432')
 
     def test_type_n_india(self):
-        # the locale is interesting because it can a different
+        # this locale is interesting because it can have a different
         # 'grouping' for the 'thousands_sep' key
         if sys.platform == 'win32':
             loc = 'English_India'
@@ -2325,9 +2324,8 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur.u, fmt),   '+9,876.5432')
         self.assertEqual('{:+.8n}'.format(ur.u), '+9,876.5432')
 
-    @unittest.skipIf(sys.version_info.major == 2, 'do not want to deal with unicode in Python 2')
-    def test_type_n_afrikaan(self):
-        # the locale is interesting because it can have non-ascii characters
+    def test_type_n_afrikaans(self):
+        # this locale is interesting because it can have non-ascii characters
         if sys.platform == 'win32':
             loc = 'English_South Africa'
         elif sys.platform == 'darwin':
