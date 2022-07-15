@@ -298,13 +298,14 @@ def apply_format(un, fmt):
         raise RuntimeError("unexpected type: {!r}".format(un))
 
 
-def create_format(obj, digits=None, df_precision=None, r_precision=None, style=None, **kwargs):
+def create_format(obj, digits=None, df_precision=None, r_precision=None,
+                  style=None, **kwargs):
     r"""Create a format specification.
 
     Formatting an uncertain number rounds the value and the uncertainty to the
-    specified number of significant digits (based on the uncertainty component), and
-    truncates the degrees of freedom and rounds the correlation coefficient to the
-    specified precision (the number of digits after the decimal point).
+    specified number of significant digits (based on the uncertainty component),
+    and truncates the degrees of freedom and rounds the correlation coefficient
+    to the specified precision (the number of digits after the decimal point).
 
     .. versionadded:: 1.4.0
 
@@ -740,7 +741,8 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     precision, suffix = x_rounded.precision, x_rounded.suffix
 
-    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign, type=x_rounded.type)
+    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign,
+                       type=x_rounded.type)
 
     u_r = u_rounded.value
     if precision > 0 and _order_of_magnitude(u_r) >= 0:
@@ -748,6 +750,5 @@ def _to_string_ureal(ureal, fmt, sign=None):
         # keep the decimal point in the result
         u_str = fmt._uncertainty(u_r, precision=precision, type=u_rounded.type)
     else:
-        u_str = fmt._uncertainty(
-            round(u_r * 10. ** precision), precision=0)
+        u_str = fmt._uncertainty(round(u_r * 10. ** precision), precision=0)
     return '{0}({1}){2}'.format(x_str, u_str, suffix)
