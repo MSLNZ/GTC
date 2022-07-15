@@ -2369,8 +2369,8 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(ur, fmt),     '1,234,567.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1,234,567.8987')
             self.assertEqual('{:.11n}'.format(ur.x), '1,234,567.8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
