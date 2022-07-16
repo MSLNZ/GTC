@@ -155,7 +155,7 @@ class Format(object):
         except UnicodeError:
             return '{0:{1}}'.format(text, fmt)
 
-    def _value(self, value, precision=None, type=None, sign=None):
+    def _value(self, value, precision=None, type=None, sign=None, hash=None):
         """Format a value.
 
         Uses the sign, hash symbol, grouping, precision and type
@@ -172,6 +172,8 @@ class Format(object):
         :type type: str
         :param sign: Can be one of: ``+``, ``-``, ``' '`` (i.e., a 'space')
         :type sign: str
+        :param hash: Can be either ``#`` or None.
+        :type hash: str
 
         :return: The `value` formatted.
         :rtype: str
@@ -185,21 +187,24 @@ class Format(object):
         if type is None:
             type = self._type
 
+        if hash is None:
+            hash = self._hash
+
         if type == 'n':
             fmt = '%{sign}{hash}.{precision}f'.format(
-                sign=sign, hash=self._hash, precision=precision)
+                sign=sign, hash=hash, precision=precision)
             return locale.format_string(fmt, value, grouping=True)
 
         return '{0:{sign}{hash}{grouping}.{precision}{type}}'.format(
             value,
             sign=sign,
-            hash=self._hash,
+            hash=hash,
             grouping=self._grouping,
             precision=precision,
             type=type
         )
 
-    def _uncertainty(self, uncertainty, precision=None, type='f'):
+    def _uncertainty(self, uncertainty, precision=None, type='f', hash=None):
         """Format an uncertainty.
 
         Uses the sign, hash symbol, grouping, precision and type
@@ -214,11 +219,14 @@ class Format(object):
         :type precision: int
         :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g``, ``G`` or ``n``
         :type type: str
+        :param hash: Can be either ``#`` or None.
+        :type hash: str
 
         :return: The `uncertainty` formatted.
         :rtype: str
         """
-        return self._value(uncertainty, precision=precision, type=type, sign='')
+        return self._value(uncertainty, precision=precision,
+                           type=type, sign='', hash=hash)
 
 
 def parse(format_spec):
@@ -376,7 +384,7 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
         .. note::
            If the uncertainty component is 0 then the string representation
            of the uncertain number does not include the uncertainty in
-           parenthesis and *digits* is equivalent to *precision*.
+           parentheses and *digits* is equivalent to *precision*.
 
            >>> ur = ureal(3.1415926536, 0)
            >>> '{:.5f}'.format(ur)
@@ -399,17 +407,13 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
     kwargs['style'] = style
     kwargs['df_precision'] = df_precision
     kwargs['r_precision'] = r_precision
+    kwargs['hash'] = '#' if kwargs.get('hash') else ''
+    kwargs['zero'] = '0' if kwargs.get('zero') else ''
 
     if digits is None:
         kwargs['digits'] = kwargs.get('precision')
     else:
         kwargs['digits'] = digits
-
-    if kwargs.get('hash'):
-        kwargs['hash'] = '#'
-
-    if kwargs.get('zero'):
-        kwargs['zero'] = '0'
 
     try:
         u = obj.u
@@ -739,16 +743,20 @@ def _to_string_ureal(ureal, fmt, sign=None):
 
     x_rounded, u_rounded = _round_ureal(ureal, fmt)
 
-    precision, suffix = x_rounded.precision, x_rounded.suffix
-
-    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign,
-                       type=x_rounded.type)
-
     u_r = u_rounded.value
-    if precision > 0 and _order_of_magnitude(u_r) >= 0:
+    oom = _order_of_magnitude(u_r)
+    precision = x_rounded.precision
+
+    if precision > 0 and oom >= 0:
         # the uncertainty straddles the decimal point so
         # keep the decimal point in the result
         u_str = fmt._uncertainty(u_r, precision=precision, type=u_rounded.type)
     else:
-        u_str = fmt._uncertainty(round(u_r * 10. ** precision), precision=0)
-    return '{0}({1}){2}'.format(x_str, u_str, suffix)
+        hash_ = '' if oom < 0 and fmt._hash else None
+        u_str = fmt._uncertainty(round(u_r * 10. ** precision),
+                                 precision=0, hash=hash_)
+
+    x_str = fmt._value(x_rounded.value, precision=precision, sign=sign,
+                       type=x_rounded.type)
+
+    return '{0}({1}){2}'.format(x_str, u_str, x_rounded.suffix)
