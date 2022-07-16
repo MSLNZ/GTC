@@ -2493,3 +2493,9 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
             self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
             self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
+
+    def test_to_string_raises(self):
+        ur = ureal(1, 1)
+        fmt = create_format(ur)
+        for obj in [None, '1.0', b'0', {}, [], (), object()]:
+            self.assertRaises(RuntimeError, to_string, obj, fmt)
