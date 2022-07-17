@@ -164,15 +164,15 @@ class Format(object):
         :param value: The value to format.
         :type value: int, float, complex
         :param precision: Indicates how many digits should be displayed after
-                          the decimal point for presentation types ``f`` and
-                          ``F``, or before and after the decimal point for
-                          presentation types ``g`` or ``G``.
+                          the decimal point for presentation types f and F,
+                          or before and after the decimal point for
+                          presentation types g or G.
         :type precision: int
-        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g``, ``G`` or ``n``
+        :param type: Can be one of: e, E, f, F, g, G, n
         :type type: str
-        :param sign: Can be one of: ``+``, ``-``, ``' '`` (i.e., a 'space')
+        :param sign: Can be one of: +, -, ' ' (a space)
         :type sign: str
-        :param hash: Can be either ``#`` or None.
+        :param hash: Can be either # or '' (an empty string)
         :type hash: str
 
         :return: The `value` formatted.
@@ -213,13 +213,13 @@ class Format(object):
         :param uncertainty: The uncertainty to format.
         :type uncertainty: float
         :param precision: Indicates how many digits should be displayed after
-                          the decimal point for presentation types ``f`` and
-                          ``F``, or before and after the decimal point for
-                          presentation types ``g`` or ``G``.
+                          the decimal point for presentation types f and F,
+                          or before and after the decimal point for
+                          presentation types g or G.
         :type precision: int
-        :param type: Can be one of: ``e``, ``E``, ``f``, ``F``, ``g``, ``G`` or ``n``
+        :param type: Can be one of: e, E, f, F, g, G, n
         :type type: str
-        :param hash: Can be either ``#`` or None.
+        :param hash: Can be either # or '' (an empty string)
         :type hash: str
 
         :return: The `uncertainty` formatted.
