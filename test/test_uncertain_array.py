@@ -47,7 +47,7 @@ from GTC.core import (
 
 from GTC import inf, nan
 from GTC.uncertain_array import UncertainArray, _isinf, _isnan
-from GTC.named_tuples import GroomedUncertainReal, StandardUncertainty, VarianceCovariance
+from GTC.named_tuples import StandardUncertainty, VarianceCovariance
 from GTC.lib import UncertainReal, UncertainComplex
 from GTC import type_a, function, linear_algebra
 from GTC.linear_algebra import matmul, uarray
@@ -3284,67 +3284,11 @@ class TestUncertainArray(unittest.TestCase):
         # self.assertTrue(value( function.sum( ptp[3, :] ) ) == 9)
 
     def test_round(self):
-        a = uarray([
-            [ureal(0.378384871, 0.1831984, df=12.44649822), ureal(1.649863876, 1.28794362, df=9.218476), 9.31222357j],
-            [ureal(64.17441638, 2.4987163, df=inf), ureal(-472.974793166, 7.812474106, df=87.1683249), -1.23456789]
-        ])
-
-        self.assertTrue(isinstance(a, UncertainArray))
-        self.assertTrue(isinstance(a[0], UncertainArray))
-        self.assertTrue(isinstance(a[0, 0], UncertainReal))
-
-        # the `decimals` parameter for np.round is really the `digits` parameter of
-        # UncertainReal._round and UncertainComplex._round
-        for i in range(3):
-            if i == 0:
-                out = np.round(a, decimals=2)
-            elif i == 1:
-                out = a.round(decimals=2)
-            else:
-                out = a.round(digits=2)
-            self.assertTrue(out is not a)
-            self.assertTrue(out[0] is not a[0])
-            self.assertTrue(out[0][0] is not a[0][0])
-            self.assertTrue(isinstance(out[0], UncertainArray))
-            self.assertTrue(isinstance(out[0, 0], GroomedUncertainReal))
-            self.assertTrue(equivalent(out[0, 0].x, 0.38))
-            self.assertTrue(equivalent(out[0, 0].u, 0.18))
-            self.assertTrue(equivalent(out[0, 0].df, 12.44))
-            self.assertTrue(equivalent(out[0, 1].x, 1.6))
-            self.assertTrue(equivalent(out[0, 1].u, 1.3))
-            self.assertTrue(equivalent(out[0, 1].df, 9.21))
-            self.assertTrue(equivalent_complex(value(out[0, 2]), 9.31j))
-            self.assertTrue(equivalent(uncertainty(out[0, 2]), 0.0))
-            self.assertTrue(math.isinf(dof(out[0, 2])))
-            self.assertTrue(equivalent(out[1, 0].x, 64.2))
-            self.assertTrue(equivalent(out[1, 0].u, 2.5))
-            self.assertTrue(math.isinf(out[1, 0].df))
-            self.assertTrue(equivalent(out[1, 1].x, -473.0))
-            self.assertTrue(equivalent(out[1, 1].u, 7.8))
-            self.assertTrue(equivalent(out[1, 1].df, 87.16))
-            self.assertTrue(equivalent(value(out[1, 2]), -1.23))
-            self.assertTrue(equivalent(uncertainty(out[1, 2]), 0.0))
-            self.assertTrue(math.isinf(dof(out[0, 2])))
-
-        out = a.round(digits=4, df_decimals=0)
-        self.assertTrue(equivalent(out[0, 0].x, 0.3784))
-        self.assertTrue(equivalent(out[0, 0].u, 0.1832))
-        self.assertTrue(equivalent(out[0, 0].df, 12))
-        self.assertTrue(equivalent(out[0, 1].x, 1.650))
-        self.assertTrue(equivalent(out[0, 1].u, 1.2880))
-        self.assertTrue(equivalent(out[0, 1].df, 9))
-        self.assertTrue(equivalent_complex(value(out[0, 2]), 9.3122j))
-        self.assertTrue(equivalent(uncertainty(out[0, 2]), 0))
-        self.assertTrue(math.isinf(dof(out[0, 2])))
-        self.assertTrue(equivalent(out[1, 0].x, 64.174))
-        self.assertTrue(equivalent(out[1, 0].u, 2.499))
-        self.assertTrue(math.isinf(out[1, 0].df))
-        self.assertTrue(equivalent(out[1, 1].x, -472.975))
-        self.assertTrue(equivalent(out[1, 1].u, 7.812))
-        self.assertTrue(equivalent(out[1, 1].df, 87))
-        self.assertTrue(equivalent(value(out[1, 2]), -1.2346))
-        self.assertTrue(equivalent(uncertainty(out[1, 2]), 0.0))
-        self.assertTrue(math.isinf(dof(out[1, 2])))
+        self.assertRaises(TypeError, self.xa.round)
+        if np.__version__ < '1.17.0':
+            self.assertRaises(AttributeError, np.round, self.xa)
+        else:
+            self.assertRaises(TypeError, np.round, self.xa)
 
     # # TODO the partition and argpartition tests do not produce the expected results
     # # https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.ndarray.partition.html?highlight=partition#numpy.ndarray.partition

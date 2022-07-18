@@ -982,7 +982,7 @@ class TestUncertainReal(unittest.TestCase):
         self.assertEqual( repr(x), 'ureal(1.0,0.1,nan)')
 
         x = ureal(1.0,0.0)
-        self.assertEqual( str(x), ' 1.000000')   # reverts to default number format
+        self.assertEqual( str(x), ' 1.00')
         self.assertEqual( repr(x), 'ureal(1.0,0.0,inf)')
 
 #----------------------------------------------------------------------------

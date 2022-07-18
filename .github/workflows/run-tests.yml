@@ -45,6 +45,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
+      - name: Install locales (Ubuntu)
+        if: ${{ matrix.os == 'ubuntu' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y language-pack-en language-pack-de
       - name: Install dependencies and package
         run: |
           python -m pip install --upgrade pip

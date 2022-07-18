@@ -524,7 +524,304 @@ class TestBudget(unittest.TestCase):
             TOL
         ) )    
 
-   
+#-----------------------------------------------------
+class TestComponents(unittest.TestCase):
+    
+    def test_errors(self):
+        
+        x = ureal(1,1,label="x")
+        y = ureal(1,1,label="y")
+        z = ureal(1,1,label="z")
+
+        x1 = result(x + y,label='x1')
+        y1 = result(y + z,label='y1')
+
+        x2 = x1 + y1
+
+        # Illegal combination of keywords
+        self.assertRaises(
+            RuntimeError,rp.components,x2,influences=[x1],intermediate=True
+        )
+        
+    def test_empty_budget(self):
+        """
+        When there are no influence quantities, an empty 
+        sequence should be returned. 
+        
+        """
+        seq = rp.budget(3.0)
+        self.assertEqual(len(seq),0)
+ 
+        x = constant(6)
+        seq = rp.components(x)
+        self.assertEqual(len(seq),0)
+ 
+        x = constant(6+4j)
+        seq = rp.components(x)
+        self.assertEqual(len(seq),0)
+        x = constant(6)
+        seq = rp.components(x)
+        self.assertEqual(len(seq),0)
+ 
+        x = constant(6+4j)
+        seq = rp.components(x)
+        self.assertEqual(len(seq),0)
+
+    def test_limited_budget(self):
+        x1 = ureal(0,1)
+        x2 = ureal(0,1)
+        x3 = ureal(0,1)
+        y = x1 + x2 + x3 
+        
+        seq = rp.components(y)
+        self.assertEqual( len(seq), 3 )
+        seq = rp.components(y,max_number=2)
+        self.assertEqual( len(seq), 2 )
+        
+    def test_real(self):
+        """
+        The budget of a real quantity will consist of a
+        list of named tuples with elements for the
+        labels and values (the magnitude)
+        of the components of uncertainty.
+
+        When a complex quantity has been involved, expect to
+        see the components of uncertainty in terms of the
+        real and imaginary components.
+
+        A sequence of influences may be given, which may include
+        real or complex uncertain numbers.
+        
+        """
+        x1 = dict(x=1,u=.1,label='x1')
+        x2 = dict(x=2,u=.2,label='x2')
+
+        # defined as a complex but it has 0 imaginary        
+        z1 = dict(z=3,u=1,label='z1')    
+        
+        ux1 = ureal(**x1)
+        ux2 = ureal(**x2)
+        uz1 = ucomplex(**z1)
+
+        y = -ux1 + ux2 * magnitude(-uz1)
+
+        # Trim should remove the zero element b[3]
+        b = reporting.components(y,trim=0.01)
+        self.assertEqual( len(b), 3  )
+
+        b = reporting.components(y,trim=0)
+        self.assertEqual( len(b), 4  )
+        
+        # The default order is in terms of the biggest uncertainty
+        self.assertEqual(b[0].uid,uz1.real.uid)
+        self.assertEqual(b[1].uid,ux2.uid)
+        self.assertEqual(b[2].uid,ux1.uid)
+        self.assertEqual(b[3].uid,uz1.imag.uid)
+
+        self.assertTrue( equivalent(b[0].u,2.0,TOL) )
+        self.assertTrue( equivalent(b[1].u,3*.2,TOL) )
+        self.assertTrue( equivalent(b[2].u,0.1,TOL) )
+        self.assertTrue( equivalent(b[3].u,0,TOL) )
+
+        b = reporting.components(y,influences=[ux1,uz1.real,uz1.imag],trim=0)
+        self.assertEqual( len(b), 3  )
+        self.assertEqual(b[0].uid,uz1.real.uid)
+        self.assertEqual(b[1].uid,ux1.uid)
+        self.assertEqual(b[2].uid,uz1.imag.uid)
+
+        # A complex quantity may be passed as an
+        # influence but the budget reports real
+        # and imaginary components
+        b = reporting.components(y,influences=[ux1,uz1],trim=0)
+        self.assertEqual( len(b), 3  )
+        self.assertEqual(b[0].uid,uz1.real.uid)
+        self.assertEqual(b[1].uid,ux1.uid)
+        self.assertEqual(b[2].uid,uz1.imag.uid)
+
+    def test_complex(self):
+        """
+        The budget of a complex quantity will consist of a
+        list of named tuples with elements for the
+        labels and values (the u_bar magnitude)
+        of the components of uncertainty.
+
+        Real quantities can be involved.
+
+        Sorting is tested in the real case above.        
+        
+        """
+        z1 = dict(z=1+1j,u=(1,1),label='z1')
+        uz1 = ucomplex(**z1)
+        
+        z2 = dict(z=2-1j,u=(.5,.5),label='z2')
+        uz2 = ucomplex(**z2)
+        
+        x1 = dict(x=1,u=.1,label='x1')
+        ux1 = ureal(**x1)
+
+        y = -uz1 + uz2* ux1
+        
+        b = reporting.components(y)
+        self.assertEqual( len(b), 3)
+
+        self.assertTrue( equivalent(b[0].u,1.0,TOL) )
+        self.assertTrue( equivalent(b[1].u,0.5,TOL) )
+        self.assertTrue( equivalent(b[2].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
+
+        b = reporting.components(y,influences=[ux1,uz1])
+        self.assertEqual( len(b), 2)
+        
+        self.assertTrue( equivalent(b[0].u,1.0,TOL) )
+        self.assertTrue( equivalent(b[1].u,math.sqrt((.1**2 + .2**2)/2),TOL) )
+
+    def test_intermediate_real(self):
+        
+        x = ureal(1,1,label="x")
+        y = ureal(1,1,label="y")
+        z = ureal(1,1,label="z")
+
+        x1 = result(x + y,label='x1')
+        y1 = result(y + z,label='y1')
+
+        # First possibility: undeclared result 
+        x2 = x1 + y1
+        
+        # NB, expect 2 items; 3 would be an error
+        x1_,y1_ = rp.components(x2,intermediate=True)
+        
+        self.assertEqual( x1_.uid, x1.uid)
+        self.assertEqual( y1_.uid, y1.uid)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Second possibility: declared result, no label
+        x2 = result(x1 + y1)
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.components(x2,intermediate=True)
+        
+        self.assertEqual( x1_.uid, x1.uid)
+        self.assertEqual( y1_.uid, y1.uid)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Third possibility: declared result
+        result(x1 + y1,label='x2')
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.components(x2,intermediate=True)
+        
+        self.assertEqual( x1_.uid, x1.uid)
+        self.assertEqual( y1_.uid, y1.uid)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+
+    def test_intermediate_complex(self):
+        
+        x = ucomplex(1,1,label="x")
+        y = ucomplex(1,1,label="y")
+        z = ucomplex(1,1,label="z")
+
+        x1 = result(x + y,label='x1')
+        y1 = result(y + z,label='y1')
+
+        # First possibility: undeclared result 
+        x2 = x1 + y1
+        
+        # NB, expect 2 items; 3 would be an error
+        x1_,y1_ = rp.components(x2,intermediate=True)
+        
+        self.assertEqual( x1_.uid, x1.uid)
+        self.assertEqual( y1_.uid, y1.uid)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Second possibility: declared result, no label
+        x2 = result(x1 + y1)
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.components(x2,intermediate=True)
+        
+        self.assertEqual( x1_.uid, x1.uid)
+        self.assertEqual( y1_.uid, y1.uid)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+ 
+        # Third possibility: declared result
+        result(x1 + y1,label='x2')
+        
+        # NB, expect 2 items. 
+        # Here 3 is a possible fault 
+        x1_,y1_ = rp.components(x2,intermediate=True)
+        
+        self.assertEqual( x1_.uid, x1.uid)
+        self.assertEqual( y1_.uid, y1.uid)
+        
+        self.assertTrue( equivalent(
+            x1_.u,
+            math.sqrt(2),
+            TOL
+        ) )
+  
+        self.assertTrue( equivalent(
+            y1_.u,
+            math.sqrt(2),
+            TOL
+        ) )    
+        
 #============================================================================
 if(__name__== '__main__'):
 

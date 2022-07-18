@@ -835,19 +835,10 @@ class UncertainArray(np.ndarray):
             itemset(i, +item)
         return UncertainArray(arr, label=self.label)
 
-    def round(self, decimals=0, **kwargs):
-        digits = kwargs.get('digits', decimals)
-        df_decimals = kwargs.get('df_decimals', digits)
-        arr, itemset, iterator = self._create_empty()
-        for i, item in enumerate(iterator):
-            try:
-                itemset(i, item._round(digits, df_decimals))
-            except AttributeError:
-                try:
-                    itemset(i, round(item, digits))
-                except TypeError:
-                    itemset(i, complex(round(item.real, digits), round(item.imag, digits)))
-        return UncertainArray(arr)
+    def round(self, *args, **kwargs):
+        raise TypeError(
+            "`round` is not defined for `UncertainArray`"
+        )
 
     def sum(self, *args, **kwargs):
         raise TypeError(

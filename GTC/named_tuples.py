@@ -22,15 +22,15 @@ VarianceCovariance = namedtuple('VarianceCovariance','rr, ri, ir, ii')
   
 .. attribute:: ri
   
-   :class:`float`: covariance between th real and imaginary components
+   :class:`float`: covariance between the real and imaginary components
  
 .. attribute:: ir
   
-   :class:`float`: covariance between th real and imaginary components
+   :class:`float`: covariance between the real and imaginary components
    
 .. attribute:: ii
   
-   :class:`float`:  variance in the imaginary component
+   :class:`float`: variance in the imaginary component
 
    """
 
@@ -100,7 +100,7 @@ JacobianMatrix = namedtuple('JacobianMatrix','rr, ri, ir, ii')
   
    :class:`float`: imaginary component with respect to imaginary component
 
-   """
+"""
 
 Influence = namedtuple('Influence','label, u, uid')
 """:obj:`~collections.namedtuple`: label, value, and identifier of a component of uncertainty
@@ -121,6 +121,7 @@ Influence = namedtuple('Influence','label, u, uid')
     The attribute `uid` has been added
         
 """
+
 Component = namedtuple('Component','uid, u')
 """:obj:`~collections.namedtuple`: unique identifier and value of a component of uncertainty
  
@@ -133,6 +134,7 @@ Component = namedtuple('Component','uid, u')
    :class:`float`: component of uncertainty
    
 """
+
 CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")
 """:obj:`~collections.namedtuple`: Correlation coefficients for a pair of quantities ``x`` and ``y``
  
@@ -152,7 +154,7 @@ CorrelationMatrix = namedtuple("CorrelationMatrix","rr,ri,ir,ii")
   
    :class:`float`: correlation between ``x.imag`` and ``y.imag``
 
-   """
+"""
 
 CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
 """:obj:`~collections.namedtuple`: Values of covariance for a pair of quantities ``x`` and ``y``
@@ -173,7 +175,7 @@ CovarianceMatrix = namedtuple("CovarianceMatrix","rr,ri,ir,ii")
   
    :class:`float`: covariance between ``x.imag`` and ``y.imag``
 
-   """
+"""
 
 InterceptSlope = namedtuple('InterceptSlope','a b')
 """:obj:`~collections.namedtuple`: Values for intercept ``a`` and slope ``b``
@@ -185,12 +187,55 @@ InterceptSlope = namedtuple('InterceptSlope','a b')
 .. attribute:: b
   
    :class:`~.lib.UncertainReal`: slope
- """
+"""
 
-GroomedUncertainReal = namedtuple('ureal','x u df label precision df_decimals u_digits')
-GroomedUncertainComplex = namedtuple(
-    'ucomplex','x u r df label precision df_decimals re_u_digits im_u_digits'
-)
+# TODO should the r attribute be added for symmetry with the complex case?
+FormattedUncertainReal = namedtuple('FormattedUncertainReal', 'x u df label')
+""":obj:`~collections.namedtuple`: The formatted representation of an :class:`~.lib.UncertainReal` number.
 
+.. versionadded:: 1.4.0
 
+.. attribute:: x
 
+   :class:`float`: value 
+
+.. attribute:: u
+
+   :class:`float`: standard uncertainty
+
+.. attribute:: df
+
+   :class:`float`: degrees of freedom
+
+.. attribute:: label
+
+   :class:`str`: the label of the :class:`~.lib.UncertainReal` number
+
+"""
+
+FormattedUncertainComplex = namedtuple('FormattedUncertainComplex', 'x u r df label')
+""":obj:`~collections.namedtuple`: The formatted representation of an :class:`~.lib.UncertainComplex` number.
+
+.. versionadded:: 1.4.0
+
+.. attribute:: x
+
+   :class:`complex`: value 
+
+.. attribute:: u
+
+   :class:`StandardUncertainty`: standard uncertainty
+
+.. attribute:: r
+
+   :class:`float`: correlation coefficient between real and imaginary components
+
+.. attribute:: df
+
+   :class:`float`: degrees of freedom
+
+.. attribute:: label
+
+   :class:`str`: the label of the :class:`~.lib.UncertainComplex` number
+
+"""

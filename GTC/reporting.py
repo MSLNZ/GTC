@@ -60,12 +60,6 @@ except ImportError:
     izip = zip
     long = int
 
-from GTC.lib import (
-    UncertainReal,
-    UncertainComplex,
-    _is_uncertain_real_constant,
-    _is_uncertain_complex_constant
-)
 from GTC.named_tuples import (
     ComponentOfUncertainty,     # relates to complex quantities
     Influence,
@@ -81,6 +75,7 @@ from GTC import (
 
 __all__ = (
     'budget',
+    'components',
     'k_factor',
     'k_to_dof',
     'k2_factor_sq',
@@ -107,7 +102,10 @@ def is_ureal(x):
         True
         
     """
-    return isinstance(x,UncertainReal)
+    try:
+        return x.is_ureal
+    except AttributeError:
+        return False
     
 #--------------------------------------------------------------------------
 def is_ucomplex(z):
@@ -120,8 +118,11 @@ def is_ucomplex(z):
         True
 
     """
-    return isinstance(z,UncertainComplex)
-
+    try:
+        return z.is_ucomplex
+    except AttributeError:
+        return False
+        
 #------------------------------------------------------------
 def _df_k2(k2,p,nu1,TOL):
     """
@@ -492,34 +493,35 @@ def v_bar(cv):
 
 #----------------------------------------------------------------------------
 def components(y,**kwargs):
-    """Return a sequence of uid-component of uncertainty pairs
+    r"""Return a sequence of uid-component of uncertainty pairs
 
-    arg:
-        y (:class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`):  an uncertain number
+    :arg y: :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex`:  an uncertain number
 
-    keyword args:
-        | influences: a sequence of uncertain numbers
-        | trim (float): control smallest reported magnitudes 
-        | max_number (int): return no more than ``max_number`` components
-        | intermediate (bool): report all intermediate components
-    
-    A sequence of :obj:`~named_tuples.Component` namedtuples is 
-    returned, each with the attributes ``uid`` and ``u`` for a 
-    component of uncertainty (see :func:`u_component`). 
+    :arg \**kwargs: Keyword arguments:
+
+        * influences: a sequence of uncertain numbers
+        * trim (:class:`float`): control of the smallest included magnitude for ``u``
+        * max_number (:class:`int`): return no more than ``max_number`` components
+        * intermediate (:class:`bool`): report all intermediate components
+
+    :returns: A sequence of :obj:`~named_tuples.Component` namedtuples is
+        returned, each with the attributes ``uid`` and ``u`` for a
+        component of uncertainty (see :func:`u_component`). The sequence is
+        sorted in descending order of magnitude for ``u``.
 
     The keyword argument ``influences`` can be used to report on  
     specific influences.
     
     The keyword argument ``trim`` can be used to set a minimum relative 
-    magnitude of components returned. The components of uncertainty 
-    with a magnitude greater than ``trim`` times the largest component 
+    magnitude of ``u`` for the components returned. Components of uncertainty 
+    with a magnitude greater than ``trim`` times the largest value of ``u`` 
     will be reported. Set ``trim=0`` for a complete list.
 
-    The keyword argument ``max_number`` can be used to restrict the 
-    number of components returned.  
+    The keyword argument ``max_number`` can be used to set an upper 
+    limit on the number of components returned.  
     
-    The keyword argument ``intermediate`` causes all the components 
-    of uncertainty with respect to all intermediate results to be reported.
+    Setting keyword argument ``intermediate=True`` causes all the components 
+    of uncertainty with respect to intermediate results to be reported.
     When ``intermediate`` is ``True``, ``influences`` cannot be specified. 
     
     .. versionadded 1.3.7::
@@ -537,7 +539,7 @@ def components(y,**kwargs):
             "'influences' cannot be specified when 'intermediate' is True"
         )
     
-    if isinstance(y,UncertainReal):
+    if is_ureal(y):
         if influences is None and not intermediate:
             nodes = y._u_components.keys()
             
@@ -564,11 +566,11 @@ def components(y,**kwargs):
             uids = []
             values = []
             for i in influences:
-                if isinstance(i,UncertainReal):
+                if is_ureal(i):
                     uids.append( i.uid )
                     values.append( math.fabs(u_component(y,i)) ) 
                     
-                elif isinstance(i,UncertainComplex):
+                elif is_ucomplex(i):
                     uids.append( i.real.uid )
                     values.append( math.fabs(u_component(y,i.real)) ) 
                     uids.append( i.imag.uid )
@@ -587,7 +589,7 @@ def components(y,**kwargs):
         else:
             this_budget = [ ]
         
-    elif isinstance(y,UncertainComplex):        
+    elif is_ucomplex(y):        
         if influences is None and not intermediate:
             
             # Ensure that the influence vectors have the same keys
@@ -706,6 +708,9 @@ def components(y,**kwargs):
     else:
         this_budget = []
 
+    # Sort by magnitude of uncertainty with largest first
+    this_budget.sort( key=getter('u'),reverse=True )
+        
     if max_number is not None and len(this_budget) > max_number:
         this_budget = this_budget[:max_number]
         
@@ -803,7 +808,7 @@ def budget(y,**kwargs):
             "'influences' cannot be specified when 'intermediate' is True"
         )
     
-    if isinstance(y,UncertainReal):
+    if is_ureal(y):
         if influences is None and not intermediate:
             nodes = y._u_components.keys()
             uids = [ n_i.uid for n_i in nodes ]
@@ -842,12 +847,12 @@ def budget(y,**kwargs):
             labels = []
             values = []
             for i in influences:
-                if isinstance(i,UncertainReal):
+                if is_ureal(i):
                     uids.append( i.uid ) 
                     labels.append( i.label )
                     values.append( math.fabs(u_component(y,i)) ) 
                     
-                elif isinstance(i,UncertainComplex):
+                elif is_ucomplex(i):
                     uids.append( i.real.uid ) 
                     labels.append( i.real.label )
                     values.append( math.fabs(u_component(y,i.real)) ) 
@@ -868,7 +873,7 @@ def budget(y,**kwargs):
         else:
             this_budget = [ ]
         
-    elif isinstance(y,UncertainComplex):        
+    elif is_ucomplex(y):        
         if influences is None and not intermediate:
             
             # Ensure that the influence vectors have the same keys
