@@ -2330,11 +2330,25 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
             self.assertEqual('{:.8n}'.format(ur.u), '9.876,5432')
 
+        if sys.version_info.major > 2:
+            # Python 2.7 does not support the # symbol but Python 3.x does
+            ur = ureal(2345, 1234)
+            fmt = create_format(ur, type='n', digits=1, hash=True)
+            self.assertEqual(to_string(ur, fmt),     '2,(1,)e+03')
+            self.assertEqual(to_string(ur.x, fmt),   '2,e+03')
+            self.assertEqual('{:#.1n}'.format(ur.x), '2,e+03')
+            self.assertEqual(to_string(ur.u, fmt),   '1,e+03')
+            self.assertEqual('{:#.1n}'.format(ur.u), '1,e+03')
+
         ur = ureal(12345, 9876)
         fmt = create_format(ur, type='n', sign=' ', hash=True)
         self.assertEqual(to_string(ur, fmt),      ' 1,23(99)e+04')
         self.assertEqual(to_string(ur.x, fmt),    ' 1,23e+04')
         self.assertEqual(to_string(ur.u, fmt),    ' 9,9e+03')
+        if sys.version_info.major > 2:
+            # Python 2.7 does not support the # symbol but Python 3.x does
+            self.assertEqual('{: #.3n}'.format(ur.x), ' 1,23e+04')
+            self.assertEqual('{: #.2n}'.format(ur.u), ' 9,9e+03')
 
     def test_type_n_india(self):
         # this locale is interesting because it can have a different

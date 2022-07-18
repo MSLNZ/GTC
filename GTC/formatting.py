@@ -752,9 +752,14 @@ def _to_string_ureal(ureal, fmt, sign=None):
         # keep the decimal point in the result
         u_str = fmt._uncertainty(u_r, precision=precision, type=u_rounded.type)
     else:
-        hash_ = '' if oom < 0 and fmt._hash else None
+        hash_, type_ = None, u_rounded.type
+        if oom < 0:
+            if fmt._hash:
+                hash_ = ''
+            else:
+                type_ = 'f'
         u_str = fmt._uncertainty(round(u_r * 10. ** precision),
-                                 precision=0, hash=hash_)
+                                 precision=0, type=type_, hash=hash_)
 
     x_str = fmt._value(x_rounded.value, precision=precision, sign=sign,
                        type=x_rounded.type)
