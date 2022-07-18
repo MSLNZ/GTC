@@ -987,6 +987,35 @@ class UncertainReal(object):
             )
     
     #------------------------------------------------------------------------
+    def __mod__(self,y):
+        """
+        Return ``self % y``.
+
+        :rtype: :class:`UncertainReal`
+        
+        .. Note::
+        
+            Here modulo is calculated in the same way as ``%``
+            but there is also an uncertain-number implementation 
+            of ``fmod`` that follows ``math.fmod``
+ 
+        .. Note::
+        
+            The standard uncertainty associated with ``self`` should be  
+            less than the magnitude of ``y`` (unchecked assumption).
+ 
+         .. versionadded:: 1.3.9
+         
+        """
+        # See also the implementation of _fmod 
+        return UncertainReal(
+                self.x % y
+            ,   vector.Vector(copy=self._u_components)
+            ,   vector.Vector(copy=self._d_components)
+            ,   vector.Vector(copy=self._i_components)
+            )
+            
+    #------------------------------------------------------------------------
     def __add__(self,rhs):
         if isinstance( rhs,(UncertainReal,numbers.Complex) ):
             return _add(self,rhs)
@@ -3198,6 +3227,10 @@ class UncertainComplex(object):
         except AttributeError:
             return None                 
 
+    #------------------------------------------------------------------------
+    def __mod__(self, y):
+        raise RuntimeError('The modulo operation is not supported for uncertain-complex numbers')
+        
     #------------------------------------------------------------------------
     def __add__(self,rhs):
         """
