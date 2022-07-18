@@ -1243,7 +1243,7 @@ class TestFunctionsReal(unittest.TestCase):
         simply transferred to the new value.
         
         """
-        # Value should match math.fmod and the uncertainty should not be affected
+        # Value should match the % operator and the uncertainty should not be affected
         y = 10 
         for x_i in [-99., -9., -1., 0., 1., 9., 99.]:
             ux_i = ureal(x_i,1)
