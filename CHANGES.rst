@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-Version 1.4.0 (2022-??-??)
+Version 1.4.0 (2022-07-19)
 ==========================
 
     * The modulo function :func:`~core.fmod` has been added. This applies the Python library function :func:`math.fmod` to the value of the uncertain-number input and transfers the components of uncertainty to the result. 
