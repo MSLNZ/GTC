@@ -1236,7 +1236,32 @@ class TestFunctionsReal(unittest.TestCase):
         self.assertRaises(TypeError,fmod,ucomplex(1+1j,1),10)
         self.assertRaises(TypeError,fmod,ucomplex(1+1j,1),1+1j)
         self.assertRaises(TypeError,fmod,1+1j,1+1j)
-       
+   
+    def test_mod(self):
+        """
+        mod() is implemented as ``%`` with the uncertainty 
+        simply transferred to the new value.
+        
+        """
+        # Value should match math.fmod and the uncertainty should not be affected
+        y = 10 
+        for x_i in [-99., -9., -1., 0., 1., 9., 99.]:
+            ux_i = ureal(x_i,1)
+            fm_i= (ux_i % y)
+            self.assertTrue( equivalent(value(fm_i), (x_i % y)) )
+            self.assertTrue( equivalent(uncertainty(fm_i), uncertainty(ux_i)) )
+
+        y = -10 
+        for x_i in [-99, -9, -1, 0, 1, 9, 99]:
+            ux_i = ureal(x_i,1)
+            fm_i= (ux_i % y)
+            self.assertTrue( equivalent(value(fm_i), (x_i % y)) )
+            self.assertTrue( equivalent(uncertainty(fm_i), uncertainty(ux_i)) )
+
+        # Should not accept these arguments
+        self.assertRaises(ZeroDivisionError,UncertainReal.__mod__,ureal(2,1),0)        
+        self.assertRaises(TypeError,UncertainReal.__mod__,ureal(1,1),ureal(1,1)) 
+        
 #-----------------------------------------------------
 class TrigTestsReal(unittest.TestCase):
 

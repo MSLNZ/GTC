@@ -98,6 +98,7 @@ def array_to_sequence(m):
     """
     return list(m.flat)
 
+
 #----------------------------------------------------------------------------
 class NamesUncertainComplex(unittest.TestCase):
 
@@ -1101,6 +1102,10 @@ class ArithmeticTestsComplex(unittest.TestCase):
             u_component(y,self.un4),
             array_to_sequence( numpy.matmul(number_to_matrix(-value(y) / self.x4), u4)),
             TOL)
+
+    def test_mod(self):
+        # Should not accept these arguments
+        self.assertRaises(RuntimeError,UncertainComplex.__mod__,ucomplex(1,1),10)
 
 #-----------------------------------------------------
 class GuideExampleH2Complex(unittest.TestCase):
