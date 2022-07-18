@@ -6,6 +6,8 @@ Version 1.3.9 (2022-??-??)
 ==========================
 
     * The modulo function :func:`~core.fmod` has been added. This applies the Python library function :func:`math.fmod` to the value of the uncertain-number input and transfers the components of uncertainty to the result. 
+    
+    * The modulo operator ``%`` has been implemented for :class:`lib.UncertainReal`. The implementation follows the Python implementation of ``%`` for numbers. Note that the computations of :func:`math.fmod` and Python's ``%`` are not completely equivalent (see Python documentation for :func:`math.fmod`). 
 
 Version 1.3.8 (2022-04-01)
 ==========================
