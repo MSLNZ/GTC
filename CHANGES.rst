@@ -9,6 +9,10 @@ Version 1.4.0 (2022-??-??)
     
     * The modulo operator ``%`` has been implemented for :class:`lib.UncertainReal`. The implementation follows the Python implementation of ``%`` for numbers. Note that the computations of :func:`math.fmod` and Python's ``%`` are not completely equivalent (see Python documentation for :func:`math.fmod`). 
 
+    * The functions :func:`~GTC.formatting.create_format`, :func:`~GTC.formatting.apply_format` and
+      :func:`~GTC.formatting.to_string` have been added. See :ref:`formatting-uncertain-numbers`
+      for more details.
+
 Version 1.3.8 (2022-04-01)
 ==========================
     
