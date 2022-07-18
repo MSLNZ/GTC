@@ -73,7 +73,7 @@ Alternatively, the :func:`~GTC.formatting.create_format` and
 
 The order of characters in the `format_spec` is important. Python supports
 a specific grammar when using the :func:`format` function (see :ref:`formatspec`).
-The GTC-specific field -- *style* -- must occur after the builtin
+The GTC-specific field---*style*---must occur after the builtin
 fields. The equivalent format-specification grammar for GTC is:
 
 .. centered:: [[fill]align][sign][#][0][width][grouping][.digits][type][style]

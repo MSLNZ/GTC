@@ -256,12 +256,15 @@ def apply_format(un, fmt):
     :param un: An uncertain number.
     :type un: :class:`~.lib.UncertainReal` or :class:`~.lib.UncertainComplex`
 
-    :param fmt: The format to apply to `un`. If the format type is ``'%'``
-        then the type becomes ``'f'`` and the value and the uncertainty are
-        not multiplied by 100. See :func:`create_format` for more details.
+    :param fmt: The format to apply to `un`. 
     :type fmt: :class:`Format`
 
     :rtype: :obj:`~named_tuples.FormattedUncertainReal` or :obj:`~named_tuples.FormattedUncertainComplex`
+    
+    .. note::
+    
+        Although the format type may be specified as ``'%'``, this will be interpreted as ``'f'`` and the value and uncertainty will
+        not be multiplied by 100. See :func:`create_format` for more details.
     """
     if fmt._type == '%':
         # JSB: It is a bad idea to apply type=% to an uncertain number. In the
