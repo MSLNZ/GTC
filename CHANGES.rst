@@ -7,7 +7,7 @@ Version 1.4.0 (2022-??-??)
 
     * The modulo function :func:`~core.fmod` has been added. This applies the Python library function :func:`math.fmod` to the value of the uncertain-number input and transfers the components of uncertainty to the result. 
     
-    * The modulo operator ``%`` has been implemented for :class:`lib.UncertainReal`. The implementation follows the Python implementation of ``%`` for numbers. Note that the computations of :func:`math.fmod` and Python's ``%`` are not completely equivalent (see Python documentation for :func:`math.fmod`). 
+    * The modulo operator ``%`` has been implemented for :class:`~lib.UncertainReal`. The implementation follows the Python implementation of ``%`` for numbers. Note that the computations of :func:`math.fmod` and Python's ``%`` are not completely equivalent (see Python documentation for :func:`math.fmod`).
 
     * The functions :func:`~GTC.formatting.create_format`, :func:`~GTC.formatting.apply_format` and
       :func:`~GTC.formatting.to_string` have been added. See :ref:`formatting-uncertain-numbers`
