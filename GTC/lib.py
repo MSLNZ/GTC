@@ -918,7 +918,7 @@ class UncertainReal(object):
             The standard uncertainty associated with ``self`` should be  
             less than the magnitude of ``y`` (unchecked assumption).
  
-         .. versionadded:: 1.3.9
+         .. versionadded:: 1.4.0
          
         """
         # See also the implementation of _fmod 
@@ -1344,7 +1344,7 @@ class UncertainReal(object):
             The standard uncertainty associated with ``self`` should be  
             less than the magnitude of ``y`` (unchecked assumption).
  
-         .. versionadded:: 1.3.9
+         .. versionadded:: 1.4.0
          
         """
         x = self._x

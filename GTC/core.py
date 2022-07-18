@@ -1313,7 +1313,7 @@ def fmod(x,y):
     .. note::
 
         If ``x`` is not an uncertain number,
-        returns :func:`math.fmod(x,y)<abs>`.    
+        returns :func:`math.fmod(x,y)<math.fmod>`.
         
     .. note::
     
@@ -1322,7 +1322,7 @@ def fmod(x,y):
         than the magnitude of ``y``. 
  
 
-    .. versionadded:: 1.3.9
+    .. versionadded:: 1.4.0
  
     """
     try:
@@ -1330,13 +1330,8 @@ def fmod(x,y):
     except AttributeError:
         pass
         
-    if isinstance(x,numbers.Real) and isinstance(y,numbers.Real):
-        return math.fmod(x,y)
-    else:
-        raise TypeError(
-            "illegal operation: fmod({!r},{!r})".format(x,y)
-        )
-        
+    return math.fmod(x,y)
+
 #============================================================================    
 if __name__ == "__main__":
     import doctest       
