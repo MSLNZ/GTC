@@ -62,7 +62,7 @@ Documentation
 
 The documentation for **GTC** can be found `here <https://gtc.readthedocs.io/en/stable/>`_.
 
-.. |docs| image:: https://readthedocs.org/projects/gtc/badge/?version=stable
+.. |docs| image:: https://readthedocs.org/projects/gtc/badge/?version=latest
     :target: https://gtc.readthedocs.io/en/stable/
     :alt: Documentation Status
 
