@@ -38,13 +38,13 @@ Merging uncertain components
  
 .. note::
 
-    Many functions in :mod:`type_a` treat  data as pure numbers. 
+    Many functions in :mod:`type_a` treat data as pure numbers. 
     Sequences of uncertain numbers can be passed to these 
     functions, but only the uncertain-number values will be used.
     
-    :func:`merge` is provided so that the results of 
-    type-A and type-B analyses on the same data can be 
-    combined. 
+    :func:`merge` is provided so that the results of type-A 
+    and type-B analyses on the same data can be combined. 
+    
 
 Module contents
 ---------------
@@ -139,7 +139,7 @@ Ordinary Least-Squares Results:
         """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
 
         :arg yseq: a sequence of ``y`` observations 
-        :arg x_label: a label for the return uncertain number `x` 
+        :arg x_label: a label for the return uncertain number ``x`` 
         :arg y_label: a label for the estimate of `y` based on ``yseq`` 
 
         .. note::
@@ -160,8 +160,8 @@ Ordinary Least-Squares Results:
             ureal(0.2601659751037...,0.01784461112558...,13.0)
 
         """
-        df = self._N - 2       
         a, b = self._a_b
+        df = a.df
 
         p = len(yseq)
         y = math.fsum( yseq ) / p
@@ -208,7 +208,7 @@ Ordinary Least-Squares Results:
         
         """
         a, b = self._a_b   
-        df = self._N - 2
+        df = a.df 
         
         u = math.sqrt( self._ssr/df )
         
@@ -258,8 +258,8 @@ Relative Weighted Least-Squares Results:
             declared an intermediate result (using :func:`~.result`)
 
         """
-        df = self._N - 2       
         a, b = self._a_b
+        df = a.df 
         
         p = len(yseq)
         y = math.fsum( yseq ) / p
@@ -312,7 +312,7 @@ Relative Weighted Least-Squares Results:
 
         """
         a, b = self._a_b   
-        df = self._N - 2
+        df = a.df 
         
         u = math.sqrt( s_y*self._ssr/df )
         
@@ -365,6 +365,7 @@ Weighted Least-Squares Results:
 
         """
         a, b = self._a_b
+        df = a.df
         
         p = len(y_data)
         y = math.fsum( y_data ) / p
@@ -372,7 +373,7 @@ Weighted Least-Squares Results:
         y = ureal(
             y,
             u_y_data / math.sqrt( p ),
-            inf,
+            df,
             label=y_label,
             independent=False
         )            
@@ -413,7 +414,7 @@ Weighted Least-Squares Results:
 
         """
         a, b = self._a_b   
-        df = self.N - 2
+        df = a.df 
         
         noise = ureal(0,s_y,df,label=s_label)
 
@@ -542,7 +543,7 @@ def _line_fit_wls(x,y,u_y):
     return a_,b_,siga,sigb,r_ab,ssr,N
 
 #-----------------------------------------------------------------------------------------
-def line_fit_wls(x,y,u_y,label=None):
+def line_fit_wls(x,y,u_y,dof=None,label=None):
     """Return a weighted least-squares straight-line fit
     
     .. versionadded:: 1.2
@@ -550,10 +551,17 @@ def line_fit_wls(x,y,u_y,label=None):
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
     :arg u_y:   sequence of uncertainties in the response data 
+    :arg dof:   degrees of freedom
     :arg label: suffix to label the uncertain numbers `a` and `b`
 
     :returns:   an object containing regression results
     :rtype:     :class:`.LineFitWLS`
+    
+    The optional argument ``dof`` can be used to choose the number of 
+    degrees of freedom attributed to the uncertain numbers
+    returned for the slope and intercept. By default, infinite degrees 
+    of freedom is used, because weighting is provided for the 
+    ``y`` data suggesting that the dispersion is known. 
 
     **Example**::
     
@@ -578,17 +586,19 @@ def line_fit_wls(x,y,u_y,label=None):
 
     a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,u_y)
     
+    df = inf if dof is None else dof
+    
     a = ureal(
         a_,
         siga,
-        inf,
+        df,
         label='a_{}'.format(label) if label is not None else None,
         independent=False
     )
     b = ureal(
         b_,
         sigb,
-        inf,
+        df,
         label='b_{}'.format(label) if label is not None else None,
         independent=False
     )
@@ -598,7 +608,7 @@ def line_fit_wls(x,y,u_y,label=None):
     return LineFitWLS(a,b,ssr,N)
 
 #-----------------------------------------------------------------------------------------
-def line_fit_rwls(x,y,s_y,label=None):
+def line_fit_rwls(x,y,s_y,dof=None,label=None):
     """Return a relative weighted least-squares straight-line fit
     
     .. versionadded:: 1.2
@@ -611,11 +621,19 @@ def line_fit_rwls(x,y,s_y,label=None):
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
     :arg s_y:   sequence of scale factors
+    :arg dof:   degrees of freedom
     :arg label: suffix to label the uncertain numbers `a` and `b`
 
     :returns:   an object containing regression results
     :rtype:     :class:`.LineFitRWLS`
 
+    The optional argument ``dof`` can be used to choose the number of 
+    degrees of freedom attributed to the uncertain numbers
+    returned for the slope and intercept. By default, the degrees 
+    of freedom is N - 2, where N is the length of the data sequence.
+    However, when the elements of ``s_y`` are not all equal this 
+    value will be too high. The argument may be set as appropriate.
+    
     **Example**::
 
         >>> x = [1,2,3,4,5,6]
@@ -637,7 +655,8 @@ def line_fit_rwls(x,y,s_y,label=None):
           
     """
     N = len(x)
-    df = N-2
+    df = N-2 if dof is None else dof
+    
     if df <= 0 or N != len(y) or N != len(s_y):
         raise RuntimeError(
             "Invalid sequences: len({!r}), len({!r}), len({!r})".format(x,y,s_y)
@@ -674,7 +693,7 @@ def line_fit_rwls(x,y,s_y,label=None):
     
 #--------------------------------------------------------------------
 #
-def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
+def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
     """Return a total least-squares straight-line fit 
     
     .. versionadded:: 1.2
@@ -685,6 +704,7 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
     :arg u_y:   sequence of uncertainties in ``y``
     :arg a0_b0: a pair of initial estimates for the intercept and slope
     :arg r_xy:  correlation between x-y pairs
+    :arg dof:   degrees of freedom
     :arg label: suffix labeling the uncertain numbers `a` and `b`
 
     :returns:   an object containing the fitting results
@@ -692,6 +712,12 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
 
     The optional argument ``a_b`` can be used to provide a pair 
     of initial estimates for the intercept and slope. 
+    
+    The optional argument ``dof`` can be used to choose the number of 
+    degrees of freedom attributed to the uncertain numbers
+    returned for the slope and intercept. By default, the degrees 
+    of freedom are infinite, because weighting is provided for the ``x``
+    and ``y`` data suggesting that the dispersion is known. 
 
     Based on paper by M Krystek and M Anton,
     *Meas. Sci. Technol.* **22** (2011) 035101 (9pp)
@@ -713,13 +739,14 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,label=None):
         >>> result = ta.line_fit_wtls(x,y,ux,uy)
         >>> intercept, slope = result.a_b
         >>> intercept
-        ureal(5.47991018...,0.29193349...,8)
+        ureal(5.47991018...,0.29193349...,inf)
         >>> slope
-        ureal(-0.48053339...,0.057616740...,8)
+        ureal(-0.48053339...,0.057616740...,inf)
     
     """
     N = len(x)
-    df = N-2
+    df = inf if dof is None else dof 
+    
     if df <= 0 or N != len(y):
         raise RuntimeError(
             "Invalid sequences: len({!r}), len({!r})".format(x,y)

@@ -55,6 +55,15 @@ Weighted total least-squares
 
 As in the case of :func:`type_a.line_fit_wls`, the uncertainties provided for the `x` and `y` data are assumed exact. When calculating the uncertainty in the slope and intercept, the residuals are ignored and the uncertain numbers returned have infinite degrees of freedom.
 
+Degrees of freedom
+------------------
+The number of `degrees of freedom` is used as a measure of how accurately a standard uncertainty is known in the GUM. This relates to the standard treatment of sample statistics for a Gaussian error. 
+
+The methods of straight-line regression in GTC are based on theory for Gaussian errors. This will often be a good approximation in metrology. However, only the simple linear fit to data (:func:`type_a.line_fit`) has a clear prescription for evaluating degrees of freedom. In other types of fit, additional information is incorporated in the form of weighting coefficients. So, estimates of parameter uncertainty depend on more than just the number of observations. Also, no allowance is given for the accuracy of the model assumed (the choice of a straight line). 
+
+For these reasons, default values of degrees of freedom are attributed to the uncertain numbers returned by regression functions, but these may be overridden. The function docstrings give more details. 
+
+
 The ``type_b`` module regression functions
 ==========================================
 
