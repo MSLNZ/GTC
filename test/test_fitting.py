@@ -99,7 +99,16 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( equivalent(a.u*b.u*a.get_correlation(b),-0.004408553,1E-5))
         self.assertEqual(a.df,len(x)-2)
         self.assertEqual(b.df,len(x)-2)
+        
+        # Try to set a number of degrees of freedom
+        fit = type_a.line_fit_rwls(x,y,u_y,dof=4)
+        a, b = fit.a_b
+        self.assertEqual(a.df,4)
+        self.assertEqual(b.df,4)
  
+        # Try to set an illegal number of degrees of freedom
+        self.assertRaises(RuntimeError,type_a.line_fit_rwls,x,y,u_y,dof=0)
+
     def test_type_b(self):
         """
         We can treat the problem above as type-B. In that
@@ -275,6 +284,15 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(x0.x,4.913,TOL) )
         self.assertTrue( equivalent(x0.u,0.322,TOL) )
         self.assertEqual( x0.df,inf )
+
+        # Try to set a number of degrees of freedom
+        fit = type_a.line_fit_wls(x,y,u_y,dof=4)
+        a, b = fit.a_b
+        self.assertEqual(a.df,4)
+        self.assertEqual(b.df,4)
+ 
+        # Try to set an illegal number of degrees of freedom
+        self.assertRaises(RuntimeError,type_a.line_fit_wls,x,y,u_y,dof=0)
 
     def test_iso28037_wls2(self):
         """ ISO/TS 28037:2010, p 14
@@ -1178,6 +1196,19 @@ class TestLineFitTLS(unittest.TestCase):
         self.assertTrue( equivalent(a.get_correlation(b)*b.u*a.u,-0.0577,TOL) )
         self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
   
+        # Test with finite degrees of freedom
+        fit = type_a.line_fit_wtls(x, y, u_x=[u_x]*6, u_y=u_y, dof=4)
+        a, b = fit.a_b
+        self.assertEqual(a.df,4)
+        self.assertEqual(b.df,4)
+        
+        self.assertRaises(
+            RuntimeError,
+            type_a.line_fit_wtls, 
+            x, y, u_x=[u_x]*6, u_y=u_y, 
+            dof=0
+        )
+        
     def test_Lybanon_fn(self):
         """
         Test the WTLS method on the Pearson-York data.

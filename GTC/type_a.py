@@ -586,7 +586,15 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
 
     a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,u_y)
     
-    df = inf if dof is None else dof
+    if dof is None:
+        df = inf 
+    else:
+        if isinstance(dof,numbers.Number) and dof > 0:
+            df = dof
+        else:
+            raise RuntimeError( 
+                "{!r} is an invalid degrees of freedom".format(dof) 
+            )
     
     a = ureal(
         a_,
@@ -601,8 +609,9 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
         df,
         label='b_{}'.format(label) if label is not None else None,
         independent=False
-    )
-    
+    )    
+
+    real_ensemble( (a,b), df )
     a.set_correlation(r_ab,b)
 
     return LineFitWLS(a,b,ssr,N)
@@ -655,9 +664,17 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
           
     """
     N = len(x)
-    df = N-2 if dof is None else dof
+    if dof is None:
+        df = N-2 
+    else:
+        if isinstance(dof,numbers.Number) and dof > 0:
+            df = dof
+        else:
+            raise RuntimeError( 
+                "{!r} is an invalid degrees of freedom".format(dof) 
+            )
     
-    if df <= 0 or N != len(y) or N != len(s_y):
+    if N != len(y) or N != len(s_y):
         raise RuntimeError(
             "Invalid sequences: len({!r}), len({!r}), len({!r})".format(x,y,s_y)
         )
@@ -745,9 +762,17 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
     
     """
     N = len(x)
-    df = inf if dof is None else dof 
+    if dof is None:
+        df = inf 
+    else:
+        if isinstance(dof,numbers.Number) and dof > 0:
+            df = dof
+        else:
+            raise RuntimeError( 
+                "{!r} is an invalid degrees of freedom".format(dof) 
+            )
     
-    if df <= 0 or N != len(y):
+    if N != len(y):
         raise RuntimeError(
             "Invalid sequences: len({!r}), len({!r})".format(x,y)
         )
