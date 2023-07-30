@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+Archival copies of GTC
+======================
+
+In addition to the github repository, each release of GTC is archived automatically in Zenodo. The most recent release is always  at (https://doi.org/10.5281/zenodo.3982925) and previous releases can be accessed from that point. Archived releases are a snapshot of project files belonging to a release without additional information about version history.
+
 Version 1.4.1 (2023-??-??)
 ==========================
 
