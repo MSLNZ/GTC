@@ -431,8 +431,6 @@ Weighted Least-Squares Results:
 def line_fit(x,y,label=None):
     """Return a least-squares straight-line fit to the data
      
-    .. versionadded:: 1.2
-    
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
     :arg label: suffix to label the uncertain numbers `a` and `b`
@@ -456,7 +454,9 @@ def line_fit(x,y,label=None):
         >>> y_p = a + b*5.5
         >>> dof(y_p)
         7.0
-            
+ 
+    .. versionadded:: 1.2    
+ 
     """
     N = len(x)
     df = N-2
@@ -546,8 +546,6 @@ def _line_fit_wls(x,y,u_y):
 def line_fit_wls(x,y,u_y,dof=None,label=None):
     """Return a weighted least-squares straight-line fit
     
-    .. versionadded:: 1.2
-     
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
     :arg u_y:   sequence of uncertainties in the response data 
@@ -573,7 +571,10 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
         >>> fit.a_b     
          InterceptSlope(a=ureal(0.8852320675105...,0.5297081435088...,inf),
          b=ureal(2.056962025316...,0.177892016741...,inf))
-        
+
+    .. versionchanged:: 1.4.1 ``dof`` keyword argument added
+    .. versionadded:: 1.2
+     
     """
     N = len(x)
     if N-2 <= 0 or N != len(y) or N != len(u_y):
@@ -620,8 +621,6 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
 def line_fit_rwls(x,y,s_y,dof=None,label=None):
     """Return a relative weighted least-squares straight-line fit
     
-    .. versionadded:: 1.2
-    
     The ``s_y`` values are used to scale variability in the ``y`` data.
     It is assumed that the standard deviation of each ``y`` value is 
     proportional to the corresponding ``s_y`` scale factor.
@@ -661,7 +660,10 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
           Sum of the squared residuals: 1.3395217958...
           Number of points: 6
         <BLANKLINE>
-          
+ 
+    .. versionchanged:: 1.4.1 ``dof`` keyword argument added
+    .. versionadded:: 1.2
+        
     """
     N = len(x)
     if dof is None:
@@ -713,8 +715,6 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
 def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
     """Return a total least-squares straight-line fit 
     
-    .. versionadded:: 1.2
-
     :arg x:     sequence of independent-variable data
     :arg y:     sequence of dependent-variable data 
     :arg u_x:   sequence of uncertainties in ``x``
@@ -759,7 +759,10 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
         ureal(5.47991018...,0.29193349...,inf)
         >>> slope
         ureal(-0.48053339...,0.057616740...,inf)
-    
+
+    .. versionchanged:: 1.4.1 ``dof`` keyword argument added
+    .. versionadded:: 1.2    
+
     """
     N = len(x)
     if dof is None:

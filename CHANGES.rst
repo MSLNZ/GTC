@@ -2,6 +2,9 @@
 Release Notes
 =============
 
+Version 1.4.1 (2023-??-??)
+==========================
+
     * The straight-line regression functions that apply weights in :mod:`type_a` now attribute a default number of degrees of freedom to fitted parameters. The default value depends on the type of regression algorithm and may be overridden by specifying a number of degrees of freedom when calling the function.  
 
 Version 1.4.0 (2022-07-19)
