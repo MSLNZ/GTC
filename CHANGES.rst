@@ -7,7 +7,7 @@ Archival copies of GTC
 
 In addition to the github repository, each release of GTC is archived automatically in Zenodo. The most recent release is always  at (https://doi.org/10.5281/zenodo.3982925) and previous releases can be accessed from that point. Archived releases are a snapshot of project files belonging to a release without additional information about version history.
 
-Version 1.4.1 (2023-??-??)
+Version 1.4.1 (2023-08-02)
 ==========================
 
     * The straight-line regression functions that apply weights in :mod:`type_a` now attribute a default number of degrees of freedom to fitted parameters. The default value depends on the type of regression algorithm and may be overridden by specifying a number of degrees of freedom when calling the function.  
