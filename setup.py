@@ -100,8 +100,8 @@ tests_require = [
 ]
 
 docs_require = [
-    'sphinx',
-    'sphinx_rtd_theme',
+    'sphinx>2',  # >2 required for ReadTheDocs
+    'sphinx-rtd-theme>0.5',  # >0.5 required for ReadTheDocs
 ]
 
 testing = {'test', 'tests', 'pytest'}.intersection(sys.argv)
