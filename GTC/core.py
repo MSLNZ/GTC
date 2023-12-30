@@ -32,7 +32,7 @@ ta = type_a
 fn = function
 pr = persistence
 
-value = type_b.value
+value = lib.value
 
 UncertainReal = lib.UncertainReal
 UncertainComplex = lib.UncertainComplex
