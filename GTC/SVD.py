@@ -596,7 +596,7 @@ def _ls(x,y,sig,fn,P,label=None):
             b[i],
             u[i],
             df,
-            label=label_i
+            label=label_i,
             independent=False
         )        
             
