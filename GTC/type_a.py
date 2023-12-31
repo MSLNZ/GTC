@@ -1265,11 +1265,11 @@ def multi_estimate_real(seq_of_seq,labels=None):
         >>> phi = [1.0456,1.0438,1.0468,1.0428,1.0433]
         >>> v,i,p = type_a.multi_estimate_real((V,I,phi),labels=('V','I','phi'))
         >>> v
-        ureal(4.999000...,0.0032093613071761...,4, label='V')
+        ureal(4.999...,0.0032093613071761...,4, label='V')
         >>> i
         ureal(0.019661,9.471008394041335...e-06,4, label='I')
         >>> p
-        ureal(1.044460...,0.0007520638270785...,4, label='phi')
+        ureal(1.04446...,0.0007520638270785...,4, label='phi')
         
         >>> r = v/i*cos(p)
         >>> r
