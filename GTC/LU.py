@@ -32,8 +32,8 @@ def ludcmp(a):
     `idx` records the row permutations from partial pivoting,
     `parity` is the parity of row switching (+1 or -1, for even or odd)
 
-    .. note:: 
-        The array `a` is assigned the decomposition values.
+    .. note::
+        The contents of `a` is replaced by the decomposition values
     
     .. note:: 
         An implementation of :func:`abs()` must be defined 
