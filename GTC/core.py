@@ -90,31 +90,6 @@ __all__ = (
     ,   'cmath'
 )
 
-
-# #----------------------------------------------------------------------------
-# def value(x):
-    # """Return the value 
-    
-    # Returns a complex number if ``x`` is an uncertain complex number
-    
-    # Returns a real number if ``x`` is an uncertain real number
-    
-    # Returns ``x`` otherwise.
-
-    # **Example**::
-
-        # >>> un = ureal(3,1)
-        # >>> value(un)
-        # 3.0
-        # >>> un.x
-        # 3.0
-
-    # """
-    # try:
-        # return x.x
-    # except AttributeError:
-        # return x
-    
 #----------------------------------------------------------------------------
 def uncertainty(x):
     """
