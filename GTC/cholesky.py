@@ -23,10 +23,10 @@ def cholesky_decomp(a):
             
     **example** ::
     
-        >>> A = numpy.array( [[ 1.,  .2],[ .2,  5.]] ) 
+        >>> A = np.array( [[ 1.,  .2],[ .2,  5.]] ) 
         >>> cholesky_decomp(A) 
         array([[1.        , 0.        ],
-       [0.2       , 2.22710575]])
+              [0.2       , 2.22710575]])
         
     """
     N,M = a.shape
@@ -88,7 +88,7 @@ def cholesky_inv(L):
         >>> Linv = cholesky_inv(L)
         >>> Linv
         array([[ 1.        ,  0.        ],
-       [-0.08980265,  0.44901326]])
+                [-0.08980265,  0.44901326]])
         >>> np.matmul(Linv,L)
         array([[1.00000000e+00, 0.00000000e+00],
                [4.98504854e-18, 1.00000000e+00]])
