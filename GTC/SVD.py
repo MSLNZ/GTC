@@ -1,16 +1,23 @@
 """
-Still todo:
+Still TODO:
 
-NB: Look at Draper & Smith Ch 2 for guidance + printed notes from wikipedia on GLS 
+    If we SVD a matrix of uncertain numbers A into U, w and V, are only the elements of U uncertain numbers? 
+    This implementation has made that assumption (documented in the code)
+
+    There is more to do to make the results of regression useful
+    (NB: Look at Draper & Smith Ch 2 for guidance + printed notes from wikipedia on GLS )
+        
+        Given some vector x_0, we can calculate the value of y_0 using the fitted parameters. 
+        (Need to implement)
+            What is the uncertainty in y_0? 
+            The variance calculations seem quite similar to a Mahalanobis distance, except that the CV is not inverted. Does it make sense to store the Cholesky decomp of the CV to speed up the calculation? 
+            What about weighted cases? 
+            It is not possible to go from y_0 to the vector x_0, of course!
+            
+    Note also that for type-A analysis, we can used the numpy svd routine. However, the routine here is needed for type-B work.
+    So, the testing of this routine with real-valued data is a useful check that it is correctly implemented.
     
-Given some vector x_0, we can calculate the value of y_0 using the fitted parameters. 
-(Need to implement)
-What is the uncertainty in y_0? The variance calculations seem quite similar to a 
-Mahalanobis distance, except that the CV is not inverted. Does it make sense 
-to store the Cholesky decomp of the CV to speed up the calculation? What about 
-weighted cases? 
-
-It is not possible to go from y_0 to the vector x_0, of course!
+    It should be possible to test this routine on datasets for linear fitting problems where we have used uncertain numbers.
    
 """
 from __future__ import division
@@ -129,7 +136,7 @@ def svd_decomp(a):
                 for k in range(i,M):
                     u[k,i] *= scale 
                     
-        w[i] = scale*value(g)   # ASSUME real-valued
+        w[i] = scale*value(g)   # ASSUMED real-valued
         
         g = s = scale = 0.0     
         if i < M and i != N - 1:
@@ -173,11 +180,13 @@ def svd_decomp(a):
         if i < N-1:
             if g != 0.0:
                 for j in range(l,N):
-                    v[j,i] = ( u[i,j]/u[i,l] )/g
+                    # ASSUME that only the value is needed here
+                    v[j,i] = value( u[i,j]/u[i,l] )/g
 
                 for j in range(l,N):
+                    # ASSUME that only the value is needed here
                     s = sum(
-                        u[i,k]*v[k,j] for k in range(l,N)
+                        value(u[i,k]*v[k,j]) for k in range(l,N)
                     )
                     for k in range(l,N):
                         v[k,j] += s*v[k,i]
@@ -198,10 +207,11 @@ def svd_decomp(a):
         if g != 0.0:
             g = 1.0/g 
             for j in range(l,N):
+                # ASSUME that only the value is needed here
                 s = sum(
-                    u[k,i]*u[k,j] for k in range(l,M)
+                    value(u[k,i]*u[k,j]) for k in range(l,M)
                 )
-                f = ( s/u[i,i] )*g
+                f = value( s/u[i,i] )*g
                 for k in range(i,M):
                     u[k,j] += f*u[k,i] 
                     
@@ -461,114 +471,114 @@ def svdvar(v,w):
     
     return cv  
 
-# #----------------------------------------------------------------------------
-# def wls(x,y,u_y,fn,P,label=None):    
-    # """Weighted least squares fit of ``y`` to ``x``
+#----------------------------------------------------------------------------
+def wls(x,y,u_y,fn,P,label=None):    
+    """Weighted least squares fit of ``y`` to ``x``
     
-    # :arg x: a sequence of ``N`` stimulus values (independent-variables)
-    # :arg y: a sequence of ``N`` responses (dependent-variable)  
-    # :arg u_y: a sequence of ``N`` standard uncertainties in the responses
-    # :arg fn: a user-defined function relating ``x`` the response
-    # :arg P: the number of parameters to be fitted 
-    # :arg label: a label for the fitted parameters
+    :arg x: a sequence of ``N`` stimulus values (independent-variables)
+    :arg y: a sequence of ``N`` responses (dependent-variable)  
+    :arg u_y: a sequence of ``N`` standard uncertainties in the responses
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg P: the number of parameters to be fitted 
+    :arg label: a label for the fitted parameters
     
-    # Return a :class:`WLSFit` object containing the results 
+    Return a :class:`WLSFit` object containing the results 
     
-    # """
-    # N = len(y)
+    """
+    N = len(y)
     
-    # if N != len(x):
-        # raise RuntimeError(
-            # "len(x) {} != len(y) {}".format(len(x),N)
-        # )
+    if N != len(x):
+        raise RuntimeError(
+            "len(x) {} != len(y) {}".format(len(x),N)
+        )
         
-    # if N <= P:
-        # raise RuntimeError(
-            # "N {} should be > P {}".format(N,P)
-        # )     
+    if N <= P:
+        raise RuntimeError(
+            "N {} should be > P {}".format(N,P)
+        )     
         
-    # return WLSFit( _ls(x,y,u_y,fn,P,label=label) )
+    return WLSFit( _ls(x,y,u_y,fn,P,label=label) )
 
     
-# #----------------------------------------------------------------------------
-# def ols(x,y,fn,P,label=None):
-    # """Ordinary least squares fit of ``y`` to ``x``
+#----------------------------------------------------------------------------
+def ols(x,y,fn,P,label=None):
+    """Ordinary least squares fit of ``y`` to ``x``
     
-    # :arg x: a sequence of ``N`` stimulus values (independent-variables)
-    # :arg y: a sequence of ``N`` responses (dependent-variable)  
-    # :arg fn: a user-defined function relating ``x`` the response
-    # :arg P: the number of parameters to be fitted 
-    # :arg label: a label for the fitted parameters
+    :arg x: a sequence of ``N`` stimulus values (independent-variables)
+    :arg y: a sequence of ``N`` responses (dependent-variable)  
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg P: the number of parameters to be fitted 
+    :arg label: a label for the fitted parameters
     
-    # Return a :class:`OLSFit` object containing the results 
+    Return a :class:`OLSFit` object containing the results 
     
-    # """
-    # N = len(y)
+    """
+    N = len(y)
     
-    # if N != len(x):
-        # raise RuntimeError(
-            # "len(x) {} != len(y) {}".format(len(x),N)
-        # )
+    if N != len(x):
+        raise RuntimeError(
+            "len(x) {} != len(y) {}".format(len(x),N)
+        )
         
-    # if N <= P:
-        # raise RuntimeError(
-            # "N {} should be > P {}".format(N,P)
-        # )     
+    if N <= P:
+        raise RuntimeError(
+            "N {} should be > P {}".format(N,P)
+        )     
     
-    # sig = N*[1]
+    sig = N*[1]
 
-    # return OLSFit( _ls(x,y,sig,fn,P,label=label) )
+    return OLSFit( _ls(x,y,sig,fn,P,label=label) )
     
-# #----------------------------------------------------------------------------
-# def gls(x,y,cv,fn,P,label=None):
-    # """Generalised least squares fit of ``y`` to ``x``
+#----------------------------------------------------------------------------
+def gls(x,y,cv,fn,P,label=None):
+    """Generalised least squares fit of ``y`` to ``x``
     
-    # :arg x: a sequence of ``N`` stimulus values (independent-variables)
-    # :arg y: a sequence of ``N`` responses (dependent-variable)  
-    # :arg cv: an ``N`` by ``N`` covariance matrix for the responses
-    # :arg fn: a user-defined function relating ``x`` the response
-    # :arg P: the number of parameters to be fitted 
-    # :arg label: a label for the fitted parameters
+    :arg x: a sequence of ``N`` stimulus values (independent-variables)
+    :arg y: a sequence of ``N`` responses (dependent-variable)  
+    :arg cv: an ``N`` by ``N`` covariance matrix for the responses
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg P: the number of parameters to be fitted 
+    :arg label: a label for the fitted parameters
     
-    # Return a :class:`GLSFit` object containing the results 
+    Return a :class:`GLSFit` object containing the results 
     
-    # """
-    # N = len(y)
+    """
+    N = len(y)
     
-    # if N != len(x):
-        # raise RuntimeError(
-            # "len(x) {} != len(y) {}".format(len(x),N)
-        # )
+    if N != len(x):
+        raise RuntimeError(
+            "len(x) {} != len(y) {}".format(len(x),N)
+        )
         
-    # if N <= P:
-        # raise RuntimeError(
-            # "N {} should be > P {}".format(N,P)
-        # )     
+    if N <= P:
+        raise RuntimeError(
+            "N {} should be > P {}".format(N,P)
+        )     
 
-    # if cv.shape != (N,N):
-        # raise RuntimeError(
-            # "cv.shape {0:!s} should be {({1},{1})}".format(cv.shape,N)
-        # )     
+    if cv.shape != (N,N):
+        raise RuntimeError(
+            "cv.shape {0:!s} should be {({1},{1})}".format(cv.shape,N)
+        )     
     
-    # K = cholesky.cholesky_decomp(cv)
-    # Kinv = cholesky.cholesky_inv(K)
+    K = cholesky.cholesky_decomp(cv)
+    Kinv = cholesky.cholesky_inv(K)
     
-    # X = np.array( x )
-    # Y = np.array( y ).T
+    X = np.array( x )
+    Y = np.array( y ).T
     
-    # Q = np.matmul(Kinv,X) 
-    # Z = np.matmul(Kinv,Y) 
+    Q = np.matmul(Kinv,X) 
+    Z = np.matmul(Kinv,Y) 
 
-    # # X is N by M 
-    # x = []
-    # y = []
-    # for i in range(N):
-        # x.append( [ Q[i,j] for j in range(M) ] )
-        # y.append( Z[i,0] )
+    # X is N by M 
+    x = []
+    y = []
+    for i in range(N):
+        x.append( [ Q[i,j] for j in range(M) ] )
+        y.append( Z[i,0] )
          
-    # sig = N*[1]
+    sig = N*[1]
 
-    # return GLSFit( _ls(x,y,sig,fn,P,label=label) )
+    return GLSFit( _ls(x,y,sig,fn,P,label=label) )
         
 #----------------------------------------------------------------------------
 def _ls(x,y,sig,fn,P,label=None):
@@ -614,45 +624,45 @@ def _ls(x,y,sig,fn,P,label=None):
             
     return beta,chisq,N,P
     
-# #-----------------------------------------------------------------------------------------
-# class LSFit(object):
+#-----------------------------------------------------------------------------------------
+class LSFit(object):
  
-    # """
-    # Base class for regression results
-    # """
+    """
+    Base class for regression results
+    """
 
-    # def __init__(self,beta,ssr,N,P):
-        # self._beta = beta
-        # self._ssr = ssr
-        # self._N = N
-        # self._P = P
+    def __init__(self,beta,ssr,N,P):
+        self._beta = beta
+        self._ssr = ssr
+        self._N = N
+        self._P = P
         
-    # def __repr__(self):
-        # return """{}(
-  # beta={!r},
-  # ssr={},
-  # N={},
-  # P={}
-# )""".format(
-            # self.__class__.__name__,
-            # self._beta,
-            # self._ssr,
-            # self._N,
-            # self._P
-        # )
+    def __repr__(self):
+        return """{}(
+  beta={!r},
+  ssr={},
+  N={},
+  P={}
+)""".format(
+            self.__class__.__name__,
+            self._beta,
+            self._ssr,
+            self._N,
+            self._P
+        )
 
-    # def __str__(self):
-        # return '''
-  # Number of points: {}
-  # Number of parameters: {}
-  # Parameters: {!r}
-  # Sum of the squared residuals: %G
-# '''.format(
-    # self._N,
-    # self._P,
-    # self._beta,
-    # self._ssr,
-# )
+    def __str__(self):
+        return '''
+  Number of points: {}
+  Number of parameters: {}
+  Parameters: {!r}
+  Sum of the squared residuals: %G
+'''.format(
+    self._N,
+    self._P,
+    self._beta,
+    self._ssr,
+)
 
     # #------------------------------------------------------------------------
     # def mean_y_from_x(self,x,label=None):
@@ -683,82 +693,82 @@ def _ls(x,y,sig,fn,P,label=None):
 
     # return y 
     
-    # @property
-    # def ssr(self):
-        # """Sum of the squared residuals
+    @property
+    def ssr(self):
+        """Sum of the squared residuals
         
-        # The sum of the squared deviations between values 
-        # predicted by the model and the actual data.
+        The sum of the squared deviations between values 
+        predicted by the model and the actual data.
         
-        # If weights are used during the fit, the squares of 
-        # weighted deviations are summed.
+        If weights are used during the fit, the squares of 
+        weighted deviations are summed.
         
-        # """
-        # return self._ssr  
+        """
+        return self._ssr  
 
-    # @property
-    # def beta(self):
-        # """Fitted parameters"""
-        # return self._beta 
+    @property
+    def beta(self):
+        """Fitted parameters"""
+        return self._beta 
 
-    # @property
-    # def N(self):
-        # """Number of observations in the sample"""
-        # return self._N
+    @property
+    def N(self):
+        """Number of observations in the sample"""
+        return self._N
 
-    # @property
-    # def P(self):
-        # """Number of parameters"""
-        # return self._P
+    @property
+    def P(self):
+        """Number of parameters"""
+        return self._P
 
-# #----------------------------------------------------------------------------
-# class OLSFit(LSFit):
+#----------------------------------------------------------------------------
+class OLSFit(LSFit):
 
-    # """
-    # Results of an ordinary least squares regression
-    # """
+    """
+    Results of an ordinary least squares regression
+    """
 
-    # def __init__(self,beta,ssr,N,P):
-        # LSFit.__init__(self,beta,ssr,N,P)
+    def __init__(self,beta,ssr,N,P):
+        LSFit.__init__(self,beta,ssr,N,P)
  
-    # def __str__(self):
-        # header = '''
-# Ordinary Least-Squares Results:
-# '''
-        # return header + str(LSFit)
+    def __str__(self):
+        header = '''
+Ordinary Least-Squares Results:
+'''
+        return header + str(LSFit)
  
-# #----------------------------------------------------------------------------
-# class WLSFit(LSFit):
+#----------------------------------------------------------------------------
+class WLSFit(LSFit):
 
-    # """
-    # Results of a weighted least squares regression
-    # """
+    """
+    Results of a weighted least squares regression
+    """
 
-    # def __init__(self,beta,ssr,N,P):
-        # LSFit.__init__(self,beta,ssr,N,P)
+    def __init__(self,beta,ssr,N,P):
+        LSFit.__init__(self,beta,ssr,N,P)
 
-    # def __str__(self):
-        # header = '''
-# Weighted Least-Squares Results:
-# '''
-        # return header + str(LSFit)
+    def __str__(self):
+        header = '''
+Weighted Least-Squares Results:
+'''
+        return header + str(LSFit)
  
     
-# #----------------------------------------------------------------------------
-# class GLSFit(LSFit):
+#----------------------------------------------------------------------------
+class GLSFit(LSFit):
 
-    # """
-    # Results of a generalised least squares regression
-    # """
+    """
+    Results of a generalised least squares regression
+    """
 
-    # def __init__(self,beta,ssr,N,P):
-        # LSFit.__init__(self,beta,ssr,N,P)
+    def __init__(self,beta,ssr,N,P):
+        LSFit.__init__(self,beta,ssr,N,P)
   
-    # def __str__(self):
-        # header = '''
-# Generalised Least-Squares Results:
-# '''
-        # return header + str(LSFit)
+    def __str__(self):
+        header = '''
+Generalised Least-Squares Results:
+'''
+        return header + str(LSFit)
   
 #============================================================================
 if __name__ == '__main__': 
