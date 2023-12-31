@@ -1,23 +1,21 @@
 """
 Still TODO:
 
-    If we SVD a matrix of uncertain numbers A into U, w and V, are only the elements of U uncertain numbers? 
-    This implementation has made that assumption (documented in the code)
-
     There is more to do to make the results of regression useful
     (NB: Look at Draper & Smith Ch 2 for guidance + printed notes from wikipedia on GLS )
         
         Given some vector x_0, we can calculate the value of y_0 using the fitted parameters. 
         (Need to implement)
             What is the uncertainty in y_0? 
-            The variance calculations seem quite similar to a Mahalanobis distance, except that the CV is not inverted. Does it make sense to store the Cholesky decomp of the CV to speed up the calculation? 
+            The variance calculations seem quite similar to a Mahalanobis distance, except that the CV is not inverted. 
+            So, does it make sense to store the Cholesky decomp of the CV to speed up the calculation? 
             What about weighted cases? 
             It is not possible to go from y_0 to the vector x_0, of course!
             
-    Note also that for type-A analysis, we can used the numpy svd routine. However, the routine here is needed for type-B work.
-    So, the testing of this routine with real-valued data is a useful check that it is correctly implemented.
+    For type-A analysis, use the numpy svd routine. The routine here is needed for type-B work.
+    Testing this routine with real-valued data is a useful check that it is correctly implemented.
     
-    It should be possible to test this routine on datasets for linear fitting problems where we have used uncertain numbers.
+    It should be possible to test this routine on uncertain-number datasets for linear fitting problems.
    
 """
 from __future__ import division
@@ -38,6 +36,7 @@ from GTC.lib import (
     value,
 )
 from GTC import cholesky 
+from GTC import magnitude, sqrt    # Polymorphic functions
 
 _ureal = UncertainReal._elementary
 
@@ -58,21 +57,15 @@ def _pythag(a,b):
     Avoids numerical problems
     
     """
-    ab_a = abs(a)
-    ab_b = abs(b)
+    ab_a = magnitude(a)
+    ab_b = magnitude(b)
     if ab_a > ab_b:
-        return ab_a*math.sqrt( 1.0 + (ab_b/ab_a)**2 )
+        return ab_a*sqrt( 1.0 + (ab_b/ab_a)**2 )
     elif ab_b == 0.0:
         return 0.0  
     else:
-        return ab_b*math.sqrt( 1.0 + (ab_a/ab_b)**2 )
-#----------------------------------------------------------------------------
-def _sqrt(x):
-    try:
-        return x._sqrt()
-    except AttributeError:
-        return math.sqrt(x)
-        
+        return ab_b*sqrt( 1.0 + (ab_a/ab_b)**2 )
+                        
 #----------------------------------------------------------------------------
 def svd_decomp(a):
     """
@@ -93,22 +86,21 @@ def svd_decomp(a):
     u = a.copy()    # a copy avoids side effects
     M,N = u.shape
     
-    # ASSUME that w and v are real-valued (not uncertain?)
-    w = np.empty( (N,), dtype=float ) 
-    v = np.empty( (N,N), dtype=float )
+    w = np.empty( (N,), dtype=a.dtype ) 
+    v = np.empty( (N,N), dtype=a.dtype )
     rv1 = np.empty( (N,), dtype=a.dtype )
     
-    g = scale = anorm = 0.0
+    g = 0.0                 # May be uncertain    
+    scale = anorm = 0.0     # floats
     
     for i in range(N):
         
         l = i + 1
         rv1[i] = scale * g 
         
-        g = s = scale = 0.0     
+        g = s = scale = 0.0        
         if i < M:
             scale += sum(
-                # `abs` uses value only, if uncertain
                 abs( u[k,i] ) for k in range(i,M)
             )
             if scale != 0.0:
@@ -118,9 +110,9 @@ def svd_decomp(a):
                     
                 f = u[i,i]
                 if f<0:
-                    g = _sqrt(s)
+                    g = sqrt(s)
                 else:
-                    g = -_sqrt(s)
+                    g = -sqrt(s)
                     
                 h = f*g - s 
                 u[i,i] = f - g 
@@ -136,7 +128,7 @@ def svd_decomp(a):
                 for k in range(i,M):
                     u[k,i] *= scale 
                     
-        w[i] = scale*value(g)   # ASSUMED real-valued
+        w[i] = scale*g
         
         g = s = scale = 0.0     
         if i < M and i != N - 1:
@@ -151,9 +143,9 @@ def svd_decomp(a):
                 f = u[i,l]
                 
                 if f<0:
-                    g = _sqrt(s)
+                    g = sqrt(s)
                 else:
-                    g = -_sqrt(s)
+                    g = -sqrt(s)
                 h = f*g - s 
                 u[i,l] = f - g 
                 
@@ -170,7 +162,7 @@ def svd_decomp(a):
                 for k in range(l,N):
                     u[i,k] *= scale 
             
-        # ASSUME `anorm` real-valued (`abs` uses value only)
+        # ASSUME `anorm` is real-valued (`abs` uses value only)
         temp = abs(w[i]) + abs(rv1[i])  
         if temp > anorm:   
             anorm = temp
@@ -180,13 +172,11 @@ def svd_decomp(a):
         if i < N-1:
             if g != 0.0:
                 for j in range(l,N):
-                    # ASSUME that only the value is needed here
-                    v[j,i] = value( u[i,j]/u[i,l] )/g
+                    v[j,i] = ( u[i,j]/u[i,l] )/g 
 
                 for j in range(l,N):
-                    # ASSUME that only the value is needed here
                     s = sum(
-                        value(u[i,k]*v[k,j]) for k in range(l,N)
+                        u[i,k]*v[k,j] for k in range(l,N)
                     )
                     for k in range(l,N):
                         v[k,j] += s*v[k,i]
@@ -207,11 +197,10 @@ def svd_decomp(a):
         if g != 0.0:
             g = 1.0/g 
             for j in range(l,N):
-                # ASSUME that only the value is needed here
                 s = sum(
-                    value(u[k,i]*u[k,j]) for k in range(l,M)
+                    u[k,i]*u[k,j] for k in range(l,M)
                 )
-                f = value( s/u[i,i] )*g
+                f = (s/u[i,i])*g
                 for k in range(i,M):
                     u[k,j] += f*u[k,i] 
                     
@@ -773,11 +762,23 @@ Generalised Least-Squares Results:
 #============================================================================
 if __name__ == '__main__': 
 
-    import doctest
     from GTC import *
     
-    doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
+    # import doctest    
+    # doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
 
-
- 
+    A = np.array(
+        [[ureal(1,.2), ureal(.5,.4)],
+        [ureal(.2,.3), ureal(-1,.5)]]
+    )
+    # A = np.array(
+        # [1, .5,.2, -1]
+    # )
+    A.shape = 2,2
+    print(A)
+    U,w,V = svd_decomp(A)
+    print()
+    # print(U)
+    # print(V)
+    print( np.matmul(A,np.matmul(V,np.matmul(np.diag(1.0/w),U.T))) )
     
