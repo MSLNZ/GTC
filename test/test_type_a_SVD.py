@@ -44,7 +44,8 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(ls.beta[1].x,1.5) )
         self.assertTrue( equivalent(ls.beta[0].x,2.0) )
         
-        # 
+        # This is a perfect fit so we expect the coefficients
+        # to have no uncertainty
         self.assertTrue( _is_constant(ls.beta[1]) )
         self.assertTrue( _is_constant(ls.beta[0]) )
  
