@@ -69,7 +69,20 @@ def _is_uncertain_complex_constant(z):
         raise TypeError(
             "UncertainComplex required: {!r}".format(z)
         )
-
+        
+#----------------------------------------------------------------------------
+def _is_constant(x):
+    """
+    Return `False` if `x` has some uncertainty
+    
+    """
+    if isinstance(x,UncertainReal):
+        return _is_uncertain_real_constant(x)
+    elif isinstance(z,UncertainComplex):
+        return _is_uncertain_complex_constant(z)
+    else:
+        return True
+        
 #-----------------------------------------------------------------------------------------
 def value(x):
     """Return the value 
