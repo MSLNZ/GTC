@@ -27,6 +27,64 @@ _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
 
 #----------------------------------------------------------------------------
+def svbksb(u,w,v,b):
+    """
+    Solve A*X = B
+    
+    .. versionadded:: 1.4.x
+    
+    :arg u: an ``M`` by ``P`` matrix
+    :arg w: an ``P`` element sequence
+    :arg v: an ``P`` by ``P`` matrix
+    :arg b: an ``P`` element sequence 
+    
+    Returns a list containing the solution ``X`` 
+    
+    """
+    M,P = u.shape 
+    tmp = np.zeros( (P,), dtype=float  ) 
+    for j in range(P):
+        if w[j] != 0:
+            tmp[j] = math.fsum(
+                u[i,j]*b[i] for i in range(M)
+            ) / w[j]
+            
+    return np.matmul(v,tmp)
+
+#------------------------------------------------
+def solve(a,b,TOL=1E-5):
+    """
+    Solve a.x = b
+    
+    .. versionadded:: 1.4.x
+
+    """
+    u,w,vh = np.linalg.svd(a, full_matrices=False )
+    v = vh.T    
+
+    wmax = max(w)
+    thresh = TOL*wmax 
+    # wmin = min(w)
+    # logC = math.log10(wmax/wmin)
+    # # The base-b logarithm of C is an estimate of how many 
+    # # base-b digits will be lost in solving a linear system 
+    # # with the matrix. In other words, it estimates worst-case 
+    # # loss of precision. 
+
+    # # C is the condition number: the ratio of the largest to smallest 
+    # # singular value in the SVD
+    
+    # `TOL` is used to set relatively small singular values to zero
+    # Doing so avoids numerical precision problems, but will make the 
+    # solution slightly less accurate. The value can be varied.
+    w = [ 
+        w_i if w_i >= thresh else 0. 
+            for w_i in w 
+    ]
+    
+    return svbksb(u,w,v,b)
+
+#----------------------------------------------------------------------------
 def svdfit(x,y,sig,fn):
     """
     Return the LS coefficients of the ``fn`` parameters 
@@ -85,14 +143,7 @@ def svdfit(x,y,sig,fn):
             for w_i in w 
     ]
     
-    # Back substitution
-    tmp = np.zeros( (P,), dtype=float  ) 
-    for j in range(P):
-        if w[j] != 0:
-            tmp[j] = math.fsum(
-                u[i,j]*b[i] for i in range(M)
-            ) / w[j]
-    coef = np.matmul(v,tmp)
+    coef = svbksb(u,w,v,b)
 
     # Residuals -> chisq
     chisq = 0.0 
@@ -135,39 +186,9 @@ def svdvar(v,w):
             )
     
     return cv  
-    
+ 
 #----------------------------------------------------------------------------
-def ols(x,y,fn,P,label=None):
-    """Ordinary least squares fit of ``y`` to ``x``
-    
-    :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    :arg y: a sequence of ``M`` responses (dependent-variable)  
-    :arg fn: a user-defined function relating ``x`` the response
-    :arg P: the number of parameters to be fitted 
-    :arg label: a label for the fitted parameters
-    
-    Return a :class:`OLSFit` object containing the results 
-    
-    """
-    M = len(y)
-    
-    if M != len(x):
-        raise RuntimeError(
-            "len(x) {} != len(y) {}".format(len(x),M)
-        )
-        
-    if M <= P:
-        raise RuntimeError(
-            "M = {} but should be > {}".format(M,P)
-        )     
-    
-    sig = np.ones( (M,) )
-    coef, chisq, w, v = svdfit(x,y,sig,fn)
-
-    return OLSFit( *_ls(coef,chisq,w,v,sig,label=label) )
-    
-#----------------------------------------------------------------------------
-def _ls(coef,chisq,w,v,sig,label=None):
+def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
     """
     Create uncertain numbers for the fitted parameters 
 
@@ -216,8 +237,39 @@ def _ls(coef,chisq,w,v,sig,label=None):
             if abs(cv[i,j]) > 1E-13:
                 b_i.set_correlation(cv[i,j]/(b_i.u*b_j.u),b_j)
             
-    return beta,chisq,M,P
+    return beta
+     
+#----------------------------------------------------------------------------
+def ols(x,y,fn,P,label=None):
+    """Ordinary least squares fit of ``y`` to ``x``
     
+    :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    :arg y: a sequence of ``M`` responses (dependent-variable)  
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg P: the number of parameters to be fitted 
+    :arg label: a label for the fitted parameters
+    
+    Return a :class:`OLSFit` object containing the results 
+    
+    """
+    M = len(y)
+    
+    if M != len(x):
+        raise RuntimeError(
+            "len(x) {} != len(y) {}".format(len(x),M)
+        )
+        
+    if M <= P:
+        raise RuntimeError(
+            "M = {} but should be > {}".format(M,P)
+        )     
+    
+    sig = np.ones( (M,) )
+    coef, chisq, w, v = svdfit(x,y,sig,fn)
+    coef = coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=label)
+
+    return OLSFit( coef,chisq,M,P )  
+
 #-----------------------------------------------------------------------------------------
 class LSFit(object):
  

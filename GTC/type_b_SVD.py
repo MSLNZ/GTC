@@ -12,7 +12,7 @@ Still TODO:
             What about weighted cases? 
             It is not possible to go from y_0 to the vector x_0, of course!
             
-    For type-A analysis, use the numpy svd routine. The routine here is needed for type-B work.
+    For type-A analysis, use the numpy svd routine. The NR routine here is needed for type-B work.
     Testing this routine with real-valued data is a useful check that it is correctly implemented.
     
     It should be possible to test this routine on uncertain-number datasets for linear fitting problems.
@@ -28,26 +28,10 @@ try:
 except ImportError:
     izip = zip
 
-from GTC.lib import (
-    UncertainReal,
-    real_ensemble,
-    complex_ensemble,
-    append_real_ensemble,
-    value,
-)
+from GTC.lib import value
+
 from GTC import cholesky 
 from GTC import magnitude, sqrt    # Polymorphic functions
-
-_ureal = UncertainReal._elementary
-
-# __all__ = (
-    # 'ols',
-    # 'wls',
-    # 'gls',
-    # 'OLSFit',
-    # 'WLSFit',
-    # 'GLSFit',
-# )
 
 #----------------------------------------------------------------------------
 def _pythag(a,b):
@@ -73,27 +57,27 @@ def svd_decomp(a):
     
     .. versionadded:: 1.4.x
     
-    :arg a: an ``m`` by ``n`` matrix
+    :arg a: an ``M`` by ``P`` matrix
     
     The return value is a triplet ``U, w, V`` where
-    ``U`` is  an ``m`` by ``n`` matrix 
-    ``w`` is a sequence containing the ``n`` elements of a diagonal matrix ``W`` 
-    ``V`` is an ``n`` by ``n`` matrix
+    ``U`` is  an ``M`` by ``P`` matrix 
+    ``w`` is a sequence containing the ``P`` elements of a diagonal matrix ``W`` 
+    ``V`` is an ``P`` by ``P`` matrix
     
     The decomposition of ``a = U * W * V.T``
         
     """
     u = a.copy()    # a copy avoids side effects
-    M,N = u.shape
+    M,P = u.shape
     
-    w = np.empty( (N,), dtype=a.dtype ) 
-    v = np.empty( (N,N), dtype=a.dtype )
-    rv1 = np.empty( (N,), dtype=a.dtype )
+    w = np.empty( (P,), dtype=object ) 
+    v = np.empty( (P,P), dtype=object )
+    rv1 = np.empty( (P,), dtype=object )
     
     g = 0.0                 # May be uncertain    
     scale = anorm = 0.0     # floats
     
-    for i in range(N):
+    for i in range(P):
         
         l = i + 1
         rv1[i] = scale * g 
@@ -117,7 +101,7 @@ def svd_decomp(a):
                 h = f*g - s 
                 u[i,i] = f - g 
                 
-                for j in range(l,N):
+                for j in range(l,P):
                     s = sum( 
                         u[k,i]*u[k,j] for k in range(i,M) 
                     )
@@ -131,12 +115,12 @@ def svd_decomp(a):
         w[i] = scale*g
         
         g = s = scale = 0.0     
-        if i < M and i != N - 1:
+        if i < M and i != P - 1:
             scale += sum(
-                abs( u[i,k] ) for k in range(l,N)
+                abs( u[i,k] ) for k in range(l,P)
             )
             if scale != 0.0:
-                for k in range(l,N):
+                for k in range(l,P):
                     u[i,k] /= scale 
                     s += u[i,k]*u[i,k]
                     
@@ -149,17 +133,17 @@ def svd_decomp(a):
                 h = f*g - s 
                 u[i,l] = f - g 
                 
-                for k in range(l,N):
+                for k in range(l,P):
                     rv1[k] = u[i,k]/h 
                     
                 for j in range(l,M):
                     s = sum(
-                        u[j,k]*u[i,k] for k in range(l,N)
+                        u[j,k]*u[i,k] for k in range(l,P)
                     )
-                    for k in range(l,N):
+                    for k in range(l,P):
                         u[j,k] += s*rv1[k] 
                     
-                for k in range(l,N):
+                for k in range(l,P):
                     u[i,k] *= scale 
             
         # ASSUME `anorm` is real-valued (`abs` uses value only)
@@ -167,36 +151,36 @@ def svd_decomp(a):
         if temp > anorm:   
             anorm = temp
         
-    for i in range(N-1,-1,-1):
+    for i in range(P-1,-1,-1):
         
-        if i < N-1:
+        if i < P-1:
             if g != 0.0:
-                for j in range(l,N):
+                for j in range(l,P):
                     v[j,i] = ( u[i,j]/u[i,l] )/g 
 
-                for j in range(l,N):
+                for j in range(l,P):
                     s = sum(
-                        u[i,k]*v[k,j] for k in range(l,N)
+                        u[i,k]*v[k,j] for k in range(l,P)
                     )
-                    for k in range(l,N):
+                    for k in range(l,P):
                         v[k,j] += s*v[k,i]
                         
-            for j in range(l,N):
+            for j in range(l,P):
                 v[i,j] = v[j,i] = 0.0 
                 
         v[i,i] = 1.0 
         g = rv1[i] 
         l = i
     
-    for i in range( min(M,N)-1, -1, -1 ):
+    for i in range( min(M,P)-1, -1, -1 ):
         l = i + 1 
         g = w[i] 
-        for j in range(l,N): 
+        for j in range(l,P): 
             u[i,j] = 0.0 
             
         if g != 0.0:
             g = 1.0/g 
-            for j in range(l,N):
+            for j in range(l,P):
                 s = sum(
                     u[k,i]*u[k,j] for k in range(l,M)
                 )
@@ -212,7 +196,7 @@ def svd_decomp(a):
                 
         u[i,i] += 1 
       
-    for k in range(N-1,-1,-1):
+    for k in range(P-1,-1,-1):
         for its in range(30):
             flag = True
             for l in range(k,-1,-1):
@@ -256,7 +240,7 @@ def svd_decomp(a):
             if l == k:  # Convergence
                 if z < 0.0:
                     w[k] = -z 
-                    for j in range(N):
+                    for j in range(P):
                         v[j,k] = -v[j,k]                        
                 break
             
@@ -295,7 +279,7 @@ def svd_decomp(a):
                 h = y*s 
                 y *= c 
 
-                for jj in range(N):
+                for jj in range(P):
                     x = v[jj,j]
                     z = v[jj,i] 
                     v[jj,j] = x*c + z*s 
@@ -331,18 +315,18 @@ def svbksb(u,w,v,b):
     
     .. versionadded:: 1.4.x
     
-    :arg u: an ``m`` by ``n`` matrix
-    :arg w: an ``n`` element sequence
-    :arg v: an ``n`` by ``n`` matrix
-    :arg b: an ``m`` element sequence 
+    :arg u: an ``M`` by ``P`` matrix
+    :arg w: an ``P`` element sequence
+    :arg v: an ``P`` by ``P`` matrix
+    :arg b: an ``P`` element sequence 
     
     Returns a list containing the solution ``X`` 
     
     """
-    M,N = u.shape 
-    tmp = np.empty( (N,1), dtype=u.dtype  ) 
+    M,P = u.shape 
+    tmp = np.empty( (P,), dtype=object  ) 
 
-    for j in range(N):
+    for j in range(P):
         if w[j] != 0:
             s = sum(
                 u[i,j]*b[i] for i in range(M)
@@ -350,54 +334,22 @@ def svbksb(u,w,v,b):
         else:
             s = 0
             
-        tmp[j,0] = s 
+        tmp[j] = s 
        
-    return list( np.matmul(v,tmp).flat ) 
- 
-#----------------------------------------------------------------------------
-def svdfit(x,y,sig,fn):
-    """
-    Return the LS coefficients of the ``fn`` parameters 
+    return np.matmul(v,tmp)
 
-    .. versionadded:: 1.4.x
-    
-    :arg x: an ``N`` element array
-    :arg y: an ``N`` element array
-    :arg sig: an ``N`` element array of float
-    :arg fn: user-defined function to evaluate basis functions 
-    
+#------------------------------------------------
+def solve(a,b,TOL=1E-5):
     """
-    # `TOL` is used to set relatively small singular values to zero
-    # Doing so avoids numerical precision problems, but will make the 
-    # solution slightly less accurate. The value can be varied.
-    TOL = 1E-5
+    Solve a.x = b
     
-    i = 0
-    afunc_i = fn(x[i])
-    
-    # N - number of data points 
-    # M - number of parameters to fit 
-    
-    N = len(x) 
-    M = len( afunc_i )
-    
-    # TODO: need to determine dtypes
-    a = np.empty( (N,M) )
-    b = np.zeros( (N,) )    
-    
-    for i in range(N):
-        tmp = 1.0/sig[i]
-        for j in range(M):
-            a[i,j] = tmp*afunc_i[j]
-            
-        b[i] = tmp*y[i] 
-        
-        if i < N-1:
-            afunc_i = fn(x[i+1])
-             
+    .. versionadded:: 1.4.x
+
+    """
     u,w,v = svd_decomp(a)
-    
+
     wmax = max(w)
+    thresh = TOL*wmax 
     # wmin = min(w)
     # logC = math.log10(wmax/wmin)
     # # The base-b logarithm of C is an estimate of how many 
@@ -408,29 +360,92 @@ def svdfit(x,y,sig,fn):
     # # C is the condition number: the ratio of the largest to smallest 
     # # singular value in the SVD
     
-    thresh = TOL*wmax 
+    # `TOL` is used to set relatively small singular values to zero
+    # Doing so avoids numerical precision problems, but will make the 
+    # solution slightly less accurate. The value can be varied.
     w = [ 
         w_i if w_i >= thresh else 0. 
             for w_i in w 
     ]
+
+    return svbksb(u,w,v,b)
+
+#----------------------------------------------------------------------------
+def svdfit(x,y,sig,fn):
+    """
+    Return the LS coefficients of the ``fn`` parameters 
+
+    .. versionadded:: 1.4.x
     
-    a = svbksb(u,w,v,b)
+    :arg x: an ``M`` element array
+    :arg y: an ``M`` element array
+    :arg sig: an ``M`` element array of float
+    :arg fn: user-defined function to evaluate basis functions 
     
-    # TODO: this is a value calculation
+    """
+    # `TOL` is used to set relatively small singular values to zero
+    # Doing so avoids numerical precision problems, but will make the 
+    # solution slightly less accurate. The value can be varied.
+    TOL = 1E-5
+    
+    afunc_i = fn(x[0])
+    
+    # M - number of data points 
+    # P - number of parameters to fit 
+    
+    M = len(x) 
+    P = len( afunc_i )
+    
+    a = np.empty( (M,P), dtype=object )
+    b = np.empty( (M,), dtype=object )    
+    
+    for i in range(M):
+        tmp = 1.0/sig[i]
+        for j in range(P):
+            a[i,j] = tmp*afunc_i[j]
+            
+        b[i] = tmp*y[i] 
+        
+        if i < M-1:
+            afunc_i = fn(x[i+1])
+             
+    u,w,v = svd_decomp(a)
+    
+    wmax = max(w)
+    thresh = TOL*wmax 
+    # wmin = min(w)
+    # logC = math.log10(wmax/wmin)
+    # # The base-b logarithm of C is an estimate of how many 
+    # # base-b digits will be lost in solving a linear system 
+    # # with the matrix. In other words, it estimates worst-case 
+    # # loss of precision. 
+
+    # # C is the condition number: the ratio of the largest to smallest 
+    # # singular value in the SVD
+    
+    # `TOL` is used to set relatively small singular values to zero
+    # Doing so avoids numerical precision problems, but will make the 
+    # solution slightly less accurate. The value can be varied.
+    w = [ 
+        w_i if w_i >= thresh else 0. 
+            for w_i in w 
+    ]
+ 
+    coef = svbksb(u,w,v,b)
+
+    # Residuals -> chisq
     chisq = 0.0 
-    for i in range(N):
-        afunc = fn(x[i])
-        
+    for i in range(M):
+        afunc_i = fn(x[i])
         s = math.fsum(
-            value( a[j]*afunc[j] )
-                for j in range(M)
-        )
-        
-        tmp = ( value(y[i]) - s)/sig[i]
+                value( coef[j]*afunc_i[j] )
+                    for j in range(P)
+            )
+        tmp = value( (y[i] - s)/sig[i] )
         chisq += tmp*tmp 
           
-    # w and v are needed to evaluate parameter covariance 
-    return a, chisq, w, v
+    # w and v are used to evaluate parameter covariance 
+    return coef, chisq, w, v
    
 #----------------------------------------------------------------------------
 def svdvar(v,w):
@@ -439,179 +454,181 @@ def svdvar(v,w):
     
     .. versionadded:: 1.4.x
     
-    :arg v: an ``N`` by ``N`` matrix of float
-    :arg w: an ``N`` element sequence of float 
+    :arg v: an ``P`` by ``P`` matrix of float
+    :arg w: an ``P`` element sequence of float 
     
     """
-    N = len(w)  
-    cv = np.empty( (N,N), dtype=float )
+    P = len(w)  
+    cv = np.empty( (P,P), dtype=float )
     
     wti = [
-        1.0/(w_i*w_i) if w_i != 0 else 0.0
+        1.0/value(w_i*w_i) if w_i != 0 else 0.0
             for w_i in w 
     ]
     
-    for i in range(N):
+    for i in range(P):
         for j in range(i+1):
             cv[i,j] = cv[j,i] = math.fsum(
-                v[i,k]*v[j,k]*wti[k]
-                    for k in range(N)
+                value( v[i,k]*v[j,k]*wti[k] )
+                    for k in range(P)
             )
     
     return cv  
 
 #----------------------------------------------------------------------------
-def wls(x,y,u_y,fn,P,label=None):    
-    """Weighted least squares fit of ``y`` to ``x``
-    
-    :arg x: a sequence of ``N`` stimulus values (independent-variables)
-    :arg y: a sequence of ``N`` responses (dependent-variable)  
-    :arg u_y: a sequence of ``N`` standard uncertainties in the responses
-    :arg fn: a user-defined function relating ``x`` the response
-    :arg P: the number of parameters to be fitted 
-    :arg label: a label for the fitted parameters
-    
-    Return a :class:`WLSFit` object containing the results 
-    
-    """
-    N = len(y)
-    
-    if N != len(x):
-        raise RuntimeError(
-            "len(x) {} != len(y) {}".format(len(x),N)
-        )
-        
-    if N <= P:
-        raise RuntimeError(
-            "N {} should be > P {}".format(N,P)
-        )     
-        
-    return WLSFit( _ls(x,y,u_y,fn,P,label=label) )
-
-    
-#----------------------------------------------------------------------------
-def ols(x,y,fn,P,label=None):
+def ols(x,y,fn,P):
     """Ordinary least squares fit of ``y`` to ``x``
     
-    :arg x: a sequence of ``N`` stimulus values (independent-variables)
-    :arg y: a sequence of ``N`` responses (dependent-variable)  
+    :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    :arg y: a sequence of ``M`` responses (dependent-variable)  
     :arg fn: a user-defined function relating ``x`` the response
     :arg P: the number of parameters to be fitted 
-    :arg label: a label for the fitted parameters
     
     Return a :class:`OLSFit` object containing the results 
     
     """
-    N = len(y)
+    M = len(y)
     
-    if N != len(x):
+    if M != len(x):
         raise RuntimeError(
-            "len(x) {} != len(y) {}".format(len(x),N)
+            "len(x) {} != len(y) {}".format(len(x),M)
         )
         
-    if N <= P:
+    if M <= P:
         raise RuntimeError(
-            "N {} should be > P {}".format(N,P)
+            "N {} should be > P {}".format(M,P)
         )     
-    
-    sig = N*[1]
 
-    return OLSFit( _ls(x,y,sig,fn,P,label=label) )
+    sig = np.ones( (M,) )
+    coef, chisq, w, v = svdfit(x,y,sig,fn,P)
+   
+    return OLSFit( coef,chisq,M,P )
     
-#----------------------------------------------------------------------------
-def gls(x,y,cv,fn,P,label=None):
-    """Generalised least squares fit of ``y`` to ``x``
+
+# #----------------------------------------------------------------------------
+# def wls(x,y,u_y,fn,P,label=None):    
+    # """Weighted least squares fit of ``y`` to ``x``
     
-    :arg x: a sequence of ``N`` stimulus values (independent-variables)
-    :arg y: a sequence of ``N`` responses (dependent-variable)  
-    :arg cv: an ``N`` by ``N`` covariance matrix for the responses
-    :arg fn: a user-defined function relating ``x`` the response
-    :arg P: the number of parameters to be fitted 
-    :arg label: a label for the fitted parameters
+    # :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    # :arg y: a sequence of ``M`` responses (dependent-variable)  
+    # :arg u_y: a sequence of ``M`` standard uncertainties in the responses
+    # :arg fn: a user-defined function relating ``x`` the response
+    # :arg P: the number of parameters to be fitted 
+    # :arg label: a label for the fitted parameters
     
-    Return a :class:`GLSFit` object containing the results 
+    # Return a :class:`WLSFit` object containing the results 
     
-    """
-    N = len(y)
+    # """
+    # M = len(y)
     
-    if N != len(x):
-        raise RuntimeError(
-            "len(x) {} != len(y) {}".format(len(x),N)
-        )
+    # if M != len(x):
+        # raise RuntimeError(
+            # "len(x) {} != len(y) {}".format(len(x),M)
+        # )
         
-    if N <= P:
-        raise RuntimeError(
-            "N {} should be > P {}".format(N,P)
-        )     
+    # if M <= P:
+        # raise RuntimeError(
+            # "N {} should be > P {}".format(M,P)
+        # )     
+        
+    # return WLSFit( _ls(x,y,u_y,fn,P,label=label) )
 
-    if cv.shape != (N,N):
-        raise RuntimeError(
-            "cv.shape {0:!s} should be {({1},{1})}".format(cv.shape,N)
-        )     
     
-    K = cholesky.cholesky_decomp(cv)
-    Kinv = cholesky.cholesky_inv(K)
+# #----------------------------------------------------------------------------
+# def gls(x,y,cv,fn,P,label=None):
+    # """Generalised least squares fit of ``y`` to ``x``
     
-    X = np.array( x )
-    Y = np.array( y ).T
+    # :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    # :arg y: a sequence of ``M`` responses (dependent-variable)  
+    # :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
+    # :arg fn: a user-defined function relating ``x`` the response
+    # :arg P: the number of parameters to be fitted 
+    # :arg label: a label for the fitted parameters
     
-    Q = np.matmul(Kinv,X) 
-    Z = np.matmul(Kinv,Y) 
+    # Return a :class:`GLSFit` object containing the results 
+    
+    # """
+    # M = len(y)
+    
+    # if M != len(x):
+        # raise RuntimeError(
+            # "len(x) {} != len(y) {}".format(len(x),M)
+        # )
+        
+    # if M <= P:
+        # raise RuntimeError(
+            # "N {} should be > P {}".format(N,P)
+        # )     
 
-    # X is N by M 
-    x = []
-    y = []
-    for i in range(N):
-        x.append( [ Q[i,j] for j in range(M) ] )
-        y.append( Z[i,0] )
+    # if cv.shape != (M,M):
+        # raise RuntimeError(
+            # "cv.shape {0:!s} should be {({1},{1})}".format(cv.shape,M)
+        # )     
+    
+    # # NB `cv` is real-valued
+    # K = cholesky.cholesky_decomp(cv)
+    # Kinv = cholesky.cholesky_inv(K)
+    
+    # X = np.array( x, dtype=object )
+    # Y = np.array( y, dtype=object ).T
+    
+    # Q = np.matmul(Kinv,X) 
+    # Z = np.matmul(Kinv,Y) 
+
+    # # X is M by P 
+    # x = []
+    # y = []
+    # for i in range(M):
+        # x.append( [ Q[i,j] for j in range(P) ] )
+        # y.append( Z[i,0] )
          
-    sig = N*[1]
+    # sig = np.ones( (M,) ) 
 
-    return GLSFit( _ls(x,y,sig,fn,P,label=label) )
+    # return GLSFit( _ls(x,y,sig,fn,P,label=label) )
         
-#----------------------------------------------------------------------------
-def _ls(x,y,sig,fn,P,label=None):
-    """
+# #----------------------------------------------------------------------------
+# def _ls(x,y,sig,fn,P,label=None):
+    # """
     
-    """
-    b, chisq, w, v = svdfit(x,y,sig,fn,P)
+    # """
+    # b, chisq, w, v = svdfit(x,y,sig,fn,P)
     
-    df = N - P
+    # df = N - P
     
-    s2 = chisq/df
-    cv = s2*svd.svdvar(v,w)
+    # s2 = chisq/df
+    # cv = s2*svd.svdvar(v,w)
     
-    u = []
-    beta = []
-    for i in range(P):
-        u.append( math.sqrt(cv[i,i]) )
+    # u = []
+    # beta = []
+    # for i in range(P):
+        # u.append( math.sqrt(cv[i,i]) )
         
-        if label is None:
-            label_i = 'b_{}'.format(i)   
-        else:
-            label_i = '{}_{}'.format(label,i)
+        # if label is None:
+            # label_i = 'b_{}'.format(i)   
+        # else:
+            # label_i = '{}_{}'.format(label,i)
             
-        b_i = _ureal(
-            b[i],
-            u[i],
-            df,
-            label=label_i,
-            independent=False
-        )        
+        # b_i = _ureal(
+            # b[i],
+            # u[i],
+            # df,
+            # label=label_i,
+            # independent=False
+        # )        
             
-        beta.append(b_i)
+        # beta.append(b_i)
       
-    real_ensemble( beta, df )
+    # real_ensemble( beta, df )
 
-    for i in range(P):
-        for j in range(i):
-            den = u[i]*u[j]
-            assert abs(den) > 1E-13, "unexpected: {!r}".format(den) 
-            r = cv[i,j]/den
-            if r != 0:
-                beta[i].set_correlation(r,beta[j])
+    # for i in range(P):
+        # for j in range(i):
+            # den = u[i]*u[j]
+            # assert abs(den) > 1E-13, "unexpected: {!r}".format(den) 
+            # r = cv[i,j]/den
+            # if r != 0:
+                # beta[i].set_correlation(r,beta[j])
             
-    return beta,chisq,N,P
+    # return beta,chisq,N,P
     
 #-----------------------------------------------------------------------------------------
 class LSFit(object):
@@ -726,38 +743,38 @@ Ordinary Least-Squares Results:
 '''
         return header + str(LSFit)
  
-#----------------------------------------------------------------------------
-class WLSFit(LSFit):
+# #----------------------------------------------------------------------------
+# class WLSFit(LSFit):
 
-    """
-    Results of a weighted least squares regression
-    """
+    # """
+    # Results of a weighted least squares regression
+    # """
 
-    def __init__(self,beta,ssr,N,P):
-        LSFit.__init__(self,beta,ssr,N,P)
+    # def __init__(self,beta,ssr,N,P):
+        # LSFit.__init__(self,beta,ssr,N,P)
 
-    def __str__(self):
-        header = '''
-Weighted Least-Squares Results:
-'''
-        return header + str(LSFit)
+    # def __str__(self):
+        # header = '''
+# Weighted Least-Squares Results:
+# '''
+        # return header + str(LSFit)
  
     
-#----------------------------------------------------------------------------
-class GLSFit(LSFit):
+# #----------------------------------------------------------------------------
+# class GLSFit(LSFit):
 
-    """
-    Results of a generalised least squares regression
-    """
+    # """
+    # Results of a generalised least squares regression
+    # """
 
-    def __init__(self,beta,ssr,N,P):
-        LSFit.__init__(self,beta,ssr,N,P)
+    # def __init__(self,beta,ssr,N,P):
+        # LSFit.__init__(self,beta,ssr,N,P)
   
-    def __str__(self):
-        header = '''
-Generalised Least-Squares Results:
-'''
-        return header + str(LSFit)
+    # def __str__(self):
+        # header = '''
+# Generalised Least-Squares Results:
+# '''
+        # return header + str(LSFit)
   
 #============================================================================
 if __name__ == '__main__': 

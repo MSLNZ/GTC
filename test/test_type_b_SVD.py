@@ -10,10 +10,48 @@ TOL = 1E-13
 DIGITS = 13
 
 from GTC import *
-from GTC import SVD
+from GTC import type_b_SVD as SVD
 from GTC import cholesky
 
 from testing_tools import *
+
+#----------------------------------------------------------------------------
+class TestSVDWLS(unittest.TestCase):
+
+    """
+    WLS problems
+    """
+    
+    #------------------------------------------------------------------------
+    def test3(self):
+        # weighted least squares
+        # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
+        
+        # dLDL ~ lnDOSE, weights=r
+        y = (-35.8,-45.0,-52.7,-49.7,-58.2,-66.0)   # dLDL
+        DOSE = (1,2.5,5,10,20,40)    
+        x = [ math.log(x_i) for x_i in DOSE ]
+        
+        w = (15,17,12,14,18,13) 
+        sig = [ 1.0/math.sqrt(w_i) for w_i in w ]
+        
+        N = len(y) 
+        M = 2
+
+        def fn(x_i):
+            # for linear fits 
+            return [x_i,1]
+        
+        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)  
+ 
+        self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
+        self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
+        
+        s2 = chisq/(N-M)
+        cv = s2*SVD.svdvar(v,w)
+        
+        self.assertTrue( equivalent(math.sqrt(cv[1,1]),2.2441,tol=1E-4) )
+        self.assertTrue( equivalent(math.sqrt(cv[0,0]),0.9892,tol=1E-4) )
 
 #----------------------------------------------------------------------------
 class TestSVDOLS(unittest.TestCase):
@@ -84,7 +122,6 @@ class TestSVDOLS(unittest.TestCase):
         N = int( len(s)/step )
         M = 3 
 
-        sig = [1]*N
         x = []
         y = []
         for i in range(0,N):
@@ -98,6 +135,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return x_i 
  
+        sig = numpy.ones( (N,) )
         a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
         
         self.assertTrue( equivalent(a[2],3.939524,tol=1E-6) )
@@ -116,38 +154,6 @@ class TestSVDOLS(unittest.TestCase):
         
         for i,j in zip( cv.flat, r_cv.flat):
             self.assertTrue( equivalent(i,j,tol=1E-7) )
-    
-    #------------------------------------------------------------------------
-    def test3(self):
-        # weighted least squares
-        # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
-        
-        # dLDL ~ lnDOSE, weights=r
-        y = (-35.8,-45.0,-52.7,-49.7,-58.2,-66.0)   # dLDL
-        DOSE = (1,2.5,5,10,20,40)    
-        x = [ math.log(x_i) for x_i in DOSE ]
-        
-        w = (15,17,12,14,18,13) 
-        sig = [ 1.0/math.sqrt(w_i) for w_i in w ]
-        
-        N = len(y) 
-        M = 2
-
-        def fn(x_i):
-            # for linear fits 
-            return [x_i,1]
-        
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)  
- 
-        self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
-        self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
-        
-        s2 = chisq/(N-M)
-        cv = s2*SVD.svdvar(v,w)
-        
-        self.assertTrue( equivalent(math.sqrt(cv[1,1]),2.2441,tol=1E-4) )
-        self.assertTrue( equivalent(math.sqrt(cv[0,0]),0.9892,tol=1E-4) )
-
  
     #------------------------------------------------------------------------
     def test4(self):
@@ -231,7 +237,6 @@ class TestSVDOLS(unittest.TestCase):
         N = int( len(s)/step )
         M = 3
 
-        sig = [1]*N
         x = []
         y = []
         for i in range(0,N):
@@ -245,6 +250,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return x_i 
  
+        sig = numpy.ones( (N,) )
         a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
 
         self.assertTrue( equivalent(a[0],4.6117077,tol=1E-7) )
@@ -293,7 +299,6 @@ class TestSVDOLS(unittest.TestCase):
         N = int( len(s)/step )
         M = 3
         
-        sig = [1]*N
         x = []
         y = []
         for i in range(0,N):
@@ -307,8 +312,9 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return x_i 
  
+        sig = numpy.ones( (N,) )
         a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
-
+        
         self.assertTrue( equivalent(a[0],88.93880,tol=1E-5) )
         self.assertTrue( equivalent(a[1],0.06317,tol=1E-5) )
         self.assertTrue( equivalent(a[2],-0.40974,tol=1E-5) )
@@ -407,12 +413,11 @@ class TestSVDOLS(unittest.TestCase):
 class TestSVDLinearSystems(unittest.TestCase):
     
     """
-    Using SVD to solve linear systems of equations 
+    Use SVD to solve linear systems of equations 
     """
 
     #------------------------------------------------------------------------
     def test1(self):
-        # Simple example
         data = ([
             [2, -3],
             [4, 1]
@@ -421,17 +426,14 @@ class TestSVDLinearSystems(unittest.TestCase):
         x_expect =[ 5, 4 ]
 
         a = numpy.array( data, dtype=float )
-        M,N = a.shape 
 
-        u,w,v = SVD.svd_decomp(a)
-        x = SVD.svbksb(u,w,v,b)
+        x = SVD.solve(a,b)
         
         for i,j in zip(x,x_expect):
             self.assertTrue( equivalent(i,j) )
  
     #------------------------------------------------------------------------
     def test2(self):
-        # Simple example
         data = ([
             [2, 1, 3],
             [2, 6, 8],
@@ -442,11 +444,9 @@ class TestSVDLinearSystems(unittest.TestCase):
 
 
         a = numpy.array( data, dtype=float )
-        M,N = a.shape 
-
-        u,w,v = SVD.svd_decomp(a)
-        x = SVD.svbksb(u,w,v,b)
         
+        x = SVD.solve(a,b)
+
         for i,j in zip(x,x_expect):
             self.assertTrue( equivalent(i,j) )
  
@@ -454,7 +454,7 @@ class TestSVDLinearSystems(unittest.TestCase):
 class TestSVD(unittest.TestCase):
 
     """
-    Compare the decomposition of a real matrix with numpy
+    Check the decomposition of a real matrix 
 
     In general, we expect that is u,w,v is the SVD then:
     
@@ -464,7 +464,7 @@ class TestSVD(unittest.TestCase):
         
     The routine does not sort the values in ``w`` 
     
-    It seems that different methods of performing SVD lead to 
+    It seems that different methods of evaluating SVD lead to 
     different factorisations. So you cannot expect to get 
     agreement with the individual matrices unless you know 
     it is the same algorithm.   
@@ -473,8 +473,7 @@ class TestSVD(unittest.TestCase):
     #------------------------------------------------------------------------
     def test1(self):
         # From https://en.wikipedia.org/wiki/Singular_value_decomposition 
-        # But note that NR does implement the full SVD assumed in the worked 
-        # example 
+        # Note that NR does implement the full SVD assumed in the worked example
         data = (
             [1,0,0,0,2],
             [0,0,3,0,0],
@@ -622,7 +621,6 @@ class TestSVD(unittest.TestCase):
     #------------------------------------------------------------------------
     def test4(self):
         # See http://numerical.recipes/forum/showthread.php?t=2236
-        # The results there were from NR(2) 
         data = (
             [2,5,2],
             [5,2,5],
@@ -669,7 +667,6 @@ class TestSVD(unittest.TestCase):
     def test5(self):
         # This came from http://numerical.recipes/forum/showthread.php?t=1437
         # The discussion there uses the later C++ version of SVD in NR(3) 
-        # The results are different. 
         data = (
             [0.299000,    0.587000,    0.114000],
             [-0.168636,   -0.331068,    0.499704],
@@ -717,7 +714,6 @@ class TestSVD(unittest.TestCase):
     def test6(self):
         # This came from http://numerical.recipes/forum/showthread.php?t=1437
         # The discussion there uses the later C++ version of SVD in NR(3) 
-        # The results are different. 
         data = ([
             [2.000000,    2.000000,    5.000000],
             [4.000000,    5.000000,    1.000000],
@@ -743,7 +739,7 @@ class TestSVD(unittest.TestCase):
         for i in range(min(M,N)):
             self.assertTrue( equivalent(w_sorted[i],S[i]) )
 
-        # # Check that u * u.T is an identity matrix
+        # Check that u * u.T is an identity matrix
         check = numpy.matmul(u.T,u) 
         idn = la.identity( check.shape[0] )
         for i,j in zip( idn.flat, check.flat):
