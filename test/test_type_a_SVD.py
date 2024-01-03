@@ -162,7 +162,41 @@ class TestSVDOLS(unittest.TestCase):
         
         for i,j in zip( cv.flat, r_cv.flat):
             self.assertTrue( equivalent(i,j,tol=1E-7) )
-     
+ 
+    #------------------------------------------------------------------------
+    def test3(self):
+        # Example from Walpole + Myers, but the numerical results
+        # were done using R, because Walpole made an error with
+        # their t-distribution 'k' factor.
+        
+        # In R:
+            # fit <- lm(y~x)
+            # summary(fit)
+            # vcov(fit)
+
+        # Also used in test_type_a.py
+
+        x = numpy.array([3.,7.,11.,15.,18.,27.,29.,30.,30.,31.,31.,32.,33.,33.,34.,36.,36.,
+             36.,37.,38.,39.,39.,39.,40.,41.,42.,42.,43.,44.,45.,46.,47.,50.])
+        y = numpy.array([5.,11.,21.,16.,16.,28.,27.,25.,35.,30.,40.,32.,34.,32.,34.,37.,38.,
+             34.,36.,38.,37.,36.,45.,39.,41.,40.,44.,37.,44.,46.,46.,49.,51.])
+
+        N = int( len(x) )
+        M = 2 
+
+        sig = [1]*N
+
+        def fn(x_i):
+            return [x_i,1]
+ 
+        fit = SVD.ols(x,y,fn,M)
+        
+        TOL = 1E-5
+        self.assertTrue( equivalent( value(fit.beta[1]), 3.82963, TOL) )
+        self.assertTrue( equivalent( uncertainty(fit.beta[1]), 1.768447, TOL) )
+        self.assertTrue( equivalent( value(fit.beta[0]), 0.90364, TOL) )
+        self.assertTrue( equivalent( uncertainty(fit.beta[0]), 0.05011898, TOL) )
+
     #------------------------------------------------------------------------
     def test4(self):
         # From http://www.stat.ufl.edu/~winner/sta6208/reg_ex/spiritsgg.rout
@@ -416,6 +450,124 @@ class TestSVDOLS(unittest.TestCase):
         #   Z'Z - b'Q'Z 
         # I evaluated this in R and it is not the same as the reference 
         # value, but it is the same value that I obtain here.
+
+    #------------------------------------------------------------------------
+    def test_bevington(self):
+        """
+        Example from Bevington Table 6.1
+        Some calculations done in R
+
+        In R:
+            fit <- lm(y~x)
+            summary(fit)
+            vcov(fit)
+        
+        """
+        # Also used in test_type_a.py
+        
+        x = numpy.array([4.,8.,12.5,16.,20.,25.,31.,36.,40.,40.])
+        y = numpy.array([3.7,7.8,12.1,15.6,19.8,24.5,30.7,35.5,39.4,39.5])
+
+        N = int( len(x) )
+        M = 2 
+
+        def fn(x_i):
+            return [x_i,1]
+ 
+        fit = SVD.ols(x,y,fn,M)
+        
+        TOL = 1E-5
+        a = fit.beta[1]
+        b = fit.beta[0]
+        self.assertTrue( equivalent( value(a), -0.222142, TOL) )
+        self.assertTrue( equivalent( uncertainty(a), 0.06962967, TOL) )
+        self.assertTrue( equivalent( value(b), 0.992780, TOL) )
+        self.assertTrue( equivalent( uncertainty(b), 0.002636608, TOL) )
+        self.assertTrue( equivalent( a.u*b.u*get_correlation(a,b), -0.0001616271, TOL) )
+
+
+    #------------------------------------------------------------------------
+    def test_H3(self):
+        """H3 from the GUM
+        """
+        t_k = numpy.array([21.521,22.012,22.512,23.003,23.507,23.999,24.513,25.002,25.503,26.010,26.511])
+        b_k = numpy.array([-0.171,-0.169,-0.166,-0.159,-0.164,-0.165,-0.156,-0.157,-0.159,-0.161,-0.160])
+        theta = numpy.array([ t_k_i - 20 for t_k_i in t_k ])
+
+        N = len(theta)
+        M = 2 
+
+        def fn(x_i):
+            return [x_i,1]
+ 
+        fit = SVD.ols(theta,b_k,fn,M)
+        
+        TOL = 1E-5
+        a = fit.beta[1]
+        b = fit.beta[0]
+
+        # Compare with GUM values
+
+        self.assertTrue( equivalent(value(a),-0.1712,1E-4) )
+        self.assertTrue( equivalent(value(b),0.00218,1E-5) )
+        self.assertTrue( equivalent(get_correlation(a,b),-0.930,1E-3) )
+        
+        b_30 = a + b*(30 - 20)
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
+        self.assertTrue( equivalent(b_30.df,9,1E-13) )
+
+        # `y_from_x` is the predicted single `y` response
+        # which has greater variability        
+        b_30 = fit.y_from_x(30 - 20)
+        self.assertTrue( not b_30.is_intermediate )
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        b_30 = fit.y_from_x(30 - 20,label='b_30')
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        self.assertTrue( b_30.is_intermediate )
+
+    # #------------------------------------------------------------------------
+    # def test_A5(self):
+        # """CITAC 3rd edition
+
+        # Test the calibration curve aspect
+        # """
+        # x = numpy.array([0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.7, 0.7, 0.7, 0.9, 0.9, 0.9])
+        # y = numpy.array([0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131, 0.133, 0.180,
+                  # 0.181, 0.183, 0.215, 0.230, 0.216])
+
+        # N = int( len(x) )
+        # M = 2 
+
+        # def fn(x_i):
+            # return [x_i,1]
+ 
+        # fit = SVD.ols(x,y,fn,M)
+
+        # TOL = 1E-5
+        # a = fit.beta[1]
+        # b = fit.beta[0]
+
+        # # The classical uncertainty
+        # xmean = type_a.mean(x)
+        # sxx = sum( (x_i-xmean)**2 for x_i in x )
+        # S = math.sqrt(fit.ssr/(N-2))
+
+        # # c_0 = fit.x_from_y( [0.0712, 0.0716] )
+        # # _x = c_0.x
+        # # u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
+
+        # # self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
+        # # self.assertEqual(c_0.df,N-2)
+
+        # # Now in the opposite sense
+        # y_0 = fit.y_from_x(0.0714)
+        # _x = 0.0714
+        # u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
+        
+        # self.assertTrue(equivalent(value(y_0),0.0714,TOL))
+        # # self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
+        # # self.assertEqual(y_0.df,N-2)
         
 #----------------------------------------------------------------------------
 class TestSVDLinearSystems(unittest.TestCase):
