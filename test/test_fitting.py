@@ -299,7 +299,7 @@ class TestLineFitWeighted(unittest.TestCase):
 
         Better numbers using R:
         
-            fit <- lm(y~x,wieghts=w)
+            fit <- lm(y~x,weights=w)
             fit.sum <- summary(fit)
             coef(fit)
             sqrt(diag(fit.sum$cov))
@@ -355,7 +355,7 @@ class TestLineFitWeighted(unittest.TestCase):
         """ ISO/TS 28037:2010, p 14
         
         Values here calculated using R
-            fit <- lm(y~x,wieghts=w)
+            fit <- lm(y~x,weights=w)
             fit.sum <- summary(fit)
             coef(fit)
             sqrt(diag(fit.sum$cov))
@@ -473,7 +473,7 @@ class TestLineFitWeighted(unittest.TestCase):
         
         In R:
         
-            fit <- lm(y~x,wieghts=w)
+            fit <- lm(y~x,weights=w)
             fit.sum <- summary(fit)
             coef(fit)
             sqrt(diag(fit.sum$cov))
@@ -512,7 +512,7 @@ class TestLineFitWeighted(unittest.TestCase):
         in the parameters).
         
         Better numbers using R:
-            fit <- lm(y~x,wieghts=w)
+            fit <- lm(y~x,weights=w)
             fit.sum <- summary(fit)
             coef(fit)
             sqrt(diag(fit.sum$cov))
