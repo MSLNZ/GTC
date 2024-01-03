@@ -958,16 +958,16 @@ class TestLineFit(unittest.TestCase):
         TOL = 1E-5
         fit = type_a.line_fit(x,y)
         a,b = fit.a_b
-        self.assertTrue( equivalent( value(a), 3.82963, self.TOL) )
-        self.assertTrue( equivalent( uncertainty(a), 1.768447, self.TOL) )
-        self.assertTrue( equivalent( value(b), 0.90364, self.TOL) )
-        self.assertTrue( equivalent( uncertainty(b), 0.05011898, self.TOL) )
+        self.assertTrue( equivalent( value(a), 3.82963, TOL) )
+        self.assertTrue( equivalent( uncertainty(a), 1.768447, TOL) )
+        self.assertTrue( equivalent( value(b), 0.90364, TOL) )
+        self.assertTrue( equivalent( uncertainty(b), 0.05011898, TOL) )
 
         # prediction would be based on 31 dof, but the std uncertainty is key
         x_0 = 20.0
         y_0 = a + b*x_0
-        self.assertTrue( equivalent( value(y_0), 21.9025, self.TOL) )
-        self.assertTrue( equivalent( uncertainty(y_0), 0.877939, self.TOL) )
+        self.assertTrue( equivalent( value(y_0), 21.9025, TOL) )
+        self.assertTrue( equivalent( uncertainty(y_0), 0.877939, TOL) )
 
     def test_bevington(self):
         """
