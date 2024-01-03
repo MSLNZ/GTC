@@ -21,7 +21,8 @@ from GTC.lib import (
     append_real_ensemble,
     value,
 )
-from GTC import magnitude, sqrt    # Polymorphic functions
+from GTC import magnitude, sqrt     # Polymorphic functions
+from GTC import result              # To apply labels
 
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
@@ -107,6 +108,11 @@ def svdfit(x,y,sig,fn):
     
     M = len(x) 
     P = len( afunc_i )  # fn() returns a sequence of length M 
+
+    if M <= P:
+        raise RuntimeError(
+            "M = {} but should be > {}".format(M,P)
+        )     
      
     # M - number of data points 
     # P - number of parameters to fit 
@@ -202,7 +208,7 @@ def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
     cv = s2*svdvar(v,w)
     
     beta = []
-    ensemble = set()
+    ensemble = []
     for i in range(P):
         if label is None:
             label_i = 'b_{}'.format(i)   
@@ -225,7 +231,7 @@ def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
                 label=label_i,
                 independent=False
             )
-            ensemble.add( b_i )
+            ensemble.append( b_i )
             
         beta.append( b_i )
             
@@ -241,13 +247,12 @@ def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
     return beta
      
 #----------------------------------------------------------------------------
-def ols(x,y,fn,P,label=None):
+def ols(x,y,fn,label=None):
     """Ordinary least squares fit of ``y`` to ``x``
     
     :arg x: a sequence of ``M`` stimulus values (independent-variables)
     :arg y: a sequence of ``M`` responses (dependent-variable)  
     :arg fn: a user-defined function relating ``x`` the response
-    :arg P: the number of parameters to be fitted 
     :arg label: a label for the fitted parameters
     
     Return a :class:`OLSFit` object containing the results 
@@ -259,17 +264,12 @@ def ols(x,y,fn,P,label=None):
         raise RuntimeError(
             "len(x) {} != len(y) {}".format(len(x),M)
         )
-        
-    if M <= P:
-        raise RuntimeError(
-            "M = {} but should be > {}".format(M,P)
-        )     
-    
+            
     sig = np.ones( (M,) )
     coef, chisq, w, v = svdfit(x,y,sig,fn)
     coef = coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=label)
 
-    return OLSFit( coef,chisq,M,P )  
+    return OLSFit( coef,chisq,fn,M )  
 
 #-----------------------------------------------------------------------------------------
 class LSFit(object):
@@ -278,11 +278,12 @@ class LSFit(object):
     Base class for regression results
     """
 
-    def __init__(self,beta,ssr,N,P):
+    def __init__(self,beta,ssr,fn,N):
         self._beta = beta
         self._ssr = ssr
         self._N = N
-        self._P = P
+        self._fn = fn
+        self._P = len(beta)
         
     def __repr__(self):
         return """{}(
@@ -311,34 +312,26 @@ class LSFit(object):
     self._ssr,
 )
 
-    # #------------------------------------------------------------------------
-    # def mean_y_from_x(self,x,label=None):
-    # """
-    # Return the uncertain number ``y`` that is the response to ``x`` 
-    
-    # :arg x: a sequence of real numbers 
-    # :arg label: a label for the uncertain number 
-     
-    # Returns an estimate of the mean response that would be  
-    # observed from the stimulus vector ``x``. 
-    
-    # """
-    # cxt = default.context 
-    # ureal = cxt.elementary_real
-    
-    # df = self.N - self.P 
-    # assert df >= 1, "Too few observations in the sample"
-    
-    # # The elements of `beta` are uncertain numbers
-    # # This `y0` represents the mean response to `x` 
-    # # with associated uncertainty.
-    # y = sum(
-        # x_i*b_i for x_i, b_i in itertools.izip(x,self.beta)
-    # )
-    
-    # if label is not None: y.label = label
-
-    # return y 
+    #------------------------------------------------------------------------
+    def y_from_x(self,x,label=None):
+        """
+        Return the uncertain number ``y`` that is the response to ``x`` 
+        
+        :arg x: an array of real-valued data
+        :arg label: a label for ``y``
+         
+        Returns an estimate of the response that would be  
+        observed from the stimulus vector ``x``. 
+        
+        """    
+        # The elements of `beta` are uncertain numbers
+        # This `y0` represents the mean response to `x` 
+        # with associated uncertainty.
+        _y = np.dot( self.beta,np.array( self._fn(x) ) )
+        
+        if label is not None: _y = result(_y,label)
+            
+        return _y
     
     @property
     def ssr(self):
@@ -375,8 +368,8 @@ class OLSFit(LSFit):
     Results of an ordinary least squares regression
     """
 
-    def __init__(self,beta,ssr,N,P):
-        LSFit.__init__(self,beta,ssr,N,P)
+    def __init__(self,beta,ssr,fn,N):
+        LSFit.__init__(self,beta,ssr,fn,N)
  
     def __str__(self):
         header = '''
