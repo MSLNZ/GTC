@@ -41,16 +41,17 @@ def svbksb(u,w,v,b):
     Returns a list containing the solution ``X`` 
     
     """
-    M,P = u.shape 
-    tmp = np.zeros( (P,), dtype=float  ) 
-    for j in range(P):
-        if w[j] != 0:
-            tmp[j] = math.fsum(
-                u[i,j]*b[i] for i in range(M)
-            ) / w[j]
-            
-    return np.matmul(v,tmp)
+    # M,P = u.shape 
+    # tmp = np.zeros( (P,), dtype=float  ) 
+    # for j in range(P):
+        # if w[j] != 0:
+            # tmp[j] = math.fsum(
+                # u[i,j]*b[i] for i in range(M)
+            # ) / w[j]
+ 
+    # return np.matmul(v,tmp)
 
+    return np.matmul( v,1.0/w*np.matmul(u.T,b) )
 #------------------------------------------------
 def solve(a,b,TOL=1E-5):
     """
@@ -77,10 +78,10 @@ def solve(a,b,TOL=1E-5):
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
     # solution slightly less accurate. The value can be varied.
-    w = [ 
+    w = np.array([ 
         w_i if w_i >= thresh else 0. 
             for w_i in w 
-    ]
+    ])
     
     return svbksb(u,w,v,b)
 
@@ -110,8 +111,8 @@ def svdfit(x,y,sig,fn):
     # M - number of data points 
     # P - number of parameters to fit 
    
-    a = np.zeros( (M,P), dtype=float )
-    b = np.zeros( (M,), dtype=float )    
+    a = np.empty( (M,P), dtype=float )
+    b = np.empty( (M,), dtype=float )    
     
     for i in range(M):
         tmp = 1.0/sig[i]
@@ -138,10 +139,10 @@ def svdfit(x,y,sig,fn):
     # # singular value in the SVD
     
     thresh = TOL*wmax 
-    w = [ 
+    w = np.array([ 
         w_i if w_i >= thresh else 0. 
             for w_i in w 
-    ]
+    ])
     
     coef = svbksb(u,w,v,b)
 

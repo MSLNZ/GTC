@@ -323,20 +323,22 @@ def svbksb(u,w,v,b):
     Returns a list containing the solution ``X`` 
     
     """
-    M,P = u.shape 
-    tmp = np.empty( (P,), dtype=object  ) 
+    # M,P = u.shape 
+    # tmp = np.empty( (P,), dtype=object  ) 
 
-    for j in range(P):
-        if w[j] != 0:
-            s = sum(
-                u[i,j]*b[i] for i in range(M)
-            ) / w[j]
-        else:
-            s = 0
+    # for j in range(P):
+        # if w[j] != 0:
+            # s = sum(
+                # u[i,j]*b[i] for i in range(M)
+            # ) / w[j]
+        # else:
+            # s = 0
             
-        tmp[j] = s 
+        # tmp[j] = s 
        
-    return np.matmul(v,tmp)
+    # return np.matmul(v,tmp)
+    
+    return np.matmul( v,1.0/w*np.matmul(u.T,b) )
 
 #------------------------------------------------
 def solve(a,b,TOL=1E-5):
@@ -363,10 +365,10 @@ def solve(a,b,TOL=1E-5):
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
     # solution slightly less accurate. The value can be varied.
-    w = [ 
+    w = np.array([ 
         w_i if w_i >= thresh else 0. 
             for w_i in w 
-    ]
+    ])
 
     return svbksb(u,w,v,b)
 
@@ -426,10 +428,10 @@ def svdfit(x,y,sig,fn):
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
     # solution slightly less accurate. The value can be varied.
-    w = [ 
+    w = np.array([ 
         w_i if w_i >= thresh else 0. 
             for w_i in w 
-    ]
+    ])
  
     coef = svbksb(u,w,v,b)
 
