@@ -398,6 +398,11 @@ def svdfit(x,y,sig,fn):
     M = len(x) 
     P = len( afunc_i )
     
+    if M <= P:
+        raise RuntimeError(
+            "M = {} but should be > {}".format(M,P)
+        )     
+     
     a = np.empty( (M,P), dtype=object )
     b = np.empty( (M,), dtype=object )    
     
@@ -478,13 +483,13 @@ def svdvar(v,w):
     return cv  
 
 #----------------------------------------------------------------------------
-def ols(x,y,fn,P):
+def ols(x,y,fn,fn_inv=None):
     """Ordinary least squares fit of ``y`` to ``x``
     
     :arg x: a sequence of ``M`` stimulus values (independent-variables)
     :arg y: a sequence of ``M`` responses (dependent-variable)  
-    :arg fn: a user-defined function relating ``x`` the response
-    :arg P: the number of parameters to be fitted 
+    :arg fn: a user-defined function relating ``x`` the response ``y``
+    :arg fn_inv: a user-defined function relating the response ``y`` to the stimulus ``x``
     
     Return a :class:`OLSFit` object containing the results 
     
@@ -496,15 +501,10 @@ def ols(x,y,fn,P):
             "len(x) {} != len(y) {}".format(len(x),M)
         )
         
-    if M <= P:
-        raise RuntimeError(
-            "N {} should be > P {}".format(M,P)
-        )     
-
     sig = np.ones( (M,) )
-    coef, chisq, w, v = svdfit(x,y,sig,fn,P)
+    coef, chisq, w, v = svdfit(x,y,sig,fn)
    
-    return OLSFit( coef,chisq,M,P )
+    return OLSFit( coef,chisq,fn,fn_inv,M )
     
 
 # #----------------------------------------------------------------------------
@@ -639,11 +639,13 @@ class LSFit(object):
     Base class for regression results
     """
 
-    def __init__(self,beta,ssr,N,P):
+    def __init__(self,beta,ssr,fn,fn_inv,N):
         self._beta = beta
         self._ssr = ssr
         self._N = N
-        self._P = P
+        self._fn = fn
+        self._fn_inv = fn_inv
+        self._P = len(beta)
         
     def __repr__(self):
         return """{}(
@@ -672,35 +674,51 @@ class LSFit(object):
     self._ssr,
 )
 
-    # #------------------------------------------------------------------------
-    # def mean_y_from_x(self,x,label=None):
-    # """
-    # Return the uncertain number ``y`` that is the response to ``x`` 
-    
-    # :arg x: a sequence of real numbers 
-    # :arg label: a label for the uncertain number 
-     
-    # Returns an estimate of the mean response that would be  
-    # observed from the stimulus vector ``x``. 
-    
-    # """
-    # cxt = default.context 
-    # ureal = cxt.elementary_real
-    
-    # df = self.N - self.P 
-    # assert df >= 1, "Too few observations in the sample"
-    
-    # # The elements of `beta` are uncertain numbers
-    # # This `y0` represents the mean response to `x` 
-    # # with associated uncertainty.
-    # y = sum(
-        # x_i*b_i for x_i, b_i in itertools.izip(x,self.beta)
-    # )
-    
-    # if label is not None: y.label = label
+    #------------------------------------------------------------------------
+    def y_from_x(self,x,label=None):
+        """
+        Return ``y``, the response to ``x`` 
+        
+        :arg x: an uncertain real number 
+        :arg label: a label for the uncertain number ``y``
+         
+        .. note::
+            When ``label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+        
+        """
+        # The elements of `beta` are uncertain numbers
+        # This `y0` represents the mean response to `x` 
+        # with associated uncertainty.
+        _y = np.dot( self.beta,np.array( self._fn(x) ) )
+        
+        if label is not None: _y = result(_y,label)
+        
+        return y 
 
-    # return y 
-    
+    #------------------------------------------------------------------------
+    def x_from_y(self,y,label=None):
+        """
+        Return ``x`` the stimulus for ``y``
+        
+        :arg y: an uncertain real number 
+        :arg label: a label for the uncertain number ``x``
+         
+        .. note::
+            When ``label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
+        """
+        # The function must be supplied by the client
+        if self._fn_inv is None:
+            raise RuntimeError( "An inverse function has not been defined" )
+            
+        _x = self._fn_inv(y,self.beta)  
+        
+        if label is not None: _x = result(_x,label)
+        
+        return _x 
+
     @property
     def ssr(self):
         """Sum of the squared residuals
@@ -736,8 +754,8 @@ class OLSFit(LSFit):
     Results of an ordinary least squares regression
     """
 
-    def __init__(self,beta,ssr,N,P):
-        LSFit.__init__(self,beta,ssr,N,P)
+    def __init__(self,beta,ssr,fn,fn_inv,N):
+        LSFit.__init__(self,beta,ssr,fn,fn_inv,N)
  
     def __str__(self):
         header = '''
