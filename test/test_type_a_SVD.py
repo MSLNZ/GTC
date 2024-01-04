@@ -184,12 +184,10 @@ class TestSVDOLS(unittest.TestCase):
         N = int( len(x) )
         M = 2 
 
-        sig = [1]*N
-
         def fn(x_i):
             return [x_i,1]
  
-        fit = SVD.ols(x,y,fn,M)
+        fit = SVD.ols(x,y,fn)
         
         TOL = 1E-5
         self.assertTrue( equivalent( value(fit.beta[1]), 3.82963, TOL) )

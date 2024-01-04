@@ -23,6 +23,7 @@ class TestSVDWLS(unittest.TestCase):
     """
     
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test3(self):
         # weighted least squares
         # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
@@ -61,6 +62,7 @@ class TestSVDOLS(unittest.TestCase):
     """
     
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test1(self):
         # Simple example 
         
@@ -81,6 +83,7 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(a[0],2.0) )
  
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test2(self):
         # From http://www.stat.ufl.edu/~winner/Regression_Examples.html
         #
@@ -156,6 +159,7 @@ class TestSVDOLS(unittest.TestCase):
             self.assertTrue( equivalent(i,j,tol=1E-7) )
  
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test4(self):
         # From http://www.stat.ufl.edu/~winner/sta6208/reg_ex/spiritsgg.rout
         #
@@ -271,6 +275,7 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(se[2],0.05024342,tol=1E-7) )
    
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test5(self):
         # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
         #
@@ -417,6 +422,7 @@ class TestSVDLinearSystems(unittest.TestCase):
     """
 
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test1(self):
         data = ([
             [2, -3],
@@ -433,6 +439,7 @@ class TestSVDLinearSystems(unittest.TestCase):
             self.assertTrue( equivalent(i,j) )
  
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test2(self):
         data = ([
             [2, 1, 3],
@@ -471,6 +478,7 @@ class TestSVD(unittest.TestCase):
     """
     
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test1(self):
         # From https://en.wikipedia.org/wiki/Singular_value_decomposition 
         # Note that NR does implement the full SVD assumed in the worked example
@@ -520,6 +528,7 @@ class TestSVD(unittest.TestCase):
             self.assertTrue( equivalent(i,j) )                
 
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test2(self):
         
         data = (
@@ -565,6 +574,7 @@ class TestSVD(unittest.TestCase):
             self.assertTrue( equivalent(i,j) )                
  
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test3(self):
         data = (
             [1,2,3],
@@ -620,6 +630,7 @@ class TestSVD(unittest.TestCase):
  
     #------------------------------------------------------------------------
     def test4(self):
+        # This test does not use uncertain numbers for the data
         # See http://numerical.recipes/forum/showthread.php?t=2236
         data = (
             [2,5,2],
@@ -664,6 +675,7 @@ class TestSVD(unittest.TestCase):
             self.assertTrue( equivalent(i,j) )                
       
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test5(self):
         # This came from http://numerical.recipes/forum/showthread.php?t=1437
         # The discussion there uses the later C++ version of SVD in NR(3) 
@@ -711,6 +723,7 @@ class TestSVD(unittest.TestCase):
             self.assertTrue( equivalent(i,j) )       
             
     #------------------------------------------------------------------------
+    # This test does not use uncertain numbers for the data
     def test6(self):
         # This came from http://numerical.recipes/forum/showthread.php?t=1437
         # The discussion there uses the later C++ version of SVD in NR(3) 
@@ -756,6 +769,101 @@ class TestSVD(unittest.TestCase):
         original = numpy.array( data, dtype=float )
         for i,j in zip( original.flat, check.flat):
             self.assertTrue( equivalent(i,j) )       
+
+#----------------------------------------------------------------------------
+class TestUncertainNumberSVDOLS(unittest.TestCase):
+
+    #------------------------------------------------------------------------
+    def test_simple(self):
+        """Trivial straight line
+        
+        uncertain numbers in y only with uncertainty of unity
+
+        """
+        x = numpy.array([ float(x_i) for x_i in range(10) ])
+        y = numpy.array([ ureal(y_i,1) for y_i in x ])
+
+        def fn(x_i):
+            return [x_i,1]
+
+        fit = SVD.ols(x,y,fn)
+        b,a = fit.beta
+        
+        equivalent( value(a) ,0.0,TOL)
+        equivalent( value(b) ,1.0,TOL)
+
+        from test_fitting import simple_sigma_abr   
+        sig_a, sig_b, r = simple_sigma_abr(
+            [value(x_i) for x_i in x],
+            [value(y_i) for y_i in y],
+            [1.0 for x_i in x ]
+        )
+        equivalent(uncertainty(a),sig_a,TOL)
+        equivalent(uncertainty(b),sig_b,TOL)
+
+        equivalent(r,a.get_correlation(b),TOL)        
+        
+        # Horizontal line
+        x = numpy.array([ float(x_i) for x_i in range(5) ])
+        y = numpy.array([ ureal(2,1) for y_i in x ])
+        
+        def fn_inv(y_i,beta):
+            if abs(beta[0]) > 1E-13:
+                return (y_i - beta[1])/beta[0]
+            else:
+                return beta[1]
+                
+        fit = SVD.ols(x,y,fn,fn_inv)
+        b,a = fit.beta
+        
+        x_0 = fit.x_from_y(1.5)
+        equivalent(value(x_0),value(a),TOL)
+        equivalent(uncertainty(x_0),uncertainty(a),TOL)
+
+        # Incorrect input sequences
+        self.assertRaises(
+            RuntimeError,
+            SVD.ols,
+            numpy.array([1, 2, 3]), numpy.array([]), fn
+         )
+
+        self.assertRaises(
+            RuntimeError,
+            SVD.ols,
+            numpy.array([1, 2, 3, 4]), numpy.array([1, 2, 3]), fn
+        )
+
+    #------------------------------------------------------------------------    
+    def test_willink(self):
+        """
+        This case is taken from
+        R Willink, Metrologia 45 (2008) 63-67
+
+        The test ensures that the DoF calculation, when using
+        the LS to interpolate to another data point, is correct.
+        
+        """
+        def fn(x_i):
+            return [x_i,1]
+
+        nu = 2
+        u = 0.1
+        x = numpy.array([ value(x_i) for x_i in [-1,0,1] ])
+        y = numpy.array([ ureal(y_i,u,df=nu) for y_i in x ])
+
+        fit = SVD.ols(x,y,fn)
+        b,a = fit.beta
+
+        equivalent( value(a),0.0,TOL)
+        equivalent( value(b),1.0,TOL)
+        
+        equivalent(0.0,a.get_correlation(b),TOL)        
+
+        # See below eqns (12) and (13), in section 2.1
+        x_13 = 2.0/3.0
+        y_13 = a + b*x_13
+        equivalent(y_13.v,5.0*u**2/9.0,TOL)        
+        equivalent(y_13.df,25.0*nu/17.0,TOL)         
 
 #=====================================================
 if(__name__== '__main__'):
