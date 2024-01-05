@@ -816,7 +816,7 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
         fit = SVD.ols(x,y,fn,fn_inv)
         b,a = fit.beta
         
-        x_0 = fit.x_from_y(1.5)
+        x_0 = fit.x_from_y( [1.5] )
         equivalent(value(x_0),value(a),TOL)
         equivalent(uncertainty(x_0),uncertainty(a),TOL)
 
