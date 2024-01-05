@@ -520,52 +520,56 @@ class TestSVDOLS(unittest.TestCase):
         b_30 = fit.y_from_x(30 - 20)
         self.assertTrue( not b_30.is_intermediate )
         self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
-        b_30 = fit.y_from_x(30 - 20,label='b_30')
+        b_30 = fit.y_from_x(30 - 20,y_label='b_30')
         self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
         self.assertTrue( b_30.is_intermediate )
 
-    # #------------------------------------------------------------------------
-    # def test_A5(self):
-        # """CITAC 3rd edition
+    #------------------------------------------------------------------------
+    def test_A5(self):
+        """CITAC 3rd edition
 
-        # Test the calibration curve aspect
-        # """
-        # x = numpy.array([0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.7, 0.7, 0.7, 0.9, 0.9, 0.9])
-        # y = numpy.array([0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131, 0.133, 0.180,
-                  # 0.181, 0.183, 0.215, 0.230, 0.216])
+        Test the calibration curve aspect
+        """
+        x = numpy.array([0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.7, 0.7, 0.7, 0.9, 0.9, 0.9])
+        y = numpy.array([0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131, 0.133, 0.180,
+                  0.181, 0.183, 0.215, 0.230, 0.216])
 
-        # N = int( len(x) )
-        # M = 2 
+        N = int( len(x) )
+        M = 2 
 
-        # def fn(x_i):
-            # return [x_i,1]
+        def fn(x_i):
+            return [x_i,1]
  
-        # fit = SVD.ols(x,y,fn,M)
+        def fn_inv(y_i,beta):
+            if abs(beta[0]) > 1E-13:
+                return (y_i - beta[1])/beta[0]
+            else:
+                return beta[1]
 
-        # TOL = 1E-5
-        # a = fit.beta[1]
-        # b = fit.beta[0]
+        fit = SVD.ols(x,y,fn,fn_inv)
 
-        # # The classical uncertainty
-        # xmean = type_a.mean(x)
-        # sxx = sum( (x_i-xmean)**2 for x_i in x )
-        # S = math.sqrt(fit.ssr/(N-2))
+        TOL = 1E-5
+        b,a = fit.beta
 
-        # # c_0 = fit.x_from_y( [0.0712, 0.0716] )
-        # # _x = c_0.x
-        # # u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
+        # The classical uncertainty
+        xmean = type_a.mean(x)
+        sxx = sum( (x_i-xmean)**2 for x_i in x )
+        S = math.sqrt(fit.ssr/(N-2))
 
-        # # self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
-        # # self.assertEqual(c_0.df,N-2)
+        c_0 = fit.x_from_y( [0.0712, 0.0716] )
+        _x = c_0.x
+        u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
 
-        # # Now in the opposite sense
-        # y_0 = fit.y_from_x(0.0714)
-        # _x = 0.0714
-        # u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
+        self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
+        self.assertEqual(c_0.df,N-2)
+
+        # Now in the opposite sense
+        y_0 = fit.y_from_x(_x)
+        u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
         
-        # self.assertTrue(equivalent(value(y_0),0.0714,TOL))
-        # # self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
-        # # self.assertEqual(y_0.df,N-2)
+        self.assertTrue(equivalent(value(y_0),0.0714,TOL))
+        self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
+        self.assertEqual(y_0.df,N-2)
         
 #----------------------------------------------------------------------------
 class TestSVDLinearSystems(unittest.TestCase):
@@ -585,10 +589,6 @@ class TestSVDLinearSystems(unittest.TestCase):
         x_expect =[ 5, 4 ]
 
         a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-
-        # u,w,v = SVD.svd_decomp(a)
-        # x = SVD.svbksb(u,w,v,b)
         
         x = SVD.solve(a,b)
 
@@ -608,326 +608,11 @@ class TestSVDLinearSystems(unittest.TestCase):
 
 
         a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-
-        # u,w,v = SVD.svd_decomp(a)
-        # x = SVD.svbksb(u,w,v,b)
 
         x = SVD.solve(a,b)
 
         for i,j in zip(x,x_expect):
-            self.assertTrue( equivalent(i,j) )
- 
-# #----------------------------------------------------------------------------
-# class TestSVD(unittest.TestCase):
-
-    # """
-    # Compare the decomposition of a real matrix with numpy
-
-    # In general, we expect that is u,w,v is the SVD then:
-    
-        # u * u.T is an identity matrix 
-        # v * v.T is an identity matrix 
-        # u * w * v.T is the original matrix 
-        
-    # The routine does not sort the values in ``w`` 
-    
-    # It seems that different methods of performing SVD lead to 
-    # different factorisations. So you cannot expect to get 
-    # agreement with the individual matrices unless you know 
-    # it is the same algorithm.   
-    # """
-    
-    # #------------------------------------------------------------------------
-    # def test1(self):
-        # # From https://en.wikipedia.org/wiki/Singular_value_decomposition 
-        # # But note that NR does implement the full SVD assumed in the worked 
-        # # example 
-        # data = (
-            # [1,0,0,0,2],
-            # [0,0,3,0,0],
-            # [0,0,0,0,0],
-            # [0,4,0,0,0],
-        # )
-        
-        # U,S,V = numpy.linalg.svd(
-            # numpy.array( data )
-        # )
-        
-        # a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-        
-        # u,w,v = SVD.svd_decomp(a)
-        
-        # ww = numpy.zeros( (N,N) )
-        # w_sorted = []
-        # for i in range(N): 
-            # ww[i,i] = w[i]
-            # w_sorted.append( w[i] )
-        # w_sorted.sort(reverse=True)
-        
-        # # Check the diagonal values
-        # for i in range(min(M,N)):
-            # self.assertTrue( equivalent(w_sorted[i],S[i]) )
-
-        # # Check that u * u.T is an identity matrix
-        # check = numpy.matmul(u,u.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-      
-        # # Check that v * v.T is an identity matrix
-        # check = numpy.matmul(v,v.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-
-        # # Check that u * w * v.T is the original matrix 
-        # check = numpy.matmul(numpy.matmul(u,ww),v.T) 
-        # original = numpy.array( data )
-        # for i,j in zip( original.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )                
-
-    # #------------------------------------------------------------------------
-    # def test2(self):
-        
-        # data = (
-            # [2,5],
-            # [2,5],
-        # )
-        
-        # na = numpy.array( data, dtype=float )
-        # U,S,V = numpy.linalg.svd(na)
-
-        # a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-        
-        # u,w,v = SVD.svd_decomp(a)
-        
-        # ww = numpy.zeros( [N,N] )
-        # w_sorted = []
-        # for i in range(N): 
-            # ww[i,i] = w[i]
-            # w_sorted.append( w[i] )
-        # w_sorted.sort(reverse=True)
-        
-        # # Check the diagonal values
-        # for i in range(min(M,N)):
-            # self.assertTrue( equivalent(w_sorted[i],S[i]) )
-
-        # # Check that u * u.T is an identity matrix
-        # check = numpy.matmul(u.T,u) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-
-        # # Check that v * v.T is an identity matrix
-        # check = numpy.matmul(v,v.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-            
-        # # Check that u * w * v.T is the original matrix 
-        # check = numpy.matmul(u,numpy.matmul(ww,v.T)) 
-        # original = numpy.array( data, dtype=float )
-        # for i,j in zip( original.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )                
- 
-    # #------------------------------------------------------------------------
-    # def test3(self):
-        # data = (
-            # [1,2,3],
-            # [4,5,6],
-            # [7,8,9],
-        # )
-        
-        # na = numpy.array( data )
-        # U,S,V = numpy.linalg.svd(na)
-        
-        # a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-        
-        # u,w,v = SVD.svd_decomp(a)
-        
-        # ww = numpy.zeros( [N,N] )
-        # w_sorted = []
-        # for i in range(N): 
-            # ww[i,i] = w[i]
-            # w_sorted.append( w[i] )
-        # w_sorted.sort(reverse=True)
-        
-        # # Check the diagonal values
-        # for i in range(min(M,N)):
-            # self.assertTrue( equivalent(w_sorted[i],S[i]) )
-
-        # # Check that u * u.T is an identity matrix
-        # check = numpy.matmul(u.T,u) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-      
-        # # Check that u * w * v.T is the original matrix 
-        # check = numpy.matmul(u,numpy.matmul(ww,v.T)) 
-        # original = numpy.array( data, dtype=float )
-        # for i,j in zip( original.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )                
-
-        # # Check that v.T agrees with values reported on NR forum 
-        # check = numpy.array([
-           # [-0.479671,   -0.572368,   -0.665064],
-           # [ 0.776691,    0.075686,   -0.625318],
-           # [ 0.408248,   -0.816497,    0.408248],
-        # ])
-        # for i,j in zip( v.T.flat, check.flat):
-            # self.assertTrue( equivalent(i,j,1E-6) )
- 
-        # # Check that v * v.T is an identity matrix
-        # check = numpy.matmul(v,v.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
- 
-    # #------------------------------------------------------------------------
-    # def test4(self):
-        # # See http://numerical.recipes/forum/showthread.php?t=2236
-        # # The results there were from NR(2) 
-        # data = (
-            # [2,5,2],
-            # [5,2,5],
-        # )
-        
-        # na = numpy.array( data )
-        # U,S,V = numpy.linalg.svd(na)   
-        
-        # a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-        
-        # u,w,v = SVD.svd_decomp(a)
-        
-        # ww = numpy.zeros( [N,N] )
-        # w_sorted = []
-        # for i in range(N): 
-            # ww[i,i] = w[i]
-            # w_sorted.append( w[i] )
-        # w_sorted.sort(reverse=True)
-        
-        # # Check the diagonal values
-        # for i in range(min(M,N)):
-            # self.assertTrue( equivalent(w_sorted[i],S[i]) )
-
-        # # Check that u * u.T is an identity matrix
-        # check = numpy.matmul(u,u.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
- 
-        # # Check that v * v.T is an identity matrix
-        # check = numpy.matmul(v,v.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
- 
-        # # Check that u * w * v.T is the original matrix 
-        # check = numpy.matmul(u,numpy.matmul(ww,v.T)) 
-        # original = numpy.array( data, dtype=float )
-        # for i,j in zip( original.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )                
-      
-    # #------------------------------------------------------------------------
-    # def test5(self):
-        # # This came from http://numerical.recipes/forum/showthread.php?t=1437
-        # # The discussion there uses the later C++ version of SVD in NR(3) 
-        # # The results are different. 
-        # data = (
-            # [0.299000,    0.587000,    0.114000],
-            # [-0.168636,   -0.331068,    0.499704],
-            # [0.499813,   -0.418531,   -0.081282],
-        # )
-        
-        # na = numpy.array( data )
-        # U,S,V = numpy.linalg.svd(na)
-        
-        # a = numpy.array( data, dtype=float )
-        # M,N = a.shape 
-                
-        # u,w,v = SVD.svd_decomp(a)
-        
-        # ww = numpy.zeros( [N,N] )
-        # w_sorted = []
-        # for i in range(N): 
-            # ww[i,i] = w[i]
-            # w_sorted.append( w[i] )
-        # w_sorted.sort(reverse=True)
-        
-        # # Check the diagonal values
-        # for i in range(min(M,N)):
-            # self.assertTrue( equivalent(w_sorted[i],S[i]) )
-
-        # # Check that u * u.T is an identity matrix
-        # check = numpy.matmul(u.T,u)
-        # idn = la.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-            
-        # # Check that v * v.T is an identity matrix
-        # check = numpy.matmul(v,v.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-  
-        # # Check that u * w * v.T is the original matrix 
-        # check = numpy.matmul(u,numpy.matmul(ww,v.T)) 
-        # original = numpy.array( data, dtype=float )
-        # for i,j in zip( original.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )       
-            
-    # #------------------------------------------------------------------------
-    # def test6(self):
-        # # This came from http://numerical.recipes/forum/showthread.php?t=1437
-        # # The discussion there uses the later C++ version of SVD in NR(3) 
-        # # The results are different. 
-        # data = ([
-            # [2.000000,    2.000000,    5.000000],
-            # [4.000000,    5.000000,    1.000000],
-            # [7.000000,    8.000000,    9.000000],
-           # [13.000000,   11.000000,   12.000000],  
-        # ])
-        # na = numpy.array( data )
-        # U,S,V = numpy.linalg.svd(na)
-        
-        # a = numpy.array( data )
-        # M,N = a.shape 
-                
-        # u,w,v = SVD.svd_decomp(a)
-        
-        # ww = numpy.zeros( [N,N] )
-        # w_sorted = []
-        # for i in range(N): 
-            # ww[i,i] = w[i]
-            # w_sorted.append( w[i] )
-        # w_sorted.sort(reverse=True)
-        
-        # # Check the diagonal values
-        # for i in range(min(M,N)):
-            # self.assertTrue( equivalent(w_sorted[i],S[i]) )
-
-        # # # Check that u * u.T is an identity matrix
-        # check = numpy.matmul(u.T,u) 
-        # idn = la.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-            
-        # # Check that v * v.T is an identity matrix
-        # check = numpy.matmul(v,v.T) 
-        # idn = numpy.identity( check.shape[0] )
-        # for i,j in zip( idn.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )
-  
-        # # Check that u * w * v.T is the original matrix 
-        # check = numpy.matmul(u,numpy.matmul(ww,v.T)) 
-        # original = numpy.array( data, dtype=float )
-        # for i,j in zip( original.flat, check.flat):
-            # self.assertTrue( equivalent(i,j) )       
+            self.assertTrue( equivalent(i,j) )     
 
 #=====================================================
 if(__name__== '__main__'):
