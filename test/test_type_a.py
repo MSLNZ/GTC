@@ -1036,7 +1036,6 @@ class TestLineFit(unittest.TestCase):
 
         fit = ta.line_fit(x_data,y_data)
         a, b = fit.a_b
-        c_0 = fit.x_from_y( [0.0712, 0.0716] )
 
         # The classical uncertainty
         N = len(x_data)
@@ -1044,6 +1043,7 @@ class TestLineFit(unittest.TestCase):
         sxx = sum( (x_i-xmean)**2 for x_i in x_data )
         S = math.sqrt(fit.ssr/(N-2))
 
+        c_0 = fit.x_from_y( [0.0712, 0.0716] )
         _x = c_0.x
         u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
 
