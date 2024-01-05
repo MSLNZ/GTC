@@ -247,12 +247,13 @@ def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
     return beta
      
 #----------------------------------------------------------------------------
-def ols(x,y,fn,label=None):
+def ols(x,y,fn,fn_inv=None,label=None):
     """Ordinary least squares fit of ``y`` to ``x``
     
     :arg x: a sequence of ``M`` stimulus values (independent-variables)
     :arg y: a sequence of ``M`` responses (dependent-variable)  
     :arg fn: a user-defined function relating ``x`` the response
+    :arg fn_inv: a user-defined function relating the response ``y`` to the stimulus ``x``
     :arg label: a label for the fitted parameters
     
     Return a :class:`OLSFit` object containing the results 
@@ -269,7 +270,7 @@ def ols(x,y,fn,label=None):
     coef, chisq, w, v = svdfit(x,y,sig,fn)
     coef = coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=label)
 
-    return OLSFit( coef,chisq,fn,M )  
+    return OLSFit( coef,chisq,fn,fn_inv,M )  
 
 #-----------------------------------------------------------------------------------------
 class LSFit(object):
@@ -278,11 +279,12 @@ class LSFit(object):
     Base class for regression results
     """
 
-    def __init__(self,beta,ssr,fn,N):
+    def __init__(self,beta,ssr,fn,fn_inv,N):
         self._beta = beta
         self._ssr = ssr
         self._N = N
         self._fn = fn
+        self._fn_inv = fn_inv
         self._P = len(beta)
         
     def __repr__(self):
@@ -313,26 +315,82 @@ class LSFit(object):
 )
 
     #------------------------------------------------------------------------
-    def y_from_x(self,x,label=None):
+    def y_from_x(self,x,s_label=None,y_label=None):
         """
         Return the uncertain number ``y`` that is the response to ``x`` 
         
-        :arg x: an array of real-valued data
-        :arg label: a label for ``y``
-         
-        Returns an estimate of the response that would be  
-        observed from the stimulus vector ``x``. 
+        :arg x: a real number array, or an uncertain real number array
+        :arg s_label: a label for an elementary uncertain number associated with observation variability  
+        :arg y_label: a label for the return uncertain number `y` 
+
+        This is a prediction of a single future response ``y`` to a stimulus ``x``
+        
+        The variability in observations is based on residuals obtained during regression.
+        
+        An uncertain real number can be used for ``x``, in which
+        case the associated uncertainty will also be propagated into ``y``.
+
+        .. note::
+            When ``y_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
         
         """    
-        # The elements of `beta` are uncertain numbers
-        # This `y0` represents the mean response to `x` 
-        # with associated uncertainty.
-        _y = np.dot( self.beta,np.array( self._fn(x) ) )
+        # The elements of `beta` form an ensemble of uncertain numbers
+        df = self.beta[0].df
+        noise = _ureal(
+            0,
+            math.sqrt( self._ssr/df ),
+            df,
+            label=s_label,
+            independent=False
+        )
+        append_real_ensemble(self.beta[0],noise)
         
-        if label is not None: _y = result(_y,label)
+        # This `_y` represents the mean response to `x`.
+        _y = np.dot( self.beta,np.array( self._fn(x) ) ) + noise
+        
+        if y_label is not None: _y = result(_y,y_label)
             
         return _y
-    
+
+    #------------------------------------------------------------------------
+    def x_from_y(self,yseq,x_label=None,y_label=None):
+        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
+        
+        :arg yseq: a sequence of ``y`` observations 
+        :arg x_label: a label for the return uncertain number ``x`` 
+        :arg y_label: a label for the estimate of `y` based on ``yseq`` 
+         
+        .. note::
+            When ``x_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+
+        """
+        # The function must be supplied by the client
+        if self._fn_inv is None:
+            raise RuntimeError( "An inverse function has not been defined" )
+          
+        df = self.beta[0].df    # All beta are the same 
+        
+        p = len(yseq)
+        y = math.fsum( yseq ) / p
+
+        _y = _ureal(
+            y,
+            math.sqrt( self._ssr/df/p ),
+            df,
+            label = x_label,
+            independent = False
+        )
+
+        append_real_ensemble(self.beta[0],_y)
+
+        _x = self._fn_inv(_y,self.beta)  
+        
+        if y_label is not None: _x = result(_x,y_label)
+        
+        return _x 
+
     @property
     def ssr(self):
         """Sum of the squared residuals
@@ -368,8 +426,8 @@ class OLSFit(LSFit):
     Results of an ordinary least squares regression
     """
 
-    def __init__(self,beta,ssr,fn,N):
-        LSFit.__init__(self,beta,ssr,fn,N)
+    def __init__(self,beta,ssr,fn,fn_inv,N):
+        LSFit.__init__(self,beta,ssr,fn,fn_inv,N)
  
     def __str__(self):
         header = '''
