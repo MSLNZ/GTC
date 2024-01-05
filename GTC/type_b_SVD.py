@@ -11,12 +11,7 @@ Still TODO:
             So, does it make sense to store the Cholesky decomp of the CV to speed up the calculation? 
             What about weighted cases? 
             It is not possible to go from y_0 to the vector x_0, of course!
-            
-    For type-A analysis, use the numpy svd routine. The NR routine here is needed for type-B work.
-    Testing this routine with real-valued data is a useful check that it is correctly implemented.
-    
-    It should be possible to test this routine on uncertain-number datasets for linear fitting problems.
-   
+               
 """
 from __future__ import division
 
@@ -29,6 +24,7 @@ except ImportError:
     izip = zip
 
 from GTC.lib import value
+from GTC.type_b import mean
 
 from GTC import cholesky 
 from GTC import magnitude, sqrt    # Polymorphic functions
@@ -688,8 +684,6 @@ class LSFit(object):
         
         """
         # The elements of `beta` are uncertain numbers
-        # This `y0` represents the mean response to `x` 
-        # with associated uncertainty.
         _y = np.dot( self.beta,np.array( self._fn(x) ) )
         
         if label is not None: _y = result(_y,label)
@@ -697,25 +691,27 @@ class LSFit(object):
         return y 
 
     #------------------------------------------------------------------------
-    def x_from_y(self,y,label=None):
-        """
-        Return ``x`` the stimulus for ``y``
-        
-        :arg y: an uncertain real number 
-        :arg label: a label for the uncertain number ``x``
-         
-        .. note::
-            When ``label`` is defined, the uncertain number returned will be 
-            declared an intermediate result (using :func:`~.result`)
+    def x_from_y(self,yseq,x_label=None):
+        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
 
+        :arg yseq: a sequence of further observations of ``y``
+        :arg x_label: a label for the return uncertain number `x` 
+
+        The items in ``yseq`` must be uncertain real numbers.
+        
+        .. note::
+            When ``x_label`` is defined, the uncertain number returned will be 
+            declared an intermediate result (using :func:`~.result`)
+        
         """
-        # The function must be supplied by the client
         if self._fn_inv is None:
             raise RuntimeError( "An inverse function has not been defined" )
-            
+
+        y = mean( yseq ) 
+        
         _x = self._fn_inv(y,self.beta)  
         
-        if label is not None: _x = result(_x,label)
+        if x_label is not None: _x = result(_x,x_label)
         
         return _x 
 
