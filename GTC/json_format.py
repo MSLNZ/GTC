@@ -162,16 +162,12 @@ def archive_to_json(a):
 
     if PY2:
         leaf_nodes_items = a._leaf_nodes.iteritems
-        # tagged_items = a._tagged.iteritems
-        # tagged_reals_items = a._tagged_reals.iteritems
         tagged_real_items = a._tagged_real.iteritems
         tagged_complex_items = a._tagged_complex.iteritems
         untagged_real_items = a._untagged_real.iteritems
         intermediate_uids_items = a._intermediate_uids.iteritems
     else:
         leaf_nodes_items = a._leaf_nodes.items
-        # tagged_items = a._tagged.items
-        # tagged_reals_items = a._tagged_reals.items
         tagged_real_items = a._tagged_real.items
         tagged_complex_items = a._tagged_complex.items
         untagged_real_items = a._untagged_real.items
@@ -181,16 +177,6 @@ def archive_to_json(a):
         to_uid_string(i) : leaf_to_json(o_i)
             for (i, o_i) in leaf_nodes_items()
     }
-    
-    # j['tagged'] = {
-        # tag_i : tagged_to_json(o_i)
-            # for (tag_i, o_i) in tagged_items()
-    # }
-    
-    # j['tagged_reals'] = {
-        # tag_i : tagged_to_json(o_i)
-            # for (tag_i, o_i) in tagged_reals_items()
-    # }
     
     j['tagged_real'] = {
         tag_i : tagged_to_json(o_i)
@@ -290,8 +276,6 @@ def json_to_archive(j):
             ) for (i,args) in intermediate_uids_items()
         }
  
-        # ar._tagged = j['tagged']
-        # ar._tagged_reals = j['tagged_reals']
         ar._tagged_real = j['tagged_real']
         ar._tagged_complex = j['tagged_complex']
         ar._untagged_real = j['untagged_real']
