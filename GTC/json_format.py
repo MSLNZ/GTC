@@ -3,6 +3,8 @@ This module handles conversion of an archive object to a JSON format
 and then restoration of an archive from JSON.
 """
 import json
+import math
+import ast
 
 from GTC.archive import (
     Archive,
@@ -14,18 +16,60 @@ from GTC.archive import (
 )
 
 from GTC.vector import Vector
+from GTC.nodes import Leaf
 
 __all__ = ( 
     'JSONArchiveEncoder',
     'json_to_archive'
 )
 
+JSON_SCHEMA_VERSION = r"https://measurement.govt.nz/gtc/json_1.4" 
+
+to_dof_json = lambda df: None if df == math.inf else df
+from_dof_json = lambda s: math.inf if s is None else s
+    
+to_uid_string = lambda uid: repr(uid)
+from_uid_string = lambda s: ast.literal_eval(s) 
+
+#----------------------------------------------------------------------------
+# 
+def jason_to_leaf(j):
+    """
+    Return a Leaf node to initialise archive.LeafNode 
+    
+    """
+    n = Leaf(
+        uid = from_uid_string( j['uid'] ),
+        label = j['label'],
+        u = j['u'],
+        df = from_dof_json( j['df'] ),
+        independent = j['independent']
+    )
+    
+    if 'complex' in j:
+        n.complex = [
+            from_uid_string( j['complex'][0] ),
+            from_uid_string( j['complex'][1] )
+        ]
+    if 'correlation' in j:
+        items = j['correlation'].iteritems() if PY2 else j['correlation'].items()
+        n.correlation = {
+            from_uid_string(x_i) : r_i 
+                for x_i,r_i in items
+        }
+    if 'ensemble' in j:
+        n.ensemble = frozenset( 
+            from_uid_string(i) for i in j['ensemble'] 
+        )                               
+
+    return n
+    
 #----------------------------------------------------------------------------
 # 
 def vector_to_json(x): 
     return dict(
         CLASS = x.__class__.__name__,
-        index = x.keys(),
+        index = [ to_uid_string(k_i) for k_i in x.keys() ],
         value = x.values()
     )
     
@@ -34,25 +78,30 @@ def vector_to_json(x):
 def leaf_to_json(x):
     j = dict(
         CLASS = x.__class__.__name__,
-        uid = tuple(x.uid),
-        label = str(x.label),
-        u = float(x.u),
-        df = float(x.df),
-        independent = bool(x.independent)
+        uid = to_uid_string( tuple(x.uid) ),
+        label = x.label,
+        u = x.u,
+        df = to_dof_json( float(x.df) ),
+        independent = x.independent
     )
     
-    # The last 3 attributes may not be assigned 
+    # These 3 attributes may not have been assigned 
     if hasattr(x,'complex'):
+        # The `complex` attribute is a tuple of UIDs for the 
+        # real and imaginary components.
         j['complex'] = [ 
-            str(x_i) for x_i in x.complex
+            to_uid_string(cpt_i) for cpt_i in x.complex
         ]
     if hasattr(x,'correlation'):
+        # `correlation` is a dict in the GTC Leaf node, but this 
+        # does not pickle, so LeafNode holds a list of item pairs.
         j['correlation'] = { 
-            str(uid) : x_i for (uid,x_i) in x.correlation
+            to_uid_string(uid_i) : x_i for (uid_i,x_i) in x.correlation
         }
     if hasattr(x,'ensemble'):
+        # `ensemble` is a set in the GTC Leaf node, but JSON will use an array
         j['ensemble'] = [ 
-            str(x_i) for x_i in x.ensemble
+            to_uid_string(uid_i) for uid_i in x.ensemble
         ]
     
     return j
@@ -74,8 +123,8 @@ def tagged_to_json(x):
 def el_real_to_json(x):
     return dict( 
         CLASS = x.__class__.__name__, 
-        x = float(x.x), 
-        uid = tuple(x.uid) 
+        x = x.x, 
+        uid = to_uid_string(x.uid) 
     ) 
 
 #----------------------------------------------------------------------------
@@ -83,9 +132,9 @@ def el_real_to_json(x):
 def int_real_to_json(x):
     j =  dict(
         CLASS = x.__class__.__name__, 
-        value= float(x.value), 
-        label = str(x.label), 
-        uid= tuple(x.uid) 
+        value= x.value, 
+        label = x.label, 
+        uid= to_uid_string(x.uid) 
     ) 
     j['u_components'] = vector_to_json(x.u_components)
     j['d_components'] = vector_to_json(x.d_components)
@@ -98,8 +147,8 @@ def int_real_to_json(x):
 def complex_to_json(x):
     return dict(
         CLASS = x.__class__.__name__, 
-        n_re = str(x.n_re), 
-        n_im = str(x.n_im), 
+        n_re = x.n_re, 
+        n_im = x.n_im, 
         label = x.label
     ) 
 
@@ -108,36 +157,57 @@ def complex_to_json(x):
 def archive_to_json(a): 
     
     j = dict( CLASS = a.__class__.__name__ )
+    j["$id"] = JSON_SCHEMA_VERSION 
 
     if PY2:
         leaf_nodes_items = a._leaf_nodes.iteritems
-        tagged_items = a._tagged.iteritems
-        tagged_reals_items = a._tagged_reals.iteritems
+        # tagged_items = a._tagged.iteritems
+        # tagged_reals_items = a._tagged_reals.iteritems
+        tagged_real_items = a._tagged_real.iteritems
+        tagged_complex_items = a._tagged_complex.iteritems
+        untagged_real_items = a._untagged_real.iteritems
         intermediate_uids_items = a._intermediate_uids.iteritems
     else:
         leaf_nodes_items = a._leaf_nodes.items
-        tagged_items = a._tagged.items
-        tagged_reals_items = a._tagged_reals.items
+        # tagged_items = a._tagged.items
+        # tagged_reals_items = a._tagged_reals.items
+        tagged_real_items = a._tagged_real.items
+        tagged_complex_items = a._tagged_complex.items
+        untagged_real_items = a._untagged_real.items
         intermediate_uids_items = a._intermediate_uids.items
     
     j['leaf_nodes'] = {
-        str(i) : leaf_to_json(o_i)
+        to_uid_string(i) : leaf_to_json(o_i)
             for (i, o_i) in leaf_nodes_items()
     }
     
-    j['tagged'] = {
-        str(i) : tagged_to_json(o_i)
-            for (i, o_i) in tagged_items()
+    # j['tagged'] = {
+        # tag_i : tagged_to_json(o_i)
+            # for (tag_i, o_i) in tagged_items()
+    # }
+    
+    # j['tagged_reals'] = {
+        # tag_i : tagged_to_json(o_i)
+            # for (tag_i, o_i) in tagged_reals_items()
+    # }
+    
+    j['tagged_real'] = {
+        tag_i : tagged_to_json(o_i)
+            for (tag_i, o_i) in tagged_real_items()
     }
     
-    j['tagged_reals'] = {
-        str(i) : tagged_to_json(o_i)
-            for (i, o_i) in tagged_reals_items()
+    j['tagged_complex'] = {
+        tag_i : tagged_to_json(o_i)
+            for (tag_i, o_i) in tagged_complex_items()
+    }
+    
+    j['untagged_real'] = {
+        tag_i : tagged_to_json(o_i)
+            for (tag_i, o_i) in untagged_real_items()
     }
     
     j['intermediate_uids'] = {
-        # o_i is the pair (label,u)
-        str(i) : (o_i)
+        to_uid_string(i) : [ o_i[0], o_i[1], to_dof_json(o_i[2]) ]
             for (i, o_i) in intermediate_uids_items()
     }
    
@@ -157,45 +227,42 @@ class JSONArchiveEncoder(json.JSONEncoder):
 def json_to_archive(j): 
     """
     Called during retrieval of an archive in JSON format by `json.loads()`
-    The function is called, when `loads()` parses the JSON record, every time 
-    an object is not a recognised JSON type. `j` is always a dict. 
+    The function is called every time an object is not a recognised JSON type
+    during the `loads()` parsing of a JSON record. `j` is always a dict. 
     By transforming `j` into an appropriate object we can reconstruct the 
     elements of the archive and finally assemble the archive object.
     
     """
     if 'CLASS' in j and (j['CLASS'] == Vector.__name__):  
-        # uid must be hashable, so we apply `tuple()`
         return Vector( 
-            index=[ tuple(i) for i in j['index'] ], 
+            index=[ from_uid_string(i) for i in j['index'] ], 
             value=j['value'] 
         )
         
     elif 'CLASS' in j and (j['CLASS'] == LeafNode.__name__):
-        return LeafNode(j) 
+        return LeafNode( jason_to_leaf(j) ) 
         
     elif 'CLASS' in j and (j['CLASS'] == ElementaryReal.__name__):
         return ElementaryReal(
             j['x'],
-            tuple(j['uid'])     # Must be hashable
+            from_uid_string( j['uid'] )     
         )
         
     elif 'CLASS' in j and (j['CLASS'] == IntermediateReal.__name__):
-        label = j['label']
         return IntermediateReal(
             j['value'],
             j['u_components'],
             j['d_components'],
             j['i_components'],
-            label if label != "None" else None,
-            tuple(j['uid'])     # Must be hashable
+            j['label'],
+            from_uid_string( j['uid'] )     
         )
         
     elif 'CLASS' in j and (j['CLASS'] == Complex.__name__):
-        label = j['label']
         return Complex(
             j['n_re'],
             j['n_im'],
-            label if label != "None" else None
+            j['label']
         )
         
     elif 'CLASS' in j and (j['CLASS'] == Archive.__name__):
@@ -209,20 +276,24 @@ def json_to_archive(j):
             intermediate_uids_items = j['intermediate_uids'].items
 
         ar._leaf_nodes = {
-            # eval(i) transforms the string repr of a UID into a tuple
-            eval(i) : o
+            from_uid_string(i) : o
                 for (i,o) in leaf_nodes_items()
         }
 
         # Mapping uid -> (label, u)
         ar._intermediate_uids = {
-            # eval(i) transforms the string repr of a UID into a tuple
-            eval(i) : tuple(args) 
-                for (i,args) in intermediate_uids_items()
+            from_uid_string(i) : (
+                args[0],
+                args[1],
+                from_dof_json( args[2] )
+            ) for (i,args) in intermediate_uids_items()
         }
  
-        ar._tagged = j['tagged']
-        ar._tagged_reals = j['tagged_reals']
+        # ar._tagged = j['tagged']
+        # ar._tagged_reals = j['tagged_reals']
+        ar._tagged_real = j['tagged_real']
+        ar._tagged_complex = j['tagged_complex']
+        ar._untagged_real = j['untagged_real']
         
         return ar 
         
