@@ -184,12 +184,14 @@
       "type": "object",
       "patternProperties": {
         "^\\(\\d+,\\s*\\d+,\\s*\\d+\\)$": {  
-            "type": "array",
-            "items": [
-                { "$ref": "#/$defs/string_or_null" },
-                { "type": "number" },
-                { "$ref": "#/$defs/df" }
-            ]
+          "type": "array",
+          "prefixItems": [
+            { "$ref": "#/$defs/string_or_null" },
+            { "type": "number" },
+            { "$ref": "#/$defs/df" }
+          ],
+          "minItems": 3,
+          "maxItems": 3
         },
         "additionalProperties": false
       }        
