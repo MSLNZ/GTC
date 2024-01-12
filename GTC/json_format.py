@@ -23,11 +23,12 @@ __all__ = (
     'json_to_archive'
 )
 
-JSON_SCHEMA_VERSION = r"https://measurement.govt.nz/gtc/json_1.4" 
+JSON_SCHEMA_VERSION = r"https://measurement.govt.nz/gtc/json_1.4.2" 
 
+# math.inf cannot be represented in JSON so we adopt null (None)
 to_dof_json = lambda df: None if df == math.inf else df
 from_dof_json = lambda s: math.inf if s is None else s
-    
+#     
 to_uid_string = lambda uid: repr(uid)
 from_uid_string = lambda s: ast.literal_eval(s) 
 
