@@ -74,6 +74,15 @@ def vector_to_json(x):
         value = x.values()
     )
     
+    # # Alternative representation as key-value pairs?
+    # return dict( 
+        # CLASS = x.__class__.__name__,
+        # items=list( zip(
+            # [to_uid_string(k_i) for k_i in x.keys()],
+            # x.values()
+        # ) )
+    # )
+    
 #----------------------------------------------------------------------------
 # 
 def leaf_to_json(x):
@@ -225,6 +234,13 @@ def json_to_archive(j):
             index=[ from_uid_string(i) for i in j['index'] ], 
             value=j['value'] 
         )
+
+        # # Alternative representation as key-value pairs?
+        # index, value = [],[]
+        # for i,v in j['items']:
+            # index.append( from_uid_string(i) )
+            # value.append( v )
+        # return Vector( index=index, value=value )
         
     elif 'CLASS' in j and (j['CLASS'] == LeafNode.__name__):
         return LeafNode( jason_to_leaf(j) ) 
