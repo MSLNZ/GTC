@@ -71,7 +71,7 @@ class Vector(object):
     
     """
     
-    def __init__(self,**kwargs):
+    def __init__(self,*args,**kwargs):
         """
         Vector()                # construct an empty vector
         Vector(copy=v)          # construct a copy of vector 'v'
@@ -82,9 +82,14 @@ class Vector(object):
         but not checked.
         
         """
-        if len(kwargs) == 0:
+        if len(kwargs) == 0 and len(args) == 0:
             self._index = []
             self._value = []
+            
+        elif len(args) == 1:
+            # Construct from a sequence of index-value pairs
+            items = args[0]
+            self._index, self._value = zip(*items) if len(items) else ([], [])
             
         elif 'copy' in kwargs:
             copy = kwargs['copy']
