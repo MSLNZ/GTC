@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "JSON Schema for GTC archive v1.4.2",
+  "description": "JSON Schema for GTC archive",
+  "$id": "https://measurement.govt.nz/gtc/json_1.4.2",
   "$defs": {
     "eUIDString": {
       "type": "string",
