@@ -10,6 +10,7 @@ Module contents
 """
 import itertools
 import sys
+
 PY2 = bool( sys.version_info[0] == 2 )
 
 from GTC.lib import (
@@ -123,6 +124,44 @@ class Archive(object):
         
         self._extract = False   # initially in write-only mode
 
+    # Support for legacy JSON format will be dropped in GTC 2
+    @staticmethod
+    def from_old_archive(old):
+        """Convert an old-style Archive to the class adopted in GTC v1.4.2"""
+        assert old._extract == True, "Archive must have been `thawed`"
+        
+        # `_tagged` has everything that was tagged. This needs to be 
+        # separated into `_tagged_real` and `_tagged_complex`.
+        # `_tagged_reals` has all the UncertainReals in `_tagged` 
+        # as well as any untagged UncertainReals that are complex components.
+        
+        ar = Archive()
+        del ar._uid_to_intermediate 
+        ar._extract = True
+        
+        if PY2:
+            for k,obj in old._tagged_reals.iteritems():
+                if k in old._tagged:
+                    ar._tagged_real[k] = obj 
+                else:
+                    ar._untagged_real[k] = obj
+             
+            for k,obj in old._tagged.iteritems():
+                if isinstance(obj,UncertainComplex):  
+                    ar._tagged_complex[k] = obj
+        else:
+            for k,obj in old._tagged_reals.items():
+                if k in old._tagged:
+                    ar._tagged_real[k] = obj 
+                else:
+                    ar._untagged_real[k] = obj
+             
+            for k,obj in old._tagged.items():
+                if isinstance(obj,UncertainComplex):  
+                    ar._tagged_complex[k] = obj
+                      
+        return ar
+        
     def keys(self):
         """Return a list of names 
         """
@@ -579,10 +618,8 @@ class Archive(object):
                 for uid, args in items
         }
             
-        # When reconstructing, `_tagged` needs to be updated with 
-        # the new uncertain numbers.
+        # Update with  new uncertain numbers.
         #
-
         for name,obj in self.iteritems():
             if isinstance(obj,ElementaryReal):
                 un = _builder(
@@ -597,7 +634,7 @@ class Archive(object):
                     name,
                     _nodes,
                     self._tagged_real
-               )                    
+                )                    
                 self._tagged_real[name] = un
                 
             elif isinstance(obj,Complex):
@@ -632,7 +669,7 @@ class Archive(object):
                 self._tagged_complex[name] = unc
                 
             else:
-                assert False
+                assert False, repr(obj)
                         
         # Change the archive status
         self._extract = True
