@@ -14,11 +14,15 @@ from GTC import *
 class TestArchiveJSONSchema135(unittest.TestCase):
     def test(self):
 
-        schema_file = r"../GTC/schema/gtc_v_1_3_5.json"
-        with open(schema_file,'r') as s:
+        wdir =  os.path.dirname(__file__)
+        
+        schema_file = r"../GTC/schema/gtc_v_1_3_3.json"
+        _file = os.path.join(wdir,schema_file)       
+        with open(_file,'r') as s:
             schema = json.load(s)
 
-        _file = r"../test/ref_file_v_1_3_3.json"    
+        fname = 'ref_file_v_1_3_3.json'        
+        _file = os.path.join(wdir,fname)
         with open(_file,'r') as f:
             file = json.load(f)
 

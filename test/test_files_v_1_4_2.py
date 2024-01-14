@@ -10,11 +10,15 @@ from GTC import *
 class TestArchiveJSONSchema135(unittest.TestCase):
     def test(self):
 
+        wdir =  os.path.dirname(__file__)
+        
         schema_file = r"../GTC/schema/gtc_v_1_4_2.json"
-        with open(schema_file,'r') as s:
+        _file = os.path.join(wdir,schema_file)       
+        with open(_file,'r') as s:
             schema = json.load(s)
 
-        _file = r"../test/ref_file_v_1_4_2.json"    
+        fname = 'ref_file_v_1_4_2.json'        
+        _file = os.path.join(wdir,fname)
         with open(_file,'r') as f:
             file = json.load(f)
 
