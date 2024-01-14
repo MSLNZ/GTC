@@ -147,4 +147,4 @@ setup(
     extras_require={'tests': tests_require, 'docs': docs_require},
     cmdclass={'docs': BuildDocs, 'apidocs': ApiDocs},
     packages=find_packages(include=('GTC*',)),
-    data_files = [('GTC/schemas',['GTC/schemas/gtc_v_1_3_5.json','GTC/schemas/gtc_v_1_4_2.json']]
+    data_files = [('GTC/schemas',['GTC/schemas/gtc_v_1_3_5.json','GTC/schemas/gtc_v_1_4_2.json'])]
