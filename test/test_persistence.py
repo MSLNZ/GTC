@@ -1182,14 +1182,12 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        f = open(path,'wb')
-        persistence.dump(f,ar)
-        f.close()
+        with open(path,'wb') as f:
+            persistence.dump(f,ar)
 
         context._context = Context()
-        f = open(path,'rb')
-        ar = persistence.load(f)
-        f.close()
+        with open(path,'rb') as f:
+            ar = persistence.load(f)
         os.remove(path)
 
         x1, y1, z1 = ar.extract('x','y','z')
