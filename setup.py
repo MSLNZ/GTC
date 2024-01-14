@@ -92,11 +92,12 @@ def fetch_init(key):
 
 install_requires = [
     'numpy>=1.13.0',  # >=1.13 to override __array_ufunc__ in UncertainArray
-    'scipy',
+    'scipy'
 ]
 tests_require = [
     'pytest>=4.4',  # >=4.4 to support the "-p conftest" option
     'pytest-cov',
+    'jsonschema'
 ]
 
 docs_require = [
