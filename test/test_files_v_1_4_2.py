@@ -1,7 +1,29 @@
 import unittest
 import os
 
+import json
+from jsonschema import Draft202012Validator
+
 from GTC import *
+
+#-----------------------------------------------------
+class TestArchiveJSONSchema135(unittest.TestCase):
+    def test(self):
+
+        schema_file = r"../GTC/schema/gtc_v_1_4_2.json"
+        with open(schema_file,'r') as s:
+            schema = json.load(s)
+
+        _file = r"../test/ref_file_v_1_4_2.json"    
+        with open(_file,'r') as f:
+            file = json.load(f)
+
+        # JSON schema adopted a different syntax for
+        # tuple-arrays in the 2020-12 draft. 
+        # It replaced `items` with `prefixItems`
+        self.assertTrue( 
+            Draft202012Validator(schema).is_valid(file)
+        )
 
 #-----------------------------------------------------
 class TestArchiveJSONFilev142(unittest.TestCase):

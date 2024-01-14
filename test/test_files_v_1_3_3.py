@@ -1,7 +1,33 @@
 import unittest
 import os
 
+import json
+from jsonschema import (
+    Draft201909Validator,
+    Draft7Validator
+)
+
+
 from GTC import *
+
+#-----------------------------------------------------
+class TestArchiveJSONSchema135(unittest.TestCase):
+    def test(self):
+
+        schema_file = r"../GTC/schema/gtc_v_1_3_5.json"
+        with open(schema_file,'r') as s:
+            schema = json.load(s)
+
+        _file = r"../test/ref_file_v_1_3_3.json"    
+        with open(_file,'r') as f:
+            file = json.load(f)
+
+        self.assertTrue( 
+            Draft201909Validator(schema).is_valid(file)
+        )
+        self.assertTrue( 
+            Draft7Validator(schema).is_valid(file)
+        )
 
 #-----------------------------------------------------
 class TestArchiveJSONFilev133(unittest.TestCase):
