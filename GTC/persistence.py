@@ -26,7 +26,9 @@ Module contents
 ---------------
 
 """
+import re
 import json
+
 try:
     import cPickle as pickle  # Python 2
     PY2 = True
@@ -35,10 +37,17 @@ except ImportError:
     PY2 = False
 
 from GTC import context
+from GTC import archive_old
+
 from GTC.archive import Archive
+
+# Support for legacy format will be dropped in GTC 2
+from GTC import json_format_old
+
 from GTC.json_format import (
     JSONArchiveEncoder,
     json_to_archive,
+    JSON_SCHEMA,
 )
 
 __all__ = (
@@ -90,8 +99,17 @@ def load(file):
     
     """
     ar = pickle.load(file)
-    ar.context = context._context
-    ar._thaw()
+    # Pickle may return a new-style Archive when unpickling a file 
+    # containing the old-style class (pickle takes any Archive definition). 
+    if hasattr(ar,"_tagged"):
+        file.seek(0)
+        old = archive_old.load(file)
+        old.context = context._context
+        old._thaw()
+        ar = Archive.from_old_archive(old)
+    else:
+        ar.context = context._context
+        ar._thaw()
     
     return ar
 
@@ -164,9 +182,24 @@ def loads_json(s,**kw):
     
     .. versionadded:: 1.3.0
     """
-    ar = json.loads(s,object_hook=json_to_archive,**kw)    
-    ar.context = context._context
-    ar._thaw()
+    # Support for legacy JSON format will be dropped in GTC 2
+    pattern = r'"version": "{}"'.format(
+        re.sub(r'\.', r'\.',JSON_SCHEMA)
+    )
+    if re.search(pattern, s):
+        ar = json.loads(s,object_hook=json_to_archive,**kw)    
+        ar.context = context._context
+        ar._thaw()
+    else:
+        old = json_format_old.json.loads(
+            s,
+            object_hook=json_format_old.json_to_archive,
+            **kw
+        )    
+        old.context = context._context
+        old._thaw()
+        ar = Archive.from_old_archive(old)
+    
     
     return ar
     
@@ -199,9 +232,8 @@ def load_json(file,**kw):
 
     .. versionadded:: 1.3.0
     """
-    ar = json.load(file, object_hook=json_to_archive,**kw)    
-    ar.context = context._context
-    ar._thaw()
+    s = file.read()
+    ar = loads_json(s,**kw)
     
     return ar
     
