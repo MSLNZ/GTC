@@ -170,7 +170,7 @@
   "type": "object",
   "properties": {
     "CLASS": { "const": "Archive" },
-    "$id": { "type": "string" },
+    "version": { "type": "string" },
     "leaf_nodes": {
       "type": "object",
       "patternProperties": {
@@ -199,12 +199,8 @@
     }
   },
   "required": [
-    "CLASS", 
-    "leaf_nodes", 
-    "tagged_complex", 
-    "tagged_real", 
-    "untagged_real", 
-    "intermediate_uids"
+    "CLASS",
+    "leaf_nodes"
   ],
   "additionalProperties": false
 }
