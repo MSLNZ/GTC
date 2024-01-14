@@ -23,6 +23,10 @@ __all__ = (
     'json_to_archive'
 )
 
+# This is the same as $id in the schema and will also be
+# the value of the 'version' property in a JSON Archive file.
+JSON_SCHEMA = r"https://measurement.govt.nz/gtc/json_1.4.2"
+
 # math.inf cannot be represented in JSON so we adopt null (None)
 to_dof_json = lambda df: None if df == math.inf else df
 from_dof_json = lambda s: math.inf if s is None else s
@@ -164,7 +168,10 @@ def complex_to_json(x):
 # 
 def archive_to_json(a): 
     
-    j = dict( CLASS = a.__class__.__name__ )
+    j = dict( 
+        CLASS = a.__class__.__name__, 
+        version = JSON_SCHEMA
+    )
 
     if PY2:
         leaf_nodes_items = a._leaf_nodes.iteritems
