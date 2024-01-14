@@ -12,7 +12,7 @@ class TestArchiveJSONSchema135(unittest.TestCase):
 
         wdir =  os.path.dirname(__file__)
         
-        schema_file = r"../GTC/schema/gtc_v_1_4_2.json"
+        schema_file = r"../schema/gtc_v_1_4_2.json"
         _file = os.path.join(wdir,schema_file)       
         with open(_file,'r') as s:
             schema = json.load(s)
