@@ -1,11 +1,8 @@
 import unittest
 import os
+import sys
 
 import json
-from jsonschema import (
-    Draft201909Validator,
-    Draft7Validator
-)
 
 from GTC import *
 
@@ -25,9 +22,13 @@ class TestArchiveJSONSchema135(unittest.TestCase):
         with open(_file,'r') as f:
             file = json.load(f)
 
-        self.assertTrue( 
-            Draft201909Validator(schema).is_valid(file)
-        )
+        if sys.version_info >= (3,7):
+            from jsonschema import Draft201909Validator
+            self.assertTrue( 
+                Draft201909Validator(schema).is_valid(file)
+            )
+
+        from jsonschema import Draft7Validator
         self.assertTrue( 
             Draft7Validator(schema).is_valid(file)
         )
