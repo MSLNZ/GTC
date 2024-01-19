@@ -1833,6 +1833,8 @@ def _radd(lhs,rhs):
 def set_correlation_real(x1,x2,r):
     """
     Assign a correlation coefficient between ``x1`` and ``x2``
+    
+    Illegitimate values of ``r`` will raise a ``ValueError`` 
 
     Parameters
     ----------
@@ -1854,11 +1856,16 @@ def set_correlation_real(x1,x2,r):
         ):
             if ln1 is ln2 and r != 1.0:
                 raise ValueError(
-                    "value should be 1.0, got: '{}'".format(r)
+                    "correlation coefficient '{}' != 1.0".format(r)
                 )
             else:
-                ln1.correlation[ln2.uid] = r 
-                ln2.correlation[ln1.uid] = r 
+                if abs(r) > 1.0:
+                    raise ValueError(
+                        "correlation coefficient '|{}|' > 1.0".format(r)
+                    )
+                else:
+                    ln1.correlation[ln2.uid] = r 
+                    ln2.correlation[ln1.uid] = r 
         else:
             raise RuntimeError( 
                 "`set_correlation` called on independent node"
