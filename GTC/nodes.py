@@ -48,6 +48,9 @@ class Leaf(Node):
     
         self.independent = independent
         if not independent:
+            # Provide objects for these attributes.
+            # The objects may be filled independently, 
+            # or may remain in this default state.
             self.correlation = {uid: 1.0}
             self.ensemble = set()
         
