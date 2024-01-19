@@ -12,12 +12,12 @@ class TestArchiveJSONSchema135(unittest.TestCase):
 
         wdir =  os.path.dirname(__file__)
         
-        schema_file = r"../GTC/schema/gtc_v_1_4_2.json"
+        schema_file = r"../GTC/schema/gtc_v_1_5_0.json"
         _file = os.path.join(wdir,schema_file)       
         with open(_file,'r') as s:
             schema = json.load(s)
 
-        fname = 'ref_file_v_1_4_2.json'        
+        fname = 'ref_file_v_1_5_0.json'        
         _file = os.path.join(wdir,fname)
         with open(_file,'r') as f:
             file = json.load(f)
@@ -41,7 +41,7 @@ class TestArchiveJSONFilev142(unittest.TestCase):
     
     def test(self):
         
-        fname = 'ref_file_v_1_4_2.json'
+        fname = 'ref_file_v_1_5_0.json'
         
         wdir =  os.path.dirname(__file__)
         path = os.path.join(wdir,fname)
@@ -115,7 +115,7 @@ class TestArchivePickleFilev142(unittest.TestCase):
     
     def test(self):
         
-        fname = 'ref_file_v_1_4_2.gar'
+        fname = 'ref_file_v_1_5_0.gar'
         
         wdir =  os.path.dirname(__file__)
         path = os.path.join(wdir,fname)

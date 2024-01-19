@@ -1,9 +1,10 @@
 """
-Script used to create 'ref_file_v_1_4_2.gar' as a reference file 
+Script used to create 'ref_file_v_1_5_0.json' as a reference file 
 that must be readable by subsequent versions of GTC.  
 
-The unit test 'test_files_v_1_4_2.py' expects to find 
-'ref_file_v_1_4_2.gar' in the local directory.
+The unit test 'test_files_v_1_5_0.py' expects to find 
+'ref_file_v_1_5_0.json' in the local directory.
+
 
 """
 import os
@@ -18,8 +19,8 @@ z = result(x * y)
 
 ar.add(w=w,x=x,y=y,z=z)
 
-x1 = ureal(1,1,3,label='x')
-y1 = ureal(2,1,4,label='y')
+x1 = ureal(1,1,3,label='x1')
+y1 = ureal(2,1,4,label='y1')
 z1 = result( x1 + y1 )
 
 ar.add(z1=z1)
@@ -50,11 +51,11 @@ z4 = result( log( x4 * y4 ) )
 
 ar.add(x4=x4,y4=y4,z4=z4)
 
+fname = 'ref_file_v_1_5_0.json'
 wdir =  os.path.dirname(__file__)
-fname = 'ref_file_v_1_4_2.gar'
 path = os.path.join(wdir,fname)
 
-with open(path,'wb') as f:
-    persistence.dump(f,ar)
-    
+with open(path,'w') as f:
+    persistence.dump_json(f,ar,indent=2)
+
 f.close()
