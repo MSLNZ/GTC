@@ -305,6 +305,11 @@ class TestGetSetCorrelation(unittest.TestCase):
         x1 = ureal(1,1)
         z1 = ucomplex(1,(1,1),independent=False)
         z2 = ucomplex(1,(1,1),independent=False)
+
+        r = 0.5
+        set_correlation(r,z1)
+        self.assertTrue( equivalent(r,get_correlation(z1)) )
+
         r = (.1,.2,.3,.4)
         set_correlation(r,z1,z2)
         check_r = get_correlation(z1,z2)
@@ -317,16 +322,23 @@ class TestGetSetCorrelation(unittest.TestCase):
         self.assertRaises(TypeError,set_correlation,r,z1,x1)
         self.assertRaises(TypeError,set_correlation,r,x1,z1)
 
+        self.assertRaises(ValueError,set_correlation,(1.1,.2,.3,.4),z1,z2)
+        self.assertRaises(ValueError,set_correlation,(.1,1.2,.3,.4),z1,z2)
+        self.assertRaises(ValueError,set_correlation,(.1,.2,1.3,.4),z1,z2)
+        self.assertRaises(ValueError,set_correlation,(.1,.2,.3,1.4),z1,z2)
+
     def test_illegal_set_correlation(self):
         x1 = ureal(1,2,3,independent=False)
         z1 = ucomplex(1,.5,3,independent=False)
         x2 = ureal(1,2,3,independent=False)
         z2 = ucomplex(1,.5,3,independent=False)
         
-        r = 0.5
+        self.assertRaises(RuntimeError,set_correlation,0.5,x1,x2)
         
-        self.assertRaises(RuntimeError,set_correlation,r,x1,x2)
-        self.assertTrue( set_correlation(r,z1) is None )
+        x3 = ureal(1,2,independent=False)
+        x4 = ureal(1,2,independent=False)
+        r = 1.1 # illegal value
+        self.assertRaises(ValueError,set_correlation,r,x3,x4)
         
     def test_with_mixed_unumbers(self):
         x1 = ureal(1,2,independent=False)
