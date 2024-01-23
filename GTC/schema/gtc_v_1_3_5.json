@@ -20,8 +20,7 @@
     "correlation": {
       "type": "object",
       "propertyNames": {"$ref": "#/$defs/UIDString"},
-      "minProperties": 2,
-      "maxProperties": 2
+      "minProperties": 1
     },
     "ensemble": {
       "type": "array",
