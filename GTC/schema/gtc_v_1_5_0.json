@@ -28,7 +28,7 @@
       "propertyNames": {"$ref": "#/$defs/eUIDString"},
       "minProperties": 1
     },
-    "eUIDArray ": {
+    "eUIDArray": {
       "type": "array",
       "items": { "$ref": "#/$defs/eUIDString" },
       "minItems": 0
@@ -37,7 +37,7 @@
       "type": "object",
       "properties": {
          "CLASS": { "const": "Vector" },
-         "index": { "$ref": "#/$defs/eUIDArray " },
+         "index": { "$ref": "#/$defs/eUIDArray" },
          "value": { 
            "type": "array", 
            "items": { "type": "number" }, 
@@ -122,7 +122,7 @@
         },
         "independent": {"type": "boolean" },
         "correlation": {"$ref": "#/$defs/correlation"},
-        "ensemble": {"$ref": "#/$defs/eUIDArray "}      
+        "ensemble": {"$ref": "#/$defs/eUIDArray"}      
       },
       "required": ["CLASS", "uid", "u" ],
       "dependencies": {
