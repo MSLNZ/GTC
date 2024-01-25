@@ -13,7 +13,7 @@
     },
     "df": {
       "anyOf": [
-        { "type": "number","minimum": 0 },
+        { "type": "number","minimum": 1 },
         { "enum": [ Infinity ] }
       ]
     },
@@ -98,7 +98,7 @@
         "CLASS": { "const": "LeafNode" },
         "uid": {"$ref": "#/$defs/uid" },
         "label": { "$ref": "#/$defs/string_or_null" },
-        "u": { "type": "number", "minValue": 0 },
+        "u": { "type": "number", "minimum": 0 },
         "df": { "$ref": "#/$defs/df" },
         "complex": {
           "type" : "array",
