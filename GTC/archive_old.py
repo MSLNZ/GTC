@@ -26,7 +26,7 @@ __all__ = (
 )
 
 #------------------------------------------------------------------     
-class _Unpickler(pickle.Unpickler):
+class _Unpickler(pickle.Unpickler, object):
     """
     Prefer classes defined in this module over any others
     """

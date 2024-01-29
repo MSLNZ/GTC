@@ -6,6 +6,7 @@ import json
 import math
 import ast
 
+from GTC import inf
 from GTC.archive import (
     Archive,
     LeafNode, 
@@ -28,8 +29,8 @@ __all__ = (
 JSON_SCHEMA = r"https://measurement.govt.nz/gtc/json_1.4.2"
 
 # math.inf cannot be represented in JSON so we adopt null (None)
-to_dof_json = lambda df: None if df == math.inf else df
-from_dof_json = lambda s: math.inf if s is None else s
+to_dof_json = lambda df: None if math.isinf(df) else df
+from_dof_json = lambda s: inf if s is None else s
 #     
 to_uid_string = lambda uid: repr(uid)
 from_uid_string = lambda s: ast.literal_eval(s) 
