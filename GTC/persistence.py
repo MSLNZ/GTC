@@ -36,7 +36,6 @@ except ImportError:
     import pickle
     PY2 = False
 
-from GTC import context
 from GTC import archive_old
 
 from GTC.archive import Archive
@@ -104,11 +103,9 @@ def load(file):
     if hasattr(ar,"_tagged"):
         file.seek(0)
         old = archive_old.load(file)
-        old.context = context._context
         old._thaw()
         ar = Archive.from_old_archive(old)
     else:
-        ar.context = context._context
         ar._thaw()
     
     return ar
@@ -150,7 +147,6 @@ def loads(s):
     
     """
     ar = pickle.loads(s)
-    ar.context = context._context
     ar._thaw()
     
     return ar
@@ -188,7 +184,6 @@ def loads_json(s,**kw):
     )
     if re.search(pattern, s):
         ar = json.loads(s,object_hook=json_to_archive,**kw)    
-        ar.context = context._context
         ar._thaw()
     else:
         old = json_format_old.json.loads(
@@ -196,7 +191,6 @@ def loads_json(s,**kw):
             object_hook=json_format_old.json_to_archive,
             **kw
         )    
-        old.context = context._context
         old._thaw()
         ar = Archive.from_old_archive(old)
     
