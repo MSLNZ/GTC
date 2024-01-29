@@ -1,6 +1,6 @@
 {
   "CLASS": "Archive",
-  "version": "https://measurement.govt.nz/gtc/json_1.4.2",
+  "version": "https://measurement.govt.nz/gtc/json_1.5.0",
   "leaf_nodes": {
     "(227739402867775500177521136937855177752, 1)": {
       "CLASS": "LeafNode",
