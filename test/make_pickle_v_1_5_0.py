@@ -1,9 +1,9 @@
 """
-Script used to create 'ref_file_v_1_4_2.gar' as a reference file 
+Script used to create 'ref_file_v_1_5_0.gar' as a reference file
 that must be readable by subsequent versions of GTC.  
 
-The unit test 'test_files_v_1_4_2.py' expects to find 
-'ref_file_v_1_4_2.gar' in the local directory.
+The unit test 'test_files_v_1_5_0.py' expects to find
+'ref_file_v_1_5_0.gar' in the local directory.
 
 """
 import os

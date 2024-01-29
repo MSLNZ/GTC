@@ -26,7 +26,7 @@ __all__ = (
 
 # This is the same as $id in the schema and will also be
 # the value of the 'version' property in a JSON Archive file.
-JSON_SCHEMA = r"https://measurement.govt.nz/gtc/json_1.4.2"
+JSON_SCHEMA = r"https://measurement.govt.nz/gtc/json_1.5.0"
 
 # math.inf cannot be represented in JSON so we adopt null (None)
 to_dof_json = lambda df: None if math.isinf(df) else df

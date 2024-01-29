@@ -127,7 +127,7 @@ class Archive(object):
     # Support for legacy JSON format will be dropped in GTC 2
     @staticmethod
     def from_old_archive(old):
-        """Convert an old-style Archive to the class adopted in GTC v1.4.2"""
+        """Convert an old-style Archive to the class adopted in GTC v1.5.0"""
         assert old._extract == True, "Archive must have been `thawed`"
         
         # `_tagged` has everything that was tagged. This needs to be 

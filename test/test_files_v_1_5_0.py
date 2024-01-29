@@ -32,10 +32,10 @@ class TestArchiveJSONSchema135(unittest.TestCase):
             )
 
 #-----------------------------------------------------
-class TestArchiveJSONFilev142(unittest.TestCase):
+class TestArchiveJSONFilev150(unittest.TestCase):
 
     """
-    Use a reference file created using GTC v 1.4.2 
+    Use a reference file created using GTC v 1.5.0
     to make sure we maintain backward compatibility.
     """
     
@@ -106,10 +106,10 @@ class TestArchiveJSONFilev142(unittest.TestCase):
         self.assertEqual( repr(z1), repr(z) )
 
 #-----------------------------------------------------
-class TestArchivePickleFilev142(unittest.TestCase):
+class TestArchivePickleFilev150(unittest.TestCase):
 
     """
-    Use a reference file created using GTC v 1.4.2
+    Use a reference file created using GTC v 1.5.0
     to make sure we maintain backward compatibility.
     """
     
