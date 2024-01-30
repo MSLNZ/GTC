@@ -174,7 +174,8 @@ class Archive(object):
         # associate the uid's of intermediate components with UNs.
         self._uid_to_intermediate = {}
         
-        self._extract = False   # initially in write-only mode
+        self._adding = True   # Once frozen, adding elements is prevented
+        self._extract = False # Once thawed, elements can be extracted 
 
     def keys(self):
         """Return a list of names 
@@ -296,8 +297,8 @@ class Archive(object):
             >>> a['fred'] = y
             
         """
-        if self._extract:
-            raise RuntimeError('This archive is read-only!')
+        if not self._adding:
+            raise RuntimeError('Archive is read-only!')
         else:
             self._setitem(key,value)
 
@@ -334,8 +335,8 @@ class Archive(object):
    
 
         """
-        if self._extract:
-            raise RuntimeError('This archive is write-only!')
+        if not self._adding:
+            raise RuntimeError('Archive is write-only!')
 
         items = kwargs.iteritems() if PY2 else kwargs.items()
         for key,value in items:
@@ -360,7 +361,7 @@ class Archive(object):
         
         """
         if not self._extract:
-            raise RuntimeError('This archive is write-only!')
+            raise RuntimeError('Archive is not ready for reading')
         else:
             return self._getitem(key)
 
@@ -405,7 +406,7 @@ class Archive(object):
   
         """        
         if not self._extract:
-            raise RuntimeError('This archive is read-only!')
+            raise RuntimeError('Archive is not ready for reading')
         
         lst = [ self._getitem(n) for n in args ]
             
@@ -415,7 +416,8 @@ class Archive(object):
     def _freeze(self):
         """Prepare archive for storage
         
-        NB after freezing, the archive object is immutable.
+        NB after freezing, the archive object is immutable. 
+        It may only be stored (dumped) in different formats.
         
         """    
         if not len(self):
@@ -553,9 +555,14 @@ class Archive(object):
                     
         # Python cannot pickle this
         del self._uid_to_intermediate 
-        
+
+        # ---------------------------------------------------------------------
+        # Once frozen, an Archive can only be stored in different formats,
+        self._adding = False 
+
     # -----------------------------------------------------------------------
     def _thaw(self):
+                    
         _leaf_nodes = dict()
         items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
                         
@@ -646,7 +653,9 @@ class Archive(object):
             else:
                 assert False
                         
-        # Change the archive status
+        # ---------------------------------------------------------------------
+        # Data may be extracted from the archive now
+        self._adding = False
         self._extract = True
         
 #----------------------------------------------------------------------------

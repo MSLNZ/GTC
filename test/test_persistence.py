@@ -18,6 +18,49 @@ TOL = 1E-13
 #-----------------------------------------------------
 class TestArchive(unittest.TestCase):
 
+    def test_add_extract(self):
+        """
+        When Archives are created they may have UNs added to them.
+        However, as soon as they are stored (dumped) they cannot 
+        be written to any more.
+
+        Similarly, when an Archive is created by loading data from a file,
+        it cannot have UNs added to it.
+        
+        """
+        context._context = Context()
+        
+        x = ureal(1,1)
+        y = ureal(2,1)
+        z = result( x + y )
+
+        ar = persistence.Archive()
+        ar.add(x=x,z=z)
+        
+        ar._freeze()
+        self.assertRaises(RuntimeError,ar.add,y=y)   
+
+        # Cannot thaw a frozen archive and continue to add to it
+        ar._thaw()
+        self.assertRaises(RuntimeError,ar.add,y=y)  
+        
+        # But you can thaw and reread an archive 
+        # (Should we prevent this? It is currently tolerated in many tests.)
+        z1 = ar.extract("z")
+        self.assertTrue( equivalent(z1.x,z.x) )
+        
+        ar = persistence.Archive()
+        ar.add(x=x,z=z)
+        s = persistence.dumps_json(ar)
+        
+        # A new Archive is created by loading
+        ar2 = persistence.loads_json(s) 
+        z2 = ar2.extract("z")
+        self.assertTrue( equivalent(z2.x,z.x) )
+        
+        # It cannot be added to
+        self.assertRaises(RuntimeError,ar2.add,y=y)          
+
     def test_context_management(self):
         """
         Context registers should be updated when all dependence
