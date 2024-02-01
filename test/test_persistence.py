@@ -281,9 +281,9 @@ class TestArchive(unittest.TestCase):
         """
         context._context = Context()
         
-        x = ureal(1,1)
-        y = ureal(2,1)
-        z = result( x + y )
+        x = ureal(1,1,label='x')
+        y = ureal(2,1,label='y')
+        z = result( x + y, label='z' )
 
         ar = persistence.Archive()
 
@@ -299,12 +299,15 @@ class TestArchive(unittest.TestCase):
         self.assertEqual(x.x,x1.x)
         self.assertEqual(x.u,x1.u)
         self.assertEqual(x.df,x1.df)
+        self.assertEqual(x.label,x1.label)
         self.assertEqual(y.x,y1.x)
         self.assertEqual(y.u,y1.u)
         self.assertEqual(y.df,y1.df)
+        self.assertEqual(y.label,y1.label)
         self.assertEqual(z.x,z1.x)
         self.assertEqual(z.u,z1.u)
         self.assertEqual(z.df,z1.df)
+        self.assertEqual(z.label,z1.label)
 
         a = component(z,x)
         b = component(z1,x1)
@@ -840,9 +843,9 @@ class TestArchive(unittest.TestCase):
         """
         context._context = Context()
         
-        x = ucomplex(1,[1,2],4)
-        y = ucomplex(1,[3,12],3)
-        z = result( x * y )
+        x = ucomplex(1,[1,2],4,label='x')
+        y = ucomplex(1,[3,12],3,label='y')
+        z = result( x * y , label='z')
 
         ar = persistence.Archive()
         ar.add(x=x)
@@ -862,14 +865,23 @@ class TestArchive(unittest.TestCase):
         self.assertTrue( equivalent_complex(x1.x,x.x) )
         self.assertTrue( equivalent_sequence(x1.u,x.u) )
         self.assertTrue( equivalent(x1.df,x.df) )
+        self.assertTrue( x1.label,x.label )
+        self.assertTrue( x1.real.label,x.real.label )
+        self.assertTrue( x1.imag.label,x.imag.label )
 
         self.assertTrue( equivalent_complex(y1.x,y.x) )
         self.assertTrue( equivalent_sequence(y1.u,y.u) )
         self.assertTrue( equivalent(y1.df,y.df) )
+        self.assertTrue( y1.label,y.label )
+        self.assertTrue( y1.real.label,y.real.label )
+        self.assertTrue( y1.imag.label,y.imag.label )
         
         self.assertTrue( equivalent_complex(z1.x,z.x) )
         self.assertTrue( equivalent_sequence(z1.u,z.u) )
         self.assertTrue( equivalent(z1.df,z.df) )
+        self.assertTrue( z1.label,z.label )
+        self.assertTrue( z1.real.label,z.real.label )
+        self.assertTrue( z1.imag.label,z.imag.label )
 
         # Make sure the vector of components is well-formed
         self.assertTrue( is_ordered(y1.real._u_components) )

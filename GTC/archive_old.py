@@ -640,6 +640,7 @@ class Archive(object):
                 assert un_re.is_elementary == un_im.is_elementary
                 
                 unc = UncertainComplex(un_re,un_im)
+                unc._label = obj.label
                 
                 # An intermediate complex needs to 
                 # link the nodes of its components 
