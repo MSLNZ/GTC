@@ -160,6 +160,13 @@ class Archive(object):
     A particular :class:`Archive` object can either be used to prepare 
     a record of uncertain numbers for storage, or to retrieve a stored record. 
         
+    :arg dump: 'True' when an archive will be used to dump data, 
+        'False' when when an archive will be used to load data. 
+    :type dump: bool
+
+    .. versionchanged:: 1.5.0 
+        Keyword ``dump`` added
+        
     """
     def __init__(self,dump=True):
 
