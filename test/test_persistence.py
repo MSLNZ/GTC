@@ -41,13 +41,12 @@ class TestArchive(unittest.TestCase):
         self.assertRaises(RuntimeError,ar.add,y=y)   
 
         # Cannot thaw a frozen archive and continue to add to it
-        ar._thaw()
-        self.assertRaises(RuntimeError,ar.add,y=y)  
+        self.assertRaises(RuntimeError,ar._thaw)
         
-        # But you can thaw and reread an archive 
-        # (Should we prevent this? It is currently tolerated in many tests.)
-        z1 = ar.extract("z")
-        self.assertTrue( equivalent(z1.x,z.x) )
+        # # But you can thaw and reread an archive 
+        # # (Should we prevent this? It is currently tolerated in many tests.)
+        # z1 = ar.extract("z")
+        # self.assertTrue( equivalent(z1.x,z.x) )
         
         ar = persistence.Archive()
         ar.add(x=x,z=z)
@@ -86,7 +85,8 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack and test
-        context._context = Context()
+        # Cheating
+        ar._type = "FromStorage"
         ar._thaw()
         
         y1, y2, y3 = ar.extract('x1','x2','x3')
@@ -161,7 +161,7 @@ class TestArchive(unittest.TestCase):
 
         self.assertRaises(RuntimeError,ar.extract,'x')  # cannot extract yet
         
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw( )
 
         self.assertRaises(RuntimeError,ar.add,y=y)  # cannot add now
@@ -213,7 +213,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
                 
         # Unpack and check 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         # Single argument unpacks to an object
@@ -291,7 +291,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # Unpack and check 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -333,7 +333,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         
         y1, y2, y3 = ar.extract('x1','x2','x3')
@@ -385,7 +385,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         y4, y5, y6 = ar.extract('x4','x5','x6')
@@ -423,7 +423,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         y4, y5, y6 = ar.extract('x4','x5','x6')
@@ -464,7 +464,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         y1, y2, y3 = ar.extract('x1','x2','x3')
@@ -515,7 +515,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         y4, y5, y6 = ar.extract('x4','x5','x6')
@@ -556,7 +556,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         y4, y5, y6 = ar.extract('x4','x5','x6')
         
@@ -599,7 +599,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         y4 = ar['x4']
@@ -651,7 +651,7 @@ class TestArchive(unittest.TestCase):
         # This is a fudge. Normally, a different 
         # archive object would be created from a 
         # file or string. 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         
         v1, i1, phi1 = ar.extract('v','i','phi')
@@ -724,7 +724,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         r1, x1, z1 = ar.extract('r','x','z')
@@ -775,7 +775,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         yy, xx4, xx5, xx1 = ar.extract('y','x4','x5','x1')
 
@@ -854,7 +854,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -911,7 +911,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x4=x4,x5=x5,x6=x6)
         ar._freeze()
 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         y4, y5, y6 = ar.extract('x4','x5','x6')
 
@@ -972,7 +972,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
         ar._freeze()
 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw( )
         y4, y5, y6 = ar.extract('x4','x5','x6')
 
@@ -1037,7 +1037,7 @@ class TestArchive(unittest.TestCase):
         ar['x6'] = x6 
         ar._freeze()
 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw( )
         y4 = ar['x4']
         y5 = ar['x5']
@@ -1106,7 +1106,7 @@ class TestArchive(unittest.TestCase):
         ar['x7'] = x7
         ar._freeze()
 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         y4 = ar['x4']
         y5 = ar['x5']
@@ -1170,7 +1170,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x7=x7)
         ar._freeze()
 
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw( )
         y1 = ar['x1']
         y2 = ar['x2']
@@ -1360,7 +1360,6 @@ class TestArchive(unittest.TestCase):
         with open(path,'wb') as f:
             persistence.dump(f,ar)
 
-        context._context = Context()
         with open(path,'rb') as f:
             ar = persistence.load(f)
 
@@ -1396,7 +1395,6 @@ class TestArchive(unittest.TestCase):
         with open(path,'wb') as f:
             persistence.dump(f,ar)
 
-        context._context = Context()
         with open(path,'rb') as f:
             ar = persistence.load(f)
 
@@ -1480,7 +1478,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1512,8 +1509,6 @@ class TestArchive(unittest.TestCase):
 
         s = persistence.dumps(ar)
 
-        context._context = Context()
-        
         ar1 = persistence.loads(s)
         z1 = ar1.extract('z')
 
@@ -1544,7 +1539,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1574,7 +1568,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1602,7 +1595,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1633,7 +1625,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack and test
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         y1, y2, y3 = ar.extract('x1','x2','x3')
         yz1 = ar['z1']
@@ -1701,9 +1693,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x1=x1,x2=x2,x3=x3)
         ar._freeze()
 
-        # Now add some more stuff and store
-        # in a second archive
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         
         y1 = ar['x1']
@@ -1746,7 +1736,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # Now restore into a third Context
-        context._context = Context()
+        ar._type = "FromStorage"    # Cheating
         ar._thaw()
         
         z1 = ar['y1']
