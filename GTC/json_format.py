@@ -275,6 +275,8 @@ def json_to_archive(j):
         
     elif 'CLASS' in j and (j['CLASS'] == Archive.__name__):
         ar = Archive()
+        ar._type = "FromStorage"
+        ar._open = False            # Still need to thaw the data
 
         if PY2:
             leaf_nodes_items = j['leaf_nodes'].iteritems
@@ -300,7 +302,7 @@ def json_to_archive(j):
         ar._tagged_real = j['tagged_real']
         ar._tagged_complex = j['tagged_complex']
         ar._untagged_real = j['untagged_real']
-        
+
         return ar 
         
     else:

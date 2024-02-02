@@ -108,7 +108,7 @@ class Archive(object):
     a record of uncertain numbers for storage, or to retrieve a stored record. 
         
     """
-    def __init__(self):
+    def __init__(self,t="ForStorage"):
 
         # These dict objects contain information about every
         # uncertain number destined for storage; a pair 
@@ -122,21 +122,23 @@ class Archive(object):
         # associate the uid's of intermediate components with UNs.
         self._uid_to_intermediate = {}
         
-        self._adding = True   # Once frozen, adding elements is prevented
-        self._extract = False # Once thawed, elements can be extracted 
+        self._type = "ForStorage" # Or "FromStorage"
+        self._open = True 
 
     # Support for legacy JSON format will be dropped in GTC 2
     @staticmethod
     def from_old_archive(old):
         """Convert an old-style Archive to the class adopted in GTC v1.5.0"""
-        assert old._extract == True, "Archive must have been `thawed`"
+        
+        assert old._type == "FromStorage"
+        assert old._open == True
         
         # `_tagged` has everything that was tagged. This needs to be 
         # separated into `_tagged_real` and `_tagged_complex`.
         # `_tagged_reals` has all the UncertainReals in `_tagged` 
         # as well as any untagged UncertainReals that are complex components.
         
-        ar = Archive()
+        ar = Archive()        
         
         del ar._uid_to_intermediate 
         
@@ -160,10 +162,9 @@ class Archive(object):
             for k,obj in old._tagged.items():
                 if isinstance(obj,UncertainComplex):  
                     ar._tagged_complex[k] = obj
-                      
-        # Adjust initial settings
-        ar._extract = old._extract
-        ar._adding = old._adding
+                             
+        ar._type = old._type
+        ar._open = old._open 
         
         return ar
         
@@ -325,11 +326,10 @@ class Archive(object):
             >>> a['fred'] = y
             
         """
-        if not self._adding:
-            raise RuntimeError('Archive is read-only!')
-        else:
+        if self._type == "ForStorage" and self._open == True:
             self._setitem(key,value)
-
+        else:
+            raise RuntimeError('Archive cannot be added to')
 
     def add(self,**kwargs):
         """Add entries to an archive.
@@ -359,16 +359,15 @@ class Archive(object):
         .. code-block:: pycon   
         
             >>> pr.dump(f, a)
-            >>> f.close()
-   
+            >>> f.close()  
 
         """
-        if not self._adding:
-            raise RuntimeError('Archive is write-only!')
-
-        items = kwargs.iteritems() if PY2 else kwargs.items()
-        for key,value in items:
-            self._setitem(key,value)
+        if self._type == "ForStorage" and self._open == True:
+            items = kwargs.iteritems() if PY2 else kwargs.items()
+            for key,value in items:
+                self._setitem(key,value)
+        else:
+            raise RuntimeError('Archive cannot be added to')
 
     def _getitem(self,key):
         """
@@ -388,10 +387,10 @@ class Archive(object):
         `key` - the name of the archived number
         
         """
-        if not self._extract:
-            raise RuntimeError('Archive is not ready for reading')
-        else:
+        if self._type == "FromStorage" and self._open == True:
             return self._getitem(key)
+        else:
+            raise RuntimeError('Archive cannot be read')
 
     def extract(self,*args):
         """
@@ -433,13 +432,12 @@ class Archive(object):
             >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
   
         """        
-        if not self._extract:
-            raise RuntimeError('Archive is not ready for reading')
+        if self._type == "FromStorage" and self._open == True:
+            lst = [ self._getitem(n) for n in args ]               
+            return lst if len(lst) > 1 else lst[0]
+        else:
+            raise RuntimeError('Archive cannot be read')
         
-        lst = [ self._getitem(n) for n in args ]
-            
-        return lst if len(lst) > 1 else lst[0]
-
     # -----------------------------------------------------------------------
     def _freeze(self):
         """Prepare archive for storage
@@ -451,243 +449,260 @@ class Archive(object):
         if not len(self):
             raise RuntimeError( "The archive is empty!" )
                   
-        # ---------------------------------------------------------------------
-        # Iteration over `_iter_unreals` covers all UncertainReal objects 
-        # that must be stored. 
-        
-        self._leaf_nodes = {
-            n_i.uid  : LeafNode(n_i)
-                for un in self._iter_unreals()
-                    for n_i in itertools.chain(
-                        un._u_components.iterkeys(),
-                        un._d_components.iterkeys()
-                    )
-        }                      
-                        
-        # -------------------------------------
-        # Intermediate real uncertain numbers
-        #
-        # All elementary influences of intermediate nodes 
-        # have been found above and will be archived. 
-        # Intermediate influences of tagged_reals 
-        # are captured here.
+        if self._type == "ForStorage" and self._open == False:
+            # The Archive has been frozen so 
+            # no action need be taken 
+            return 
+        elif self._type == "ForStorage" and self._open == True:       
             
-        _intermediate_node_to_uid = {
-            v._node: v._node.uid 
-                for v in self._iter_unreals() 
-                    if not v.is_elementary
-        }
+            # Python cannot pickle this
+            del self._uid_to_intermediate 
+            
+            # ---------------------------------------------------------------------
+            # Iteration over `_iter_unreals` covers all UncertainReal objects 
+            # that must be stored. 
+            
+            self._leaf_nodes = {
+                n_i.uid  : LeafNode(n_i)
+                    for un in self._iter_unreals()
+                        for n_i in itertools.chain(
+                            un._u_components.iterkeys(),
+                            un._d_components.iterkeys()
+                        )
+            }                      
+                            
+            # -------------------------------------
+            # Intermediate real uncertain numbers
+            #
+            # All elementary influences of intermediate nodes 
+            # have been found above and will be archived. 
+            # Intermediate influences of tagged_reals 
+            # are captured here.
+                
+            _intermediate_node_to_uid = {
+                v._node: v._node.uid 
+                    for v in self._iter_unreals() 
+                        if not v.is_elementary
+            }
 
-        # Use this to recreate intermediate nodes in _thaw
-        self._intermediate_uids = {
-            n_i.uid : (
-                n_i.label,
-                n_i.u,
-                n_i.df
-            ) for n_i in _intermediate_node_to_uid
-        }
+            # Use this to recreate intermediate nodes in _thaw
+            self._intermediate_uids = {
+                n_i.uid : (
+                    n_i.label,
+                    n_i.u,
+                    n_i.df
+                ) for n_i in _intermediate_node_to_uid
+            }
 
-        # -------------------------------------------------------------------
-        # Convert tagged objects into a standard form for storage 
-        #
-        for n,obj in self.iteritems():
-            if obj.is_elementary:
-                if isinstance(obj,UncertainReal):
-                    un = ElementaryReal(
-                        x=obj.x,
-                        uid=obj._node.uid
-                    )
-                    self._tagged_real[n] = un
-                    
-                elif isinstance(obj,UncertainComplex):
-                    re = ElementaryReal(
-                        x=obj.real.x,
-                        uid=obj.real._node.uid
-                    )
-                    im = ElementaryReal(
-                        x=obj.imag.x,
-                        uid=obj.imag._node.uid
-                    )
-                    
-                    n_re = "{}_re".format(n)
-                    self._untagged_real[n_re] = re
-                    
-                    n_im = "{}_im".format(n)
-                    self._untagged_real[n_im] = im 
-                    
-                    self._tagged_complex[n] = Complex(
-                        n_re=n_re,
-                        n_im=n_im,
-                        label = obj.label
-                    )
-                else:
-                    assert False, 'unexpected'
-            else:
-                if isinstance(obj,UncertainReal):
-                    un = IntermediateReal(
-                        value = obj.x,
-                        u_components = _vector_index_to_uid( 
-                            obj._u_components ),
-                        d_components = _vector_index_to_uid( 
-                            obj._d_components ),
-                        i_components = _ivector_index_to_uid(
-                            obj._i_components,
-                            _intermediate_node_to_uid
-                        ),
-                        label = obj.label,
-                        uid = obj._node.uid
-                    )
-                    self._tagged_real[n] = un
-                    
-                elif isinstance(obj,UncertainComplex):
-                    re = IntermediateReal(
-                        value = obj.real.x,
-                        u_components = _vector_index_to_uid(
-                            obj.real._u_components ),
-                        d_components = _vector_index_to_uid( 
-                            obj.real._d_components ),
-                        i_components = _ivector_index_to_uid(
-                            obj.real._i_components,
-                            _intermediate_node_to_uid
-                        ),
-                        label = obj.real.label,
-                        uid = obj.real._node.uid,
-                    )
+            # -------------------------------------------------------------------
+            # Convert tagged objects into a standard form for storage 
+            #
+            for n,obj in self.iteritems():
+                if obj.is_elementary:
+                    if isinstance(obj,UncertainReal):
+                        un = ElementaryReal(
+                            x=obj.x,
+                            uid=obj._node.uid
+                        )
+                        self._tagged_real[n] = un
                         
-                    n_re = "{}_re".format(n)
-                    self._untagged_real[n_re] = re
-                    
-                    im = IntermediateReal(
-                        value = obj.imag._x,
-                        u_components = _vector_index_to_uid( 
-                            obj.imag._u_components ),
-                        d_components = _vector_index_to_uid( 
-                            obj.imag._d_components ),
-                        i_components = _ivector_index_to_uid(
-                            obj.imag._i_components,
-                            _intermediate_node_to_uid
-                        ),
-                        label = obj.imag.label,
-                        uid = obj.imag._node.uid,
-                    )
-
-                    n_im = "{}_im".format(n)
-                    self._untagged_real[n_im] = im
-                    
-                    self._tagged_complex[n] = Complex(
-                        n_re=n_re,
-                        n_im=n_im,
-                        label=obj.label
-                    )
+                    elif isinstance(obj,UncertainComplex):
+                        re = ElementaryReal(
+                            x=obj.real.x,
+                            uid=obj.real._node.uid
+                        )
+                        im = ElementaryReal(
+                            x=obj.imag.x,
+                            uid=obj.imag._node.uid
+                        )
+                        
+                        n_re = "{}_re".format(n)
+                        self._untagged_real[n_re] = re
+                        
+                        n_im = "{}_im".format(n)
+                        self._untagged_real[n_im] = im 
+                        
+                        self._tagged_complex[n] = Complex(
+                            n_re=n_re,
+                            n_im=n_im,
+                            label = obj.label
+                        )
+                    else:
+                        assert False, 'unexpected'
                 else:
-                    assert False,"unexpected"
-                    
-        # Python cannot pickle this
-        del self._uid_to_intermediate 
-        
-        # ---------------------------------------------------------------------
-        # Once frozen, an Archive can only be stored in different formats,
-        self._adding = False 
+                    if isinstance(obj,UncertainReal):
+                        un = IntermediateReal(
+                            value = obj.x,
+                            u_components = _vector_index_to_uid( 
+                                obj._u_components ),
+                            d_components = _vector_index_to_uid( 
+                                obj._d_components ),
+                            i_components = _ivector_index_to_uid(
+                                obj._i_components,
+                                _intermediate_node_to_uid
+                            ),
+                            label = obj.label,
+                            uid = obj._node.uid
+                        )
+                        self._tagged_real[n] = un
+                        
+                    elif isinstance(obj,UncertainComplex):
+                        re = IntermediateReal(
+                            value = obj.real.x,
+                            u_components = _vector_index_to_uid(
+                                obj.real._u_components ),
+                            d_components = _vector_index_to_uid( 
+                                obj.real._d_components ),
+                            i_components = _ivector_index_to_uid(
+                                obj.real._i_components,
+                                _intermediate_node_to_uid
+                            ),
+                            label = obj.real.label,
+                            uid = obj.real._node.uid,
+                        )
+                            
+                        n_re = "{}_re".format(n)
+                        self._untagged_real[n_re] = re
+                        
+                        im = IntermediateReal(
+                            value = obj.imag._x,
+                            u_components = _vector_index_to_uid( 
+                                obj.imag._u_components ),
+                            d_components = _vector_index_to_uid( 
+                                obj.imag._d_components ),
+                            i_components = _ivector_index_to_uid(
+                                obj.imag._i_components,
+                                _intermediate_node_to_uid
+                            ),
+                            label = obj.imag.label,
+                            uid = obj.imag._node.uid,
+                        )
+
+                        n_im = "{}_im".format(n)
+                        self._untagged_real[n_im] = im
+                        
+                        self._tagged_complex[n] = Complex(
+                            n_re=n_re,
+                            n_im=n_im,
+                            label=obj.label
+                        )
+                    else:
+                        assert False,"unexpected"
+                                
+            # ---------------------------------------------------------------------
+            self._open = False 
+            
+        else:
+            raise RuntimeError('Archive is not in the required state to be frozen')
         
     # -----------------------------------------------------------------------
     def _thaw(self):
 
-        _leaf_nodes = dict()
-        items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
-                        
-        for uid_i,fl_i in items:
-            l = context._context.new_leaf(
-                uid_i, 
-                fl_i.label, 
-                fl_i.u, 
-                fl_i.df, 
-                fl_i.independent,
-            )            
-            if hasattr(fl_i,'complex'):
-                l.complex = fl_i.complex 
-            if hasattr(fl_i,'correlation'):
-                l.correlation = dict( fl_i.correlation )
-            if hasattr(fl_i,'ensemble'):
-                l.ensemble = set( fl_i.ensemble )
-                
-            _leaf_nodes[uid_i] = l
-
-        # In v1.3.5, a df field was added to intermediate nodes. 
-        # In previous versions it was absent. This shim function
-        # will add `None` to the df attribute, which can then be
-        # fixed once the uncertain number object is formed.
-        # This is a temporary feature that will be removed after a few releases.
-        # See also lib.py property df  
-        shim_1_3_3 = lambda args: args + (None,) if len(args) == 2 else args
-            
-        # Create the nodes associated with intermediate 
-        # uncertain numbers. This must be done before the 
-        # intermediate uncertain numbers are recreated.
-        items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items()        
-        _nodes = {
-            uid: context._context.new_node(uid, *shim_1_3_3(args) )
-                for uid, args in items
-        }
-            
-        # Update with  new uncertain numbers.
-        #
-        for name,obj in self.iteritems():
-            if isinstance(obj,ElementaryReal):
-                un = _builder(
-                    name,
-                    _leaf_nodes,
-                    self._tagged_real
-                )                    
-                self._tagged_real[name] = un
-                
-            elif isinstance(obj,IntermediateReal):
-                un = _builder(
-                    name,
-                    _nodes,
-                    self._tagged_real
-                )                    
-                self._tagged_real[name] = un
-                
-            elif isinstance(obj,Complex):
-                # This is an intermediate uncertain complex
-                name_re = obj.n_re                
-                un_re = _builder(
-                    name_re,
-                    _nodes,
-                    self._untagged_real
-                )
-                self._untagged_real[name_re] = un_re
-                
-                name_im = obj.n_im
-                un_im = _builder(
-                    name_im,
-                    _nodes,
-                    self._untagged_real
-                )
-                self._untagged_real[name_im] = un_im
-
-                assert un_re.is_elementary == un_im.is_elementary
-                
-                unc = UncertainComplex(un_re,un_im)
-                unc._label = obj.label
-                
-                # An intermediate complex needs to 
-                # link the nodes of its components 
-                # (same as in `UncertainComplex._intermediate`)
-                complex_id = (un_re._node.uid,un_im._node.uid)
-                unc.real._node.complex = complex_id 
-                unc.imag._node.complex = complex_id
         
-                self._tagged_complex[name] = unc
+        if self._type == "FromStorage" and self._open == True:
+            # The Archive has been thawed already so 
+            # no action need be taken 
+            return 
+        elif self._type == "FromStorage" and self._open == False:
+            # It only makes sense to thaw an archive in this case 
+            
+            _leaf_nodes = dict()
+            items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
+                            
+            for uid_i,fl_i in items:
+                l = context._context.new_leaf(
+                    uid_i, 
+                    fl_i.label, 
+                    fl_i.u, 
+                    fl_i.df, 
+                    fl_i.independent,
+                )            
+                if hasattr(fl_i,'complex'):
+                    l.complex = fl_i.complex 
+                if hasattr(fl_i,'correlation'):
+                    l.correlation = dict( fl_i.correlation )
+                if hasattr(fl_i,'ensemble'):
+                    l.ensemble = set( fl_i.ensemble )
+                    
+                _leaf_nodes[uid_i] = l
+
+            # In v1.3.5, a df field was added to intermediate nodes. 
+            # In previous versions it was absent. This shim function
+            # will add `None` to the df attribute, which can then be
+            # fixed once the uncertain number object is formed.
+            # This is a temporary feature that will be removed after a few releases.
+            # See also lib.py property df  
+            shim_1_3_3 = lambda args: args + (None,) if len(args) == 2 else args
                 
-            else:
-                assert False, repr(obj)
-                        
-        # ---------------------------------------------------------------------
-        # Data may be extracted from the archive now
-        self._adding = False
-        self._extract = True
-        
+            # Create the nodes associated with intermediate 
+            # uncertain numbers. This must be done before the 
+            # intermediate uncertain numbers are recreated.
+            items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items()        
+            _nodes = {
+                uid: context._context.new_node(uid, *shim_1_3_3(args) )
+                    for uid, args in items
+            }
+                
+            # Update with  new uncertain numbers.
+            #
+            for name,obj in self.iteritems():
+                if isinstance(obj,ElementaryReal):
+                    un = _builder(
+                        name,
+                        _leaf_nodes,
+                        self._tagged_real
+                    )                    
+                    self._tagged_real[name] = un
+                    
+                elif isinstance(obj,IntermediateReal):
+                    un = _builder(
+                        name,
+                        _nodes,
+                        self._tagged_real
+                    )                    
+                    self._tagged_real[name] = un
+                    
+                elif isinstance(obj,Complex):
+                    # This is an intermediate uncertain complex
+                    name_re = obj.n_re                
+                    un_re = _builder(
+                        name_re,
+                        _nodes,
+                        self._untagged_real
+                    )
+                    self._untagged_real[name_re] = un_re
+                    
+                    name_im = obj.n_im
+                    un_im = _builder(
+                        name_im,
+                        _nodes,
+                        self._untagged_real
+                    )
+                    self._untagged_real[name_im] = un_im
+
+                    assert un_re.is_elementary == un_im.is_elementary
+                    
+                    unc = UncertainComplex(un_re,un_im)
+                    unc._label = obj.label
+                    
+                    # An intermediate complex needs to 
+                    # link the nodes of its components 
+                    # (same as in `UncertainComplex._intermediate`)
+                    complex_id = (un_re._node.uid,un_im._node.uid)
+                    unc.real._node.complex = complex_id 
+                    unc.imag._node.complex = complex_id
+            
+                    self._tagged_complex[name] = unc
+                    
+                else:
+                    assert False, repr(obj)
+                            
+            # ---------------------------------------------------------------------
+            self._open = True
+            
+        else:
+            raise RuntimeError('Archive is not in the required frozen state')
+            
 #----------------------------------------------------------------------------
 def _vector_index_to_uid(v):
     """
