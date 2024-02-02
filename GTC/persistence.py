@@ -105,14 +105,14 @@ def load(file):
         file.seek(0)
         
         old = archive_old.load(file)
-        old._type = "FromStorage"
-        old._open = False 
+        old._dump = False
+        old._ready = False     
         old._thaw()
         
         ar = Archive.from_old_archive(old)
     else:
-        ar._type = "FromStorage"
-        ar._open = False    
+        ar._dump = False
+        ar._ready = False     
         ar._thaw()
     
     return ar
@@ -154,8 +154,8 @@ def loads(s):
     
     """
     ar = pickle.loads(s)
-    ar._type = "FromStorage"
-    ar._open = False     
+    ar._dump = False
+    ar._ready = False     
     ar._thaw()
     
     return ar
@@ -193,8 +193,8 @@ def loads_json(s,**kw):
     )
     if re.search(pattern, s):
         ar = json.loads(s,object_hook=json_to_archive,**kw)    
-        ar._type = "FromStorage"
-        ar._open = False            
+        # ar._dump = False
+        # ar._ready = False     
         ar._thaw()
     else:
         old = json_format_old.json.loads(
@@ -202,8 +202,8 @@ def loads_json(s,**kw):
             object_hook=json_format_old.json_to_archive,
             **kw
         )    
-        old._type = "FromStorage"
-        old._open = False            
+        # old._dump = False
+        # old._ready = False     
         old._thaw()
         ar = Archive.from_old_archive(old)
     

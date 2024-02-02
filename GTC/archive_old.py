@@ -161,7 +161,7 @@ class Archive(object):
     a record of uncertain numbers for storage, or to retrieve a stored record. 
         
     """
-    def __init__(self):
+    def __init__(self,dump=True):
 
         # `self._tagged_reals` contains information about every
         # real uncertain number destined for storage: a pair 
@@ -174,8 +174,14 @@ class Archive(object):
         # associate the uid's of intermediate components with UNs.
         self._uid_to_intermediate = {}
         
-        self._type = "ForStorage" # Or "FromStorage"
-        self._open = True 
+        # An archive may either be dumped or loaded
+        # When _ready is true, the archive is in a 
+        # state that can be used clients, i.e., either
+        # things can be added to an archive that will
+        # be dumped, or they can be extracted from an
+        # archive than has been loaded.
+        self._dump = dump   
+        self._ready = True if dump else False
 
     def keys(self):
         """Return a list of names 
@@ -225,64 +231,67 @@ class Archive(object):
         """Add a name -to- uncertain-number pair
         
         """
-        if key in self._tagged:
-            raise RuntimeError(
-                "'{!s}' is already in use".format(key)
-            )
-        else:
-            if isinstance(value,UncertainReal):
-                if key in self._tagged_reals:
-                    raise RuntimeError(
-                        "'{!s}' is being used as a name-tag".format(key)
-                    )
-                    
-                if not value.is_elementary:
-                    try:
-                        uid = value.real._node.uid
-                    except AttributeError:
-                        raise RuntimeError(
-                            "uncertain number labelled '{}' is not declared intermediate".format(key)
-                        )
-                        
-                    self._uid_to_intermediate[uid] = value.real            
-                
-                self._tagged_reals[key] = value
-
-            elif isinstance(value,UncertainComplex):
-            
-                n_re = "{!s}_re".format(key)
-                if n_re in self._tagged_reals:
-                    raise RuntimeError(
-                        "'{!s}' is being used as a name-tag".format(n_re)
-                    )
-
-                n_im = "{!s}_im".format(key)
-                if n_im in self._tagged_reals:
-                    raise RuntimeError(
-                        "'{!s}' is being used as a name-tag".format(n_im)
-                    )
-                    
-                self._tagged_reals[n_re] = value.real
-                self._tagged_reals[n_im] = value.imag
-                
-                if not value.is_elementary:
-                    try:
-                        uid_r = value.real._node.uid
-                        uid_i = value.imag._node.uid
-                    except AttributeError:
-                        raise RuntimeError(
-                            "uncertain number labelled '{}' is not declared intermediate".format(key)
-                        )
-                        
-                    self._uid_to_intermediate[uid_r] = value.real
-                    self._uid_to_intermediate[uid_i] = value.imag
-                        
-            else:
+        if self._dump and self._ready:          
+            if key in self._tagged:
                 raise RuntimeError(
-                    "'{!r}' cannot be archived: wrong type"
+                    "'{!s}' is already in use".format(key)
                 )
+            else:
+                if isinstance(value,UncertainReal):
+                    if key in self._tagged_reals:
+                        raise RuntimeError(
+                            "'{!s}' is being used as a name-tag".format(key)
+                        )
+                        
+                    if not value.is_elementary:
+                        try:
+                            uid = value.real._node.uid
+                        except AttributeError:
+                            raise RuntimeError(
+                                "uncertain number labelled '{}' is not declared intermediate".format(key)
+                            )
+                            
+                        self._uid_to_intermediate[uid] = value.real            
+                    
+                    self._tagged_reals[key] = value
+
+                elif isinstance(value,UncertainComplex):
                 
-            self._tagged[key] = value
+                    n_re = "{!s}_re".format(key)
+                    if n_re in self._tagged_reals:
+                        raise RuntimeError(
+                            "'{!s}' is being used as a name-tag".format(n_re)
+                        )
+
+                    n_im = "{!s}_im".format(key)
+                    if n_im in self._tagged_reals:
+                        raise RuntimeError(
+                            "'{!s}' is being used as a name-tag".format(n_im)
+                        )
+                        
+                    self._tagged_reals[n_re] = value.real
+                    self._tagged_reals[n_im] = value.imag
+                    
+                    if not value.is_elementary:
+                        try:
+                            uid_r = value.real._node.uid
+                            uid_i = value.imag._node.uid
+                        except AttributeError:
+                            raise RuntimeError(
+                                "uncertain number labelled '{}' is not declared intermediate".format(key)
+                            )
+                            
+                        self._uid_to_intermediate[uid_r] = value.real
+                        self._uid_to_intermediate[uid_i] = value.imag
+                            
+                else:
+                    raise RuntimeError(
+                        "'{!r}' cannot be archived: wrong type"
+                    )
+                    
+                self._tagged[key] = value
+        else:
+            raise RuntimeError('Archive cannot be added to')
 
     def __setitem__(self,key,value):
         """
@@ -297,10 +306,7 @@ class Archive(object):
             >>> a['fred'] = y
             
         """
-        if self._type == "ForStorage" and self._open == True:
-            self._setitem(key,value)
-        else:
-            raise RuntimeError('Archive cannot be added to')
+        self._setitem(key,value)
 
     def add(self,**kwargs):
         """Add entries to an archive.
@@ -334,24 +340,24 @@ class Archive(object):
    
 
         """
-        if self._type == "ForStorage" and self._open == True:
-            items = kwargs.iteritems() if PY2 else kwargs.items()
-            for key,value in items:
-                self._setitem(key,value)
-        else:
-            raise RuntimeError('Archive cannot be added to')
+        items = kwargs.iteritems() if PY2 else kwargs.items()
+        for key,value in items:
+            self._setitem(key,value)
 
     def _getitem(self,key):
         """
         """
-        try:
-            value = self._tagged[key]
-        except KeyError:
-            raise RuntimeError(
-                "'{!s}' not found".format(key)
-            )
+        if not self._dump and self._ready:
+            try:
+                value = self._tagged[key]
+            except KeyError:
+                raise RuntimeError(
+                    "'{!s}' not found".format(key)
+                )
 
-        return value
+            return value
+        else:
+            raise RuntimeError('Archive cannot be read')
 
     def __getitem__(self,key):
         """Extract an uncertain number
@@ -359,11 +365,8 @@ class Archive(object):
         `key` - the name of the archived number
         
         """
-        if self._type == "FromStorage" and self._open == True:
-            return self._getitem(key)
-        else:
-            raise RuntimeError('Archive cannot be read')
-
+        return self._getitem(key)
+       
     def extract(self,*args):
         """
         Extract uncertain numbers by name
@@ -404,11 +407,8 @@ class Archive(object):
             >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
   
         """        
-        if self._type == "FromStorage" and self._open == True:
-            lst = [ self._getitem(n) for n in args ]               
-            return lst if len(lst) > 1 else lst[0]
-        else:
-            raise RuntimeError('Archive cannot be read')
+        lst = [ self._getitem(n) for n in args ]               
+        return lst if len(lst) > 1 else lst[0]
 
     # -----------------------------------------------------------------------
     def _freeze(self):
@@ -421,11 +421,11 @@ class Archive(object):
         if not len(self):
             raise RuntimeError( "The archive is empty!" )
                   
-        if self._type == "ForStorage" and self._open == False:
-            # The Archive has been frozen already so 
+        if self._dump and not self._ready:
+            # The Archive has been frozen so 
             # no action need be taken 
             return 
-        elif self._type == "ForStorage" and self._open == True:       
+        elif self._dump and self._ready:                  
 
             values = self._tagged_reals.itervalues() if PY2 else self._tagged_reals.values()
             
@@ -559,7 +559,7 @@ class Archive(object):
             del self._uid_to_intermediate 
 
             # ---------------------------------------------------------------------
-            self._open = False 
+            self._ready = False 
 
         else:
             raise RuntimeError('Archive is not in the required state to be frozen')
@@ -567,11 +567,11 @@ class Archive(object):
     # -----------------------------------------------------------------------
     def _thaw(self):
                     
-        if self._type == "FromStorage" and self._open == True:
+        if not self._dump and self._ready:
             # The Archive has been thawed already so 
             # no action need be taken 
             return 
-        elif self._type == "FromStorage" and self._open == False:
+        elif not self._dump and not self._ready:
             # It only makes sense to thaw an archive in this case 
             
             _leaf_nodes = dict()
@@ -666,7 +666,7 @@ class Archive(object):
                     assert False
                             
             # ---------------------------------------------------------------------
-            self._open = True
+            self._ready = True
 
         else:
             raise RuntimeError('Archive is not in the required frozen state')
