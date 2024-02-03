@@ -97,7 +97,8 @@ install_requires = [
 tests_require = [
     'pytest>=4.4',  # >=4.4 to support the "-p conftest" option
     'pytest-cov',
-    'jsonschema'
+    'jsonschema',
+    'lxml',  # to verify XML documents with the XML Schema
 ]
 
 docs_require = [
