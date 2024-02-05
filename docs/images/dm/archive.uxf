@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>470</x>
+      <y>380</y>
+      <w>280</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Archive
+--
+leaf_nodes : LeafNode[1..*]
+elementaries : eReal[0..*]
+intermediates : IntermediateReal[0..*]
+complex : Complex[0..*]
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>480</x>
+      <y>90</y>
+      <w>210</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>IntermediateReal
+--
+uid : iUID
+u_components : eReal[0..*]
+i_components : iReal[0..*]
+label : String[0..1]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>470</x>
+      <y>250</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>Complex
+--
+real : String
+imag : String
+label : String[0..1]
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

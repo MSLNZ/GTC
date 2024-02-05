@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>50</x>
+      <y>20</y>
+      <w>240</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>LeafNode
+--
+uid : eUID
+u : Uncertainty
+df : DoF 
+independent : Boolean
+label : String[0..1]
+complex : ComplexLeaf[0..1]
+correlation : Correlation[0..1]
+ensemble : Ensemble[0..1]</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
