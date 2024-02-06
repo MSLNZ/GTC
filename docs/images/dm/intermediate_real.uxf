@@ -4,16 +4,16 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>370</x>
-      <y>50</y>
-      <w>170</w>
-      <h>60</h>
+      <x>30</x>
+      <y>30</y>
+      <w>210</w>
+      <h>70</h>
     </coordinates>
-    <panel_attributes>IntermediateNode
+    <panel_attributes>IntermediateReal
 --
-label : String[0..1]
-u : Uncertainty
-df : DoF</panel_attributes>
+uid : iUID
+u_components : eReal[0..*]
+label : String[0..1]</panel_attributes>
     <additional_attributes/>
   </element>
 </diagram>
