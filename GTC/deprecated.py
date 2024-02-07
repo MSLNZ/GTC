@@ -1,6 +1,6 @@
 """
 This module contains a `deprecated` function that may be used
-to mark a function, class or method as deprecated.
+as a decorator to mark a function, class or method as deprecated.
 """
 import functools
 import inspect
@@ -15,9 +15,9 @@ PY2 = sys.version_info.major == 2
 
 _running_tests = 'unittest' in sys.modules
 
-# Strip Sphinx cross-reference syntax (like ":function:" and ":py:func:")
-# from warning messages that are written to stdout. The format of the syntax
-# are ":role:`foo`", ":domain:role:`foo`", where ``role`` and ``domain``
+# Strip Sphinx cross-reference syntax (like ":class:" and ":py:func:") from
+# warning messages that are passed to warnings.warn(). The format of the syntax
+# are ":role:`foo`" and ":domain:role:`foo`", where ``role`` and ``domain``
 # match "[a-zA-Z]+"
 _regex_remove_role = re.compile(
     r'(?: : [a-zA-Z]+ )? : [a-zA-Z]+ : (`[^`]*`)', flags=re.X)
@@ -43,15 +43,16 @@ class GTCDeprecationWarning(UserWarning):
         warnings are intended for other Python developers (ignored by
         default, unless triggered by code in __main__).
 
+    See https://docs.python.org/3/library/warnings.html#default-warning-filter
     """
 
 
 def deprecated(*args, **kwargs):
     """Use as a decorator to mark a function, class or method as deprecated.
 
-    :param args: The number of positional arguments may be either zero or one.
+    :param args: The number of positional arguments may either be zero or one.
         If one, then it must be the reason (as a string) why the object is
-        marked as deprecated.
+        deprecated.
 
         Examples,
 
@@ -61,15 +62,16 @@ def deprecated(*args, **kwargs):
             @deprecated()
             def foo():
 
-            @deprecated('Use :func:`bar` instead')
+            @deprecated("The reason why `foo` is deprecated")
             def foo():
 
     :param kwargs: The following keyword arguments may be specified.
 
         action : str or None
-            The type of simple-warning filter to use. One of "error",
-            "ignore", "always", "default", "module", or "once". If None,
-            then the global-warning-filter setting is used. Default is None.
+            The type of filter to use when the warning is issued. One of
+            "always", "default", "error", "ignore", "module" or "once".
+            If None, the global warning-filter setting is used. Default is None.
+            See https://docs.python.org/3/library/warnings.html#the-warnings-filter
 
         category : Type[Warning]
             The type of Warning class to use. Default is GTCDeprecationWarning.
@@ -78,45 +80,46 @@ def deprecated(*args, **kwargs):
             The version that the wrapped object became deprecated in.
             Default is None.
 
-        docstring_line_width: int
+        docstring_line_width : int
             The maximum line width of the deprecation message that gets
             appended to the docstring of the wrapped object. In order for
             the message to be appended to the docstring, `update_docstring`
-            must be True. Default is 80.
+            must be True. Default is 79.
 
         kind : str or None
-            The kind of object that is wrapped (e.g., "function", "class"
-            "staticmethod"). The `inspect` module automatically tries to
-            determine the value of `kind`, but `inspect` may sometimes fail
-            to identify the object appropriately, in which case, you can
-            explicitly specify the kind of object that is wrapped (which
-            will skip inspection). Default is None.
+            The kind of object that is wrapped (e.g., "function", "class",
+            "staticmethod"). The `inspect` module determines the value of
+            `kind`, but `inspect` may sometimes fail to identify the object
+            appropriately, in which case, you can explicitly specify the
+            kind of object that is wrapped (which will skip inspection).
+            Default is None.
 
         reason : str or None
             The reason for issuing the warning. Default is None.
 
         remove_in : str or None
             The version that the wrapped object is planned to be removed in.
-            If specified, and the version of GTC is greater than or equal
-            to the `remove_in` value, an exception is raised when
-            @decorated() is invoked. Default is None.
+            If the tests are running and the version of GTC is greater than
+            or equal to the `remove_in` value, an exception is raised when
+            `@deprecated` is called (not when the wrapped object is called).
+            Default is None.
 
         stacklevel : int
             Number of frames up the stack that issued the warning. Default is 3.
 
         update_docstring : bool
-            Whether to append the deprecation message to the docstring of the
-            wrapped object (for rendering with Sphinx). Default is True.
+            Whether to append the deprecation message (as a Sphinx "warning::"
+            directive) to the docstring of the wrapped object. Default is True.
 
         Examples,
 
-            @deprecated(reason='Stop using')
+            @deprecated(reason="Stop using")
             def foo():
 
-            @deprecated('Stop using', deprecated_in='1.5', remove_in='2.0')
+            @deprecated("Stop using", deprecated_in="1.5", remove_in="2.0")
             def foo():
 
-            @deprecated('Use :func:`bar` instead', action='error')
+            @deprecated("Use :func:`bar` instead", action="error")
             def foo():
 
     """
@@ -176,14 +179,14 @@ def _prepare_warning(wrapped,
                      remove_in=None,
                      stacklevel=3,
                      update_docstring=True):
-    """Prepare the deprecation message.
+    """Prepare the deprecation warning.
 
-    :param wrapped: A callable object that is marked as deprecated.
+    :param wrapped: A callable object that is deprecated.
 
-    All keyword arguments as defined in :func:`decorated`.
+    All other keyword arguments are defined in :func:`deprecated`.
 
-    :return: The warning message and the keyword argument for :func:`_warn`.
-    :rtype: tuple(str, dict)
+    :return: The warning message and the keyword arguments for :func:`_warn`.
+    :rtype: tuple[str, dict]
     """
     if not kind:
         if inspect.isfunction(wrapped):
@@ -237,18 +240,18 @@ def _prepare_warning(wrapped,
 
 def _append_sphinx_directive(docstring,
                              message,
-                             docstring_line_width=80):
-    """Append the ".. warning::" Sphinx directive to a docstring.
+                             docstring_line_width=79):
+    """Append the "warning::" Sphinx directive to a docstring.
 
-    :param docstring: The docstring of the wrapped object.
+    :param docstring: The docstring of an object.
     :type docstring: str or None
 
-    :param message: The warning message.
+    :param message: The warning message, without the "warning::" directive.
     :type message: str
 
-    All other keyword arguments are defined in :func:`decorated`.
+    All other keyword arguments are defined in :func:`deprecated`.
 
-    :return: The docstring with the Sphinx directive appended.
+    :return: The docstring with the directive appended.
     :rtype: str
     """
     # A docstring can be None
@@ -292,7 +295,7 @@ def _warn(message,
     :param message: The warning message.
     :type message: str
 
-    All other keyword arguments are defined in :func:`decorated`.
+    All other keyword arguments are defined in :func:`deprecated`.
     """
     if action:
         with warnings.catch_warnings():
