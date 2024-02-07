@@ -50,8 +50,8 @@ def deprecated(*args, **kwargs):
     """Use as a decorator to mark a function, class or method as deprecated.
 
     :param args: The number of positional arguments may be either zero or one.
-        If one, then either the callable object that is marked as deprecated
-        or the reason (as a string) why the object is marked as deprecated.
+        If one, then it must be the reason (as a string) why the object is
+        marked as deprecated.
 
         Examples,
 
