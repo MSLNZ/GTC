@@ -4,6 +4,7 @@ as a decorator to mark a function, class or method as deprecated.
 """
 import functools
 import inspect
+import os
 import re
 import sys
 import textwrap
@@ -13,7 +14,8 @@ from GTC import version
 
 PY2 = sys.version_info.major == 2
 
-_running_tests = 'unittest' in sys.modules
+# This environment variable is defined in conftest.py when pytest runs the tests
+_running_tests = os.getenv('GTC_RUNNING_TESTS', 'false') == 'true'
 
 # Strip Sphinx cross-reference syntax (like ":class:" and ":py:func:") from
 # warning messages that are passed to warnings.warn(). The format of the syntax
@@ -106,10 +108,12 @@ def deprecated(*args, **kwargs):
 
         remove_in : str or None
             The version that the wrapped object is planned to be removed in.
-            If the tests are running and the version of GTC is greater than
-            or equal to the `remove_in` value, an exception is raised when
-            `@deprecated` is called (not when the wrapped object is called).
-            Default is None.
+            If the tests are running (i.e., a GTC_RUNNING_TESTS environment
+            variable is set to be "true") and the version of GTC is greater
+            than or equal to the `remove_in` value, an exception is raised
+            when @deprecated` is called (not when the wrapped object is
+            called), which occurs when the module that contains the deprecated
+            object gets imported. Default is None.
 
         stacklevel : int
             Number of frames up the stack that issued the warning. Default is 3.

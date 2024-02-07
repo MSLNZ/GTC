@@ -274,10 +274,10 @@ class TestDeprecated(unittest.TestCase):
 
     def test_remove_in_raises(self):
         # This must raise an exception because GTC version > remove_in value.
-        # The `stop_using` function does not even need to be called.
-        # Decorating it, is sufficient.
-        # This does require that GTC.deprecated._running_tests = True
-        # which should be True when the tests are run.
+        # The `stop_using` function does not even need to be called, simply
+        # decorating it is sufficient for the RuntimeError to be raised. This
+        # does require that GTC.deprecated._running_tests = True, which occurs
+        # when the tests are run with pytest.
         with self.assertRaises(RuntimeError) as err:
             @deprecated(remove_in='0.1')
             def stop_using(): return

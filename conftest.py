@@ -1,9 +1,13 @@
 """
 Injects GTC in to the doctest namespace for pytest.
 """
+import os
 import sys
 
 import pytest
+
+# This environment variable must be defined before GTC is imported
+os.environ['GTC_RUNNING_TESTS'] = 'true'
 
 from GTC import *
 
