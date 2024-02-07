@@ -16,7 +16,7 @@ u : Uncertainty
 df : DoF 
 independent : Boolean
 label : String[0..1]
-complex : ComplexLeaf[0..1]
+complex : eUID[2]
 correlation : Correlation[0..1]
 ensemble : Ensemble[0..1]</panel_attributes>
     <additional_attributes/>

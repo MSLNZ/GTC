@@ -4,18 +4,18 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>260</x>
+      <x>250</x>
       <y>230</y>
-      <w>310</w>
+      <w>340</w>
       <h>90</h>
     </coordinates>
     <panel_attributes>Archive
 --
-leaf_nodes : LeavesCollection
-tagged_reals : RealsCollection
-untagged_reals : RealsCollection
+leaf_nodes : LeafCollection
+tagged_reals : RealCollection
 tagged_complex : ComplexCollection
-intermediates : IntermediateCollection 
+complex_components : RealCollection
+intermediate_nodes : IntermediateCollection 
 
 
 </panel_attributes>

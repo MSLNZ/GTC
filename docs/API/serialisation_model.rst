@@ -1,145 +1,159 @@
 .. _serialisation:
 
-======================================================
-Some comments about serialisation of uncertain numbers
-======================================================
+==================================
+Serialisation of uncertain numbers
+==================================
+This section of the ``GTC`` documentation describes our way of storing and retrieving uncertain numbers. The description does not depend on a particular format (like JSON or XML). We use UML diagrams to illustrate the ideas [#UML]_.
+
+
 
 .. contents::
    :local:
 
-Overview
-========
-``GTC`` implements the method of evaluating measurement uncertainty described in the GUM [#GUM]_. This is idea is that a mathematical description of the measurand can be expressed as a function of the terms representing things that significantly influence the outcome of a measurement procedure. This is also called a measurement model (see :ref:`measurement_models`)
+The measurement model
+=====================
+
+``GTC`` implements the method of evaluating measurement uncertainty described in the GUM [#GUM]_. This is the idea that a mathematical model of the measurand can be expressed as a function of the terms representing things that significantly influence the outcome of a measurement procedure. This can be called a measurement model (see :ref:`measurement_models`)
 
 .. math::
 
     Y = f(X_1, X_2, \cdots) \;,
     
-where the :math:`X_i` are influence quantities. 
+where the :math:`X_i` are influence quantities, which are not precisely known. What is known is an estimated value :math:`x_i`. The standard uncertainty in :math:`x_i` and an estimate of :math:`X_i` is also known and denoted :math:`u(x_i)`. A value for the degrees of freedom, :math:`\nu_i`, may also be available [#UREAL]_.
 
-A function for a particular measurement process at a laboratory is often used. However, this is not strictly correct. A traceable measurement is really a staged process that takes place over time and at different laboratories. Typically, national metrology institutes realise SI unit standards and then calibrate transfer standards for second-tier calibration laboratories. The second-tier laboratories in turn calibrate customer instruments, or other working standards, until the process finally ends with a measurement that is not passed further along the chain. 
+A particular measurement process at a laboratory is often taken to be the subject being modelled. However, this is not strictly correct. A traceable measurement is really a staged process that takes place over time and at different laboratories. Typically, national metrology institutes realise reference standards for SI units and then calibrate transfer standards for second-tier calibration laboratories. Second-tier laboratories in turn calibrate customer instruments, or other working standards. This process finally ends with a measurement that is not passed further along the chain. 
 
-The model function :math:`f(\cdots)` should really describe the whole traceability chain, starting with the realisation of physical unit references and ending at the current stage. In practice, no one does that yet; however, the serialisation processes provided by ``GTC`` implements the necessary data handling. 
+The model function :math:`f(\cdots)` should really describe the whole traceability chain, starting with the realisation of unit references and continuing to the current stage. In practice, no one does that; however, the serialisation processes provided by ``GTC`` implement the necessary data processing. 
 
-With serialisation, it is possible to store details about results and their influences from one session and then restore those details at a later session, where calculations can continue with no loss of information.
+Serialisation makes it possible to store details about results and their influences, defined in one session, and restore those details in a later session, where calculations can be continued with no loss of information. So, serialisation allows data processing to account for more than one consecutive stage in the traceability chain.
 
-This section of the ``GTC`` documentation describes the conceptual model we use to think about storing and retrieving uncertain numbers. The description does not depend on a particular format (like JSON or XML). We use UML diagrams to illustrate the model [#UML]_.
+Components of uncertainty 
+-------------------------
 
-Reporting results
------------------
-The GUM explains that it is important to report the value of a measurement result together with information about its uncertainty. The best uncertainty information is the set of uncertainty components, which are defined as
+The GUM explains that it is important to report the value of a measurement result together with as much information about its uncertainty as possible. In particular, the set of uncertainty components are important and should be reported (they are often called an uncertainty budget). The components are defined as
 
 .. math::
 
     u_i(y) = \left. \frac{\partial f}{\partial X_i} \right|_{X_i = x_i} \, u(x_i)\;,
 
-where :math:`u(x_i)` is the standard uncertainty in :math:`x_i` as an estimate of :math:`X_i`, and :math:`u_i(y)` is the notation introduced in the GUM for the component of uncertainty in :math:`y` due to uncertainty in :math:`x_i`.
-With a complete set of uncertainty components the standard uncertainty in :math:`y` as an estimate of :math:`Y` can be calculated.
+where :math:`u(x_i)` is the standard uncertainty in :math:`x_i` as an estimate of :math:`X_i`, and :math:`u_i(y)` is the notation introduced in the GUM for the component of uncertainty in the result :math:`y` due to uncertainty in an influence estimate :math:`x_i`.
 
-The algorithms used in ``GTC`` for uncertainty propagation work with the uncertainty components associated with various uncertain numbers. So, serialisation must capture the uncertainty components of uncertain numbers.
+The standard uncertainty in :math:`y`, as an estimate of :math:`Y`, can be calculated from a complete set of uncertainty components.
 
-.. _serialisation_elements:
+The ``GTC`` algorithms for uncertainty propagation use the uncertainty components held in uncertain number objects. So, serialisation must capture these components.
 
+Serialisation
+=============
+
+The goal of serialisation is to store enough detail about selected uncertain numbers to allow them to be restored to a different Python session and used there without loss of information.
+ 
+We focus here on what we call marshalling the uncertain-number data. This involves preparation of data for storage (serialisation) and restoration of data after retrieval. The processes are the same whatever storage format is used. ``GTC`` currently offers three options: pickle (Python's own storage format), JSON, and XML.
+
+Marshalling involves an 'archive' object, which has five collections of data. The different types of element in these collections are described in more detail below. However, to get an overview, we first note that some of the collections are associated with 'nodes', while the rest is associated with real or complex uncertain numbers. This terminology relates to the way ``GTC`` represents data. Node objects hold information needed to evaluate information about results, but which is not needed to propagate uncertainty.
+
+.. figure:: ../images/dm/archive.png
+    :align: center
+    :alt: Archive class
+    
+    An archive holds the information about uncertain numbers that is stored.
+
+We also distinguish between 'elementary' and 'intermediate' uncertain numbers. To create an elementary uncertain number object, values for its attributes must be provided, whereas an intermediate uncertain number is obtained directly as the result of a calculation with uncertain numbers. So, the properties of intermediate uncertain numbers are dependent on other uncertain numbers that precede them, whereas the properties of elementary uncertain numbers are independent (they may be correlated with other elementary uncertain numbers, but that is a relation between uncertain-numbers pairs). 
+
+A node object, which we call a 'leaf' node, is associated with each elementary uncertain number. Intermediate uncertain numbers added to an archive also have an associated node [#Nodes]_.
+The set of uncertain numbers selected for storage may depend on information held by different node objects. So, collections of leaf nodes and intermediate nodes are prepared during marshalling prior to storage. Later, when an archive has been retrieved from storage, new node objects must be created in the Python session as a prerequisite to restoring any of the selected uncertain-number objects in an archive. 
+ 
 Basic Structural Elements 
 =========================
-The :math:`X_i` terms in the measurement function refer to influence quantities; they are not precisely known. We may think of :math:`X_i = x_i - E_i`, with the known estimate :math:`x_i` and an unknown error in that estimate :math:`E_i`. We take a value of zero with :math:`E_i` (i.e., a perfect estimate: :math:`X_i = x_i`), but there is some uncertainty, :math:`u(x_i)`, in this choice, and there may also be a value for the degrees of freedom, :math:`\nu_i`.
-
-When we supply values for :math:`x_i`, :math:`u(x_i)`, and :math:`\nu_i` (e.g., using :func:`~core.ureal`), we say an *elementary* uncertain number is created. The individual properties of elementary uncertain numbers do no depend on other uncertain numbers (they may be correlated with other elementary uncertain numbers, but that is a property of uncertain-numbers pairs). When an uncertain number object is created by a calculation involving other uncertain numbers we call it an *intermediate* uncertain number (e.g., by :func:`~core.result`). 
-
-The goal of serialisation is to store enough detail about selected elementary and intermediate uncertain numbers so that they can be restored to a different Python session and used there without loss of information. The :class:`~persistence.Archive` class is used to marshal selected uncertain numbers and prepare them for storage, or to extract selected uncertain numbers after retrieval from storage. 
 
 Basic types
 -----------
-To be clear about constraints on the data involved in serialisation, we start by defining some special basic data types.
+To be clear about constraints on data values, we define some special basic data types.
 
-The range of values that some of the primitive data types can take is constrained. Standard uncertainty (``Uncertainty``) is a real number that must be greater than or equal to zero.  Degrees of freedom (``DoF``) is a real number that must be greater than or equal to unity (and may be explicitly set to infinity). A correlation coefficient (``CorrelationCoef``) is a real number greater than or equal to -1 and less than or equal to 1. 
+Standard uncertainty (``Uncertainty``) is a real number that must be greater than or equal to zero.  Degrees of freedom (``DoF``) is a real number that must be greater than or equal to unity (and may be explicitly set to infinity). A correlation coefficient (``CorrelationCoef``) is a real number greater than or equal to -1 and less than or equal to 1. 
 
 .. figure:: ../images/dm/special_primitives.png
     :align: center
     :alt: Constrained primitive data types
     
     Classes for degrees of freedom, standard uncertainty, and correlation coefficient.
+    
+Identifiers
+-----------
+The way we digitalise the subscripts appearing in GUM formulae is an important detail. GUM notation is intended to be read by people familiar with mathematical notation. It is quite simple, but the innocent subscript :math:`i` is intended to uniquely identify each object, no matter how many different objects there are. 
 
-The way we digitalise the subscripts appearing in GUM formulae is an important detail. GUM notation is intended for people familiar with mathematical notation. It is quite simple, but the innocent subscript :math:`i` must actually uniquely identify each object, no matter how many there are. So, for digitalisation we need identifiers that are unique: we use what is called a Universally Unique Identifier for this. Our serialisation has two identifier formats. One format is used for elementary uncertain numbers, the other for intermediate uncertain numbers. We call these identifiers ``eUID``, for elementary uncertain numbers, and ``iUID``, for intermediate uncertain numbers [#IDs]_. 
+To do this in a digital system, we need unique identifiers. We make use of Universally Unique Identifiers (UUID). ``GTC`` uses two identifier formats. One for nodes associated with elementary uncertain numbers (leaf nodes), and another for nodes associated with intermediate uncertain numbers (respectively, ``eUID`` and ``iUID``) [#IDs]_. 
 
 .. figure:: ../images/dm/IDs.png
     :align: center
     :alt: ID classes
     
-    Unique identifier types for elementary and intermediate uncertain numbers
+    Unique identifier types for the nodes associated with elementary and intermediate uncertain numbers
+ 
+Labelled data
+-------------
 
-To represent data labelled by a subscript in formal notation, we use classes that pair an ID with a value. 
+To represent values labelled by a subscript in formal notation, we pair an identifier with a datum. 
 
 .. figure:: ../images/dm/id_reals.png
     :align: center
     :alt: Pairing of IDs with real values
     
-    Pairing of unique identifiers for elementary and intermediate uncertain numbers with data.
+    Three different pairings of unique identifiers with data.
 
-A few more classes are associated with ``eUID``. 
 
-    * ``Ensemble`` is a collection of elementary uncertain-number IDs that belong to the same ensemble (the type of collection may be considered a set, where order is not important and each element is unique).   
+A few classes collect this labelled data (the collections are sets, where order is not important and each element is unique). 
+
+    * ``Ensemble``  
 
     .. figure:: ../images/dm/ensemble.png
         :align: center
         :alt: Ensemble class
         
-        An ensemble is a set of elementary uncertain-number IDs. 
+        A set of leaf-node IDs associated with elementary uncertain numbers declared to be in the same ensemble.  
         
-    * ``Correlation`` is a collection of elementary uncertain-number IDs that have been assigned correlation coefficients. 
+    * ``Correlation`` 
 
     .. figure:: ../images/dm/correlation.png
         :align: center
         :alt: Correlation class
         
-        A set of ``eCoefficient`` objects, which store information about correlation between elementary uncertain numbers. 
+        A set of ``eCoefficient`` objects that record correlation between elementary uncertain numbers. 
+
  
-    * ``ComplexLeaf`` consists of a pair of ``eUID`` values. This is sufficient to reconstitute an elementary complex uncertain number.
-
-    .. figure:: ../images/dm/complex_leaf.png
-        :align: center
-        :alt: ComplexLeaf class
-        
-        An elementary complex uncertain number is composed of a pair of elementary real uncertain numbers. 
-
 Nodes
 -----
-We have adopted the term 'node' for an object that holds information about an uncertain number object. For example, a leaf node is related to an elementary uncertain number. 
-  
-The information required to restore an influence quantity is captured as attributes of ``LeafNode``. There are a number of optional attributes:
+Node objects hold information about uncertain numbers that is not required to propagate uncertainty. 
 
-    * ``label`` may not have been assigned
-    * ``complex`` is needed when the node is one component of an uncertain complex number.
-    * `` correlation`` will be needed when correlation coefficients have been assigned (e.g., using :func:`~core.set_correlation`)
-    * ``ensemble`` will be needed when the elementary uncertain number is part of an ensemble
+A leaf node is associated with an elementary uncertain number. 
 
 .. figure:: ../images/dm/leaves.png
     :align: center
     :alt: LeafNode class
     
-    The ``LeafNode`` holds all information needed about an influence quantity. 
+    The ``LeafNode`` holds information about an influence quantity. 
+  
+Some of the ``LeafNode`` attributes are optional:
 
-A corresponding ``ComplexLeaf`` has attributes for identifiers of the elementary uncertain numbers representing the real and imaginary components
+    * ``label`` can be used to help people identify influence quantities.
+    * ``complex`` when the node is one component of an uncertain complex number, this attribute holds the identifiers of both components.
+    * ``correlation`` is used when correlation coefficients have been assigned (e.g., using :func:`~core.set_correlation`)
+    * ``ensemble`` is used when the elementary uncertain number is part of an ensemble
 
-.. figure:: ../images/dm/complex_leaf.png
-    :align: center
-    :alt: LeafNode class
-    
-    The ``ComplexLeaf`` holds identifiers for the real and imaginary components. 
-
-There is also an ``IntermediateNode`` that holds information about an intermediate result. This class holds similar information to the ``uid``, ``u``, and ``df`` attributes of ``LeafNode``. However, there is more information available about an intermediate result in another class called ``IntermediateReal``.
+There is also an ``IntermediateNode`` class that holds similar information to ``LeafNode``. 
 
 .. figure:: ../images/dm/intermediate_node.png
     :align: center
     :alt: IntermediateNode class
     
-    The ``IntermediateNode`` holds information about an intermediate result. The attributes of this class are similar to attributes of ``LeafNode``. This information is is required to restore an intermediate uncertain number in a session but they are not needed for uncertainty propagation. 
-    
-Marshalling before serialisation 
---------------------------------
-Uncertain numbers are selected and added to a collection before serialisation. The serialisation process then works on the accumulated set of objects. 
+    The ``IntermediateNode`` holds information about an intermediate result.  
 
-The complete set of influences (elementary uncertain numbers) must be identified. Individual influences may not have been added to the collection, but any information critical to restoring the selected uncertain numbers will be collected at thi stage. This results in a collection of ``LeafNode`` objects, with each element is identified by an ``eUID``. 
+Marshalling
+===========    
+Marshalling before storage 
+--------------------------
+Before serialisation, a selection of uncertain numbers is added to an archive. When the selection is complete, the archive is prepared for storage and serialised. 
+
+The archive must store information about all influences (elementary uncertain numbers) associated with the uncertain numbers selected for storage. This is critical to restoring the uncertain numbers in a later session. A collection of leaf node objects are stored in the archive for this reason. The collection is indexed by ``eUID``. 
 
 .. figure:: ../images/dm/leaves_collection.png
     :align: center
@@ -148,7 +162,7 @@ The complete set of influences (elementary uncertain numbers) must be identified
     An associative collection of leaf nodes accessed by the corresponding ``eUID``.   
 
 
-When uncertain numbers are selected for storage they are tagged with a text label, to identify the object in the collection (the tag may bear no relation to an uncertain-number label, it is just used to extract the object from storage later). Collections of tagged uncertain real numbers are included in the serialised record. The elements of this collection may be one of two types: ``eReal`` (shown above), for elementary uncertain real numbers, or ``IntermediateReal``, for intermediate uncertain real numbers. We call this a ``RealsCollection``.
+Uncertain numbers selected for storage are tagged with a text label to identify them in the collection (the tag is not same as the uncertain-number label). Collections of tagged uncertain real numbers are included in the archive. Elements in this collection may be one of two types: ``eReal`` (shown above), for elementary uncertain real numbers, or ``IntermediateReal``, for intermediate uncertain real numbers. 
 
 .. figure:: ../images/dm/reals_collection.png
     :align: center
@@ -157,8 +171,9 @@ When uncertain numbers are selected for storage they are tagged with a text labe
     An associative collection of details about tagged uncertain real numbers that can be accessed by the tag.   
 
 
-Most of the information required to restore an elementary uncertain real number is held in a ``LeafNode``, so only the value of the uncertain real number is held in ``eReal``.
-On the other hand, the information needed to restore an intermediate uncertain real number includes the set of uncertainty components. This is held in the `u_components` attribute of ``IntermediateReal`` [#components]_.
+Because most of the information required to restore an elementary uncertain real number is held in a ``LeafNode``, only the numeric value of the uncertain real number is held in ``eReal`` (this is effectively an :math:`x_i`).
+
+On the other hand, the information needed to restore an intermediate uncertain real number includes a set of uncertainty components. This is held in the `u_components` attribute of ``IntermediateReal`` [#components]_.
 
 .. figure:: ../images/dm/intermediate_real.png
     :align: center
@@ -166,7 +181,7 @@ On the other hand, the information needed to restore an intermediate uncertain r
     
     A class to record details about tagged intermediate uncertain real numbers.   
 
-To restore intermediate uncertain real numbers a collection of ``Intermediate Node`` objects is prepared. 
+The collection of ``IntermediateNode`` objects in the archive is used to recreate node objects, as described above. 
 
 .. figure:: ../images/dm/intermediate_collection.png
     :align: center
@@ -175,28 +190,44 @@ To restore intermediate uncertain real numbers a collection of ``Intermediate No
     An associative collection for tagged intermediate uncertain real numbers.   
 
  
-When an uncertain complex numbers are selected for storage they are also tagged. A collection of tagged uncertain complex numbers is included in the serialised record, which consists of ``Complex`` objects
+Uncertain complex numbers selected for storage are also tagged and a collection of ``Complex`` objects is included in the archive. 
  
 .. figure:: ../images/dm/complex.png
     :align: center
     :alt: Complex class
     
-    An associative collection of details about tagged uncertain complex numbers. The ``Complex`` class holds the tags of uncertain real numbers corresponding to the real and imaginary components of a tagged uncertain complex number. 
+    An associative collection of details about uncertain complex numbers. The ``real`` and ``imag`` attributes hold tags for the components of the uncertain complex number. 
 
-Most of the information required to restore an uncertain complex number is held in the uncertain real number objects for its (real-valued) components. These objects are automatically added to another ``RealsCollection``, which is included in the serialised record (the tags in this collection are derived from the tag used initially for the uncertain complex number). Again, elements of this collection may be one of two types: ``eReal`` or ``IntermediateReal``.
+Most of the information required to restore an uncertain complex number is actually held in the uncertain real number objects for its (real-valued) components. These are automatically added to another collection (``complex_components``) in the archive (tags accessing this collection are derived from the tag used when selecting the uncertain complex number for storage, and are also the ``real`` and ``imag`` attributes used in the ``Complex`` class). Again, elements of this collection may be one of two types: ``eReal`` or ``IntermediateReal``.
     
+Marshalling after retrieval 
+---------------------------
+When an archive is retrieved from storage, there are a two marshalling processes required to restore uncertain numbers to the Python session. 
+
+First, node objects are created corresponding to all nodes in the ``leaf_nodes`` collection and all nodes in the ``intermediate_nodes`` collection. This provides the support necessary for creating uncertain number objects, which need to refer to particular nodes. The process retains the unique node identifiers, ensuring that identities are preserved. Information about correlations and ensembles is also restored, as required.
+
+The second process creates uncertain number objects for each of the tagged objects in the archive, by retrieving information about components of uncertainty, as required. These uncertain number objects are held in the archive until requested. 
+
 .. rubric:: Footnotes
  
+.. [#UML] 
+
+   Object Management Group, *Unified Modeling Language Specification (Version 2.5)*, (2015) https://www.omg.org/spec/UML/2.5
+   
 .. [#GUM]
 
     BIPM and IEC and IFCC and ISO and IUPAC and IUPAP and OIML, 
     *Evaluation of measurement data - Guide to the expression of uncertainty in measurement JCGM 100:2008 (GUM 1995 with minor corrections)*, (2008) `http://www.bipm.org/en/publications/guides/gum <http://www.iso.org/sites/JCGM/GUM/JCGM100/C045315e-html/C045315e.html?csnumber=50461>`_
 
  
-.. [#UML] 
+.. [#UREAL]
 
-   Object Management Group, *Unified Modeling Language Specification (Version 2.5)*, (2015) https://www.omg.org/spec/UML/2.5
+    The function :func:`~core.ureal` takes values of :math:`x_i`, :math:`u(x_i)`, and :math:`\nu_i` and creates an elementary uncertain real number representing :math:`X_i`.
 
+.. [#Nodes]
+
+     The function :func:`~core.result` must be used to create a node for an intermediate uncertain number.
+     
 .. [#IDS]
 
     Identifier formats do not affect the conceptual description of serialisation. Integer tuples are the identifiers of uncertain-number objects. For elementary uncertain numbers, a 2-tuple is used: the first element is a UUID, in long integer format, obtained once for each session; the second element is an integer obtained from a counter which is incremented during the session. This format of identifier can be ordered. For intermediate uncertain numbers, the identifier is a 3-tuple, with the first two elements obtained as for elementary uncertain numbers and the last element is zero. The tuple length is used to distinguishes between elementary and intermediate identifiers, so first two elements of the identifiers may collide.
