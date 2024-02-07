@@ -570,6 +570,59 @@ class TestDeprecated(unittest.TestCase):
             )
             self.assertEqual(warn[0].lineno, 563)  # where Foo() is actually instantiated
 
+    def test_prefix(self):
+
+        @deprecated(prefix='My message. ')
+        def foo(*args, **kwargs):
+            """Docstring for function foo."""
+            return args, kwargs
+
+        self.assertEqual(foo.__name__, 'foo')
+        self.assertEqual(
+            foo.__doc__,
+            'Docstring for function foo.\n\n'
+            '.. warning::\n'
+            '   My message. The function `foo` is deprecated.\n'
+        )
+
+        with warnings.catch_warnings(record=True) as warn:
+            warnings.simplefilter('always')
+            self.assertEqual(foo(-1, 0, 1, a='a'), ((-1, 0, 1), {'a': 'a'}))
+            self.assertEqual(len(warn), 1)
+            self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
+            self.assertEqual(
+                str(warn[0].message),
+                'My message. The function `foo` is deprecated.'
+            )
+            self.assertEqual(warn[0].lineno, 590)  # where foo() is actually called
+
+    def test_prefix_newline(self):
+
+        @deprecated(prefix='\n')
+        def foo(*args, **kwargs):
+            """Docstring for function foo."""
+            return args, kwargs
+
+        self.assertEqual(foo.__name__, 'foo')
+        self.assertEqual(
+            foo.__doc__,
+            'Docstring for function foo.\n\n'
+            '.. warning::\n'
+            '\n'
+            '   The function `foo` is deprecated.\n'
+        )
+
+        with warnings.catch_warnings(record=True) as warn:
+            warnings.simplefilter('always')
+            self.assertEqual(foo(-1, 0, 1, a='a'), ((-1, 0, 1), {'a': 'a'}))
+            self.assertEqual(len(warn), 1)
+            self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
+            self.assertEqual(
+                str(warn[0].message),
+                '\nThe function `foo` is deprecated.'
+            )
+            self.assertEqual(warn[0].lineno, 617)  # where foo() is actually called
+
     def test_docstring_1(self):
         s = _append_sphinx_directive(None, 'Message')
         self.assertEqual(

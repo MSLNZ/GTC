@@ -94,6 +94,13 @@ def deprecated(*args, **kwargs):
             kind of object that is wrapped (which will skip inspection).
             Default is None.
 
+        prefix : str or None
+            The text to insert before the deprecation message that is
+            constructed from other keyword arguments. For example, you may
+            want to insert the newline character so that when warnings.warn()
+            is called, the deprecation message appears on a new line.
+            Default is None.
+
         reason : str or None
             The reason for issuing the warning. Default is None.
 
@@ -175,6 +182,7 @@ def _prepare_warning(wrapped,
                      deprecated_in=None,
                      docstring_line_width=80,
                      kind=None,
+                     prefix=None,
                      reason=None,
                      remove_in=None,
                      stacklevel=3,
@@ -207,7 +215,10 @@ def _prepare_warning(wrapped,
             kind = 'callable object'
 
     # Builds the deprecation message
-    msg = ['The {} `{}` is deprecated'.format(kind, wrapped.__name__)]
+    msg = []
+    if prefix:
+        msg.append(prefix)
+    msg.append('The {} `{}` is deprecated'.format(kind, wrapped.__name__))
     if deprecated_in:
         msg.append(' since version {}'.format(deprecated_in))
     if remove_in:
