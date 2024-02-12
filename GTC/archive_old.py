@@ -573,7 +573,6 @@ class Archive(object):
 
     # -----------------------------------------------------------------------
     def _thaw(self):
-                    
         if not self._dump and self._ready:
             # The Archive has been thawed already so 
             # no action need be taken 
@@ -607,20 +606,21 @@ class Archive(object):
             
             # In v1.3.5, a df field was added to intermediate nodes. 
             # In previous versions it was absent. This shim function
-            # will add `None` to the df attribute, which can then be
-            # fixed once the uncertain number object is formed.
+            # adds `None` to the df attribute, which can then be
+            # fixed once the uncertain number object is formed (in _builder).
             # This is a temporary feature that will be removed after a few releases.
-            # See also lib.py property df  
+            # (See also lib.py property `df` and `_builder` below .) 
             shim_1_3_3 = lambda args: args + (None,) if len(args) == 2 else args
-                
+            
             _nodes = {
                 uid: context._context.new_node(uid, *shim_1_3_3(args) )
                     for uid, args in items
             }
                 
+            self._uid_to_intermediate = {}
+            
             # When reconstructing, `_tagged` needs to be updated with 
             # the new uncertain numbers.
-            #
             items = self._tagged.iteritems() if PY2 else self._tagged.items()
             for name,obj in items:
                 if isinstance(obj,ElementaryReal):
@@ -638,9 +638,9 @@ class Archive(object):
                         self._tagged_reals
                     )                    
                     self._tagged[name] = un
+                    self._uid_to_intermediate[un.uid] = un
                     
                 elif isinstance(obj,Complex):
-                    # This is an intermediate uncertain complex
                     name_re = obj.n_re
                     name_im = obj.n_im
                     
@@ -660,15 +660,18 @@ class Archive(object):
                     unc = UncertainComplex(un_re,un_im)
                     unc._label = obj.label
                     
-                    # An intermediate complex needs to 
-                    # link the nodes of its components 
-                    # (same as in `UncertainComplex._intermediate`)
+                    # A complex hold the nodes of its components 
+                    # (see `UncertainComplex._intermediate`)
                     complex_id = (un_re._node.uid,un_im._node.uid)
                     unc.real._node.complex = complex_id 
                     unc.imag._node.complex = complex_id
             
                     self._tagged[name] = unc
                     
+                    if unc.is_intermediate:
+                        self._uid_to_intermediate[unc.real.uid] = unc.real
+                        self._uid_to_intermediate[unc.imag.uid] = unc.imag     
+                        
                 else:
                     assert False
                             
@@ -677,6 +680,7 @@ class Archive(object):
 
         else:
             raise RuntimeError('Archive is not in the required frozen state')
+
 
 #----------------------------------------------------------------------------
 def _vector_index_to_uid(v):
@@ -770,6 +774,10 @@ def _builder(o_name,_nodes,_tagged_reals):
             _node,
             )
         
+        # This re-calculates and buffers the degrees of freedom 
+        # for intermediate achieved data before v1.3.5
+        if _node.df is None: un.df 
+            
         _tagged_reals[o_name] = un
 
     else:
