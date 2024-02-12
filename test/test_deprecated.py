@@ -239,6 +239,28 @@ class TestDeprecated(unittest.TestCase):
             "The function `stop_using` is deprecated."
         )
 
+    def test_action_always(self):
+        @deprecated(action='always')
+        def foo(): return
+
+        def bar(): return
+
+        with warnings.catch_warnings(record=True) as warn:
+            for _ in range(10):
+                foo()
+                bar()
+            self.assertEqual(len(warn), 10)
+            foo()
+            bar()
+            bar()
+            foo()
+            foo()
+            bar()
+            self.assertEqual(len(warn), 13)
+            for w in warn:
+                self.assertEqual(
+                    str(w.message), 'The function `foo` is deprecated.')
+
     def test_category(self):
         @deprecated(category=RuntimeWarning)
         def fcn(): return
