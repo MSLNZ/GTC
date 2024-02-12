@@ -8,6 +8,7 @@ Module contents
 ---------------
 
 """
+import copy
 import itertools
 import sys
 
@@ -154,8 +155,6 @@ class Archive(object):
         
         ar = Archive(dump=False)        
         
-        del ar._uid_to_intermediate 
-        
         if PY2:
             for k,obj in old._tagged_reals.iteritems():
                 if k in old._tagged:
@@ -176,11 +175,59 @@ class Archive(object):
             for k,obj in old._tagged.items():
                 if isinstance(obj,UncertainComplex):  
                     ar._tagged_complex[k] = obj
-                             
+
+        ar._leaf_nodes = old._leaf_nodes 
+        ar._intermediate_uids = old._intermediate_uids
+        ar._uid_to_intermediate = old._uid_to_intermediate
+        
         ar._dump = old._dump
         ar._ready = old._ready 
         
         return ar
+ 
+    @staticmethod
+    def copy(ar):
+        """
+        A copy constructor for archive objects.
+        
+        A copy of the data in ``ar`` is returned in a 
+        new ``Archive`` object. 
+        
+        The archive returned can have new uncertain numbers 
+        added, and can be dumped to store its contents.
+                 
+        :arg ar: An ``Archive`` object.                  
+        :type ar: Archive
+
+        .. versionadded:: 1.5.0 
+        
+        """
+        a = copy.copy(ar)
+
+        if a._dump and a._ready:
+            # Ready to accept new data 
+            pass
+            
+        elif not a._dump and a._ready:
+            # A thawed archive
+            a._dump = True
+            assert hasattr(a,'_uid_to_intermediate')
+            assert hasattr(a,'_intermediate_uids')
+            
+        elif a._dump and not a._ready:
+            # A frozen archive
+            a._thaw()
+            assert hasattr(a,'_uid_to_intermediate')
+            assert hasattr(a,'_intermediate_uids')
+            
+        elif not a._dump and not a._ready:
+            # A loaded archive
+            a._thaw()
+            a._dump = True
+            assert hasattr(a,'_uid_to_intermediate')
+            assert hasattr(a,'_intermediate_uids')
+            
+        return a 
         
     def keys(self):
         """Return a list of names 
@@ -634,24 +681,19 @@ class Archive(object):
                     l.ensemble = set( fl_i.ensemble )
                     
                 _leaf_nodes[uid_i] = l
-
-            # In v1.3.5, a df field was added to intermediate nodes. 
-            # In previous versions it was absent. This shim function
-            # will add `None` to the df attribute, which can then be
-            # fixed once the uncertain number object is formed.
-            # This is a temporary feature that will be removed after a few releases.
-            # See also lib.py property df  
-            shim_1_3_3 = lambda args: args + (None,) if len(args) == 2 else args
                 
             # Create the nodes associated with intermediate 
             # uncertain numbers. This must be done before the 
             # intermediate uncertain numbers are recreated.
-            items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items()        
+            items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items() 
+            
             _nodes = {
-                uid: context._context.new_node(uid, *shim_1_3_3(args) )
+                uid: context._context.new_node(uid, *args )
                     for uid, args in items
             }
-                
+               
+            self._uid_to_intermediate = {}
+            
             # Update with  new uncertain numbers.
             #
             for name,obj in self.iteritems():
@@ -670,9 +712,9 @@ class Archive(object):
                         self._tagged_real
                     )                    
                     self._tagged_real[name] = un
+                    self._uid_to_intermediate[un.uid] = un
                     
                 elif isinstance(obj,Complex):
-                    # This is an intermediate uncertain complex
                     name_re = obj.n_re                
                     un_re = _builder(
                         name_re,
@@ -694,7 +736,7 @@ class Archive(object):
                     unc = UncertainComplex(un_re,un_im)
                     unc._label = obj.label
                     
-                    # An intermediate complex needs to 
+                    # A complex uncertain number needs to 
                     # link the nodes of its components 
                     # (same as in `UncertainComplex._intermediate`)
                     complex_id = (un_re._node.uid,un_im._node.uid)
@@ -702,6 +744,10 @@ class Archive(object):
                     unc.imag._node.complex = complex_id
             
                     self._tagged_complex[name] = unc
+                    
+                    if unc.is_intermediate:
+                        self._uid_to_intermediate[unc.real.uid] = unc.real
+                        self._uid_to_intermediate[unc.imag.uid] = unc.imag     
                     
                 else:
                     assert False, repr(obj)
