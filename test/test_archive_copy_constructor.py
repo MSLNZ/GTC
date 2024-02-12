@@ -47,8 +47,11 @@ class TestArchiveCopy(unittest.TestCase):
         self.assertEqual(4,len(ar4._tagged_real)) 
 
     def test_1_3_3_pickle(self):
-        file = r'C:\proj_py\GTC3\test\ref_file_v_1_3_3.gar'
-        with open(file, mode='rb') as f:
+        fname = r'ref_file_v_1_3_3.gar'
+        wdir =  os.path.dirname(__file__)
+        path = os.path.join(wdir,fname)
+
+        with open(path,'rb') as f:
             # Old format pickle Archive
             ar = persistence.load(f)
         
@@ -56,8 +59,11 @@ class TestArchiveCopy(unittest.TestCase):
         s_rep = persistence.dumps_json(ar2)
 
     def test_1_3_5_pickle(self):
-        file = r'C:\proj_py\GTC3\test\ref_file_v_1_3_5.gar'
-        with open(file, mode='rb') as f:
+        fname = r'ref_file_v_1_3_5.gar'
+        wdir =  os.path.dirname(__file__)
+        path = os.path.join(wdir,fname)
+
+        with open(path,'rb') as f:
             # Old format pickle Archive
             ar = persistence.load(f)
         
@@ -65,8 +71,11 @@ class TestArchiveCopy(unittest.TestCase):
         s_rep = persistence.dumps_json(ar2)
 
     def test_1_5_0_pickle(self):
-        file = r'C:\proj_py\GTC3\test\ref_file_v_1_5_0.gar'
-        with open(file, mode='rb') as f:
+        fname = r'ref_file_v_1_5_0.gar'
+        wdir =  os.path.dirname(__file__)
+        path = os.path.join(wdir,fname)
+
+        with open(path,'rb') as f:
             # Old format pickle Archive
             ar = persistence.load(f)
         
@@ -74,8 +83,11 @@ class TestArchiveCopy(unittest.TestCase):
         s_rep = persistence.dumps_json(ar2)
 
     def test_1_3_3_json(self):
-        file = r'C:\proj_py\GTC3\test\ref_file_v_1_3_3.json'
-        with open(file, mode='r') as f:
+        fname = r'ref_file_v_1_3_3.json'
+        wdir =  os.path.dirname(__file__)
+        path = os.path.join(wdir,fname)
+
+        with open(path,'r') as f:
             # Old format pickle Archive
             ar = persistence.load_json(f)
         
@@ -83,8 +95,11 @@ class TestArchiveCopy(unittest.TestCase):
         s_rep = persistence.dumps_json(ar2)
 
     def test_1_3_5_json(self):
-        file = r'C:\proj_py\GTC3\test\ref_file_v_1_3_5.json'
-        with open(file, mode='r') as f:
+        fname = r'ref_file_v_1_3_5.json'
+        wdir =  os.path.dirname(__file__)
+        path = os.path.join(wdir,fname)
+
+        with open(path,'r') as f:
             # Old format pickle Archive
             ar = persistence.load_json(f)
         
@@ -92,8 +107,11 @@ class TestArchiveCopy(unittest.TestCase):
         s_rep = persistence.dumps_json(ar2)
 
     def test_1_5_0_json(self):
-        file = r'C:\proj_py\GTC3\test\ref_file_v_1_5_0.json'
-        with open(file, mode='r') as f:
+        fname = r'ref_file_v_1_5_0.json'
+        wdir =  os.path.dirname(__file__)
+        path = os.path.join(wdir,fname)
+
+        with open(path,'r') as f:
             # Old format pickle Archive
             ar = persistence.load_json(f)
         
