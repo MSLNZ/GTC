@@ -1,3 +1,4 @@
+import inspect
 import unittest
 import warnings
 
@@ -27,7 +28,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The function `foo` is deprecated.')
-            self.assertEqual(warn[0].lineno, 26)  # where foo() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-4)  # where foo() is actually called
 
     def test_nested_function(self):
         @deprecated
@@ -47,7 +49,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The function `foo` is deprecated.')
-            self.assertEqual(warn[0].lineno, 39)  # where foo() is called in bar()
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-11)  # where foo() is called in bar()
 
     def test_class_no_args_no_kwargs(self):
 
@@ -70,7 +73,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)  # f.bar() does not issue a warning
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The class `Foo` is deprecated.')
-            self.assertEqual(warn[0].lineno, 68)  # where Foo() is actually instantiated
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-5)  # where Foo() is actually instantiated
 
             Foo()
             self.assertEqual(len(warn), 2)
@@ -101,7 +105,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The method `bar` is deprecated.')
-            self.assertEqual(warn[0].lineno, 100)  # where f.bar() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-4)  # where f.bar() is actually called
 
             Foo()
             self.assertEqual(len(warn), 1)
@@ -255,8 +260,9 @@ class TestDeprecated(unittest.TestCase):
         with warnings.catch_warnings(record=True) as warn:
             warnings.simplefilter('always')
             fcn()
-            # Not sure what lineno will be, but it won't be 247
-            self.assertNotEqual(warn[0].lineno, 247)
+            # Not sure what lineno will be, but it won't be where fcn() is called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertNotEqual(warn[0].lineno, f_lineno-1)
 
     def test_docstring_line_width(self):
         @deprecated(deprecated_in='1.5', docstring_line_width=20)
@@ -311,7 +317,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The function `bar` is deprecated.')
-            self.assertEqual(warn[0].lineno, 310)  # where f.bar() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-4)  # where f.bar() is actually called
 
     def test_static_method_2(self):
         # The inspect module cannot differential between a function
@@ -340,7 +347,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The staticmethod `bar` is deprecated.')
-            self.assertEqual(warn[0].lineno, 339)  # where f.bar() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-4)  # where f.bar() is actually called
 
     def test_class_method(self):
         # The inspect module cannot differential between a function
@@ -378,7 +386,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The classmethod `bar` is deprecated.')
-            self.assertEqual(warn[0].lineno, 377)  # where f.bar() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-4)  # where f.bar() is actually called
             self.assertEqual(f2.x, 8)
 
     def test_update_docstring(self):
@@ -406,7 +415,8 @@ class TestDeprecated(unittest.TestCase):
             self.assertEqual(len(warn), 1)  # f.bar() does not issue a warning
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The class `Foo` is deprecated.')
-            self.assertEqual(warn[0].lineno, 402)  # where Foo() is actually instantiated
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-7)  # where Foo() is actually instantiated
 
     def test_multiple(self):
         @deprecated
@@ -537,7 +547,8 @@ class TestDeprecated(unittest.TestCase):
                 '            Same indent\n'
                 '                Indent 2'
             )
-            self.assertEqual(warn[0].lineno, 527)  # where Foo().bar() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-13)  # where Foo().bar() is actually called
 
     def test_remove_sphinx_role(self):
 
@@ -568,7 +579,8 @@ class TestDeprecated(unittest.TestCase):
                 'The class `Foo` is deprecated. Do not use anymore, use `.dump_xml`, '
                 '`~GTC.persistence.dump_json` or `Archive.dump` instead'
             )
-            self.assertEqual(warn[0].lineno, 563)  # where Foo() is actually instantiated
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-8)  # where Foo() is actually instantiated
 
     def test_prefix(self):
 
@@ -594,7 +606,8 @@ class TestDeprecated(unittest.TestCase):
                 str(warn[0].message),
                 'My message. The function `foo` is deprecated.'
             )
-            self.assertEqual(warn[0].lineno, 590)  # where foo() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-7)  # where foo() is actually called
 
     def test_prefix_newline(self):
 
@@ -621,7 +634,8 @@ class TestDeprecated(unittest.TestCase):
                 str(warn[0].message),
                 '\nThe function `foo` is deprecated.'
             )
-            self.assertEqual(warn[0].lineno, 617)  # where foo() is actually called
+            f_lineno = inspect.currentframe().f_lineno
+            self.assertEqual(warn[0].lineno, f_lineno-7)  # where foo() is actually called
 
     def test_docstring_1(self):
         s = _append_sphinx_directive(None, 'Message')
