@@ -818,7 +818,7 @@ class UncertainReal(object):
             
         elif self.is_intermediate:
             # The `None` case is to handle a change in the 
-            # archiving process. It will be phased out after 
+            # archiving process in v1.3.5. It will be phased out after 
             # a few more releases. See also archive.py _thaw
             # shim function.
             if self._node.df is None:
