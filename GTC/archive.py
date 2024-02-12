@@ -193,8 +193,8 @@ class Archive(object):
         A copy of the data in ``ar`` is returned in a 
         new ``Archive`` object. 
         
-        The archive returned can have new uncertain numbers 
-        added, and can be dumped to store its contents.
+        The archive returned is in a state to accept added 
+        uncertain numbers. 
                  
         :arg ar: An ``Archive`` object.                  
         :type ar: Archive
@@ -202,30 +202,26 @@ class Archive(object):
         .. versionadded:: 1.5.0 
         
         """
-        a = copy.copy(ar)
+        a = copy.deepcopy(ar)
 
         if a._dump and a._ready:
-            # Ready to accept new data 
+            # Ready to accept data 
             pass
             
         elif not a._dump and a._ready:
             # A thawed archive
             a._dump = True
-            assert hasattr(a,'_uid_to_intermediate')
-            assert hasattr(a,'_intermediate_uids')
             
         elif a._dump and not a._ready:
             # A frozen archive
+            a._dump = False
             a._thaw()
-            assert hasattr(a,'_uid_to_intermediate')
-            assert hasattr(a,'_intermediate_uids')
+            a._dump = True
             
         elif not a._dump and not a._ready:
             # A loaded archive
             a._thaw()
             a._dump = True
-            assert hasattr(a,'_uid_to_intermediate')
-            assert hasattr(a,'_intermediate_uids')
             
         return a 
         
