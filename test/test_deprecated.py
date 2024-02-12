@@ -261,6 +261,28 @@ class TestDeprecated(unittest.TestCase):
                 self.assertEqual(
                     str(w.message), 'The function `foo` is deprecated.')
 
+    def test_action_default(self):
+        # default: first occurrence of matching warnings for each location
+        # (module + line number) where the warning is issued
+        @deprecated(action='default')
+        def foo(): return
+
+        def bar(): return foo()
+
+        with warnings.catch_warnings(record=True) as warn:
+            for _ in range(10):
+                foo()
+            self.assertEqual(len(warn), 1)
+
+            for _ in range(10):
+                foo()
+                bar()
+            self.assertEqual(len(warn), 3)
+
+            for w in warn:
+                self.assertEqual(
+                    str(w.message), 'The function `foo` is deprecated.')
+
     def test_category(self):
         @deprecated(category=RuntimeWarning)
         def fcn(): return

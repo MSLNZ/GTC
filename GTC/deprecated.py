@@ -318,8 +318,9 @@ def _warn(message,
     # application's global context is not modified. In the case of "once", this
     # has the effect of restoring the internal call counter, so a warning message
     # is issued every time the line issuing the warning is called. Therefore,
-    # for action="once" we treat it equivalent to not specifying the action.
-    if action and action != 'once':
+    # for action="once" (and "default") we treat it equivalent to not specifying
+    # the action.
+    if action and action not in ('once', 'default'):
         with warnings.catch_warnings():
             warnings.simplefilter(action, category)
             warnings.warn(message, category=category, stacklevel=stacklevel)
