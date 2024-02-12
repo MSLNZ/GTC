@@ -207,6 +207,16 @@ class TestDeprecated(unittest.TestCase):
                 str(warn[0].message),
                 'The function `function` is deprecated.'
             )
+            # the warning is issued on the same line in the same module,
+            # so it is only issued once, so action="once" is equivalent to
+            # action="default" (or not specifying the action parameter at all)
+            self.assertEqual(len(warn), 1)
+
+            # these will issue 3 more warnings, since they occur on different lines
+            function()
+            function()
+            function()
+            self.assertEqual(len(warn), 4)
 
     def test_action_ignore(self):
         @deprecated(action='ignore')

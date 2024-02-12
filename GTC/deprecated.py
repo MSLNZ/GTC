@@ -312,7 +312,14 @@ def _warn(message,
 
     All other keyword arguments are defined in :func:`deprecated`.
     """
-    if action:
+    # When specifying the action, the catch_warnings() context manager allows
+    # the warning behavior to be modified when entering the context and is
+    # restored when exiting. Using the context manager is required so that the
+    # application's global context is not modified. In the case of "once", this
+    # has the effect of restoring the internal call counter, so a warning message
+    # is issued every time the line issuing the warning is called. Therefore,
+    # for action="once" we treat it equivalent to not specifying the action.
+    if action and action != 'once':
         with warnings.catch_warnings():
             warnings.simplefilter(action, category)
             warnings.warn(message, category=category, stacklevel=stacklevel)
