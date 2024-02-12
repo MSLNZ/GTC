@@ -23,7 +23,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(foo(), 'Called foo')
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -44,13 +43,12 @@ class TestDeprecated(unittest.TestCase):
             return bar()
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(baz(), 'Called foo')
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
             self.assertEqual(str(warn[0].message), 'The function `foo` is deprecated.')
             f_lineno = inspect.currentframe().f_lineno
-            self.assertEqual(warn[0].lineno, f_lineno-11)  # where foo() is called in bar()
+            self.assertEqual(warn[0].lineno, f_lineno-10)  # where foo() is called in bar()
 
     def test_class_no_args_no_kwargs(self):
 
@@ -67,7 +65,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             f = Foo()
             f.bar()
             self.assertEqual(len(warn), 1)  # f.bar() does not issue a warning
@@ -97,7 +94,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             f = Foo()
             self.assertEqual(len(warn), 0)
 
@@ -117,7 +113,6 @@ class TestDeprecated(unittest.TestCase):
             return x
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(function(), 0)
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -136,7 +131,6 @@ class TestDeprecated(unittest.TestCase):
             return x
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(function(), 0)
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -155,7 +149,6 @@ class TestDeprecated(unittest.TestCase):
             return x+y
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(function(0), 0)
             self.assertEqual(len(warn), 1)
             self.assertEqual(function(1, y=5), 6)
@@ -175,7 +168,6 @@ class TestDeprecated(unittest.TestCase):
             return
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertIsNone(function())
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -209,7 +201,6 @@ class TestDeprecated(unittest.TestCase):
         def function(): return
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             for _ in range(10):
                 function()
             self.assertEqual(
@@ -222,7 +213,6 @@ class TestDeprecated(unittest.TestCase):
         def function(): return
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             for _ in range(10):
                 function()
             self.assertEqual(len(warn), 0)
@@ -244,7 +234,6 @@ class TestDeprecated(unittest.TestCase):
         def fcn(): return
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertIsNone(fcn())
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, RuntimeWarning))
@@ -258,7 +247,6 @@ class TestDeprecated(unittest.TestCase):
         def fcn(): return
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             fcn()
             # Not sure what lineno will be, but it won't be where fcn() is called
             f_lineno = inspect.currentframe().f_lineno
@@ -310,7 +298,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             f = Foo()
             self.assertEqual(len(warn), 0)
             self.assertEqual(f.bar(8), 8)
@@ -340,7 +327,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             f = Foo()
             self.assertEqual(len(warn), 0)
             self.assertEqual(f.bar(8), 8)
@@ -379,7 +365,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             f = Foo()
             self.assertEqual(len(warn), 0)
             f2 = f.bar(8)
@@ -407,7 +392,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             f = Foo()
             f.bar()
             f.bar()
@@ -460,7 +444,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(foo(), 'foo')
             self.assertEqual(hello(), 'world')
             self.assertEqual(foo(), 'foo')
@@ -533,7 +516,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(Foo().bar(), 'bar')
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -570,7 +552,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             Foo()
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -598,7 +579,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(foo(-1, 0, 1, a='a'), ((-1, 0, 1), {'a': 'a'}))
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
@@ -626,7 +606,6 @@ class TestDeprecated(unittest.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as warn:
-            warnings.simplefilter('always')
             self.assertEqual(foo(-1, 0, 1, a='a'), ((-1, 0, 1), {'a': 'a'}))
             self.assertEqual(len(warn), 1)
             self.assertTrue(issubclass(warn[0].category, GTCDeprecationWarning))
