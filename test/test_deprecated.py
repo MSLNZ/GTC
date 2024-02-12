@@ -283,6 +283,11 @@ class TestDeprecated(unittest.TestCase):
                 self.assertEqual(
                     str(w.message), 'The function `foo` is deprecated.')
 
+    def test_action_module(self):
+        with self.assertRaises(ValueError):
+            @deprecated(action='module')
+            def foo(): return
+
     def test_category(self):
         @deprecated(category=RuntimeWarning)
         def fcn(): return

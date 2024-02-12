@@ -71,7 +71,7 @@ def deprecated(*args, **kwargs):
 
         action : str or None
             The type of filter to use when the warning is issued. One of
-            "always", "default", "error", "ignore", "module" or "once".
+            "always", "default", "error", "ignore" or "once".
             If None, the global warning-filter setting is used. Default is None.
             See https://docs.python.org/3/library/warnings.html#the-warnings-filter
 
@@ -248,6 +248,9 @@ def _prepare_warning(wrapped,
             'Dear GTC developer, you are still using a {} that '
             'should be removed:\n{}'.format(kind, message)
         )
+
+    if action == 'module':
+        raise ValueError('Using action="module" is not supported')
 
     warn_kw = {'action': action, 'category': category, 'stacklevel': stacklevel}
     return message, warn_kw
