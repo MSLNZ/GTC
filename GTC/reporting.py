@@ -430,7 +430,7 @@ def u_bar(ucpt):
     :type ucpt: float or 4-element sequence of float
 
     If ``ucpt`` is a sequence, return the root-sum-square 
-    of the elements divided by :math:`\sqrt{2}`
+    of the elements divided by :math:`\\sqrt{2}`
 
     If ``ucpt`` is a number, return the absolute value.
 
