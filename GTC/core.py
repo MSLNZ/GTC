@@ -822,7 +822,7 @@ def log(x):
 
     .. note::
         In the complex case there is one branch cut,
-        from 0 along the negative real axis to :math:`-\infty`,
+        from 0 along the negative real axis to :math:`-\\infty`,
         continuous from above.
         
     """
@@ -846,7 +846,7 @@ def log10(x):
     .. note::
         In the complex case there is one branch cut,
         from 0 along the negative real
-        axis to :math:`-\infty`, continuous from above.
+        axis to :math:`-\\infty`, continuous from above.
         
     """
     try:
@@ -903,7 +903,7 @@ def sqrt(x):
             ...
             ZeroDivisionError: float division by zero
 
-        More generally, uncertainty in :math:`\sqrt{x}` becomes
+        More generally, uncertainty in :math:`\\sqrt{x}` becomes
         large when :math:`x` is close to zero. 
         This may be an indication that the measurement model is ill-formed or that a 
         GUM calculation of uncertainty is not appropriate.
@@ -911,7 +911,7 @@ def sqrt(x):
     .. note::
         In the complex case there is one branch cut,
         from 0 along the negative real
-        axis to :math:`-\infty`, continuous from above.
+        axis to :math:`-\\infty`, continuous from above.
         
     """
     try:
@@ -1000,9 +1000,9 @@ def asin(x):
 
     .. note::
         In the complex case there are two branch cuts: one extends
-        right, from 1 along the real axis to :math:`\infty`,
+        right, from 1 along the real axis to :math:`\\infty`,
         continuous from below; the other extends left, from -1 along
-        the real axis to :math:`-\infty`, continuous from above.
+        the real axis to :math:`-\\infty`, continuous from above.
         
     """
     try:
@@ -1037,9 +1037,9 @@ def acos(x):
         
     .. note::
         In the complex case there are two branch cuts: one extends
-        right, from 1 along the real axis to :math:`\infty`, continuous
+        right, from 1 along the real axis to :math:`\\infty`, continuous
         from below; the other extends left, from -1 along the real axis
-        to :math:`-\infty`, continuous from above.
+        to :math:`-\\infty`, continuous from above.
         
     """
     try:
@@ -1062,10 +1062,10 @@ def atan(x):
     .. note::
     
         In the complex case there are two branch cuts:
-        One extends from :math:`\mathrm{j}` along the imaginary axis to
-        :math:`\mathrm{j}\infty`, continuous from the right.
-        The other extends from :math:`-\mathrm{j}` along the imaginary
-        axis to :math:`-\mathrm{j}\infty`, continuous from the left.
+        One extends from :math:`\\mathrm{j}` along the imaginary axis to
+        :math:`\\mathrm{j}\\infty`, continuous from the right.
+        The other extends from :math:`-\\mathrm{j}` along the imaginary
+        axis to :math:`-\\mathrm{j}\\infty`, continuous from the left.
         
     """
     try:
@@ -1178,10 +1178,10 @@ def asinh(x):
     .. note::
     
         In the complex case there are two branch cuts: one extends
-        from :math:`\mathrm{j}` along the imaginary axis to
-        :math:`\mathrm{j}\infty`, continuous from the right;
-        the other extends from :math:`-\mathrm{j}` along the
-        imaginary axis to :math:`-\mathrm{j}\infty`, continuous
+        from :math:`\\mathrm{j}` along the imaginary axis to
+        :math:`\\mathrm{j}\\infty`, continuous from the right;
+        the other extends from :math:`-\\mathrm{j}` along the
+        imaginary axis to :math:`-\\mathrm{j}\\infty`, continuous
         from the left.
         
     """
@@ -1205,7 +1205,7 @@ def acosh(x):
     .. note::
         In the complex case there is one branch cut,
         extending left from 1 along the
-        real axis to :math:`-\infty`, continuous from above.
+        real axis to :math:`-\\infty`, continuous from above.
         
     """
     try:
@@ -1227,9 +1227,9 @@ def atanh(x):
 
     .. note::
         In the complex case there are two branch cuts:
-        one extends from 1 along the real axis to :math:`\infty`,
+        one extends from 1 along the real axis to :math:`\\infty`,
         continuous from below; the other extends from -1
-        along the real axis to :math:`-\infty`, continuous
+        along the real axis to :math:`-\\infty`, continuous
         from above.
         
     """

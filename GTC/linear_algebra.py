@@ -107,7 +107,7 @@ def uarray(array, label=None, names=None):
 
     .. attention::
 
-       Requires numpy :math:`\geq` v1.13.0 to be installed.
+       Requires numpy :math:`\\geq` v1.13.0 to be installed.
 
     :param array: An array-like object containing :class:`int`, :class:`float`, :class:`complex`
                   :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` elements.
@@ -255,7 +255,7 @@ def transpose(a, axes=None):
 
 #---------------------------------------------------------------------------
 def solve(a,b):
-    """Return :math:`x`, the solution of :math:`a \cdot x = b`
+    """Return :math:`x`, the solution of :math:`a \\cdot x = b`
 
     .. versionadded:: 1.1
 
