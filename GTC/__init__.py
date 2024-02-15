@@ -114,7 +114,7 @@ if sys.version_info[:2] < (3, 7):
 #----------------------------------------------------------------------------
 version = "1.4.2.dev0"
 
-copyright = """Copyright (c) 2023, \
+copyright = """Copyright (c) 2024, \
 Measurement Standards Laboratory of New Zealand"""
 
 from .core import *
