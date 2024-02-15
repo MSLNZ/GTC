@@ -15,7 +15,7 @@ The function ``is_ordered()`` checks that all reference-value pairs
 in a vector are in order. When ``__debug__`` is ``True``, the order 
 of elements is checked when appending (but not during construction).
 
-Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
+Copyright (c) 2024, Measurement Standards Laboratory of New Zealand.
 
 """
 try:
