@@ -274,8 +274,10 @@ def json_to_archive(j):
         )
         
     elif 'CLASS' in j and (j['CLASS'] == Archive.__name__):
-        ar = Archive(dump=False) # Still need to thaw the data
-
+        ar = Archive() 
+        ar._dump = ar._ready = False
+        
+        # Load the data
         if PY2:
             leaf_nodes_items = j['leaf_nodes'].iteritems
             intermediate_uids_items = j['intermediate_uids'].iteritems

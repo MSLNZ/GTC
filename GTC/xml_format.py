@@ -302,8 +302,10 @@ def _v150_to_archive(root):
                 _float(elem, 'df'))
         return literal_eval(elem.get('uid')), data
 
-    archive = Archive(dump=False)  # Still need to thaw the data
+    archive = Archive()  
+    archive._dump = archive._ready = False
 
+    # Load the data
     archive._leaf_nodes = dict(
         convert_leaf_node(element)
         for element in _find(root, 'leafNodes')

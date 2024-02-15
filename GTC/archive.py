@@ -108,15 +108,10 @@ class Archive(object):
     A particular :class:`Archive` object can either be used to prepare 
     a record of uncertain numbers for storage, or to retrieve a stored record. 
     
-    :arg dump: 'True' when an archive will be used to dump data, 
-        'False' when when an archive will be used to load data. 
-    :type dump: bool
-
     .. versionchanged:: 1.5.0 
-        Keyword ``dump`` added
         
     """
-    def __init__(self,dump=True):
+    def __init__(self):
 
         # These dict objects contain information about every
         # uncertain number destined for storage; a pair 
@@ -130,14 +125,14 @@ class Archive(object):
         # associate the uid's of intermediate components with UNs.
         self._uid_to_intermediate = {}
         
-        # An archive may either be dumped or loaded
+        # An archive may either be dumped or loaded.
+        # When _dump is True it will be dumped.
         # When _ready is true, the archive is in a 
         # state that can be used clients, i.e., either
         # things can be added to an archive that will
         # be dumped, or they can be extracted from an
         # archive than has been loaded.
-        self._dump = dump   
-        self._ready = True if dump else False
+        self._dump = self._ready = True 
 
     # Support for legacy JSON format will be dropped in GTC 2
     @staticmethod
@@ -153,7 +148,8 @@ class Archive(object):
         # `_tagged_reals` has all the UncertainReals in `_tagged` 
         # as well as any untagged UncertainReals that are complex components.
         
-        ar = Archive(dump=False)        
+        ar = Archive()        
+        ar._dump = ar._ready = False
         
         if PY2:
             for k,obj in old._tagged_reals.iteritems():
@@ -204,8 +200,9 @@ class Archive(object):
         """
         a = copy.deepcopy(ar)
 
+        # In all cases return ``a`` in a form
+        # ready to accept data.
         if a._dump and a._ready:
-            # Ready to accept data 
             pass
             
         elif not a._dump and a._ready:
@@ -213,7 +210,7 @@ class Archive(object):
             a._dump = True
             
         elif a._dump and not a._ready:
-            # A frozen archive
+            # A frozen archive 
             a._dump = False
             a._thaw()
             a._dump = True

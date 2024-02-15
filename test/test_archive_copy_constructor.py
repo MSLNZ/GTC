@@ -12,7 +12,9 @@ from GTC import *
 class TestArchiveCopy(unittest.TestCase):
 
     def test(self):
-        ar = pr.Archive()
+        # ------------------------------
+        # A do-nothing deepcopy
+        ar = pr.Archive.copy( pr.Archive() )
         x1 = ureal(1,1,3,label='x1')
         x2 = ureal(5,2,6,label='x2')
         x3 = result(x1*x2)
