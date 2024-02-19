@@ -198,13 +198,13 @@ Uncertain complex numbers selected for storage are also tagged and a collection 
     
     An associative collection of details about uncertain complex numbers. The ``real`` and ``imag`` attributes hold tags for the components of the uncertain complex number. 
 
-Most of the information required to restore an uncertain complex number is actually held in the uncertain real number objects for its (real-valued) components. These are automatically added to another collection (``complex_components``) in the archive (tags accessing this collection are derived from the tag used when selecting the uncertain complex number for storage, and are also the ``real`` and ``imag`` attributes used in the ``Complex`` class). Again, elements of this collection may be one of two types: ``eReal`` or ``IntermediateReal``.
+Most of the information required to restore an uncertain complex number is actually held in the uncertain real number objects for its (real-valued) components. These are automatically added to another collection (``untagged_real``) in the archive (tags accessing this collection are derived from the tag used when selecting the uncertain complex number for storage, and are also the ``real`` and ``imag`` attributes used in the ``Complex`` class). Again, elements of this collection may be one of two types: ``eReal`` or ``IntermediateReal``.
     
 Marshalling after retrieval 
 ---------------------------
 Two steps are required to restore uncertain numbers to a Python session when an archive is retrieved from storage. 
 
-First, node objects are for all entries in the ``leaf_nodes`` collection and all entries in the ``intermediate_nodes`` collection. This provides the support needed for the archived uncertain number objects. The process of creating nodes retains the original unique node identifiers, ensuring that relationships between nodes are preserved. Information about correlations and ensembles is also restored, as required.
+First, node objects are created for all entries in the ``leaf_nodes`` collection and all entries in the ``intermediate_nodes`` collection. This provides the support needed for the archived uncertain number objects. The process of creating nodes retains the original unique node identifiers, ensuring that relationships between nodes are preserved. Information about correlations and ensembles is also restored, as required.
 
 The second step creates uncertain number objects for each of the tagged objects in the archive. This retrieves information about their components of uncertainty, as required. The individual uncertain number objects are held in the archive until a request is received to extract them. 
 
