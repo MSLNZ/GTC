@@ -92,11 +92,13 @@ def fetch_init(key):
 
 install_requires = [
     'numpy>=1.13.0',  # >=1.13 to override __array_ufunc__ in UncertainArray
-    'scipy',
+    'scipy'
 ]
 tests_require = [
     'pytest>=4.4',  # >=4.4 to support the "-p conftest" option
     'pytest-cov',
+    'jsonschema',
+    'lxml',  # to verify XML documents with the XML Schema
 ]
 
 docs_require = [
@@ -146,4 +148,5 @@ setup(
     extras_require={'tests': tests_require, 'docs': docs_require},
     cmdclass={'docs': BuildDocs, 'apidocs': ApiDocs},
     packages=find_packages(include=('GTC*',)),
+    data_files = [('GTC/schemas',['GTC/schemas/gtc_v_1_3_5.json','GTC/schemas/gtc_v_1_5_0.json'])]
 )

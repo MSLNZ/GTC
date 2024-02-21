@@ -24,7 +24,6 @@ except ImportError:
     izip = zip
     cmp = lambda a, b: (a > b) - (a < b)
 
-
 __all__ = (
     'Vector',
     'scale_vector',
@@ -47,14 +46,17 @@ __all__ = (
 # first (for example, [1,2] < [1,2,3]).  
 #
 
-# The value of `uid` is a pair of integers used for ordering.
-# The end point can be marked by a pair of infinities,
+# The value of `uid` is used for ordering.
+# The end point can be marked by a pair of objects that are 
+# greater than any other of the same type,
 # so any other pair compares less than this marker.
-# The `END` object is used in the iteration control structures to
+# The `INF` object is used in iteration control structures to
 # mark an end point. 
+
+# INF = ( '\U0010FFFF', float('inf') )
 INF = ( float('inf'), float('inf') )
 class INF_UID(object): uid = INF
-
+        
 #--------------------------------------------------------------
 # TODO:
 # Look at the initialisation overhead. It might be better to
@@ -69,7 +71,7 @@ class Vector(object):
     
     """
     
-    def __init__(self,**kwargs):
+    def __init__(self,*args,**kwargs):
         """
         Vector()                # construct an empty vector
         Vector(copy=v)          # construct a copy of vector 'v'
@@ -80,9 +82,14 @@ class Vector(object):
         but not checked.
         
         """
-        if len(kwargs) == 0:
+        if len(kwargs) == 0 and len(args) == 0:
             self._index = []
             self._value = []
+            
+        elif len(args) == 1:
+            # Construct from a sequence of index-value pairs
+            items = args[0]
+            self._index, self._value = zip(*items) if len(items) else ([], [])
             
         elif 'copy' in kwargs:
             copy = kwargs['copy']
@@ -194,17 +201,13 @@ class Vector(object):
         Append one (i,v) pair to the vector.
 
         Note that ordering is not checked unless `__debug__` 
-        is `True`. It the responsibility of the client to 
+        is `True` (when the -O optimisation flag is not used). 
+        It is then the responsibility of the client to 
         append elements in the correct order. 
         
         """
-        if __debug__:
-            # Make sure that order is preserved
-            try:
-                assert self._index[-1].uid < i.uid, (self._index[-1].uid, i.uid)
-            except IndexError: 
-                # Don't care about an empty list
-                pass
+        if len(self._index):   # Don't care about an empty list
+            assert self._index[-1].uid < i.uid, (self._index[-1].uid, i.uid)
             
         self._index.append(i)
         self._value.append(v)
@@ -290,7 +293,6 @@ def merge_vectors(v1,v2):
         # A marker at the ends: must remove afterwards!
         v1.append(INF_UID,0)
         v2.append(INF_UID,0)
-
         # Merge vectors by iteration
         it1 = v1.iteritems()
         it2 = v2.iteritems()
@@ -364,8 +366,7 @@ def merge_weighted_vectors(v1,w1,v2,w2):
     else:
         # A marker at the ends: must remove afterwards!
         v1.append(INF_UID,0)
-        v2.append(INF_UID,0)
-        
+        v2.append(INF_UID,0)        
         # Merge vectors by iteration
         it1 = v1.iteritems()
         it2 = v2.iteritems()

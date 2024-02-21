@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "JSON Schema for GTC archive",
+  "$id": "https://measurement.govt.nz/gtc/json_1.5.0",
+  "$defs": {
+    "eUIDString": {
+      "type": "string",
+      "pattern": "^\\(\\d+,\\s*\\d+\\)$"
+    },
+    "iUIDString": {
+      "type": "string",
+      "pattern": "^\\(\\d+,\\s*\\d+,\\s*0\\)$"
+    },
+    "string_or_null" : { 
+      "anyOf": [
+        { "type": "string" },
+        { "enum": [ null ] }
+      ]
+    },
+    "df": {
+      "anyOf": [
+        { "type": "number","minimum": 1 },
+        { "enum": [ null ] }
+      ]
+    },
+    "correlation": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/eUIDString"},
+      "minProperties": 1
+    },
+    "eUIDArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/eUIDString" },
+      "minItems": 0
+    },
+    "eVector": {
+      "type": "object",
+      "properties": {
+         "CLASS": { "const": "Vector" },
+         "index": { "$ref": "#/$defs/eUIDArray" },
+         "value": { 
+           "type": "array", 
+           "items": { "type": "number" }, 
+           "minItems": 0 
+        }
+      },
+      "required": ["CLASS","index","value"],
+      "additionalProperties": false
+    },
+    "iUIDArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/iUIDString" },
+      "minItems": 0
+    },
+    "iVector": {
+      "type": "object",
+      "properties": {
+         "CLASS": { "const": "Vector" },
+         "index": { "$ref": "#/$defs/iUIDArray" },
+         "value": { 
+           "type": "array", 
+           "items": { "type": "number" }, 
+           "minItems": 0 
+        }
+      },
+      "required": ["CLASS","index","value"],
+      "additionalProperties": false
+    },
+    "elementaryReal": {
+      "type": "object",
+      "properties": {
+          "CLASS": { "const": "ElementaryReal" },
+          "x": { "type": "number" },
+          "uid": { "$ref": "#/$defs/eUIDString" }
+      },
+      "required": ["CLASS","x","uid"],
+      "additionalProperties": false
+    },
+    "IntermediateReal": {
+      "type": "object",
+      "properties": {
+          "CLASS": { "const": "IntermediateReal" },
+          "value": { "type": "number" },
+          "label": { "$ref": "#/$defs/string_or_null" },
+          "uid": { "$ref": "#/$defs/iUIDString" },
+          "u_components" : { "$ref": "#/$defs/eVector" },
+          "d_components" : { "$ref": "#/$defs/eVector" },
+          "i_components" : { "$ref": "#/$defs/iVector" }
+      },
+      "required": [
+        "CLASS","value","label","uid", 
+        "u_components", 
+        "d_components", 
+        "i_components"
+      ],
+      "additionalProperties": false
+    },
+    "Complex" : {
+      "type": "object",
+      "properties": {
+          "CLASS": { "const": "Complex" },
+          "n_re" : { "type": "string" },
+          "n_im" : { "type": "string" },
+          "label": { "$ref": "#/$defs/string_or_null" }
+      },
+      "required": ["CLASS","n_re","n_im","label"],
+      "additionalProperties": false
+    },
+    "leaf_node": {
+      "type": "object",
+      "properties": {
+        "CLASS": { "const": "LeafNode" },
+        "uid": {"$ref": "#/$defs/eUIDString" },
+        "label": { "$ref": "#/$defs/string_or_null" },
+        "u": { "type": "number", "minimum": 0 },
+        "df": { "$ref": "#/$defs/df" },
+        "complex": {
+          "type" : "array",
+          "items": { "$ref": "#/$defs/eUIDString" },
+          "minItems": 2,
+          "maxItems": 2     	 
+        },
+        "independent": {"type": "boolean" },
+        "correlation": {"$ref": "#/$defs/correlation"},
+        "ensemble": {"$ref": "#/$defs/eUIDArray"}      
+      },
+      "required": ["CLASS", "uid", "u" ],
+      "dependencies": {
+      	"ensemble": {
+        	"required": ["correlation"]
+        },
+        "correlation": {
+        	"required": ["ensemble"]
+        }
+      },
+      "additionalProperties": false    
+    },
+    "tagged": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": { "CLASS": { "type": "string" } },
+          "if": { "properties": { "CLASS": { "const": "ElementaryReal" } } },
+          "then": {"$ref": "#/$defs/elementaryReal" },
+          "else": {
+            "if": { "properties": { "CLASS": { "const": "IntermediateReal" } } },
+            "then": {"$ref": "#/$defs/IntermediateReal"},
+            "else":{
+              "if":{ "properties": { "CLASS": { "const": "Complex" } },
+              "then": {"$ref": "#/$defs/Complex"} },
+              "else": {
+                "type": "object",  
+                "additionalProperties": false,
+                "errorMessage": "Unexpected value for CLASS property"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false      
+    }    
+  },
+  "type": "object",
+  "properties": {
+    "CLASS": { "const": "Archive" },
+    "version": { "type": "string" },
+    "leaf_nodes": {
+      "type": "object",
+      "patternProperties": {
+        "^\\(\\d+,\\s*\\d+\\)$": { "$ref": "#/$defs/leaf_node" },
+        "additionalProperties": false
+      }
+    },
+    "tagged_complex": { "$ref": "#/$defs/tagged" },
+    "tagged_real": { "$ref": "#/$defs/tagged" },
+    "untagged_real": { "$ref": "#/$defs/tagged" },
+    "intermediate_uids": {
+      "type": "object",
+      "patternProperties": {
+        "^\\(\\d+,\\s*\\d+,\\s*\\d+\\)$": {  
+          "type": "array",
+          "prefixItems": [
+            { "$ref": "#/$defs/string_or_null" },
+            { "type": "number" },
+            { "$ref": "#/$defs/df" }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "additionalProperties": false
+      }        
+    }
+  },
+  "required": [
+    "CLASS",
+    "leaf_nodes"
+  ],
+  "additionalProperties": false
+}

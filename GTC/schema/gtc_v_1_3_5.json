@@ -1,0 +1,185 @@
+{
+  "description": "JSON Schema for GTC archive v1.3.5",
+  "$defs": {
+    "UIDString": {
+      "type": "string",
+      "pattern": "^\\(\\d+,\\s*\\d+\\)$"
+    },
+    "string_or_null" : { 
+      "anyOf": [
+        { "type": "string" },
+        { "enum": [ null ] }
+      ]
+    },
+    "df": {
+      "anyOf": [
+        { "type": "number","minimum": 1 },
+        { "enum": [ Infinity ] }
+      ]
+    },
+    "correlation": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/UIDString"},
+      "minProperties": 1
+    },
+    "ensemble": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/UIDString" },
+      "minItems": 0
+    },
+    "uid": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 2,
+      "maxItems": 2     	 
+    },
+    "uid_array": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/uid" },
+      "minItems": 0
+    },
+    "vector": {
+      "type": "object",
+      "properties": {
+         "CLASS": { "const": "Vector" },
+         "index": { "$ref": "#/$defs/uid_array" },
+         "value": { 
+           "type": "array", 
+           "items": { "type": "number" }, 
+           "minItems": 0 
+        }
+      },
+      "required": ["CLASS","index","value"],
+      "additionalProperties": false
+    },
+    "elementaryReal": {
+      "type": "object",
+      "properties": {
+          "CLASS": { "const": "ElementaryReal" },
+          "x": { "type": "number" },
+          "uid": { "$ref": "#/$defs/uid" }
+      },
+      "required": ["CLASS","x","uid"],
+      "additionalProperties": false
+    },
+    "IntermediateReal": {
+      "type": "object",
+      "properties": {
+          "CLASS": { "const": "IntermediateReal" },
+          "value": { "type": "number" },
+          "label": { "type": "string" },
+          "uid": { "$ref": "#/$defs/uid" },
+          "u_components" : { "$ref": "#/$defs/vector" },
+          "d_components" : { "$ref": "#/$defs/vector" },
+          "i_components" : { "$ref": "#/$defs/vector" }
+      },
+      "required": [
+        "CLASS","value","label","uid", 
+        "u_components", 
+        "d_components", 
+        "i_components"
+      ],
+      "additionalProperties": false
+    },
+    "Complex" : {
+      "type": "object",
+      "properties": {
+          "CLASS": { "const": "Complex" },
+          "n_re" : { "type": "string" },
+          "n_im" : { "type": "string" },
+          "label": { "$ref": "#/$defs/string_or_null" }
+      },
+      "required": ["CLASS","n_re","n_im","label"],
+      "additionalProperties": false
+    },
+    "leaf_node": {
+      "type": "object",
+      "properties": {
+        "CLASS": { "const": "LeafNode" },
+        "uid": {"$ref": "#/$defs/uid" },
+        "label": { "$ref": "#/$defs/string_or_null" },
+        "u": { "type": "number", "minimum": 0 },
+        "df": { "$ref": "#/$defs/df" },
+        "complex": {
+          "type" : "array",
+          "items": { "$ref": "#/$defs/UIDString" },
+          "minItems": 2,
+          "maxItems": 2     	 
+        },
+        "independent": {"type": "boolean" },
+        "correlation": {"$ref": "#/$defs/correlation"},
+        "ensemble": {"$ref": "#/$defs/ensemble"}
+      },
+      "required": ["CLASS", "uid", "u" ],
+      "dependencies": {
+      	"ensemble": {
+        	"required": ["correlation"]
+        },
+        "correlation": {
+        	"required": ["ensemble"]
+        }
+      },
+      "additionalProperties": false    
+    },
+    "tagged": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": { "CLASS": { "type": "string" } },
+          "if": { "properties": { "CLASS": { "const": "ElementaryReal" } } },
+          "then": {"$ref": "#/$defs/elementaryReal" },
+          "else": {
+            "if": { "properties": { "CLASS": { "const": "IntermediateReal" } } },
+            "then": {"$ref": "#/$defs/IntermediateReal"},
+            "else":{
+              "if":{ "properties": { "CLASS": { "const": "Complex" } },
+              "then": {"$ref": "#/$defs/Complex"} },
+              "else": {
+                "type": "object",  
+                "additionalProperties": false,
+                "errorMessage": "Unexpected value for CLASS property"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false      
+    }    
+  },
+  "type": "object",
+  "properties": {
+    "CLASS": { "const": "Archive" },
+    "leaf_nodes": {
+      "type": "object",
+      "patternProperties": {
+        "^\\(\\d+,\\s*\\d+\\)$": { "$ref": "#/$defs/leaf_node" },
+        "additionalProperties": false
+      }
+    },
+    "tagged": { "$ref": "#/$defs/tagged" },
+    "tagged_reals": { "$ref": "#/$defs/tagged" },
+    "intermediate_uids": {
+      "type": "object",
+      "patternProperties": {
+        "^\\(\\d+,\\s*\\d+\\)$": {  
+            "type": "array",
+            "items": [
+                { "$ref": "#/$defs/string_or_null" },
+                { "type": "number" },
+                { "$ref": "#/$defs/df" }
+            ]
+        },
+        "additionalProperties": false
+      }        
+    }
+  },
+  "required": [
+    "CLASS", 
+    "leaf_nodes", 
+    "tagged", 
+    "tagged_reals", 
+    "intermediate_uids"
+  ],
+  "additionalProperties": false
+}

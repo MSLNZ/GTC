@@ -1,7 +1,38 @@
 import unittest
 import os
+import sys
+
+import json
+
 
 from GTC import *
+
+#-----------------------------------------------------
+class TestArchiveJSONSchema135(unittest.TestCase):
+    def test(self):
+
+        wdir =  os.path.dirname(__file__)
+        
+        schema_file = r"../GTC/schema/gtc_v_1_3_5.json"
+        _file = os.path.join(wdir,schema_file)       
+        with open(_file,'r') as s:
+            schema = json.load(s)
+
+        fname = 'ref_file_v_1_3_3.json'        
+        _file = os.path.join(wdir,fname)
+        with open(_file,'r') as f:
+            file = json.load(f)
+
+        if sys.version_info >= (3,7):
+            from jsonschema import Draft201909Validator
+            self.assertTrue( 
+                Draft201909Validator(schema).is_valid(file)
+            )
+
+        from jsonschema import Draft7Validator
+        self.assertTrue( 
+            Draft7Validator(schema).is_valid(file)
+        )
 
 #-----------------------------------------------------
 class TestArchiveJSONFilev133(unittest.TestCase):

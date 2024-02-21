@@ -67,20 +67,25 @@ class Context(object):
         Return an ID number
 
         Each intermediate uncertain number has
-        a unique ID composed of the context's ID
-        and an integer.
+        a unique 3-tuple ID. the tuple is composed of 
+        the context's ID, an integer, and 0.
+        
 
         Returns
         -------
-        ID : tuple(context_ID,integer)
+        ID : tuple(context_ID,integer,0)
         
         
         ..Note:
         
-            The ID generated here has the same  
-            format as elementary UIDs, but they  
-            are independent: values can overlap!
-            
+            The 3-tuple intermediate ID format is distinct 
+            from the 2-tuple elementary ID format.
+            The first two values in an intermediate ID may 
+            also occur in the an elementary ID, but the IDs
+            are not considered equal.
+           
+        ..versionchanged:: 1.3.7
+        
         """
         # Note the format of intermediate uncertain-number UIDs 
         # differs from elementary uncertain-number UIDs (changed in v1.3.7).

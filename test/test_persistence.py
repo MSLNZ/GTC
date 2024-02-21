@@ -18,6 +18,48 @@ TOL = 1E-13
 #-----------------------------------------------------
 class TestArchive(unittest.TestCase):
 
+    def test_add_extract(self):
+        """
+        When Archives are created they may have UNs added to them.
+        However, as soon as they are stored (dumped) they cannot 
+        be written to any more.
+
+        Similarly, when an Archive is created by loading data from a file,
+        it cannot have UNs added to it.
+        
+        """
+        context._context = Context()
+        
+        x = ureal(1,1)
+        y = ureal(2,1)
+        z = result( x + y )
+
+        ar = persistence.Archive()
+        ar.add(x=x,z=z)
+        
+        ar._freeze()
+        self.assertRaises(RuntimeError,ar.add,y=y)   
+
+        # Cannot thaw a frozen archive and continue to add to it
+        self.assertRaises(RuntimeError,ar._thaw)
+        
+        # # But you can thaw and reread an archive 
+        # # (Should we prevent this? It is currently tolerated in many tests.)
+        # z1 = ar.extract("z")
+        # self.assertTrue( equivalent(z1.x,z.x) )
+        
+        ar = persistence.Archive()
+        ar.add(x=x,z=z)
+        s = persistence.dumps_json(ar)
+        
+        # A new Archive is created by loading
+        ar2 = persistence.loads_json(s) 
+        z2 = ar2.extract("z")
+        self.assertTrue( equivalent(z2.x,z.x) )
+        
+        # It cannot be added to
+        self.assertRaises(RuntimeError,ar2.add,y=y)          
+
     def test_context_management(self):
         """
         Context registers should be updated when all dependence
@@ -43,7 +85,8 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack and test
-        context._context = Context()
+        # Cheating
+        ar._dump = False        
         ar._thaw()
         
         y1, y2, y3 = ar.extract('x1','x2','x3')
@@ -118,7 +161,7 @@ class TestArchive(unittest.TestCase):
 
         self.assertRaises(RuntimeError,ar.extract,'x')  # cannot extract yet
         
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw( )
 
         self.assertRaises(RuntimeError,ar.add,y=y)  # cannot add now
@@ -170,7 +213,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
                 
         # Unpack and check 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         # Single argument unpacks to an object
@@ -238,9 +281,9 @@ class TestArchive(unittest.TestCase):
         """
         context._context = Context()
         
-        x = ureal(1,1)
-        y = ureal(2,1)
-        z = result( x + y )
+        x = ureal(1,1,label='x')
+        y = ureal(2,1,label='y')
+        z = result( x + y, label='z' )
 
         ar = persistence.Archive()
 
@@ -248,7 +291,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # Unpack and check 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -256,12 +299,15 @@ class TestArchive(unittest.TestCase):
         self.assertEqual(x.x,x1.x)
         self.assertEqual(x.u,x1.u)
         self.assertEqual(x.df,x1.df)
+        self.assertEqual(x.label,x1.label)
         self.assertEqual(y.x,y1.x)
         self.assertEqual(y.u,y1.u)
         self.assertEqual(y.df,y1.df)
+        self.assertEqual(y.label,y1.label)
         self.assertEqual(z.x,z1.x)
         self.assertEqual(z.u,z1.u)
         self.assertEqual(z.df,z1.df)
+        self.assertEqual(z.label,z1.label)
 
         a = component(z,x)
         b = component(z1,x1)
@@ -287,7 +333,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         
         y1, y2, y3 = ar.extract('x1','x2','x3')
@@ -339,7 +385,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         y4, y5, y6 = ar.extract('x4','x5','x6')
@@ -377,7 +423,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         y4, y5, y6 = ar.extract('x4','x5','x6')
@@ -418,7 +464,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         y1, y2, y3 = ar.extract('x1','x2','x3')
@@ -469,7 +515,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         y4, y5, y6 = ar.extract('x4','x5','x6')
@@ -510,7 +556,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         y4, y5, y6 = ar.extract('x4','x5','x6')
         
@@ -553,7 +599,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         y4 = ar['x4']
@@ -605,7 +651,7 @@ class TestArchive(unittest.TestCase):
         # This is a fudge. Normally, a different 
         # archive object would be created from a 
         # file or string. 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         
         v1, i1, phi1 = ar.extract('v','i','phi')
@@ -678,7 +724,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         r1, x1, z1 = ar.extract('r','x','z')
@@ -729,7 +775,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack without elementary uns and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         yy, xx4, xx5, xx1 = ar.extract('y','x4','x5','x1')
 
@@ -797,9 +843,9 @@ class TestArchive(unittest.TestCase):
         """
         context._context = Context()
         
-        x = ucomplex(1,[1,2],4)
-        y = ucomplex(1,[3,12],3)
-        z = result( x * y )
+        x = ucomplex(1,[1,2],4,label='x')
+        y = ucomplex(1,[3,12],3,label='y')
+        z = result( x * y , label='z')
 
         ar = persistence.Archive()
         ar.add(x=x)
@@ -808,7 +854,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -819,14 +865,23 @@ class TestArchive(unittest.TestCase):
         self.assertTrue( equivalent_complex(x1.x,x.x) )
         self.assertTrue( equivalent_sequence(x1.u,x.u) )
         self.assertTrue( equivalent(x1.df,x.df) )
+        self.assertTrue( x1.label,x.label )
+        self.assertTrue( x1.real.label,x.real.label )
+        self.assertTrue( x1.imag.label,x.imag.label )
 
         self.assertTrue( equivalent_complex(y1.x,y.x) )
         self.assertTrue( equivalent_sequence(y1.u,y.u) )
         self.assertTrue( equivalent(y1.df,y.df) )
+        self.assertTrue( y1.label,y.label )
+        self.assertTrue( y1.real.label,y.real.label )
+        self.assertTrue( y1.imag.label,y.imag.label )
         
         self.assertTrue( equivalent_complex(z1.x,z.x) )
         self.assertTrue( equivalent_sequence(z1.u,z.u) )
         self.assertTrue( equivalent(z1.df,z.df) )
+        self.assertTrue( z1.label,z.label )
+        self.assertTrue( z1.real.label,z.real.label )
+        self.assertTrue( z1.imag.label,z.imag.label )
 
         # Make sure the vector of components is well-formed
         self.assertTrue( is_ordered(y1.real._u_components) )
@@ -856,7 +911,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x4=x4,x5=x5,x6=x6)
         ar._freeze()
 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         y4, y5, y6 = ar.extract('x4','x5','x6')
 
@@ -917,7 +972,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x1=x1,x2=x2,x3=x3,x4=x4,x5=x5,x6=x6)
         ar._freeze()
 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw( )
         y4, y5, y6 = ar.extract('x4','x5','x6')
 
@@ -982,7 +1037,7 @@ class TestArchive(unittest.TestCase):
         ar['x6'] = x6 
         ar._freeze()
 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw( )
         y4 = ar['x4']
         y5 = ar['x5']
@@ -1051,7 +1106,7 @@ class TestArchive(unittest.TestCase):
         ar['x7'] = x7
         ar._freeze()
 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         y4 = ar['x4']
         y5 = ar['x5']
@@ -1115,7 +1170,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x7=x7)
         ar._freeze()
 
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw( )
         y1 = ar['x1']
         y2 = ar['x2']
@@ -1182,14 +1237,12 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        f = open(path,'wb')
-        persistence.dump(f,ar)
-        f.close()
+        with open(path,'wb') as f:
+            persistence.dump(f,ar)
 
         context._context = Context()
-        f = open(path,'rb')
-        ar = persistence.load(f)
-        f.close()
+        with open(path,'rb') as f:
+            ar = persistence.load(f)
         os.remove(path)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1307,7 +1360,6 @@ class TestArchive(unittest.TestCase):
         with open(path,'wb') as f:
             persistence.dump(f,ar)
 
-        context._context = Context()
         with open(path,'rb') as f:
             ar = persistence.load(f)
 
@@ -1343,7 +1395,6 @@ class TestArchive(unittest.TestCase):
         with open(path,'wb') as f:
             persistence.dump(f,ar)
 
-        context._context = Context()
         with open(path,'rb') as f:
             ar = persistence.load(f)
 
@@ -1427,7 +1478,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1459,8 +1509,6 @@ class TestArchive(unittest.TestCase):
 
         s = persistence.dumps(ar)
 
-        context._context = Context()
-        
         ar1 = persistence.loads(s)
         z1 = ar1.extract('z')
 
@@ -1491,7 +1539,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1521,7 +1568,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1549,7 +1595,6 @@ class TestArchive(unittest.TestCase):
 
         db = persistence.dumps(ar)
 
-        context._context = Context()
         ar = persistence.loads(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1580,7 +1625,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # unpack and test
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         y1, y2, y3 = ar.extract('x1','x2','x3')
         yz1 = ar['z1']
@@ -1648,9 +1693,7 @@ class TestArchive(unittest.TestCase):
         ar.add(x1=x1,x2=x2,x3=x3)
         ar._freeze()
 
-        # Now add some more stuff and store
-        # in a second archive
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         
         y1 = ar['x1']
@@ -1693,7 +1736,7 @@ class TestArchive(unittest.TestCase):
         ar._freeze()
 
         # Now restore into a third Context
-        context._context = Context()
+        ar._dump = False    # Cheating
         ar._thaw()
         
         z1 = ar['y1']

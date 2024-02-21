@@ -42,6 +42,7 @@ Other topics
    :maxdepth: 1
 
     Conventional vs uncertain-number fitting <API/regression_functions.rst>
+    Serialising uncertain numbers <API/serialisation_model.rst>
 
 Release Notes
 -------------
