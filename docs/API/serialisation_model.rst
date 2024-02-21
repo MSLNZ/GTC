@@ -105,7 +105,7 @@ A few classes collect this labelled data (the collections are sets, where order 
 
     * ``Ensemble``  
 
-    .. figure:: ../images/dm/ensemble.png
+    .. figure:: ../images/dm/Ensemble.png
         :align: center
         :alt: Ensemble class
         
