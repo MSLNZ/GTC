@@ -48,6 +48,7 @@ except ImportError:
     PY2 = False
 
 from GTC import archive_old
+from GTC.deprecated import *
 
 from GTC.archive import Archive
 
@@ -80,7 +81,12 @@ __all__ = (
     'loads_xml',
 )
 
-#------------------------------------------------------------------     
+#------------------------------------------------------------------  
+@deprecated(
+    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
+    deprecated_in="1.5",
+    remove_in="2.0"
+)
 def dump(file,ar):
     """Save an archive in a file
 
@@ -107,6 +113,11 @@ def dump(file,ar):
     pickle.dump(ar,file,protocol=2)     # Change to 3 when GTC no longer supports Python 2.7
 
 #------------------------------------------------------------------     
+@deprecated(
+    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
+    deprecated_in="1.5",
+    remove_in="2.0"
+)
 def load(file):
     """Load an archive from a file
 
@@ -128,7 +139,7 @@ def load(file):
         old._ready = False     
         old._thaw()
         
-        ar = Archive.from_old_archive(old)
+        ar = Archive._from_old_archive(old)
     else:
         ar._dump = False
         ar._ready = False     
@@ -137,6 +148,11 @@ def load(file):
     return ar
 
 #------------------------------------------------------------------     
+@deprecated(
+    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
+    deprecated_in="1.5",
+    remove_in="2.0"
+)
 def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     """
     Save an archive pickled in a string  
@@ -165,6 +181,11 @@ def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
     return s
     
 #------------------------------------------------------------------     
+@deprecated(
+    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
+    deprecated_in="1.5",
+    remove_in="2.0"
+)
 def loads(s):
     """
     Return an archive object from a pickled string 
@@ -196,6 +217,11 @@ def dumps_json(ar,**kw):
     return s
 
 #------------------------------------------------------------------     
+@deprecated(
+    reason="Support for the legacy JSON format (prior to GTC v1.5) is being dropped.",
+    deprecated_in="1.5",
+    remove_in="2.0"
+)
 def loads_json(s,**kw):
     """
     Return an archive object by converting a JSON string  
@@ -224,7 +250,7 @@ def loads_json(s,**kw):
         # old._dump = False
         # old._ready = False     
         old._thaw()
-        ar = Archive.from_old_archive(old)
+        ar = Archive._from_old_archive(old)
     
     
     return ar
@@ -249,6 +275,11 @@ def dump_json(file,ar,**kw):
     return s
 
 #------------------------------------------------------------------     
+@deprecated(
+    reason="Support for the legacy JSON format (prior to GTC v1.5) is being dropped.",
+    deprecated_in="1.5",
+    remove_in="2.0"
+)
 def load_json(file,**kw):
     """Load an archive from a file
 

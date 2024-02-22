@@ -136,7 +136,7 @@ class Archive(object):
 
     # Support for legacy JSON format will be dropped in GTC 2
     @staticmethod
-    def from_old_archive(old):
+    def _from_old_archive(old):
         """Convert an old-style Archive to the class adopted in GTC v1.5.0"""
         
         # Requires a thawed archive
@@ -186,13 +186,13 @@ class Archive(object):
         """
         A copy constructor for archive objects.
         
-        A copy of the data in ``ar`` is returned in a 
-        new ``Archive`` object. 
+        A new ``Archive`` object is returned 
+        containing a copy of the data in ``ar``. 
         
-        The archive returned is in a state to accept added 
-        uncertain numbers. 
+        The returned archive can have more
+        uncertain numbers added, and can be stored. 
                  
-        :arg ar: An ``Archive`` object.                  
+        :arg ar: an archive object.                  
         :type ar: Archive
 
         .. versionadded:: 1.5.0 
