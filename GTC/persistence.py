@@ -217,11 +217,6 @@ def dumps_json(ar,**kw):
     return s
 
 #------------------------------------------------------------------     
-@deprecated(
-    reason="Support for the legacy JSON format (prior to GTC v1.5) is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
 def loads_json(s,**kw):
     """
     Return an archive object by converting a JSON string  
@@ -275,11 +270,6 @@ def dump_json(file,ar,**kw):
     return s
 
 #------------------------------------------------------------------     
-@deprecated(
-    reason="Support for the legacy JSON format (prior to GTC v1.5) is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
 def load_json(file,**kw):
     """Load an archive from a file
 
