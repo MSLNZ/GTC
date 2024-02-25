@@ -39,6 +39,7 @@ Module contents
 import re
 import json
 import xml.etree.cElementTree as ElementTree
+from io import BytesIO
 
 try:
     import cPickle as pickle  # Python 2
@@ -194,10 +195,20 @@ def loads(s):
     
     """
     ar = pickle.loads(s)
-    ar._dump = False
-    ar._ready = False     
-    ar._thaw()
-    
+
+    # Pickle may return a new-style Archive when unpickling a string
+    # containing the old-style class (pickle takes any Archive definition).
+    if hasattr(ar, "_tagged"):
+        old = archive_old.load(BytesIO(s))
+        old._dump = False
+        old._ready = False
+        old._thaw()
+        ar = Archive._from_old_archive(old)
+    else:
+        ar._dump = False
+        ar._ready = False
+        ar._thaw()
+
     return ar
 
 #------------------------------------------------------------------     

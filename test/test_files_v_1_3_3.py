@@ -6,6 +6,8 @@ import json
 
 
 from GTC import *
+from GTC.context import Context
+from GTC import context
 
 #-----------------------------------------------------
 class TestArchiveJSONSchema135(unittest.TestCase):
@@ -118,57 +120,62 @@ class TestArchivePickleFilev133(unittest.TestCase):
         path = os.path.join(wdir,fname)
 
         with open(path,'rb') as f:
-            ar = persistence.load(f)
-            f.close()
+            ar1 = persistence.load(f)
 
-        x1, y1, z1 = ar.extract('x','y','z')
-        
-        self.assertEqual( repr(x1), repr(ureal(1,1)) )
-        self.assertEqual( repr(y1), repr(ureal(2,1)) )
-        self.assertEqual( repr(z1), repr( ureal(1,1) + ureal(2,1) ) )
+        context._context = Context()
 
-        z1 = ar.extract('z1')
-        
-        self.assertEqual( 
-            repr(z1), 
-            repr( 
-                ureal(1,1,3) + ureal(2,1,4) 
-            ) 
-        )
+        with open(path,'rb') as f:
+            ar2 = persistence.loads(f.read())
 
-        x1, y1, z1 = ar.extract('x2','y2','z2')
+        for ar in [ar1, ar2]:
+            x1, y1, z1 = ar.extract('x','y','z')
 
-        x = ureal(1,1,independent=False)
-        y = ureal(2,1,independent=False)
-        r = 0.5
-        set_correlation(r,x,y)
+            self.assertEqual( repr(x1), repr(ureal(1,1)) )
+            self.assertEqual( repr(y1), repr(ureal(2,1)) )
+            self.assertEqual( repr(z1), repr( ureal(1,1) + ureal(2,1) ) )
 
-        self.assertEqual( repr(x1), repr(x) )
-        self.assertEqual( repr(y1), repr(y) )
-        self.assertEqual( repr(z1), repr(x+y) )
+            z1 = ar.extract('z1')
 
-        x1, y1, z1 = ar.extract('x3','y3','z3')
+            self.assertEqual(
+                repr(z1),
+                repr(
+                    ureal(1,1,3) + ureal(2,1,4)
+                )
+            )
 
-        x,y = multiple_ureal([1,2],[1,1],4)     
-        r = 0.5
-        set_correlation(r,x,y)
-        z = result( x + y )            
-        self.assertEqual( repr(x1), repr(x) )
-        self.assertEqual( repr(y1), repr(y) )
-        self.assertEqual( repr(z1), repr(z) )
-        
-        self.assertEqual( get_correlation(x1,y1), r )
+            x1, y1, z1 = ar.extract('x2','y2','z2')
 
-        x1, y1, z1 = ar.extract('x4','y4','z4')
+            x = ureal(1,1,independent=False)
+            y = ureal(2,1,independent=False)
+            r = 0.5
+            set_correlation(r,x,y)
 
-        x = ucomplex(1,[10,2,2,10],5)
-        y = ucomplex(1-6j,[10,2,2,10],7)
-        
-        z = result( log( x * y ) )
-            
-        self.assertEqual( repr(x1), repr(x) )
-        self.assertEqual( repr(y1), repr(y) )
-        self.assertEqual( repr(z1), repr(z) )
+            self.assertEqual( repr(x1), repr(x) )
+            self.assertEqual( repr(y1), repr(y) )
+            self.assertEqual( repr(z1), repr(x+y) )
+
+            x1, y1, z1 = ar.extract('x3','y3','z3')
+
+            x,y = multiple_ureal([1,2],[1,1],4)
+            r = 0.5
+            set_correlation(r,x,y)
+            z = result( x + y )
+            self.assertEqual( repr(x1), repr(x) )
+            self.assertEqual( repr(y1), repr(y) )
+            self.assertEqual( repr(z1), repr(z) )
+
+            self.assertEqual( get_correlation(x1,y1), r )
+
+            x1, y1, z1 = ar.extract('x4','y4','z4')
+
+            x = ucomplex(1,[10,2,2,10],5)
+            y = ucomplex(1-6j,[10,2,2,10],7)
+
+            z = result( log( x * y ) )
+
+            self.assertEqual( repr(x1), repr(x) )
+            self.assertEqual( repr(y1), repr(y) )
+            self.assertEqual( repr(z1), repr(z) )
         
 #============================================================================
 if(__name__== '__main__'):
