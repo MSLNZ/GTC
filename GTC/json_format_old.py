@@ -3,7 +3,6 @@ This module handles conversion of an archive object to a JSON format
 and then restoration of an archive from JSON.
 """
 import json
-from GTC.deprecated import *
 
 from GTC.archive_old import (
     Archive,
