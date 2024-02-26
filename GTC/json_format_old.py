@@ -3,7 +3,6 @@ This module handles conversion of an archive object to a JSON format
 and then restoration of an archive from JSON.
 """
 import json
-from GTC.deprecated import *
 
 from GTC.archive_old import (
     Archive,
@@ -155,12 +154,7 @@ class JSONArchiveEncoder(json.JSONEncoder):
             
 #----------------------------------------------------------------------------
 # 
-@deprecated(
-    reason="Support for the legacy JSON format (prior to GTC v1.5) is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
-def json_to_archive(j): 
+def json_to_archive(j):
     """
     Called during retrieval of an archive in JSON format by `json.loads()`
     The function is called, when `loads()` parses the JSON record, every time 
