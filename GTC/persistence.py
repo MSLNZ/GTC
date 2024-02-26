@@ -49,6 +49,7 @@ except ImportError:
 
 from GTC import archive_old
 from GTC.deprecated import *
+from GTC.deprecated import _warn
 
 from GTC.archive import Archive
 
@@ -231,12 +232,15 @@ def loads_json(s,**kw):
     pattern = r'"version": "{}"'.format(
         re.sub(r'\.', r'\.',JSON_SCHEMA)
     )
+    stacklevel = kw.pop('stacklevel', 3)
     if re.search(pattern, s):
         ar = json.loads(s,object_hook=json_to_archive,**kw)    
         # ar._dump = False
         # ar._ready = False     
         ar._thaw()
     else:
+        _warn('Support for the legacy JSON format (prior to GTC v1.5) is being dropped in GTC v2.0',
+              stacklevel=stacklevel)
         old = json_format_old.json.loads(
             s,
             object_hook=json_format_old.json_to_archive,
@@ -280,7 +284,7 @@ def load_json(file,**kw):
     .. versionadded:: 1.3.0
     """
     s = file.read()
-    ar = loads_json(s,**kw)
+    ar = loads_json(s, stacklevel=4, **kw)
     
     return ar
 
