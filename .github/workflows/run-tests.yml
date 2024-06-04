@@ -5,6 +5,7 @@ on: [push, pull_request]
 env:
   PY_COLORS: 1
   COLUMNS: 110
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
 
 jobs:
   test:
