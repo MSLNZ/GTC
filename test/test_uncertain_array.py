@@ -6,11 +6,9 @@ import tempfile
 import sys
 try:
     from itertools import izip  # Python 2
-    import cPickle as pickle
     PY2 = True
 except ImportError:
     izip = zip
-    import pickle
     PY2 = False
 
 import numpy as np
@@ -3333,19 +3331,6 @@ class TestUncertainArray(unittest.TestCase):
     def test_ctypes(self):
         # just testing that calling ctypes does not raise an exception
         self.assertTrue(isinstance(self.xa.ctypes, object))
-
-    def test_dump_dumps(self):
-        d = self.xa.dumps()
-        xa = pickle.loads(d)
-        self.assertTrue(np.array_equal(self.xa, xa))
-
-        path = os.path.join(tempfile.gettempdir(), 'uarray-dump.dat')
-        with open(path, 'wb') as fp:
-            self.xa.dump(fp)
-        with open(path, 'rb') as fp:
-            xa = pickle.load(fp)
-        self.assertTrue(np.array_equal(self.xa, xa))
-        os.remove(path)
 
     def test_tofile(self):
         path = os.path.join(tempfile.gettempdir(), 'uarray-tofile.txt')

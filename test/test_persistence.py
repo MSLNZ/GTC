@@ -1225,7 +1225,7 @@ class TestArchive(unittest.TestCase):
         Save to a file and then restore by reading
         """
         wdir = os.getcwd()
-        fname = 'test_file.pkl'
+        fname = 'test_file.json'
         path = os.path.join(wdir,fname)
 
         context._context = Context()
@@ -1237,12 +1237,12 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        with open(path,'wb') as f:
-            persistence.dump(f,ar)
+        with open(path,'wt') as f:
+            persistence.dump_json(f,ar)
 
         context._context = Context()
-        with open(path,'rb') as f:
-            ar = persistence.load(f)
+        with open(path,'rt') as f:
+            ar = persistence.load_json(f)
         os.remove(path)
 
         x1, y1, z1 = ar.extract('x','y','z')
@@ -1258,7 +1258,7 @@ class TestArchive(unittest.TestCase):
         
         """
         wdir = os.getcwd()
-        fname = 'test_file.pkl'
+        fname = 'test_file.json'
         path = os.path.join(wdir,fname)
 
         context._context = Context()
@@ -1276,21 +1276,21 @@ class TestArchive(unittest.TestCase):
         
         ar.add(z=z)
 
-        with open(path,'wb') as f:
-            persistence.dump(f,ar)
+        with open(path,'wt') as f:
+            persistence.dump_json(f,ar)
 
         context._context = Context()
         
-        with open(path,'rb') as f:
-            ar1 = persistence.load(f)
+        with open(path,'rt') as f:
+            ar1 = persistence.load_json(f)
             z1 = ar1.extract('z')
 
         self.assertEqual( repr(z1), repr(z) )
 
-        with open(path,'rb') as f:
+        with open(path,'rt') as f:
             # The attempt to create the uncertain number again is allowed 
             # but should not create a new node object 
-            ar2 = persistence.load(f)
+            ar2 = persistence.load_json(f)
             z2 = ar2.extract('z')
             self.assertTrue( z2.is_intermediate )
             self.assertTrue( z1._node is z2._node )
@@ -1302,7 +1302,7 @@ class TestArchive(unittest.TestCase):
         Dependent elementary UNs
         """
         wdir = os.getcwd()
-        fname = 'test_file.pkl'
+        fname = 'test_file.json'
         path = os.path.join(wdir,fname)
 
         context._context = Context()
@@ -1319,12 +1319,12 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        with open(path,'wb') as f:
-            persistence.dump(f,ar)
+        with open(path,'wt') as f:
+            persistence.dump_json(f,ar)
 
         context._context = Context()
-        with open(path,'rb') as f:
-            ar = persistence.load(f)
+        with open(path,'rt') as f:
+            ar = persistence.load_json(f)
             
         os.remove(path)
 
@@ -1341,7 +1341,7 @@ class TestArchive(unittest.TestCase):
         Correlations with finite DoF
         """
         wdir = os.getcwd()
-        fname = 'test_file.pkl'
+        fname = 'test_file.json'
         path = os.path.join(wdir,fname)
 
         context._context = Context()
@@ -1357,11 +1357,11 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        with open(path,'wb') as f:
-            persistence.dump(f,ar)
+        with open(path,'wt') as f:
+            persistence.dump_json(f,ar)
 
-        with open(path,'rb') as f:
-            ar = persistence.load(f)
+        with open(path,'rt') as f:
+            ar = persistence.load_json(f)
 
         os.remove(path)
 
@@ -1378,7 +1378,7 @@ class TestArchive(unittest.TestCase):
         Complex
         """
         wdir = os.getcwd()
-        fname = 'test_file.pkl'
+        fname = 'test_file.json'
         path = os.path.join(wdir,fname)
 
         context._context = Context()
@@ -1392,11 +1392,11 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        with open(path,'wb') as f:
-            persistence.dump(f,ar)
+        with open(path,'wt') as f:
+            persistence.dump_json(f,ar)
 
-        with open(path,'rb') as f:
-            ar = persistence.load(f)
+        with open(path,'rt') as f:
+            ar = persistence.load_json(f)
 
         os.remove(path)
 
@@ -1414,8 +1414,8 @@ class TestArchive(unittest.TestCase):
         
         """
         wdir = os.getcwd()
-        fname1 = 'test_file_1.pkl'
-        fname2 = 'test_file_2.pkl'
+        fname1 = 'test_file_1.json'
+        fname2 = 'test_file_2.json'
         path1 = os.path.join(wdir,fname1)
         path2 = os.path.join(wdir,fname2)
 
@@ -1435,12 +1435,12 @@ class TestArchive(unittest.TestCase):
         # gets created.
         
         ar1.add(z1=z1)
-        with open(path1,'wb') as f:
-            persistence.dump(f,ar1)
+        with open(path1,'wt') as f:
+            persistence.dump_json(f,ar1)
 
         ar2.add(z2=z2)
-        with open(path2,'wb') as f:
-            persistence.dump(f,ar2)
+        with open(path2,'wt') as f:
+            persistence.dump_json(f,ar2)
 
         # Now both archives have the same 
         # Leaf node dependencies, restoring 
@@ -1449,13 +1449,13 @@ class TestArchive(unittest.TestCase):
         # recognise that the leaves are the same. 
         context._context = Context()
         
-        with open(path1,'rb') as f:
-            ar1 = persistence.load(f)
+        with open(path1,'rt') as f:
+            ar1 = persistence.load_json(f)
 
         z1 = ar1.extract('z1')
 
-        with open(path2,'rb') as f:
-            ar2 = persistence.load(f)
+        with open(path2,'rt') as f:
+            ar2 = persistence.load_json(f)
 
         z2 = ar2.extract('z2')
 
@@ -1476,9 +1476,9 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        db = persistence.dumps(ar)
+        db = persistence.dumps_json(ar)
 
-        ar = persistence.loads(db)
+        ar = persistence.loads_json(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
 
@@ -1507,14 +1507,14 @@ class TestArchive(unittest.TestCase):
         
         ar.add(z=z)
 
-        s = persistence.dumps(ar)
+        s = persistence.dumps_json(ar)
 
-        ar1 = persistence.loads(s)
+        ar1 = persistence.loads_json(s)
         z1 = ar1.extract('z')
 
         # The attempt to create a new uncertain number
         # is allowed but a new node is not created
-        ar2 = persistence.loads(s)
+        ar2 = persistence.loads_json(s)
         z2 = ar2.extract('z')
         self.assertTrue(z2.is_intermediate)
         self.assertTrue( z2._node is z1._node)
@@ -1537,9 +1537,9 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        db = persistence.dumps(ar)
+        db = persistence.dumps_json(ar)
 
-        ar = persistence.loads(db)
+        ar = persistence.loads_json(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
 
@@ -1566,9 +1566,9 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        db = persistence.dumps(ar)
+        db = persistence.dumps_json(ar)
 
-        ar = persistence.loads(db)
+        ar = persistence.loads_json(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
 
@@ -1593,9 +1593,9 @@ class TestArchive(unittest.TestCase):
 
         ar.add(x=x,y=y,z=z)
 
-        db = persistence.dumps(ar)
+        db = persistence.dumps_json(ar)
 
-        ar = persistence.loads(db)
+        ar = persistence.loads_json(db)
 
         x1, y1, z1 = ar.extract('x','y','z')
 

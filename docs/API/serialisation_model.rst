@@ -47,7 +47,7 @@ Serialisation
 
 The goal of serialisation is to store enough detail about the uncertain numbers selected for storage to allow them to be restored in a different Python session and used there without loss of information.
  
-We focus here on what we call marshalling the uncertain-number data, which involves preparation of data for storage (serialisation) and restoration of data after retrieval. The processes are the same whatever storage format is used. GTC currently offers three options: pickle (Python's own storage format), JSON, and XML. However, pickle will not be supported in GTC v.2.0.
+We focus here on what we call marshalling the uncertain-number data, which involves preparation of data for storage (serialisation) and restoration of data after retrieval. The processes are the same whatever storage format is used. GTC currently offers two options: JSON and XML.
 
 Marshalling involves an 'archive' object, which has five collections of data. The different types of element in these collections are described in more detail below. However, to get an overview, we first note that some of the collections are associated with 'nodes', while the rest are associated with real or complex uncertain numbers. This terminology relates to the way GTC represents data. Node objects hold information that is needed to evaluate results, but is not required to propagate uncertainty.
 

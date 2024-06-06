@@ -935,7 +935,3 @@ class UncertainArray(np.ndarray):
             "`all` is not defined for `UncertainArray`"
         )
         # return UncertainArray(np.asarray(self, dtype=bool).all(*args, **kwargs))
-
-
-# Allows pickle to understand the class name 'uarray'
-uarray = UncertainArray
