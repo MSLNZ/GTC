@@ -2,16 +2,6 @@
 Functions
 ---------    
 
-    Functions for storing and retrieving archive files using Python pickle format are
-    
-        * :func:`dump`
-        * :func:`load`
-
-    Functions for storing and retrieving pickled archive strings are
-
-        * :func:`dumps`
-        * :func:`loads`
-
     Functions for storing and retrieving archive files using JSON format are
 
         * :func:`dump_json`
@@ -39,17 +29,7 @@ Module contents
 import re
 import json
 import xml.etree.cElementTree as ElementTree
-from io import BytesIO
 
-try:
-    import cPickle as pickle  # Python 2
-    PY2 = True
-except ImportError:
-    import pickle
-    PY2 = False
-
-from GTC import archive_old
-from GTC.deprecated import *
 from GTC.deprecated import _warn
 
 from GTC.archive import Archive
@@ -69,10 +49,6 @@ from GTC.xml_format import (
 
 __all__ = (
     'Archive',
-    'load',
-    'dump',
-    'dumps',
-    'loads',
     'dump_json',
     'load_json',
     'dumps_json',
@@ -83,134 +59,6 @@ __all__ = (
     'loads_xml',
 )
 
-#------------------------------------------------------------------  
-@deprecated(
-    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
-def dump(file,ar):
-    """Save an archive in a file
-
-    :arg file:  a file object opened in binary mode (with 'wb')
-                
-    :arg ar: an :class:`Archive` object
-      
-    Several archives can be saved in the same file 
-    by repeated use of this function.
-    
-    """
-    ar._freeze()
-
-# About pickle protocols (from 3.8 docs, abridged)
-# 0 is the original 'human-readable' protocol and is backwards compatible with earlier versions of Python.
-# 1 is an old binary format which is also compatible with earlier versions of Python.
-# 2 was introduced in Python 2.3. It provides much more efficient pickling of new-style classes. 
-# 3 was added in Python 3.0. It has explicit support for bytes objects and cannot be unpickled by Python 2.x. 
-#    This was the default protocol in Python 3.0 - 3.7.
-# 4 was added in Python 3.4. It adds support for very large objects, pickling more kinds of objects, and some data format optimizations. 
-#    It is the default protocol starting with Python 3.8. 
-# 5 was added in Python 3.8. It adds support for out-of-band data and speedup for in-band data. 
-
-    pickle.dump(ar,file,protocol=2)     # Change to 3 when GTC no longer supports Python 2.7
-
-#------------------------------------------------------------------     
-@deprecated(
-    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
-def load(file):
-    """Load an archive from a file
-
-    :arg file:  a file object opened in binary mode (with 'rb')
-
-    Several archives can be extracted from 
-    the same file by repeatedly calling this function.
-    
-    """
-    ar = pickle.load(file)
-    
-    # Pickle may return a new-style Archive when unpickling a file 
-    # containing the old-style class (pickle takes any Archive definition). 
-    if hasattr(ar,"_tagged"):
-        file.seek(0)
-        
-        old = archive_old.load(file)
-        old._dump = False
-        old._ready = False     
-        old._thaw()
-        
-        ar = Archive._from_old_archive(old)
-    else:
-        ar._dump = False
-        ar._ready = False     
-        ar._thaw()
-    
-    return ar
-
-#------------------------------------------------------------------     
-@deprecated(
-    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
-def dumps(ar,protocol=pickle.HIGHEST_PROTOCOL):
-    """
-    Save an archive pickled in a string  
-
-    :arg ar: an :class:`Archive` object
-    :arg protocol: encoding type 
-
-    Possible values for :ref:`protocol <pickle-protocols>` are described in the
-    Python documentation for the :mod:`pickle` module.
-
-    ``protocol=0`` creates an ASCII string, but note
-    that many (special) linefeed characters are embedded.
-    
-    """
-    # Can save one of these strings in a single binary file,
-    # using write(), when protocol=pickle.HIGHEST_PROTOCOL is used. 
-    # A corresponding read() is required to extract the string. 
-    # Alternatively, when protocol=0 is used a text file can be 
-    # used, but again write() and read() have to be used, 
-    # because otherwise the embedded `\n` characters are 
-    # interpreted incorrectly.
-    
-    ar._freeze()
-    s = pickle.dumps(ar,protocol)
-    
-    return s
-    
-#------------------------------------------------------------------     
-@deprecated(
-    reason="Support for Python pickle to store and retrieve GTC archives is being dropped.",
-    deprecated_in="1.5",
-    remove_in="2.0"
-)
-def loads(s):
-    """
-    Return an archive object from a pickled string 
-
-    :arg s: a string created by :func:`dumps`
-    
-    """
-    ar = pickle.loads(s)
-
-    # Pickle may return a new-style Archive when unpickling a string
-    # containing the old-style class (pickle takes any Archive definition).
-    if hasattr(ar, "_tagged"):
-        old = archive_old.load(BytesIO(s))
-        old._dump = False
-        old._ready = False
-        old._thaw()
-        ar = Archive._from_old_archive(old)
-    else:
-        ar._dump = False
-        ar._ready = False
-        ar._thaw()
-
-    return ar
 
 #------------------------------------------------------------------     
 def dumps_json(ar,**kw):

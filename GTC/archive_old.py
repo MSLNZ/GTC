@@ -10,7 +10,6 @@ Module contents
 """
 import itertools
 import sys
-import pickle 
 
 PY2 = bool( sys.version_info[0] == 2 )
 
@@ -25,27 +24,9 @@ __all__ = (
     'Archive',
 )
 
-#------------------------------------------------------------------     
-class _Unpickler(pickle.Unpickler, object):
-    """
-    Prefer classes defined in this module over any others
-    """
-    def find_class(self, module, name):
-        if hasattr(sys.modules[__name__],name):
-            return getattr(sys.modules[__name__],name)
-        else:
-            return super(_Unpickler,self).find_class(module, name)
-
-def load(file):
-    """
-    To unpickle an older-style Archive 
-    """
-    return _Unpickler(file).load()
-
 #============================================================================
 # When an archive is prepared for storage, uncertain number objects 
-# are translated into the following simple representations that
-# Python will pickle.
+# are translated into the following simple representations
 #
 class LeafNode(object):
     def __init__(self,node):
@@ -336,13 +317,13 @@ class Archive(object):
         .. invisible-code-block: pycon
         
             >>> import tempfile
-            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.gar', 'wb')
+            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.json', 'wt')
 
-        Here ``f`` is a file stream opened in mode 'wb':
+        Here ``f`` is a file stream opened in mode 'wt':
         
         .. code-block:: pycon   
         
-            >>> pr.dump(f, a)
+            >>> pr.dump_json(f, a)
             >>> f.close()
    
 
@@ -386,16 +367,16 @@ class Archive(object):
         **Example**
         
         Continuing the example in :meth:`~.Archive.add`, but in a different 
-        Python session, ``f`` is now a file stream opened in 'rb' mode:
+        Python session, ``f`` is now a file stream opened in 'rt' mode:
 
         .. invisible-code-block: pycon
 
             >>> import tempfile
-            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.gar', 'rb')
+            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.json', 'rt')
             
         .. code-block:: pycon
         
-            >>> a = pr.load(f)
+            >>> a = pr.load_json(f)
             >>> f.close()
             
             >>> a.extract('fred')
@@ -411,7 +392,7 @@ class Archive(object):
         .. invisible-code-block: pycon
             
             >>> import os, tempfile
-            >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.gar')
+            >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.json')
   
         """        
         lst = [ self._getitem(n) for n in args ]               

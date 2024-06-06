@@ -48,49 +48,12 @@ class TestArchiveCopy(unittest.TestCase):
         ar4.add(x4=x4)
         self.assertEqual(4,len(ar4._tagged_real)) 
 
-    def test_1_3_3_pickle(self):
-        fname = r'ref_file_v_1_3_3.gar'
-        wdir =  os.path.dirname(__file__)
-        path = os.path.join(wdir,fname)
-
-        with open(path,'rb') as f:
-            # Old format pickle Archive
-            ar = persistence.load(f)
-        
-        ar2 = pr.Archive.copy(ar) 
-        s_rep = persistence.dumps_json(ar2)
-
-    def test_1_3_5_pickle(self):
-        fname = r'ref_file_v_1_3_5.gar'
-        wdir =  os.path.dirname(__file__)
-        path = os.path.join(wdir,fname)
-
-        with open(path,'rb') as f:
-            # Old format pickle Archive
-            ar = persistence.load(f)
-        
-        ar2 = pr.Archive.copy(ar) 
-        s_rep = persistence.dumps_json(ar2)
-
-    def test_1_5_0_pickle(self):
-        fname = r'ref_file_v_1_5_0.gar'
-        wdir =  os.path.dirname(__file__)
-        path = os.path.join(wdir,fname)
-
-        with open(path,'rb') as f:
-            # Old format pickle Archive
-            ar = persistence.load(f)
-        
-        ar2 = pr.Archive.copy(ar) 
-        s_rep = persistence.dumps_json(ar2)
-
     def test_1_3_3_json(self):
         fname = r'ref_file_v_1_3_3.json'
         wdir =  os.path.dirname(__file__)
         path = os.path.join(wdir,fname)
 
         with open(path,'r') as f:
-            # Old format pickle Archive
             ar = persistence.load_json(f)
         
         ar2 = pr.Archive.copy(ar) 
@@ -102,7 +65,6 @@ class TestArchiveCopy(unittest.TestCase):
         path = os.path.join(wdir,fname)
 
         with open(path,'r') as f:
-            # Old format pickle Archive
             ar = persistence.load_json(f)
         
         ar2 = pr.Archive.copy(ar) 
@@ -114,7 +76,6 @@ class TestArchiveCopy(unittest.TestCase):
         path = os.path.join(wdir,fname)
 
         with open(path,'r') as f:
-            # Old format pickle Archive
             ar = persistence.load_json(f)
         
         ar2 = pr.Archive.copy(ar) 
