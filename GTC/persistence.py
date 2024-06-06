@@ -26,21 +26,14 @@ Module contents
 ---------------
 
 """
-import re
 import json
 import xml.etree.cElementTree as ElementTree
 
-from GTC.deprecated import _warn
-
 from GTC.archive import Archive
-
-# Support for legacy format will be dropped in GTC 2
-from GTC import json_format_old
 
 from GTC.json_format import (
     JSONArchiveEncoder,
     json_to_archive,
-    JSON_SCHEMA,
 )
 from GTC.xml_format import (
     archive_to_xml,
@@ -87,30 +80,9 @@ def loads_json(s,**kw):
     
     .. versionadded:: 1.3.0
     """
-    # Support for legacy JSON format will be dropped in GTC 2
-    pattern = r'"version": "{}"'.format(
-        re.sub(r'\.', r'\.',JSON_SCHEMA)
-    )
-    stacklevel = kw.pop('stacklevel', 3)
-    if re.search(pattern, s):
-        ar = json.loads(s,object_hook=json_to_archive,**kw)    
-        # ar._dump = False
-        # ar._ready = False     
-        ar._thaw()
-    else:
-        _warn('Support for the legacy JSON format (prior to GTC v1.5) is being dropped in GTC v2.0',
-              stacklevel=stacklevel)
-        old = json_format_old.json.loads(
-            s,
-            object_hook=json_format_old.json_to_archive,
-            **kw
-        )    
-        # old._dump = False
-        # old._ready = False     
-        old._thaw()
-        ar = Archive._from_old_archive(old)
-    
-    
+    ar = json.loads(s,object_hook=json_to_archive,**kw)
+    ar._thaw()
+
     return ar
     
 #------------------------------------------------------------------     
@@ -143,7 +115,7 @@ def load_json(file,**kw):
     .. versionadded:: 1.3.0
     """
     s = file.read()
-    ar = loads_json(s, stacklevel=4, **kw)
+    ar = loads_json(s, **kw)
     
     return ar
 
