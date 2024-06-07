@@ -22,9 +22,9 @@ from GTC import version, copyright
 
 # -- Project information -----------------------------------------------------
 
-project = u'GUM Tree Calculator'
+project = 'GUM Tree Calculator'
 copyright =copyright
-author = u'Measurement Standards Laboratory of New Zealand'
+author = 'Measurement Standards Laboratory of New Zealand'
 
 # The short X.Y version
 version = version
@@ -101,7 +101,7 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
@@ -191,8 +191,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'GUMTreeCalculator.tex', u'GUM Tree Calculator Documentation',
-     u'Measurement Standards Laboratory of New Zealand', 'manual'),
+    (master_doc, 'GUMTreeCalculator.tex', 'GUM Tree Calculator Documentation',
+     'Measurement Standards Laboratory of New Zealand', 'manual'),
 ]
 
 
@@ -201,7 +201,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'gumtreecalculator', u'GUM Tree Calculator Documentation',
+    (master_doc, 'gumtreecalculator', 'GUM Tree Calculator Documentation',
      [author], 1)
 ]
 
@@ -212,7 +212,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'GUMTreeCalculator', u'GUM Tree Calculator Documentation',
+    (master_doc, 'GUMTreeCalculator', 'GUM Tree Calculator Documentation',
      author, 'GUMTreeCalculator', 'One line description of project.',
      'Miscellaneous'),
 ]

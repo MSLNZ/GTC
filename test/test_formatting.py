@@ -1760,16 +1760,16 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(ur, digits=2, type=t, style='U')
-            self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10¹')
-            self.assertEqual(to_string(ur.x, fmt), u'1.854×10¹')
-            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻¹')
+            self.assertEqual(to_string(ur, fmt),   '1.854(94)×10¹')
+            self.assertEqual(to_string(ur.x, fmt), '1.854×10¹')
+            self.assertEqual(to_string(ur.u, fmt), '9.4×10⁻¹')
 
         ur = ureal(1.23456789, 0.123456789)
         self.assertEqual('{:.3eU}'.format(ur), '1.235(123)')
-        self.assertEqual(u'{:.3EU}'.format(ur * 1e-6), u'1.235(123)×10⁻⁶')
-        self.assertEqual(u'{:.3EU}'.format(ur * 1e12), u'1.235(123)×10¹²')
-        self.assertEqual(u'{:.3eU}'.format(ur * 1e100), u'1.235(123)×10¹⁰⁰')
-        self.assertEqual(u'{:.3EU}'.format(ur * 1e-100), u'1.235(123)×10⁻¹⁰⁰')
+        self.assertEqual('{:.3EU}'.format(ur * 1e-6), '1.235(123)×10⁻⁶')
+        self.assertEqual('{:.3EU}'.format(ur * 1e12), '1.235(123)×10¹²')
+        self.assertEqual('{:.3eU}'.format(ur * 1e100), '1.235(123)×10¹⁰⁰')
+        self.assertEqual('{:.3EU}'.format(ur * 1e-100), '1.235(123)×10⁻¹⁰⁰')
 
         uc = ucomplex(18.5424+1.2j, 0.94271)
 
@@ -1781,9 +1781,9 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(uc, digits=2, type=t, style='U')
-            self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10¹+1.20(94)j)')
-            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10¹+1.20j)')
-            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻¹+9.4×10⁻¹j)')
+            self.assertEqual(to_string(uc, fmt),   '(1.854(94)×10¹+1.20(94)j)')
+            self.assertEqual(to_string(uc.x, fmt), '(1.854×10¹+1.20j)')
+            self.assertEqual(to_string(uc.u, fmt), '(9.4×10⁻¹+9.4×10⁻¹j)')
 
     @unittest.skipIf(sys.version_info.major == 2, 'not supported for this version of Python')
     def test_hash_symbol(self):

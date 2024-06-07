@@ -53,21 +53,19 @@ _format_spec_regex = re.compile(
 
 _exponent_regex = re.compile(r'[eE][+-]\d+')
 
-# TODO replace u'' with '' when dropping support for
-#  Python 2.7. There are multiple occurrences in this module.
 _unicode_superscripts = {
-    ord('+'): u'\u207A',
-    ord('-'): u'\u207B',
-    ord('0'): u'\u2070',
-    ord('1'): u'\u00B9',
-    ord('2'): u'\u00B2',
-    ord('3'): u'\u00B3',
-    ord('4'): u'\u2074',
-    ord('5'): u'\u2075',
-    ord('6'): u'\u2076',
-    ord('7'): u'\u2077',
-    ord('8'): u'\u2078',
-    ord('9'): u'\u2079',
+    ord('+'): '\u207A',
+    ord('-'): '\u207B',
+    ord('0'): '\u2070',
+    ord('1'): '\u00B9',
+    ord('2'): '\u00B2',
+    ord('3'): '\u00B3',
+    ord('4'): '\u2074',
+    ord('5'): '\u2075',
+    ord('6'): '\u2076',
+    ord('7'): '\u2077',
+    ord('8'): '\u2078',
+    ord('9'): '\u2079',
 }
 
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
@@ -150,10 +148,7 @@ class Format(object):
         fmt = '{fill}{align}{zero}{width}s'.format(
             fill=self._fill, align=self._align,
             zero=self._zero, width=self._width)
-        try:
-            return u'{0:{1}}'.format(text, fmt)
-        except UnicodeError:
-            return '{0:{1}}'.format(text, fmt)
+        return '{0:{1}}'.format(text, fmt)
 
     def _value(self, value, precision=None, type=None, sign=None, hash=None):
         """Format a value.
@@ -480,7 +475,7 @@ def to_string(obj, fmt):
         im_str = _stylize(im_val + i.suffix, fmt)
 
         b1, b2 = _stylize('(', fmt), _stylize(')', fmt)
-        result = u'{0}{1}{2}j{3}'.format(b1, re_str, im_str, b2)
+        result = '{0}{1}{2}j{3}'.format(b1, re_str, im_str, b2)
         if fmt._type == '%':
             result = move_percent_symbol(result)
         return fmt._result(result)
@@ -496,7 +491,7 @@ def to_string(obj, fmt):
     if imag is not None:
         imag_str = _to_string_ureal(imag, fmt, sign='+')
         b1, b2 = _stylize('(', fmt), _stylize(')', fmt)
-        result = u'{0}{1}{2}j{3}'.format(b1, result, _stylize(imag_str, fmt), b2)
+        result = '{0}{1}{2}j{3}'.format(b1, result, _stylize(imag_str, fmt), b2)
         if fmt._type == '%':
             result = move_percent_symbol(result)
 
@@ -607,9 +602,9 @@ def _stylize(text, fmt):
 
     if fmt._style == 'U':
         if exp_match and exp_number != 0:
-            e = u'{}'.format(exp_number)
+            e = '{}'.format(exp_number)
             translated = e.translate(_unicode_superscripts)
-            exponent = u'\u00D710{}'.format(translated)
+            exponent = '\u00D710{}'.format(translated)
 
     elif fmt._style == 'L':
         if exp_match and exp_number != 0:
@@ -630,7 +625,7 @@ def _stylize(text, fmt):
 
     if exp_match:
         start, end = exp_match.span()
-        text = u'{0}{1}{2}'.format(text[:start], exponent, text[end:])
+        text = '{0}{1}{2}'.format(text[:start], exponent, text[end:])
 
     for old, new in replacements:
         text = text.replace(old, new)
