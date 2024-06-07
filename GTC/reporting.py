@@ -44,8 +44,6 @@ Module contents
 ---------------
 
 """
-from __future__ import division     # True division
-
 import math
 import numbers
 

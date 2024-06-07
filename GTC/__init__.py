@@ -6,8 +6,6 @@ The method of uncertainty propagation is compatible with the approach described
 in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
 """
-from __future__ import division
-
 import math
 import cmath
 import sys 

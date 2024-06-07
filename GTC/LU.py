@@ -6,7 +6,6 @@ Provides LU decomposition functions for Python objects stored in 2D arrays.
 :func:`ludcmp` performs LU decomposition
 :func:`invab` 
 """
-from __future__ import division
 from functools import reduce
 try:
     xrange  # Python 2
