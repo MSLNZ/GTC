@@ -1,5 +1,3 @@
-from __future__ import division
-
 import math
 import cmath
 import numbers

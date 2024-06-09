@@ -3,8 +3,6 @@ Defines :class:`UncertainReal` and implements the mathematical
 operations on this class of objects.
 
 """
-from __future__ import division
-
 import math
 import cmath
 import numbers
@@ -970,18 +968,12 @@ class UncertainReal(object):
 
     #------------------------------------------------------------------------
     def __truediv__(self,rhs):
-        return self.__div__(rhs)
-        
-    def __div__(self,rhs):
         if isinstance(rhs,(UncertainReal,numbers.Complex)):
             return _div(self,rhs)
         else:
             return NotImplemented
 
     def __rtruediv__(self,lhs):
-        return self.__rdiv__(lhs)
-        
-    def __rdiv__(self,lhs):
         if isinstance(lhs,numbers.Complex):
             return _rdiv(lhs,self)
         else:
@@ -3262,9 +3254,6 @@ class UncertainComplex(object):
 
     #------------------------------------------------------------------------
     def __truediv__(self,rhs):
-        return self.__div__(rhs)
-        
-    def __div__(self,rhs):
         lhs = self
         if isinstance(rhs,UncertainComplex):
             l = lhs._value
@@ -3320,9 +3309,6 @@ class UncertainComplex(object):
             return NotImplemented
  
     def __rtruediv__(self,lhs):
-        return self.__rdiv__(lhs)
-        
-    def __rdiv__(self,lhs):
         rhs = self
         if isinstance(lhs,UncertainReal):
             r = rhs._value

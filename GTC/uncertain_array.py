@@ -4,8 +4,6 @@ The proper way to create an uncertain array is by calling :func:`.uarray`
 # Adding numpy arrays to GTC is not an easy exercise.
 # Our need is to provide convenient containers for uncertain numbers.
 # We do not try to integrate uncertain numbers in numpy's design.
-from __future__ import division
-
 import warnings
 
 from numbers import Number, Real, Complex
@@ -530,9 +528,6 @@ class UncertainArray(np.ndarray):
         return UncertainArray(arr)
 
     def _divide(self, *inputs):
-        return self._true_divide(*inputs)
-
-    def _true_divide(self, *inputs):
         arr, itemset, iterator = self._create_empty(inputs)
         for i, (a, b) in enumerate(iterator):
             itemset(i, a / b)

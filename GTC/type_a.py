@@ -50,8 +50,6 @@ Module contents
 ---------------
 
 """
-from __future__ import division
-
 import sys
 import math
 import numbers
