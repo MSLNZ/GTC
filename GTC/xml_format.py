@@ -77,7 +77,7 @@ def _py27uid(iterable):
 
 def _find(parent, name):
     # Find and return the first matching sub-element
-    return parent.find('{%s}%s' % (XMLNS, name))
+    return parent.find(f'{{{XMLNS}}}{name}')
 
 
 def _float(parent, name):

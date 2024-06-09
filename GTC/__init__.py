@@ -101,11 +101,12 @@ __all__ = (
 #----------------------------------------------------------------------------
 if sys.version_info[:2] < (3, 8):
     import warnings
+    major, minor = sys.version_info[:2]
     warnings.simplefilter('once', DeprecationWarning)
     warnings.warn(
-        'GTC will stop supporting Python %d.%d in GTC version 2.0. '
-        'GTC 2.0 will require Python 3.8, or above. '
-        'Please update your version of Python.' % sys.version_info[:2],
+        f'GTC will stop supporting Python {major}.{minor} in GTC version 2.0. '
+        f'GTC 2.0 will require Python 3.8, or above. '
+        f'Please update your version of Python.',
         DeprecationWarning,
         stacklevel=2
     )

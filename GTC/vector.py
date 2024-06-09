@@ -118,7 +118,7 @@ class Vector(object):
             
         elif len(kwargs) != 0:
             raise RuntimeError(
-                "unidentified keywords '%s'" % kwargs.keys()
+                f"unidentified keywords '{kwargs.keys()}'"
             )
 
 ### There appears to be a large overhead associated with this            

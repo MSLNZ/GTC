@@ -50,8 +50,8 @@ def fn():
     unc_o = numpy.zeros(N,object)   # The initial values are over-written 
                                     # immediately below
     for i in range(N):
-        name_i = 'unc_i[%s]' %i
-        name_o = 'unc_o[%s]' %i
+        name_i = f'unc_i[{i}]'
+        name_o = f'unc_o[{i}]'
         unc_i[i] = ucomplex(0., [10e-6,0.0])
         unc_o[i] = ucomplex(0., [20e-6,0.0])
         

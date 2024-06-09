@@ -433,7 +433,7 @@ def nr_get_root(fn,x_min,x_max,epsilon):
     fl = value(f_x)
     
     assert isinstance(f_x,UncertainReal),\
-           "fn() must return an UncertainReal, got: %s" % type(f_x)
+        f"fn() must return an UncertainReal, got: {type(f_x)}"
     
     if abs( fl ) < epsilon:
         return fl,f_x.sensitivity(x)

@@ -485,7 +485,7 @@ def v_bar(cv):
 
     """
     assert len(cv) == 4,\
-           "'%s' a 4-element sequence is needed" % type(cv)
+        f"'{type(cv)}' a 4-element sequence is needed"
 
     return (cv[0] + cv[3]) / 2.0
 
