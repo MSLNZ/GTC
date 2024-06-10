@@ -23,14 +23,19 @@ Least squares regression
 ------------------------
     *   :func:`line_fit` performs an ordinary least-squares straight 
         line fit to a sample of data.  
-    *   :func:`line_fit_wls` performs a weighted least-squares straight 
-        line fit to a sample of data. The weights are assumed to be exact.
     *   :func:`line_fit_rwls` performs a weighted least-squares  
         straight line fit to a sample of data. The weights
         are only assumed normalise the variability of observations.
+    *   :func:`line_fit_wls` performs a weighted least-squares straight 
+        line fit to a sample of data. The weights are assumed to be exact.
     *   :func:`line_fit_wtls` performs a weighted total least-squares straight 
         line fit to a sample of data.   
- 
+
+    Regression results are returned in objects with attributes
+    related to the type of regression: :class:`LineFitOLS`, :class:`LineFitRWLS`,
+    :class:`LineFitWLS`, and :class:`LineFitWTLS`.
+    These objects also define methods that make use of the results. 
+    
 Merging uncertain components
 ----------------------------
     *   :func:`merge` combines results from a type-A and type-B analysis 
@@ -99,17 +104,17 @@ EPSILON = sys.float_info.epsilon
 HALF_PI = math.pi/2.0
 
 __all__ = (
+    'LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS',
     'estimate',
     'estimate_digitized',
+    'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls',
+    'mean',
+    'merge',
     'multi_estimate_real',
     'multi_estimate_complex',
-    'mean',
     'standard_deviation',
     'standard_uncertainty',
     'variance_covariance_complex',
-    'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls',
-    'LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS',
-    'merge',
 )
 
 #-----------------------------------------------------------------------------------------
@@ -117,9 +122,7 @@ __all__ = (
 class LineFitOLS(LineFit):
     
     """
-    Class to hold the results of an ordinary least-squares regression to data.
-
-    It can also be used to apply the results of a regression analysis. 
+    Holds the results of an ordinary least-squares regression to a line.
     
     .. versionadded:: 1.2
     """
@@ -134,15 +137,21 @@ Ordinary Least-Squares Results:
         return header + LineFit.__str__(self)
 
     def x_from_y(self,yseq,x_label=None,y_label=None):
-        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
+        """Estimate a stimulus value compatible with the sequence of response values in ``yseq``
 
-        :arg yseq: a sequence of ``y`` observations 
-        :arg x_label: a label for the return uncertain number ``x`` 
-        :arg y_label: a label for the estimate of `y` based on ``yseq`` 
+        An uncertain number is defined internally for the mean of values in ``yseq``. 
+        The SSR obtained during regression is used to calculate a standard uncertainty for this mean. 
+        
+        :arg yseq: a sequence of response values 
+        :arg x_label: a label for the uncertain number returned for the stimulus estimate 
+        :arg y_label: a label attributed to the mean response value.
 
         .. note::
-            When ``x_label`` is defined, the uncertain number returned will be 
-            declared an intermediate result (using :func:`~.result`)
+            If ``x_label`` is defined, the result is declared using :func:`~.result`
+
+        .. note::
+            ``y_label`` labels the uncertain number representing the mean of observations. 
+            This is only used internally but the label can appear in uncertainty budgets.
 
         **Example** ::
         
@@ -151,11 +160,18 @@ Ordinary Least-Squares Results:
             >>> y_data = [0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131,
             ...                 0.133, 0.180, 0.181, 0.183, 0.215, 0.230, 0.216]
 
-            >>> fit = type_a.line_fit(x_data,y_data)
+            >>> fit = type_a.line_fit(x_data,y_data,label="ols")
             
-            >>> x0 = fit.x_from_y( [0.0712, 0.0716] )            
-            >>> x0
-            ureal(0.2601659751037...,0.01784461112558...,13.0)
+            >>> x = fit.x_from_y( [0.0712, 0.0716], y_label="av_obs",x_label="x")            
+            >>> print(f"{x.label}: {x}")
+            x:  0.260(18)
+            
+            >>> for cpt in rp.budget(x):
+            ...     print(f"{cpt.label}: {cpt.u}")
+            ...
+            av_obs: 0.016095175127594584
+            a_ols: 0.01193650134308067
+            b_ols: 0.005405932013155317
 
         """
         a, b = self._a_b
@@ -187,39 +203,66 @@ Ordinary Least-Squares Results:
         return x
         
     def y_from_x(self,x,s_label=None,y_label=None):
-        """Return an uncertain number ``y`` that predicts the response to ``x``
+        """Estimate the response to a stimulus ``x`` 
 
+        :arg x: a stimulus value 
+        :arg s_label: a label attributed to random error in the response   
+        :arg y_label: a label for the uncertain-number representing response variability
+        
+        The stimulus ``x`` may be a pure number, implying negligible uncertainty.
+        If an uncertain real number is supplied, the uncertainty will be 
+        propagated in the result.
+        
+        An uncertain number is created to represent variability in responses.         
+        The standard uncertainty for this uncertain number
+        is calculated using the SSR obtained during regression. 
+        
         :arg x: a real number, or an uncertain real number
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        This is a prediction of a single future response ``y`` to a stimulus ``x``
+        This predicts a single future response to a stimulus ``x``
         
-        The variability in observations is based on residuals obtained during regression.
-        
-        An uncertain real number can be used for ``x``, in which
-        case the associated uncertainty will also be propagated into ``y``.
-
         .. note::
-            When ``y_label`` is defined, the uncertain number returned will be 
-            declared an intermediate result (using :func:`~.result`)
+            If ``y_label`` is defined, the result is declared using :func:`~.result`
         
+        **Example** ::
+        
+            >>> x_data = [0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5,
+            ...                 0.7, 0.7, 0.7, 0.9, 0.9, 0.9]
+            >>> y_data = [0.028, 0.029, 0.029, 0.084, 0.083, 0.081, 0.135, 0.131,
+            ...                 0.133, 0.180, 0.181, 0.183, 0.215, 0.230, 0.216]
+
+            >>> fit = type_a.line_fit(x_data,y_data,label="ols")
+            
+            >>> x = ureal(0.26,0.10,label="x")
+            >>> y = fit.y_from_x( 0.26, s_label="E_rnd",y_label="y")            
+            >>> print(f"{y.label}: {y}")
+            y:  0.0714(58)
+            
+            >>> for cpt in rp.budget(y):
+            ...     print(f"{cpt.label}: {cpt.u}")
+            ...
+            E_rnd: 0.005485645603965661
+            a_ols: 0.0028766968236824406
+            b_ols: 0.0013019984639007856
+
         """
         a, b = self._a_b   
         df = a.df 
         
         u = math.sqrt( self._ssr/df )
         
-        noise = ureal(
+        E_rnd = ureal(
             0,u,df,label=s_label,independent=False
         )
         
-        append_real_ensemble(a,noise)
+        append_real_ensemble(a,E_rnd)
                   
         if y_label is None:
-            y = a + b*x + noise
+            y = a + b*x + E_rnd
         else:
-            y = result( a + b*x + noise, label=y_label )
+            y = result( a + b*x + E_rnd, label=y_label )
         
         return y
 

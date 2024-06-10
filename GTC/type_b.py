@@ -170,7 +170,7 @@ def mean(seq,*args,**kwargs):
 class LineFit(object):
     
     """
-    Base class for the results of regression to a line.
+    Base class to hold the results of regression to a line.
     
     .. versionadded:: 1.2
     """
@@ -196,7 +196,7 @@ class LineFit(object):
 
     @property
     def a_b(self):
-        """Return the intercept ``a`` and slope ``b`` as a tuple of uncertain numbers
+        """Return a tuple of uncertain numbers (intercept, slope)
         """
         return self._a_b
 
@@ -216,18 +216,18 @@ class LineFit(object):
     def ssr(self):
         """Sum of the squared residuals
         
-        The sum of the squared deviations between values 
+        The sum of the squared differences between values 
         predicted by the model and the actual data.
         
         If weights are used during the fit, the squares of 
-        weighted deviations are summed.
+        weighted differences are summed.
         
         """
         return self._ssr  
 
     @property
     def N(self):
-        """The number of points in the sample"""
+        """The number of points in the sample used for regression"""
         return self._N
 
     def __str__(self):
