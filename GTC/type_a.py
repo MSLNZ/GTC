@@ -1,23 +1,23 @@
 """
 Sample estimates
 ----------------
-    *   :func:`estimate` returns an uncertain number defined from
+    *   :func:`estimate` returns an uncertain number determined from
         the statistics of a sample of data.
     *   :func:`multi_estimate_real` returns a sequence of related 
-        uncertain real numbers defined from the multivariate statistics 
-        calculated from a sample of data. 
+        uncertain real numbers determined from the multivariate statistics 
+        of a sample of data. 
     *   :func:`multi_estimate_complex` returns a sequence of related uncertain
-        complex numbers defined from the multivariate statistics of a sample of data. 
+        complex numbers determined from the multivariate statistics of a sample of data. 
     *   :func:`estimate_digitized` returns an uncertain number for 
-        the mean of a sample of digitized data.
+        the sample mean for data that have been quantised by rounding or truncation.
     *   :func:`mean` returns the mean of a sample of data.
     *   :func:`standard_uncertainty` evaluates the standard 
         uncertainty associated with the sample mean.
     *   :func:`standard_deviation` evaluates the standard 
         deviation of a sample of data.
-    *   :func:`variance_covariance_complex` evaluates the variance
+    *   :func:`variance_covariance_complex` evaluates the variances
         and covariance associated with the mean real component 
-        and mean imaginary component of the data.
+        and mean imaginary component of a sample of complex-valued data.
     
 Least squares regression
 ------------------------
@@ -31,10 +31,11 @@ Least squares regression
     *   :func:`line_fit_wtls` performs a weighted total least-squares straight 
         line fit to a sample of data.   
 
-    Regression results are returned in objects with attributes
+    The results of fitting are returned in objects with attributes
     related to the type of regression: :class:`LineFitOLS`, :class:`LineFitRWLS`,
     :class:`LineFitWLS`, and :class:`LineFitWTLS`.
-    These objects also define methods that make use of the results. 
+    
+    These objects define a few methods that make use of information collected during regression. 
     
 Merging uncertain components
 ----------------------------
@@ -137,21 +138,26 @@ Ordinary Least-Squares Results:
         return header + LineFit.__str__(self)
 
     def x_from_y(self,yseq,x_label=None,y_label=None):
-        """Estimate a stimulus value compatible with the sequence of response values in ``yseq``
+        """Predict a stimulus value compatible with the sequence of response values in ``yseq``
 
-        An uncertain number is defined internally for the mean of values in ``yseq``. 
-        The SSR obtained during regression is used to calculate a standard uncertainty for this mean. 
-        
-        :arg yseq: a sequence of response values 
-        :arg x_label: a label for the uncertain number returned for the stimulus estimate 
+        :arg yseq: a sequence of numerical response values 
+        :arg x_label: a label for the uncertain-number stimulus 
         :arg y_label: a label attributed to the mean response value.
 
+        The predicted value is obtained by using the slope and intercept, obtained by regression, 
+        to transform the mean of values in ``yseq``.
+        
+        The uncertainty in the predicted value is a classical 
+        calculation using the sum of squared residuals (ssr) obtained during the regression.
+        For this reason, the degrees of freedom associated with uncertainty in
+        the predicted value remains that associated with parameters obtained by regression.
+        
         .. note::
-            If ``x_label`` is defined, the result is declared using :func:`~.result`
+            The result is declared using :func:`~.result` if ``x_label`` is defined. 
 
         .. note::
-            ``y_label`` labels the uncertain number representing the mean of observations. 
-            This is only used internally but the label can appear in uncertainty budgets.
+            An uncertain number representing the mean of observations is labelled with ``y_label``. 
+            This uncertain number is only used internally but the label may appear in uncertainty budgets.
 
         **Example** ::
         
@@ -203,29 +209,38 @@ Ordinary Least-Squares Results:
         return x
         
     def y_from_x(self,x,s_label=None,y_label=None):
-        """Estimate the response to a stimulus ``x`` 
+        """Predict the response to a stimulus 
 
-        :arg x: a stimulus value 
+        :arg x: stimulus value 
         :arg s_label: a label attributed to random error in the response   
-        :arg y_label: a label for the uncertain-number representing response variability
+        :arg y_label: a label for the uncertain-number response
         
-        The stimulus ``x`` may be a pure number, implying negligible uncertainty.
-        If an uncertain real number is supplied, the uncertainty will be 
-        propagated in the result.
+        .. versionchanged:: 1.5.1       
+            ``x`` must be a pure number
+            
+        The stimulus is considered a pure number.
+        If an uncertain real number is supplied, its value is used and the uncertainty is ignored.
+        
+        The predicted value is evaluated using the parameters of the line obtained by regression 
+        to transform the stimulus ``x``.
+        
+        The uncertainty in the predicted value is a classical 
+        calculation using the sum of squared residuals (ssr) obtained during the regression.
+        For this reason, the degrees of freedom associated with uncertainty in
+        the predicted value remains that associated with parameters obtained by regression.
         
         An uncertain number is created to represent variability in responses.         
         The standard uncertainty for this uncertain number
         is calculated using the SSR obtained during regression. 
         
-        :arg x: a real number, or an uncertain real number
-        :arg s_label: a label for an elementary uncertain number associated with observation variability  
-        :arg y_label: a label for the return uncertain number `y` 
-
-        This predicts a single future response to a stimulus ``x``
-        
         .. note::
-            If ``y_label`` is defined, the result is declared using :func:`~.result`
-        
+            The result is declared using :func:`~.result` if ``y_label`` is defined.
+ 
+        .. note::
+            An uncertain number representing the randomness of observations is labelled with ``s_label``. 
+            This uncertain number is only used internally but the label may appear in uncertainty budgets.
+
+            
         **Example** ::
         
             >>> x_data = [0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5,
@@ -260,9 +275,9 @@ Ordinary Least-Squares Results:
         append_real_ensemble(a,E_rnd)
                   
         if y_label is None:
-            y = a + b*x + E_rnd
+            y = a + b*value(x) + E_rnd
         else:
-            y = result( a + b*x + E_rnd, label=y_label )
+            y = result( a + b*value(x) + E_rnd, label=y_label )
         
         return y
 
@@ -271,8 +286,7 @@ Ordinary Least-Squares Results:
 class LineFitRWLS(LineFit):
     
     """
-    Class to hold the results of a relative weighted least-squares regression.
-    The weights provided normalise the variability of observations.
+    Holds the results of a relative weighted least-squares regression.
     
     .. versionadded:: 1.2
     """
@@ -287,16 +301,19 @@ Relative Weighted Least-Squares Results:
         return header + LineFit.__str__(self)
 
     def x_from_y(self,yseq,s_y,x_label=None,y_label=None):
-        """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
+        """Predict a stimulus value compatible with the sequence of response values in ``yseq``
 
-        :arg yseq: a sequence of further observations of ``y``
-        :arg s_y: a scale factor for the uncertainty of the ``yseq``
-        :arg x_label: a label for the return uncertain number `x` 
-        :arg y_label: a label for the estimate of `y` based on ``yseq``
+        :arg yseq: a sequence of numerical response values
+        :arg s_y: a scale factor for variability in the response values
+        :arg x_label: a label for the uncertain number returned for the stimulus estimate
+        :arg y_label: a label attributed to the mean response value
 
         .. note::
-            When ``x_label`` is defined, the uncertain number returned will be 
-            declared an intermediate result (using :func:`~.result`)
+            The result is declared using :func:`~.result` if ``x_label`` is defined.
+
+        .. note::
+            An uncertain number representing the mean of observations is labelled with ``y_label``. 
+            This uncertain number is only used internally but the label may appear in uncertainty budgets.
 
         """
         a, b = self._a_b
@@ -331,12 +348,15 @@ Relative Weighted Least-Squares Results:
     def y_from_x(self,x,s_y,s_label=None,y_label=None):
         """Return an uncertain number ``y`` that predicts the response to ``x``
 
-        :arg x: a real number, or an uncertain real number
-        :arg s_y: a scale factor for the response uncertainty
+        :arg x: a real number
+        :arg s_y: a scale factor for variability in the response values
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
         :arg y_label: a label for the return uncertain number `y` 
 
-        Returns a single future response ``y`` predicted for a stimulus ``x``.
+        .. versionchanged:: 1.5.1       
+            ``x`` must be a pure number
+
+Returns a single future response ``y`` predicted for a stimulus ``x``.
 
         Because there is different variability in 
         the response to different stimuli, the
@@ -350,6 +370,10 @@ Relative Weighted Least-Squares Results:
         .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
             declared an intermediate result (using :func:`~.result`)
+
+        .. note::
+            An uncertain number representing the randomness of observations is labelled with ``s_label``. 
+            This uncertain number is only used internally but the label may appear in uncertainty budgets.
 
         """
         a, b = self._a_b   
@@ -373,9 +397,9 @@ Relative Weighted Least-Squares Results:
 class LineFitWLS(LineFit):
     
     """
-    Class to hold the results of a weighted least-squares regression.
-    The weight factors provided are assumed to correspond exactly to the
-    variability of observations.
+    Holds the results of a weighted least-squares regression.
+    
+    Weight factors are assumed to exactly characterise the variability of observations.
     
     .. versionadded:: 1.2
     """
@@ -392,17 +416,19 @@ Weighted Least-Squares Results:
     def x_from_y(self,y_data,u_y_data,x_label=None,y_label=None):
         """Estimate the stimulus ``x`` corresponding to the responses in ``y_data``
 
-        :arg y_data: a sequence of further observations of ``y``
-        :arg u_y_data: the standard uncertainty of the ``y_data`` elements
-        :arg x_label: a label for the return uncertain number `x` 
-        :arg y_label: a label for the estimate of `y` based on ``y_data``
+        :arg y_data: a sequence of numerical response values
+        :arg u_y_data: standard uncertainties in the response values
+        :arg x_label: a label for the uncertain number returned for the stimulus estimate
+        :arg y_label: a label attributed to the mean response value
 
-        The variations in ``y_data`` values are assumed to result from 
-        independent random effects.
+        Variability in ``y_data`` is assumed to result from independent random effects.
         
         .. note::
-            When ``x_label`` is defined, the uncertain number returned will be 
-            declared an intermediate result (using :func:`~.result`)
+            The result is declared using :func:`~.result` if ``x_label`` is defined.
+
+        .. note::
+            An uncertain number representing the mean of observations is labelled with ``y_label``. 
+            This uncertain number is only used internally but the label may appear in uncertainty budgets.
 
         """
         a, b = self._a_b
@@ -434,12 +460,15 @@ Weighted Least-Squares Results:
         return x
 
     def y_from_x(self,x,s_y,s_label=None,y_label=None):
-        """Return an uncertain number ``y`` that predicts the response to ``x``
+        """Predicts the response to a stimulus
 
-        :arg x: a real number, or an uncertain real number
+        :arg x: stimulus value
         :arg s_y: response variability uncertainty
         :arg s_label: a label for an elementary uncertain number associated with response variability  
         :arg y_label: a label for the return uncertain number `y` 
+
+        .. versionchanged:: 1.5.1       
+            ``x`` must be a pure number
 
         Returns a single future response ``y`` predicted for a stimulus ``x``.
 
@@ -474,7 +503,7 @@ def line_fit(x,y,label=None):
      
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
-    :arg label: suffix to label the uncertain numbers `a` and `b`
+    :arg label: label suffix for the uncertain-number parameters slope and intercept
 
     :returns:   an object containing regression results
     :rtype:     :class:`.LineFitOLS`
@@ -556,7 +585,7 @@ def line_fit(x,y,label=None):
 def _line_fit_wls(x,y,u_y):
     """Utility function
     
-    NB client must supply sequences `x` and `y` of pure numbers
+    All sequences contain pure numbers
     """
     N = len(x)
 
@@ -591,16 +620,16 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
     :arg y:     sequence of response data (dependent-variable)  
     :arg u_y:   sequence of uncertainties in the response data 
     :arg dof:   degrees of freedom
-    :arg label: suffix to label the uncertain numbers `a` and `b`
+    :arg label: label suffix for the uncertain-number parameters slope and intercept
 
     :returns:   an object containing regression results
     :rtype:     :class:`.LineFitWLS`
     
-    The optional argument ``dof`` can be used to choose the number of 
-    degrees of freedom attributed to the uncertain numbers
-    returned for the slope and intercept. By default, infinite degrees 
-    of freedom is used, because weighting is provided for the 
-    ``y`` data suggesting that the dispersion is known. 
+    It is assumed that the variability in each observation is known and characterised by 
+    the elements of ``u_y``. This suggests an infinite degrees of freedom.
+    
+    However, the optional argument ``dof`` can be used to change the default 
+    number of degrees of freedom.  
 
     **Example**::
     
@@ -662,26 +691,31 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
 def line_fit_rwls(x,y,s_y,dof=None,label=None):
     """Return a relative weighted least-squares straight-line fit
     
-    The ``s_y`` values are used to scale variability in the ``y`` data.
+    The sequence of values ``s_y`` will scale the ``y`` data .
     It is assumed that the standard deviation of each ``y`` value is 
     proportional to the corresponding ``s_y`` scale factor.
-    The unknown common factor in the uncertainties is estimated from the residuals.
+    The unknown common factor is estimated from the residuals.
     
     :arg x:     sequence of stimulus data (independent-variable)  
     :arg y:     sequence of response data (dependent-variable)  
-    :arg s_y:   sequence of scale factors
+    :arg s_y:   sequence of scale factors for response data
     :arg dof:   degrees of freedom
-    :arg label: suffix to label the uncertain numbers `a` and `b`
+    :arg label: label suffix for the uncertain-number parameters slope and intercept
 
     :returns:   an object containing regression results
     :rtype:     :class:`.LineFitRWLS`
 
-    The optional argument ``dof`` can be used to choose the number of 
-    degrees of freedom attributed to the uncertain numbers
-    returned for the slope and intercept. By default, the degrees 
-    of freedom is N - 2, where N is the length of the data sequence.
-    However, when the elements of ``s_y`` are not all equal this 
-    value will be too high. The argument may be set as appropriate.
+    It is assumed that the variability in each observation is known 
+    up to a scale factor common to every observation.
+     
+    The fitting residuals can be used to estimate this common factor,
+    which is then associated with N - 2 degrees of freedom, which is
+    taken to be the degrees of freedom. 
+    
+    The optional argument ``dof`` can be used to change the default 
+    number of degrees of freedom. It may be appropriate to do so 
+    when the elements of ``s_y`` are not all equal, because the
+    degrees of freedom will be too high. 
     
     **Example**::
 
