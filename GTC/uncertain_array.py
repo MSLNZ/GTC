@@ -136,7 +136,7 @@ class UncertainArray(np.ndarray):
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         try:
-            attr = getattr(self, '_' + ufunc.__name__)
+            attr = getattr(self, f'_{ufunc.__name__}')
         except AttributeError:
             # Want to raise a NotImplementedError without nested exceptions
             # In Python 3 this could be achieved by "raise Exception('...') from None"
@@ -186,7 +186,7 @@ class UncertainArray(np.ndarray):
         if self.dtype == object:
             # Truncate string from trailing ','
             i = np_array_repr.rfind(',')
-            return np_array_repr[:i] + ')'
+            return f'{np_array_repr[:i]})'
         else:
             return np_array_repr
 

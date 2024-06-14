@@ -102,19 +102,19 @@ def archive_to_xml(archive, indent=None, prefix=None):
     """
     def add_components(parent, name, items):
         # Add Vector components to the parent element
-        elem = SubElement(parent, pre+name)
+        elem = SubElement(parent, f'{pre}{name}')
         for k, v in items():
-            SubElement(elem, pre+'component', uid=_py27uid(k)).text = str(v)
+            SubElement(elem, f'{pre}component', uid=_py27uid(k)).text = str(v)
 
     def add_real(parent, tag, real):
         # Add an ElementaryReal or IntermediateReal to the parent element
         if isinstance(real, ElementaryReal):
-            er = SubElement(parent, pre+'elementaryReal', tag=tag, uid=_py27uid(real.uid))
-            SubElement(er, pre+'value').text = str(real.x)
+            er = SubElement(parent, f'{pre}elementaryReal', tag=tag, uid=_py27uid(real.uid))
+            SubElement(er, f'{pre}value').text = str(real.x)
         elif isinstance(real, IntermediateReal):
-            ir = SubElement(parent, pre+'intermediateReal', tag=tag, uid=_py27uid(real.uid))
-            SubElement(ir, pre+'value').text = str(real.value)
-            SubElement(ir, pre+'label').text = real.label
+            ir = SubElement(parent, f'{pre}intermediateReal', tag=tag, uid=_py27uid(real.uid))
+            SubElement(ir, f'{pre}value').text = str(real.value)
+            SubElement(ir, f'{pre}label').text = real.label
             add_components(ir, 'uComponents', real.u_components.items)
             add_components(ir, 'dComponents', real.d_components.items)
             add_components(ir, 'iComponents', real.i_components.items)
@@ -154,56 +154,56 @@ def archive_to_xml(archive, indent=None, prefix=None):
                 f"An XML namespace prefix cannot contain a colon, "
                 f"got prefix={prefix!r}")
 
-        xmlns = ('xmlns:'+prefix, XMLNS)
-        pre = prefix + ':'
+        xmlns = (f'xmlns:{prefix}', XMLNS)
+        pre = f'{prefix}:'
     else:
         xmlns = ('xmlns', XMLNS)
         pre = ''
 
-    root = Element(pre+'gtcArchive', version='1.5.0')
+    root = Element(f'{pre}gtcArchive', version='1.5.0')
     root.set(*xmlns)
 
-    leaf_nodes = SubElement(root, pre+'leafNodes')
+    leaf_nodes = SubElement(root, f'{pre}leafNodes')
     for uid, ln in leaf_nodes_items():
         assert uid == ln.uid, f'LeafNode(uid={ln.uid}) != {uid}'
-        leaf_node = SubElement(leaf_nodes, pre+'leafNode', uid=_py27uid(uid))
-        SubElement(leaf_node, pre+'u').text = str(ln.u)
-        SubElement(leaf_node, pre+'df').text = normalise_df(ln.df)
-        SubElement(leaf_node, pre+'label').text = ln.label
-        SubElement(leaf_node, pre+'independent').text = 'true' if ln.independent else 'false'
+        leaf_node = SubElement(leaf_nodes, f'{pre}leafNode', uid=_py27uid(uid))
+        SubElement(leaf_node, f'{pre}u').text = str(ln.u)
+        SubElement(leaf_node, f'{pre}df').text = normalise_df(ln.df)
+        SubElement(leaf_node, f'{pre}label').text = ln.label
+        SubElement(leaf_node, f'{pre}independent').text = 'true' if ln.independent else 'false'
         if hasattr(ln, 'complex'):
-            c = SubElement(leaf_node, pre+'complex')
-            SubElement(c, pre+'real', uid=_py27uid(ln.complex[0]))
-            SubElement(c, pre+'imag', uid=_py27uid(ln.complex[1]))
+            c = SubElement(leaf_node, f'{pre}complex')
+            SubElement(c, f'{pre}real', uid=_py27uid(ln.complex[0]))
+            SubElement(c, f'{pre}imag', uid=_py27uid(ln.complex[1]))
         if hasattr(ln, 'correlation'):
-            c = SubElement(leaf_node, pre+'correlations')
+            c = SubElement(leaf_node, f'{pre}correlations')
             for cid, value in ln.correlation:
-                SubElement(c, pre+'correlation', uid=_py27uid(cid)).text = str(value)
+                SubElement(c, f'{pre}correlation', uid=_py27uid(cid)).text = str(value)
         if hasattr(ln, 'ensemble'):
-            e = SubElement(leaf_node, pre+'ensemble')
+            e = SubElement(leaf_node, f'{pre}ensemble')
             for eid in ln.ensemble:
-                SubElement(e, pre+'node', uid=_py27uid(eid))
+                SubElement(e, f'{pre}node', uid=_py27uid(eid))
 
-    tagged_reals = SubElement(root, pre+'taggedReals')
+    tagged_reals = SubElement(root, f'{pre}taggedReals')
     for key, value in tagged_real_items():
         add_real(tagged_reals, key, value)
 
-    untagged_reals = SubElement(root, pre+'untaggedReals')
+    untagged_reals = SubElement(root, f'{pre}untaggedReals')
     for key, value in untagged_real_items():
         add_real(untagged_reals, key, value)
 
-    tagged_complexes = SubElement(root, pre+'taggedComplexes')
+    tagged_complexes = SubElement(root, f'{pre}taggedComplexes')
     for key, value in tagged_complex_items():
-        c = SubElement(tagged_complexes, pre+'complex', tag=key)
-        SubElement(c, pre+'label').text = value.label
+        c = SubElement(tagged_complexes, f'{pre}complex', tag=key)
+        SubElement(c, f'{pre}label').text = value.label
 
-    intermediates = SubElement(root, pre+'intermediates')
+    intermediates = SubElement(root, f'{pre}intermediates')
     for key, value in intermediate_uids_items():
         label, u, df = value
-        inter = SubElement(intermediates, pre+'intermediate', uid=_py27uid(key))
-        SubElement(inter, pre+'label').text = label
-        SubElement(inter, pre+'u').text = str(u)
-        SubElement(inter, pre+'df').text = normalise_df(df)
+        inter = SubElement(intermediates, f'{pre}intermediate', uid=_py27uid(key))
+        SubElement(inter, f'{pre}label').text = label
+        SubElement(inter, f'{pre}u').text = str(u)
+        SubElement(inter, f'{pre}df').text = normalise_df(df)
 
     if indent is not None:
         if indent < 0:

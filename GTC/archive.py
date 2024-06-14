@@ -405,7 +405,7 @@ class Archive(object):
         .. invisible-code-block: pycon
         
             >>> import tempfile
-            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.json', 'wt')
+            >>> f = open(f'{tempfile.gettempdir()}/GTC-archive-test.json', 'wt')
 
         Here ``f`` is a file stream opened in mode 'wt':
         
@@ -461,7 +461,7 @@ class Archive(object):
         .. invisible-code-block: pycon
 
             >>> import tempfile
-            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.json', 'rt')
+            >>> f = open(f'{tempfile.gettempdir()}/GTC-archive-test.json', 'rt')
             
         .. code-block:: pycon
         
@@ -481,7 +481,7 @@ class Archive(object):
         .. invisible-code-block: pycon
             
             >>> import os, tempfile
-            >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.json')
+            >>> os.remove(f'{tempfile.gettempdir()}/GTC-archive-test.json')
   
         """        
         lst = [ self._getitem(n) for n in args ]               
