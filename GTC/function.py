@@ -238,7 +238,7 @@ def mul2(arg1,arg2,estimated=False):
             >>> y
             ureal(0.0,0.0,inf)
             >>> for cpt in rp.budget(y,trim=0):
-            ... 	print("  {0.label}: {0.u}".format(cpt) )
+            ... 	print(f"  {cpt.label}: {cpt.u}")
             ... 	
               x1: 0.0
               x2: 0.0
@@ -251,7 +251,7 @@ def mul2(arg1,arg2,estimated=False):
             >>> y
             ureal(0.0,1.0,inf)
             >>> for cpt in rp.budget(y,trim=0):
-            ... 	print("  {0.label}: {0.u}".format(cpt) )
+            ... 	print(f"  {cpt.label}: {cpt.u}")
             ... 	
               x1: 0.70710678...
               x2: 0.70710678...

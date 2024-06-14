@@ -764,14 +764,14 @@ def budget(y,**kwargs):
         >>> x3 = ureal(3,0.1,label='x3')
         >>> y = (x1 - x2) / x3
         >>> for i in reporting.budget(y):
-        ...     print("{0}: {1:G}".format(i.label,i.u))
+        ...     print(f"{i.label}: {i.u:G}")
         ... 	
         x1: 0.333333
         x2: 0.166667
         x3: 0.0111111
         
         >>> for i in reporting.budget(y,reverse=False):
-        ... 	print("{0}: {1:G}".format(i.label,i.u))
+        ... 	print(f"{i.label}: {i.u:G}")
         ... 	
         x3: 0.0111111
         x2: 0.166667
@@ -780,7 +780,7 @@ def budget(y,**kwargs):
         >>> y1 = result(x1 + x2,label='y1')
         >>> y2 = result(x2 + x3,label='y2')
         >>> for i in reporting.budget(y1 + y2,intermediate=True):
-        ... 	print("{0}: {1:G}".format(i.label,i.u))
+        ... 	print(f"{i.label}: {i.u:G}")
         ... 
         y1: 1.11803
         y2: 0.509902

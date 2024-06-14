@@ -176,14 +176,7 @@ class Format(object):
             fmt = f'%{sign}{hash}.{precision}f'
             return locale.format_string(fmt, value, grouping=True)
 
-        return '{0:{sign}{hash}{grouping}.{precision}{type}}'.format(
-            value,
-            sign=sign,
-            hash=hash,
-            grouping=self._grouping,
-            precision=precision,
-            type=type
-        )
+        return f'{value:{sign}{hash}{self._grouping}.{precision}{type}}'
 
     def _uncertainty(self, uncertainty, precision=None, type='f', hash=None):
         """Format an uncertainty.
@@ -371,7 +364,7 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
            parentheses and *digits* is equivalent to *precision*.
 
            >>> ur = ureal(3.1415926536, 0)
-           >>> '{:.5f}'.format(ur)
+           >>> f'{ur:.5f}'
            '3.14159'
 
     :rtype: :class:`Format`
@@ -443,7 +436,7 @@ def to_string(obj, fmt):
     """
     def move_percent_symbol(text):
         symbol = r'\%' if fmt._style == 'L' else '%'
-        return '{}{}'.format(text.replace(symbol, ''), symbol)
+        return f"{text.replace(symbol, '')}{symbol}"
 
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
@@ -653,7 +646,7 @@ def _round(value, fmt, exponent=None):
         factor = 10. ** exponent
         digits = max(exponent - fmt._u_exponent, 0)
         precision = digits
-        suffix = '{0:.0{1}}'.format(factor, _type)[1:]
+        suffix = f'{factor:.0{_type}}'[1:]
 
     if _type in 'eg%':
         _type = 'f'
