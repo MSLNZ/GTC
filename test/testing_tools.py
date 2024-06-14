@@ -71,12 +71,12 @@ def equivalent_matrix(u,m,tol=TOL):
     ):
         return True
     else:
-        print("Differences and tolerance: {} {} {} {} {}".format(
-            abs(u[0,0] - m[0,0])
-        ,   abs(u[1,0] - m[1,0])
-        ,   abs(u[0,1] - m[0,1])
-        ,   abs(u[1,1] - m[1,1])
-        ,   tol))
+        print(f"Differences and tolerance: "
+              f"{abs(u[0,0] - m[0,0])} "
+              f"{abs(u[1,0] - m[1,0])} "
+              f"{abs(u[0,1] - m[0,1])} "
+              f"{abs(u[1,1] - m[1,1])} "
+              f"{tol}")
         raise AssertionError(f"'{u}' <> '{m}'")
 #-----------------------------------------------------
 def show_complex_difference(x,y):
@@ -93,7 +93,7 @@ def equivalent_complex(x,y,tol=TOL):
     if _equivalent(xc.real,yc.real,tol) and _equivalent(xc.imag,yc.imag,tol):
         return True
     else:
-        print("Differences and tolerance: {} {} {}".format(abs(xc.real-yc.real), abs(xc.imag-yc.imag), tol))
+        print(f"Differences and tolerance: {abs(xc.real-yc.real)} {abs(xc.imag-yc.imag)} {tol}")
         raise AssertionError(f"'({x.real:.15G},{x.imag:.15G})' <> '({y.real:.15G},{y.imag:.15G})'")
 
 #-----------------------------------------------------

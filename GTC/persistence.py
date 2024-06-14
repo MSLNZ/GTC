@@ -200,8 +200,8 @@ def _check_xml_kwargs(**kwargs):
     ns = kwargs.get('default_namespace')
     if ns:
         raise ValueError(
-            'Archive uses a custom namespace, '
-            'cannot set default_namespace={!r}'.format(ns)
+            f'Archive uses a custom namespace, '
+            f'cannot set default_namespace={ns!r}'
         )
 
 

@@ -156,4 +156,4 @@ def run():
         else:
             if nc is None:
                 raise AssertionError('The regular @ FAILED, the custom-written @ PASSED')
-            assert np.array_equal(nc, uc), 'The arrays are not equal\n{}\n{}'.format(nc, uc)
+            assert np.array_equal(nc, uc), f'The arrays are not equal\n{nc}\n{uc}'

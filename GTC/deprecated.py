@@ -153,8 +153,8 @@ def deprecated(*args, **kwargs):
     if args:
         if len(args) > 1:
             raise SyntaxError(
-                '@deprecated{} has too many arguments, '
-                'only the reason (as a string) is allowed'.format(args))
+                f'@deprecated{args} has too many arguments, '
+                f'only the reason (as a string) is allowed')
 
         arg0 = args[0]
 
@@ -166,8 +166,7 @@ def deprecated(*args, **kwargs):
 
         if not (inspect.isfunction(arg0) or inspect.isclass(arg0)):
             raise TypeError(
-                'Cannot use @deprecated on an object of type {!r}'.format(
-                    type(arg0).__name__))
+                f'Cannot use @deprecated on an object of type {type(arg0).__name__!r}')
 
         # Handles @deprecated
         return wrapper(arg0)
@@ -222,11 +221,11 @@ def _prepare_warning(wrapped,
     msg = []
     if prefix:
         msg.append(prefix)
-    msg.append('The {} `{}` is deprecated'.format(kind, wrapped.__name__))
+    msg.append(f'The {kind} `{wrapped.__name__}` is deprecated')
     if deprecated_in:
-        msg.append(' since version {}'.format(deprecated_in))
+        msg.append(f' since version {deprecated_in}')
     if remove_in:
-        msg.append(' and is planned for removal in version {}'.format(remove_in))
+        msg.append(f' and is planned for removal in version {remove_in}')
     msg.append('. ')
     if reason:
         msg.append(reason)
@@ -245,8 +244,8 @@ def _prepare_warning(wrapped,
             tuple(map(int, version.split('.')[:3])) >=
             tuple(map(int, remove_in.split('.')))):
         raise RuntimeError(
-            'Dear GTC developer, you are still using a {} that '
-            'should be removed:\n{}'.format(kind, message)
+            f'Dear GTC developer, you are still using a {kind} that '
+            f'should be removed:\n{message}'
         )
 
     if action == 'module':

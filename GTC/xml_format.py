@@ -147,12 +147,12 @@ def archive_to_xml(archive, indent=None, prefix=None):
             #   "All other prefixes beginning with the three-letter sequence
             #    x, m, l, in any case combination, are reserved."
             raise ValueError(
-                "An XML namespace prefix should not start with 'xml', "
-                "got prefix={!r}".format(prefix))
+                f"An XML namespace prefix should not start with 'xml', "
+                f"got prefix={prefix!r}")
         if ':' in prefix:
             raise ValueError(
-                "An XML namespace prefix cannot contain a colon, "
-                "got prefix={!r}".format(prefix))
+                f"An XML namespace prefix cannot contain a colon, "
+                f"got prefix={prefix!r}")
 
         xmlns = ('xmlns:'+prefix, XMLNS)
         pre = prefix + ':'
@@ -165,7 +165,7 @@ def archive_to_xml(archive, indent=None, prefix=None):
 
     leaf_nodes = SubElement(root, pre+'leafNodes')
     for uid, ln in leaf_nodes_items():
-        assert uid == ln.uid, 'LeafNode(uid={}) != {}'.format(ln.uid, uid)
+        assert uid == ln.uid, f'LeafNode(uid={ln.uid}) != {uid}'
         leaf_node = SubElement(leaf_nodes, pre+'leafNode', uid=_py27uid(uid))
         SubElement(leaf_node, pre+'u').text = str(ln.u)
         SubElement(leaf_node, pre+'df').text = normalise_df(ln.df)
@@ -207,7 +207,7 @@ def archive_to_xml(archive, indent=None, prefix=None):
 
     if indent is not None:
         if indent < 0:
-            raise ValueError('XML indentation must be >= 0, got {}'.format(indent))
+            raise ValueError(f'XML indentation must be >= 0, got {indent}')
         _py38indent(root, space=' ' * indent)
 
     return root
@@ -223,13 +223,13 @@ def xml_to_archive(element):
     :rtype: :class:`GTC.archive.Archive`
     """
     if not element.tag.endswith('gtcArchive'):
-        raise ValueError('Invalid root tag {!r} for GTC Archive'.format(element.tag))
+        raise ValueError(f'Invalid root tag {element.tag!r} for GTC Archive')
 
     version = element.get('version', 'UNKNOWN')
     if version == '1.5.0':
         return _v150_to_archive(element)
 
-    raise ValueError('Invalid XML Archive version {!r}'.format(version))
+    raise ValueError(f'Invalid XML Archive version {version!r}')
 
 
 def _v150_to_archive(root):
@@ -290,8 +290,8 @@ def _v150_to_archive(root):
     def convert_complex(elem):
         # Returns: tuple(tag:str, Complex)
         t = elem.get('tag')
-        c = Complex(n_re='{}_re'.format(t),
-                    n_im='{}_im'.format(t),
+        c = Complex(n_re=f'{t}_re',
+                    n_im=f'{t}_im',
                     label=_find(elem, 'label').text)
         return t, c
 

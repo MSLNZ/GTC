@@ -33,11 +33,11 @@ tmp2 = l_s * alpha_s * d_theta
 # Final equation for the measurement result
 l = result( l_s + d - (tmp1 + tmp2), label='l')
 
-print( "Measurement result for l={}".format(l) )
+print(f"Measurement result for l={l}")
 
 print("""
 Components of uncertainty in l (nm)
 -----------------------------------""")
 
 for i in reporting.budget(l):
-    print( "  {!s}: {:G}".format(i.label,i.u) )
+    print(f"  {i.label!s}: {i.u:G}")

@@ -2549,8 +2549,8 @@ class TestStringRepresentations(unittest.TestCase):
         uc = ucomplex(z, u)
         s = re.search(r'ucomplex\(\((.*)\), u=\[(.*)\], r=(.*), df=(.*)\)', repr(uc))
         
-        self.assertEqual(s.group(1),"{0.real:.16g}{0.imag:+.16g}j".format(z))
-        self.assertEqual(s.group(2),"{0!r},{0!r}".format(u))
+        self.assertEqual(s.group(1),f"{z.real:.16g}{z.imag:+.16g}j")
+        self.assertEqual(s.group(2),f"{u!r},{u!r}")
         self.assertEqual(s.group(3),repr(0.))
         self.assertEqual(s.group(4),"inf")
   

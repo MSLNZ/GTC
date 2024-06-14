@@ -307,14 +307,14 @@ class Archive(object):
         if self._dump and self._ready:
             if key in self._tagged_real or key in self._tagged_complex:
                 raise RuntimeError(
-                    "The tag '{!s}' is already in use".format(key)
+                    f"The tag '{key}' is already in use"
                 )
             else:
                 # This uncertain-number object can be elementary or intermediate
                 if isinstance(obj,UncertainReal):
                     if key in self._untagged_real:
                         raise RuntimeError(
-                            "The tag '{!s}' is being used".format(key)
+                            f"The tag '{key}' is being used"
                         )
                         
                     # An intermediate UncertainReal needs to be recorded
@@ -323,7 +323,7 @@ class Archive(object):
                             uid = obj._node.uid
                         except AttributeError:
                             raise RuntimeError(
-                                "uncertain number labelled '{}' is not declared intermediate".format(key)
+                                f"uncertain number labelled '{key}' is not declared intermediate"
                             )
                         self._uid_to_intermediate[uid] = obj            
                     
@@ -331,16 +331,16 @@ class Archive(object):
 
                 elif isinstance(obj,UncertainComplex):
                 
-                    n_re = "{!s}_re".format(key)
+                    n_re = f"{key}_re"
                     if n_re in self._tagged_real or n_re in self._untagged_real:
                         raise RuntimeError(
-                            "'{!s}' is being used as a name-tag".format(n_re)
+                            f"{n_re!r} is being used as a name-tag"
                         )
 
-                    n_im = "{!s}_im".format(key)
+                    n_im = f"{key}_im"
                     if n_im in self._tagged_real or n_im in self._untagged_real:
                         raise RuntimeError(
-                            "'{!s}' is being used as a name-tag".format(n_im)
+                            f"{n_im!r} is being used as a name-tag"
                         )
                         
                     self._untagged_real[n_re] = obj.real
@@ -354,7 +354,7 @@ class Archive(object):
                             uid_i = obj.imag._node.uid
                         except AttributeError:
                             raise RuntimeError(
-                                "uncertain number labelled '{}' is not declared intermediate".format(key)
+                                f"uncertain number labelled '{key}' is not declared intermediate"
                             )
                             
                         self._uid_to_intermediate[uid_r] = obj.real
@@ -364,7 +364,7 @@ class Archive(object):
                     
                 else:
                     raise RuntimeError(
-                        "'{!r}' cannot be archived: wrong type".format(obj)
+                        f"'{obj!r}' cannot be archived: wrong type"
                     )
         else:
             raise RuntimeError('Archive cannot be added to')
@@ -430,7 +430,7 @@ class Archive(object):
                 return self._tagged_complex[key]
             else:
                 raise RuntimeError(
-                    "'{!s}' not found".format(key)
+                    f"{key!r} not found"
                 )
             
         else:
@@ -564,10 +564,10 @@ class Archive(object):
                             uid=obj.imag._node.uid
                         )
                         
-                        n_re = "{}_re".format(n)
+                        n_re = f"{n}_re"
                         self._untagged_real[n_re] = re
                         
-                        n_im = "{}_im".format(n)
+                        n_im = f"{n}_im"
                         self._untagged_real[n_im] = im 
                         
                         self._tagged_complex[n] = Complex(
@@ -609,7 +609,7 @@ class Archive(object):
                             uid = obj.real._node.uid,
                         )
                             
-                        n_re = "{}_re".format(n)
+                        n_re = f"{n}_re"
                         self._untagged_real[n_re] = re
                         
                         im = IntermediateReal(
@@ -626,7 +626,7 @@ class Archive(object):
                             uid = obj.imag._node.uid,
                         )
 
-                        n_im = "{}_im".format(n)
+                        n_im = f"{n}_im"
                         self._untagged_real[n_im] = im
                         
                         self._tagged_complex[n] = Complex(
@@ -845,7 +845,7 @@ def _builder(o_name,_nodes,_tagged_real):
         _tagged_real[o_name] = un
 
     else:
-        assert False, "unexpected: {!r}".format(obj)
+        assert False, f"unexpected: {obj!r}"
 
     return un
 

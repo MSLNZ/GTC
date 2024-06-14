@@ -67,7 +67,7 @@ def sum(seq,*args,**kwargs):
         
     else:
         raise RuntimeError(
-            "{!r} is not iterable".format(seq)
+            f"{seq!r} is not iterable"
         )    
 
 #---------------------------------------------------------------------------
@@ -146,24 +146,24 @@ def seq_to_complex(seq):
     """
     if hasattr(seq,'shape'):
         if seq.shape != (2,2):
-            raise RuntimeError("array shape illegal: {}".format(seq))
+            raise RuntimeError(f"array shape illegal: {seq}")
         elif (
             math.fabs( seq[0,0] - seq[1,1] ) > EPSILON
         or  math.fabs( seq[1,0] + seq[0,1] ) > EPSILON ):
-            raise RuntimeError("ill-conditioned sequence: {}".format(seq))
+            raise RuntimeError(f"ill-conditioned sequence: {seq}")
         else:
             seq = list( seq.flat )
             
     elif is_sequence(seq):
         if len(seq) != 4:
-            raise RuntimeError("sequence must have 4 elements: {}".format(seq))
+            raise RuntimeError(f"sequence must have 4 elements: {seq}")
         elif (
             math.fabs( seq[0] - seq[3] ) > EPSILON
         or  math.fabs( seq[1] + seq[2] ) > EPSILON ):
-            raise RuntimeError("ill-conditioned sequence: {}".format(seq))
+            raise RuntimeError(f"ill-conditioned sequence: {seq}")
     
     else:
-        raise RuntimeError("illegal argument: {}".format(seq))
+        raise RuntimeError(f"illegal argument: {seq}")
 
     return complex(seq[0],seq[2])
     
@@ -176,7 +176,7 @@ def _simple_variance(v):
     or  abs(v21) > 1E-15
     ):
         raise RuntimeError(
-            "equal diagonal variance required, got: {}".format(v)
+            f"equal diagonal variance required, got: {v}"
         )
 #---------------------------------------------------------------------------
 def mul2(arg1,arg2,estimated=False):
@@ -277,7 +277,7 @@ def mul2(arg1,arg2,estimated=False):
     for arg in (arg1,arg2):
         if not isinstance(arg,(UncertainReal,UncertainComplex)):
             raise RuntimeError(
-                "uncertain number required, got: {!r}".format( arg )
+                f"uncertain number required, got: {arg!r}"
             )
 
     if isinstance(arg1,UncertainReal):
@@ -288,7 +288,7 @@ def mul2(arg1,arg2,estimated=False):
             return mult_2nd_real_complex(arg1,arg2,estimated)
         else:
             raise RuntimeError(
-                "uncertain number required, got: {!r}".format( arg2 )
+                f"uncertain number required, got: {arg2!r}"
             )
     elif isinstance(arg1,UncertainComplex):
         _simple_variance(arg1.v)
@@ -299,11 +299,11 @@ def mul2(arg1,arg2,estimated=False):
             return mult_2nd_complex_pair(arg1,arg2,estimated)
         else:
             raise RuntimeError(
-                "uncertain number required, got: {!r}".format( arg2 )
+                f"uncertain number required, got: {arg2!r}"
             )
     else:
         raise RuntimeError(
-            "uncertain number required, got: {!r}".format( arg1 )
+            f"uncertain number required, got: {arg1!r}"
         )
  
 #---------------------------------------------------------------------------
@@ -419,7 +419,7 @@ def nr_get_root(fn,x_min,x_max,epsilon):
     """
     if x_max <= x_min:      
         raise RuntimeError(
-            "Invalid search range: {!s}".format((x_min,x_max))
+            f"Invalid search range: {(x_min, x_max)}"
         )
            
     
@@ -447,7 +447,7 @@ def nr_get_root(fn,x_min,x_max,epsilon):
 
     if fl * fu >= 0.0:
         raise RuntimeError(
-           "range does not appear to contain a root: {}".format((fl,fu))
+           f"range does not appear to contain a root: {(fl, fu)}"
         )
 
     if fl > 0.0:

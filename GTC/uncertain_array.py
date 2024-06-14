@@ -62,7 +62,7 @@ def _isnan(number):
     elif isinstance(val, Complex):
         return cisnan(val)
     else:
-        raise TypeError('cannot calculate isnan of type {}'.format(type(number)))
+        raise TypeError(f'cannot calculate isnan of type {type(number)}')
 
 
 def _isinf(number):
@@ -72,7 +72,7 @@ def _isinf(number):
     elif isinstance(val, Complex):
         return cisinf(val)
     else:
-        raise TypeError('cannot calculate isinf of type {}'.format(type(number)))
+        raise TypeError(f'cannot calculate isinf of type {type(number)}')
 
 # Note numpy defines its own numeric types, instead of bool, int,
 # float, complex, that have additional attributes. These types are needed by
@@ -144,12 +144,11 @@ class UncertainArray(np.ndarray):
 
         if attr is None:
             raise NotImplementedError(
-                'The {} function has not been implemented'.format(ufunc)
+                f'The {ufunc!r} function has not been implemented'
             )
 
         if kwargs:
-            warnings.warn('**kwargs, {}, are currently not supported'
-                          .format(kwargs), stacklevel=2)
+            warnings.warn(f'**kwargs, {kwargs}, are currently not supported', stacklevel=2)
 
         case = len(inputs)
         if case == 1:
@@ -176,7 +175,7 @@ class UncertainArray(np.ndarray):
                 self._broadcasted_shape = broadcasted.shape
 
         else:
-            assert False, 'Should not occur: __array_ufunc__ received {} inputs'.format(case)
+            assert False, f'Should not occur: __array_ufunc__ received {case} inputs'
 
         return attr(*inputs)
 
@@ -694,7 +693,7 @@ class UncertainArray(np.ndarray):
             if not is_sequence(labels):
                 # Add index notation to the label base
                 labels = [
-                    "{}[{}]".format(labels, i)
+                    f"{labels}[{i}]"
                     for i in xrange(self.size)
                 ]
 

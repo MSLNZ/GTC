@@ -104,13 +104,13 @@ class Vector(object):
             idx = kwargs['index']
             if getattr(idx,'append',None) is None:
                 raise RuntimeError(
-                    "mutable sequence required, got {!r}".format(type(idx))
+                    f"mutable sequence required, got {type(idx)!r}"
                 )
                 
             val = kwargs['value']
             if getattr(val,'append',None) is None:
                 raise RuntimeError(
-                    "mutable sequence required, got {!r}".format(type(val))
+                    f"mutable sequence required, got {type(val)!r}"
                 )
                 
             self._index = idx

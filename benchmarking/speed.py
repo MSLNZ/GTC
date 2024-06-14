@@ -126,11 +126,11 @@ def fn():
 
     _t4 = time.time()
 
-    print('set up time: {}'.format(_t1 - _t0))
-    print('initialisation time: {}'.format(_t2 - _t1))
-    print('build-up time: {}'.format(_t3 - _t2))
-    print('results time: {}'.format(_t4 - _t3))
-    print('total time: {}'.format(_t4 - _t0))
+    print(f'set up time: {_t1 - _t0}')
+    print(f'initialisation time: {_t2 - _t1}')
+    print(f'build-up time: {_t3 - _t2}')
+    print(f'results time: {_t4 - _t3}')
+    print(f'total time: {_t4 - _t0}')
 
 #========================================================
 if __name__ == '__main__':
