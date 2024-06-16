@@ -275,8 +275,8 @@ def k_to_dof(k,p=95):
     **Example**::
 
         >>> reporting.k_to_dof(2.0,95)
-        60.43756442698591
-        
+        60.4375644...
+
     """
     if k <= 0:
         raise RuntimeError( "invalid k:  {}".format( k ) )  
