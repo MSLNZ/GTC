@@ -15,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
-        os: [windows-latest, ubuntu-20.04, macos-13]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        os: [windows-2022, ubuntu-20.04, macos-13]
         architecture: [x64, x86]
         exclude:
           - os: ubuntu-20.04
@@ -29,14 +29,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }} (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ matrix.os == 'windows-2022' }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
 
       - name: Set up Python ${{ matrix.python-version }} (non Windows)
-        if: ${{ matrix.os != 'windows-latest' }}
+        if: ${{ matrix.os != 'windows-2022' }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -48,7 +48,6 @@ jobs:
           sudo apt-get install -y language-pack-en language-pack-de
 
       - name: Install pip, setuptools and wheel
-        if: ${{ matrix.python-version != '3.5' }}
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade setuptools wheel
