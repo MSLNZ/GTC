@@ -18,16 +18,15 @@ R = result( V * cos(phi) / I )
 X = result( V * sin(phi) / I )
 Z = result( V / I )
 
-print('R = {}'.format(R) )
-print('X = {}'.format(X) )
-print('Z = {}'.format(Z) )
-print
-print('Correlation between R and X = {:+.2G}'.format( get_correlation(R,X) ) )
-print('Correlation between R and Z = {:+.2G}'.format( get_correlation(R,Z) ) )
-print('Correlation between X and Z = {:+.2G}'.format( get_correlation(X,Z) ) )
+print(f'R = {R}')
+print(f'X = {X}')
+print(f'Z = {Z}')
+print()
+print(f'Correlation between R and X = {get_correlation(R, X):+.2G}')
+print(f'Correlation between R and Z = {get_correlation(R, Z):+.2G}')
+print(f'Correlation between X and Z = {get_correlation(X, Z):+.2G}')
 
 print("""
 (These are not exactly the same values reported in the GUM.
 There is some numerical round-off error in the GUM's calculations.)
 """)
-

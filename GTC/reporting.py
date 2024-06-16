@@ -87,7 +87,7 @@ __all__ = (
 )
 
 #--------------------------------------------------------------------------
-uid_str = lambda id: "{0[0]:d}_{0[1]:d}".format(id)
+uid_str = lambda id: f"{id[0]:d}_{id[1]:d}"
 
 #--------------------------------------------------------------------------
 def is_ureal(x):
@@ -179,9 +179,9 @@ def k2_to_dof(k2,p=95):
         
     """
     if k2 <= 0:
-        raise RuntimeError( "invalid k:  {}".format(k2) ) 
+        raise RuntimeError( f"invalid k: {k2}" )
     if p <= 0 or p >= 100:
-        raise RuntimeError( "invalid p: {}".format(p) )
+        raise RuntimeError( f"invalid p: {p}" )
     else:
         p = p / 100.0     
 
@@ -222,7 +222,7 @@ def k2_factor_sq(df=inf,p=95):
         return norm*special.fdtri(2.0,df-1.0,p)
         
     else:
-        raise RuntimeError("invalid df={!r}".format( df ) )
+        raise RuntimeError(f"invalid df={df!r}")
  
 #----------------------------------------------------------------------------
 def k_factor(df=inf,p=95):
@@ -244,7 +244,7 @@ def k_factor(df=inf,p=95):
 
     """
     if p <= 0.0 or p >= 100.0:
-        raise RuntimeError( "invalid p: {}".format( p ) )
+        raise RuntimeError( f"invalid p: {p}" )
     
     p = (1.0 + p/100.0)/2.0
     
@@ -255,7 +255,7 @@ def k_factor(df=inf,p=95):
         # inverse cumulative Student-t distribution
         return special.stdtrit(df,p)
     else:
-        raise RuntimeError( "invalid df: {}".format( df ) )
+        raise RuntimeError( f"invalid df: {df}" )
    
 #----------------------------------------------------------------------------
 def k_to_dof(k,p=95):
@@ -277,9 +277,9 @@ def k_to_dof(k,p=95):
         
     """
     if k <= 0:
-        raise RuntimeError( "invalid k:  {}".format( k ) )  
+        raise RuntimeError( f"invalid k: {k}" )
     if p <= 0 or p >= 100:
-        raise RuntimeError( "invalid p: {}".format( p ) )
+        raise RuntimeError( f"invalid p: {p}" )
     else:
         p = (1.0 + p/100.0)/2.0         
         df = special.stdtridf(p,k) 
@@ -373,7 +373,7 @@ def sensitivity(y,x):
         return y.sensitivity(x)
     else:
         raise RuntimeError(
-            "An uncertain number is expected: {!r}".format(y)
+            f"An uncertain number is expected: {y!r}"
         ) 
         
 #----------------------------------------------------------------------------
@@ -417,7 +417,7 @@ def u_component(y,x):
         return y.u_component(x)
     else:
         raise RuntimeError(
-            "An uncertain number is expected: {!r}".format(y)
+            f"An uncertain number is expected: {y!r}"
         )
 
 #----------------------------------------------------------------------------
@@ -449,7 +449,7 @@ def u_bar(ucpt):
     if is_sequence(ucpt):
         if len(ucpt) != 4:
             raise RuntimeError(
-                "need a 4-element sequence, got: {!r}".format(ucpt)
+                f"need a 4-element sequence, got: {ucpt!r}"
             )
            
         return math.sqrt( reduce(lambda y,x: y + x*x,ucpt,0) / 2 )
@@ -459,7 +459,7 @@ def u_bar(ucpt):
         
     else:
         raise RuntimeError(
-            "need a 4-element sequence or float, got: {!r}".format(ucpt)
+            f"need a 4-element sequence or float, got: {ucpt!r}"
         )
         
 #----------------------------------------------------------------------------
@@ -485,7 +485,7 @@ def v_bar(cv):
 
     """
     assert len(cv) == 4,\
-           "'%s' a 4-element sequence is needed" % type(cv)
+        f"'{type(cv)}' a 4-element sequence is needed"
 
     return (cv[0] + cv[3]) / 2.0
 
@@ -575,7 +575,7 @@ def components(y,**kwargs):
                     values.append( math.fabs(u_component(y,i.imag)) ) 
                 else:
                     raise RuntimeError(
-                        "unexpected type: '{!r}'".format( i )
+                        f"unexpected type: '{i!r}'"
                     )
         else:
             assert False,"should never occur"
@@ -764,14 +764,14 @@ def budget(y,**kwargs):
         >>> x3 = ureal(3,0.1,label='x3')
         >>> y = (x1 - x2) / x3
         >>> for i in reporting.budget(y):
-        ...     print("{0}: {1:G}".format(i.label,i.u))
+        ...     print(f"{i.label}: {i.u:G}")
         ... 	
         x1: 0.333333
         x2: 0.166667
         x3: 0.0111111
         
         >>> for i in reporting.budget(y,reverse=False):
-        ... 	print("{0}: {1:G}".format(i.label,i.u))
+        ... 	print(f"{i.label}: {i.u:G}")
         ... 	
         x3: 0.0111111
         x2: 0.166667
@@ -780,7 +780,7 @@ def budget(y,**kwargs):
         >>> y1 = result(x1 + x2,label='y1')
         >>> y2 = result(x2 + x3,label='y2')
         >>> for i in reporting.budget(y1 + y2,intermediate=True):
-        ... 	print("{0}: {1:G}".format(i.label,i.u))
+        ... 	print(f"{i.label}: {i.u:G}")
         ... 
         y1: 1.11803
         y2: 0.509902
@@ -812,7 +812,7 @@ def budget(y,**kwargs):
             uids = [ n_i.uid for n_i in nodes ]
             labels = [ n_i.label 
                         if n_i.label is not None 
-                            else "{}".format(n_i.uid) 
+                            else f"{n_i.uid}" 
                                 for n_i in nodes ]
             values = [ math.fabs( u ) for u in y._u_components.itervalues() ]
             
@@ -820,7 +820,7 @@ def budget(y,**kwargs):
             uids += [ n_i.uid for n_i in nodes ]
             labels += [ n_i.label 
                         if n_i.label is not None 
-                            else "{}".format(n_i.uid) 
+                            else f"{n_i.uid}" 
                                 for n_i in nodes ]
             values += [ math.fabs( u ) for u in y._d_components.itervalues() ]
             
@@ -836,7 +836,7 @@ def budget(y,**kwargs):
                     
                 uids.append( n_i.uid ) 
                 labels.append( 
-                    n_i.label if n_i.label is not None else "{}".format(n_i.uid) 
+                    n_i.label if n_i.label is not None else f"{n_i.uid}" 
                 )
                 values.append( math.fabs( u_i ) )
             
@@ -859,7 +859,7 @@ def budget(y,**kwargs):
                     values.append( math.fabs(u_component(y,i.imag)) ) 
                 else:
                     raise RuntimeError(
-                        "unexpected type: '{!r}'".format( i )
+                        f"unexpected type: '{i!r}'"
                     )
         else:
             assert False,"should never occur"
@@ -906,9 +906,7 @@ def budget(y,**kwargs):
                         
                         if ir_0.label is None:
                             # No label assigned, report uids
-                            label = "uid({},{})".format(
-                                uid_str(ir_0.uid),uid_str(ii_0.uid)
-                            )
+                            label = f"uid({uid_str(ir_0.uid)},{uid_str(ii_0.uid)})"
                         else:
                             # take the trailing _re off the real label
                             # to label the complex influence
@@ -925,7 +923,7 @@ def budget(y,**kwargs):
                         u=u_bar([ur_0,0,ui_0,0])
                         
                         if ir_0.label is None:
-                            label = "uid({})".format( uid_str(ir_0.uid) )
+                            label = f"uid({uid_str(ir_0.uid)})"
                         else:
                             label = ir_0.label 
                             
@@ -976,9 +974,7 @@ def budget(y,**kwargs):
                         
                         if ir_0.label is None:
                             # No label assigned, report uids
-                            label = "uid({},{})".format(
-                                uid_str(ir_0.uid),uid_str(ii_0.uid)
-                            )
+                            label = f"uid({uid_str(ir_0.uid)},{uid_str(ii_0.uid)})"
                         else:
                             # take the trailing _re off the real label
                             # to label the complex influence
@@ -995,7 +991,7 @@ def budget(y,**kwargs):
                         u=u_bar([ur_0,0,ui_0,0])
                         
                         if ir_0.label is None:
-                            label = "uid({})".format( uid_str(ir_0.uid) )
+                            label = f"uid({uid_str(ir_0.uid)})"
                         else:
                             label = ir_0.label 
                             

@@ -129,7 +129,7 @@ def tagged_to_json(x):
     elif isinstance(x, Complex ):
         return complex_to_json(x)
     else:
-        raise TypeError( "Unrecognised: {}".format( type(x) ) )
+        raise TypeError( f"Unrecognised: {type(x)}" )
  
 #----------------------------------------------------------------------------
 # 

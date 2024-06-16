@@ -171,7 +171,7 @@ def uarray(array, label=None, names=None):
             raise TypeError('The elements in the uarray must be a tuple if specifying field names')
 
         if a_len != len(names):
-            raise ValueError('len(array[0]) != len(names) -> {} != {}'.format(a_len, len(names)))
+            raise ValueError(f'len(array[0]) != len(names) -> {a_len} != {len(names)}')
 
         dtype = [(name, type(val)) for name, val in izip(names, array[0])]
 

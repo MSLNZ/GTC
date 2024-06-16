@@ -53,7 +53,7 @@ def _is_uncertain_real_constant(x):
         )
     else:
         raise TypeError(
-            "UncertainReal required: {!r}".format(x)
+            f"UncertainReal required: {x!r}"
         )
 
 #----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ def _is_uncertain_complex_constant(z):
         )
     else:
         raise TypeError(
-            "UncertainComplex required: {!r}".format(z)
+            f"UncertainComplex required: {z!r}"
         )
 
 #-----------------------------------------------------------------------------------------
@@ -208,12 +208,12 @@ class UncertainReal(object):
         """
         if df < 1:
             raise ValueError(
-                "invalid degrees of freedom: {!r}".format(df) 
+                f"invalid degrees of freedom: {df!r}" 
             )
         if u < 0:
             # u == 0 can occur in complex UNs.
             raise ValueError(
-                "invalid uncertainty: {!r}".format(u)
+                f"invalid uncertainty: {u!r}"
             )
                     
         uid = context._context._next_elementary_id()
@@ -342,8 +342,8 @@ class UncertainReal(object):
                     n.label = label
                 elif label != n.label:
                     warnings.warn(
-                        "label `{}` was not changed by `result()`:"
-                        " the new label `{}` has been ignored".format(n.label,label),
+                        f"label `{n.label}` was not changed by `result()`:"
+                        f" the new label `{label}` has been ignored",
                         RuntimeWarning
                     )
                 else:
@@ -361,13 +361,9 @@ class UncertainReal(object):
             df = inf 
         
         if self.label is None:
-            s = "ureal({!r},{!r},{!r})".format( 
-                x,u,df
-            )            
+            s = f"ureal({x!r},{u!r},{df!r})"            
         else:
-            s = "ureal({!r},{!r},{!r}, label={!r})".format( 
-                x,u,df,self.label
-            )                  
+            s = f"ureal({x!r},{u!r},{df!r}, label={self.label!r})"                  
         
         return s
 
@@ -411,7 +407,7 @@ class UncertainReal(object):
                 
             else:
                 raise RuntimeError(
-                    "{!r} is not an elementary or intermediate uncertain number".format(x)
+                    f"{x!r} is not an elementary or intermediate uncertain number"
                 )
              
         elif isinstance(x,UncertainComplex):
@@ -433,7 +429,7 @@ class UncertainReal(object):
             # return self.sensitivity( x.item(0) )
                         
         else:
-            assert False, 'unexpected: {!r}'.format(x)
+            assert False, f'unexpected: {x!r}'
     #------------------------------------------------------------------------
     def u_component(self,x):
         """
@@ -497,7 +493,7 @@ class UncertainReal(object):
                     
                 else:
                     raise TypeError(
-                        "invalid argument {!r}".format(x)
+                        f"invalid argument {x!r}"
                     )
                     
                 result[i] = u_i
@@ -511,7 +507,7 @@ class UncertainReal(object):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
             
         else:
-            assert False, 'unexpected: {!r}'.format(x)
+            assert False, f'unexpected: {x!r}'
 
     #------------------------------------------------------------------------
     def set_correlation(self,r,x):
@@ -530,8 +526,8 @@ class UncertainReal(object):
                     set_correlation_real(self,x,r)
                 else:
                     raise RuntimeError( 
-                        "the argument is not in the same ensemble:" +\
-                        "{!r}, {!r}".format(x._node,self._node)
+                        f"the argument is not in the same ensemble: "
+                        f"{x._node!r}, {self._node!r}"
                     )
         elif isinstance(x,UncertainComplex):
             # TODO: why not implement this? 
@@ -539,13 +535,13 @@ class UncertainReal(object):
             # because either a 2-element or 4-element sequence
             # would work
             raise TypeError(
-                "illegal argument {!r}".format(x)
+                f"illegal argument {x!r}"
             )
             # r_rr = set_correlation_real(self,x.real,r[0])
             # r_ri = set_correlation_real(self,x.imag,r[1])
         else:
             raise TypeError(
-                "argument must be ureal: {!r}".format(x) 
+                f"argument must be ureal: {x!r}" 
             )    
 
     #------------------------------------------------------------------------
@@ -593,7 +589,7 @@ class UncertainReal(object):
                         
         else:
             raise TypeError(
-                "illegal argument {!r}".format(x)
+                f"illegal argument {x!r}"
             )         
             
     #---------------------------------------------------------------------------
@@ -640,7 +636,7 @@ class UncertainReal(object):
             
         else:
             raise TypeError(
-                "illegal argument {!r}".format(arg)
+                f"illegal argument {arg!r}"
             )  
             
     #------------------------------------------------------------------------
@@ -1848,12 +1844,12 @@ def set_correlation_real(x1,x2,r):
         ):
             if ln1 is ln2 and r != 1.0:
                 raise ValueError(
-                    "correlation coefficient '{}' != 1.0".format(r)
+                    f"correlation coefficient '{r}' != 1.0"
                 )
             else:
                 if abs(r) > 1.0:
                     raise ValueError(
-                        "correlation coefficient '|{}|' > 1.0".format(r)
+                        f"correlation coefficient '|{r}|' > 1.0"
                     )
                 else:
                     ln1.correlation[ln2.uid] = r 
@@ -1864,8 +1860,8 @@ def set_correlation_real(x1,x2,r):
             )
     else:
         raise TypeError(
-            "Arguments must be elementary uncertain numbers, \
-            got: {!r} and {!r}".format(x1,x2)
+            f"Arguments must be elementary uncertain numbers, "
+            f"got: {x1!r} and {x2!r}"
         )
 #----------------------------------------------------------------------
 def get_correlation_real(x1,x2):
@@ -2035,7 +2031,7 @@ def welch_satterthwaite(x):
     """    
     if not isinstance(x,UncertainReal):
         raise TypeError(
-            "UncertainReal required, got: '{!r}'".format(x)
+            f"UncertainReal required, got: '{x!r}'"
         )
     
     if x.is_elementary:
@@ -2410,8 +2406,8 @@ class UncertainComplex(object):
         if label is None:
             label_r,label_i = None,None
         else:
-            label_r = "{}_re".format(label)
-            label_i = "{}_im".format(label)
+            label_r = f"{label}_re"
+            label_i = f"{label}_im"
             
         real = UncertainReal._constant(z.real,label_r)
         imag = UncertainReal._constant(z.imag,label_i)
@@ -2450,8 +2446,8 @@ class UncertainComplex(object):
             label_r,label_i = None,None
             
         else:
-            label_r = "{}_re".format(label)
-            label_i = "{}_im".format(label)
+            label_r = f"{label}_re"
+            label_i = f"{label}_im"
             
         # `independent` will be False if `r != 0`
         real = UncertainReal._elementary(z.real,u_r,df,label_r,independent)
@@ -2497,8 +2493,8 @@ class UncertainComplex(object):
             un_re = self.real._intermediate(None)
             un_im = self.imag._intermediate(None) 
         else:
-            label_r = "{}_re".format(label)
-            label_i = "{}_im".format(label)
+            label_r = f"{label}_re"
+            label_i = f"{label}_im"
             
             un_re = self.real._intermediate(label_r)
             un_im = self.imag._intermediate(label_i) 
@@ -2524,20 +2520,12 @@ class UncertainComplex(object):
             df = inf 
 
         if self.label is None:
-            s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
-                "u=[{1[0]!r},{1[1]!r}], "
-                "r={2!r}, df={3!r}"
-                ")").format( 
-                x,u,r,df
-            )        
+            s = (f"ucomplex(({x.real:.16g}{x.imag:+.16g}j), "
+                 f"u=[{u[0]!r},{u[1]!r}], r={r!r}, df={df!r})")
         else:
-            s = ("ucomplex(({0.real:.16g}{0.imag:+.16g}j), "
-                "u=[{1[0]!r},{1[1]!r}], "
-                "r={2!r}, df={3!r}, "
-                "label={4!r}"
-                ")").format( 
-                x,u,r,df,self.label
-            )        
+            s = (f"ucomplex(({x.real:.16g}{x.imag:+.16g}j), "
+                 f"u=[{u[0]!r},{u[1]!r}], r={r!r}, df={df!r}, "
+                 f"label={self.label!r})")
         
         return s
 
@@ -2587,8 +2575,8 @@ class UncertainComplex(object):
                 
             else:
                 raise RuntimeError(
-                    "An elementary or intermediate " 
-                    + "uncertain number was expected: {!r}".format(x)
+                    f"An elementary or intermediate "
+                    f"uncertain number was expected: {x!r}"
                 )
                 
         elif isinstance(x,UncertainReal):
@@ -2603,14 +2591,14 @@ class UncertainComplex(object):
                 
             else:
                 raise TypeError(
-                    "invalid argument {!r}".format(x)
+                    f"invalid argument {x!r}"
                 )
 
         elif isinstance(x,numbers.Complex):
             return JacobianMatrix(0.0,0.0,0.0,0.0)
 
         else:
-            assert False, 'unexpected: {!r}'.format(x)
+            assert False, f'unexpected: {x!r}'
             
     #------------------------------------------------------------------------
     def u_component(self,x):
@@ -2659,8 +2647,8 @@ class UncertainComplex(object):
                 
             else:
                 raise RuntimeError(
-                    "An elementary or intermediate " 
-                    + "uncertain number was expected: {!r}".format(x)
+                    f"An elementary or intermediate "
+                    f"uncertain number was expected: {x!r}"
                 )
                 
         elif isinstance(x,UncertainReal):
@@ -2677,14 +2665,14 @@ class UncertainComplex(object):
                 
             else:
                 raise TypeError(
-                    "invalid argument {!r}".format(x)
+                    f"invalid argument {x!r}"
                 )
             
         elif isinstance(x,numbers.Complex):
             return ComponentOfUncertainty(0.0,0.0,0.0,0.0)
  
         else:
-            assert False, 'unexpected: {!r}'.format(x) 
+            assert False, f'unexpected: {x!r}' 
             
     #------------------------------------------------------------------------
     def get_correlation(self,arg=None):
@@ -2722,7 +2710,7 @@ class UncertainComplex(object):
             
         else:
             raise TypeError(
-                "illegal second argument {!r}".format(arg)
+                f"illegal second argument {arg!r}"
             )
 
     #------------------------------------------------------------------------
@@ -2738,7 +2726,7 @@ class UncertainComplex(object):
             # because either a 2-element or 4-element sequence
             # would work
             raise TypeError(
-                "illegal argument {!r}".format(arg)
+                f"illegal argument {arg!r}"
             )
             # r_rr = set_correlation_real(self.real,arg,r[0])
             # r_ir = set_correlation_real(self.imag,arg,r[2])
@@ -2746,7 +2734,7 @@ class UncertainComplex(object):
         elif isinstance(arg,UncertainComplex):
             if not( is_sequence(r) and len(r)==4 ):
                 raise TypeError(
-                    "needs a sequence of 4 correlation coefficients: '{!r}'".format(r)
+                    f"needs a sequence of 4 correlation coefficients: '{r!r}'"
                 )
             else:
                 # Trivial case
@@ -2780,7 +2768,7 @@ class UncertainComplex(object):
                         )        
         else:
             raise TypeError(
-                "Illegal argument: {!r}".format(arg)
+                f"Illegal argument: {arg!r}"
             )
                         
     #---------------------------------------------------------------------------
@@ -2817,7 +2805,7 @@ class UncertainComplex(object):
             
         else:
             raise TypeError(
-                "illegal argument {!r}".format(arg)
+                f"illegal argument {arg!r}"
             )
         
     #------------------------------------------------------------------------
@@ -4390,7 +4378,7 @@ def willink_hall(x):
     #
     if not isinstance(x,UncertainComplex):
         raise TypeError(
-            "expected 'UncertainComplex' got: '{!r}'".format(x)
+            f"expected 'UncertainComplex' got: '{x!r}'"
         )
     
     if _is_uncertain_complex_constant(x):
@@ -4703,7 +4691,7 @@ def mult_2nd_real_pair(arg1,arg2,estimated):
         for uid in arg_uids:
             if uid in uids:
                 raise RuntimeError(
-                    "{!r} is a common influence".format(arg)
+                    f"{arg!r} is a common influence"
                 )
         uids.update( arg_uids )
         u_args.append( arg.u )

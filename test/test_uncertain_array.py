@@ -2981,7 +2981,7 @@ class TestUncertainArray(unittest.TestCase):
             else:
                 if nc is None:
                     raise AssertionError('The regular matmul FAILED, the custom-written matmul PASSED')
-                self.assertTrue(np.array_equal(nc, uc), 'The arrays are not equal\n{}\n{}'.format(nc, uc))
+                self.assertTrue(np.array_equal(nc, uc), f'The arrays are not equal\n{nc}\n{uc}')
 
     def test_astype(self):
         # make sure that the following is not allowed

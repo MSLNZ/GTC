@@ -119,20 +119,9 @@ class Format(object):
         # This will allow users to see what the equivalent format_spec
         # string would be, instead of them importing and calling
         # create_format() to simply print an uncertain number.
-        spec = '{fill}{align}{sign}{hash}{zero}{width}{grouping}' \
-               '.{digits}{type}{style}'.format(
-                fill=self._fill,
-                align=self._align,
-                sign=self._sign,
-                hash=self._hash,
-                zero=self._zero,
-                width=self._width,
-                grouping=self._grouping,
-                digits=self._digits,
-                type=self._type,
-                style=self._style)
-        return 'Format(format_spec={!r}, df_precision={}, r_precision={})'.format(
-            spec, self._df_precision, self._r_precision)
+        spec = f'{self._fill}{self._align}{self._sign}{self._hash}{self._zero}{self._width}{self._grouping}' \
+               f'.{self._digits}{self._type}{self._style}'
+        return f'Format(format_spec={spec!r}, df_precision={self._df_precision}, r_precision={self._r_precision})'
 
     def _result(self, text):
         """Formats the result.
@@ -145,10 +134,8 @@ class Format(object):
         :return: The `text` formatted.
         :rtype: str
         """
-        fmt = '{fill}{align}{zero}{width}s'.format(
-            fill=self._fill, align=self._align,
-            zero=self._zero, width=self._width)
-        return '{0:{1}}'.format(text, fmt)
+        fmt = f'{self._fill}{self._align}{self._zero}{self._width}s'
+        return f'{text:{fmt}}'
 
     def _value(self, value, precision=None, type=None, sign=None, hash=None):
         """Format a value.
@@ -186,18 +173,10 @@ class Format(object):
             hash = self._hash
 
         if type == 'n':
-            fmt = '%{sign}{hash}.{precision}f'.format(
-                sign=sign, hash=hash, precision=precision)
+            fmt = f'%{sign}{hash}.{precision}f'
             return locale.format_string(fmt, value, grouping=True)
 
-        return '{0:{sign}{hash}{grouping}.{precision}{type}}'.format(
-            value,
-            sign=sign,
-            hash=hash,
-            grouping=self._grouping,
-            precision=precision,
-            type=type
-        )
+        return f'{value:{sign}{hash}{self._grouping}.{precision}{type}}'
 
     def _uncertainty(self, uncertainty, precision=None, type='f', hash=None):
         """Format an uncertainty.
@@ -239,7 +218,7 @@ def parse(format_spec):
     """
     match = _format_spec_regex.match(format_spec)
     if not match:
-        raise ValueError('Invalid format specifier {!r}'.format(format_spec))
+        raise ValueError(f'Invalid format specifier {format_spec!r}')
     return match.groupdict()
 
 
@@ -301,7 +280,7 @@ def apply_format(un, fmt):
             StandardUncertainty(re_u.value, im_u.value),
             r, df, un.label)
     else:
-        raise RuntimeError("unexpected type: {!r}".format(un))
+        raise RuntimeError(f"unexpected type: {un!r}")
 
 
 def create_format(obj, digits=None, df_precision=None, r_precision=None,
@@ -385,7 +364,7 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
            parentheses and *digits* is equivalent to *precision*.
 
            >>> ur = ureal(3.1415926536, 0)
-           >>> '{:.5f}'.format(ur)
+           >>> f'{ur:.5f}'
            '3.14159'
 
     :rtype: :class:`Format`
@@ -400,7 +379,7 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
                 'width', 'grouping', 'precision', 'type')
     for key in kwargs:
         if key not in expected:
-            raise ValueError('Unrecognised argument {!r}'.format(key))
+            raise ValueError(f'Unrecognised argument {key!r}')
 
     kwargs['style'] = style
     kwargs['df_precision'] = df_precision
@@ -423,18 +402,18 @@ def create_format(obj, digits=None, df_precision=None, r_precision=None,
 
     if fmt._style not in ('', 'L', 'U'):
         raise ValueError(
-            'Formatting style {!r} is not supported. '
-            'Must be L or U'.format(fmt._style)
+            f'Formatting style {fmt._style!r} is not supported. '
+            f'Must be L or U'
         )
 
     if fmt._digits <= 0:
         raise ValueError(
-            'The number of digits must be > 0 '
-            '[digits={}]'.format(fmt._digits)
+            f'The number of digits must be > 0 '
+            f'[digits={fmt._digits}]'
         )
 
     if fmt._type == 'n' and fmt._grouping:
-        raise ValueError("Cannot specify {!r} with 'n'".format(fmt._grouping))
+        raise ValueError(f"Cannot specify {fmt._grouping!r} with 'n'")
 
     return fmt
 
@@ -457,7 +436,7 @@ def to_string(obj, fmt):
     """
     def move_percent_symbol(text):
         symbol = r'\%' if fmt._style == 'L' else '%'
-        return '{}{}'.format(text.replace(symbol, ''), symbol)
+        return f"{text.replace(symbol, '')}{symbol}"
 
     if isinstance(obj, (int, float)):
         r = _round(obj, fmt)
@@ -475,7 +454,7 @@ def to_string(obj, fmt):
         im_str = _stylize(im_val + i.suffix, fmt)
 
         b1, b2 = _stylize('(', fmt), _stylize(')', fmt)
-        result = '{0}{1}{2}j{3}'.format(b1, re_str, im_str, b2)
+        result = f'{b1}{re_str}{im_str}j{b2}'
         if fmt._type == '%':
             result = move_percent_symbol(result)
         return fmt._result(result)
@@ -485,13 +464,13 @@ def to_string(obj, fmt):
     elif is_ucomplex(obj):
         real, imag = obj.real, obj.imag
     else:
-        raise RuntimeError("unexpected type: {!r}".format(obj))
+        raise RuntimeError(f"unexpected type: {obj!r}")
 
     result = _stylize(_to_string_ureal(real, fmt), fmt)
     if imag is not None:
         imag_str = _to_string_ureal(imag, fmt, sign='+')
         b1, b2 = _stylize('(', fmt), _stylize(')', fmt)
-        result = '{0}{1}{2}j{3}'.format(b1, result, _stylize(imag_str, fmt), b2)
+        result = f'{b1}{result}{_stylize(imag_str, fmt)}j{b2}'
         if fmt._type == '%':
             result = move_percent_symbol(result)
 
@@ -602,13 +581,13 @@ def _stylize(text, fmt):
 
     if fmt._style == 'U':
         if exp_match and exp_number != 0:
-            e = '{}'.format(exp_number)
+            e = f'{exp_number}'
             translated = e.translate(_unicode_superscripts)
-            exponent = '\u00D710{}'.format(translated)
+            exponent = f'\u00D710{translated}'
 
     elif fmt._style == 'L':
         if exp_match and exp_number != 0:
-            exponent = r'\times10^{{{}}}'.format(exp_number)
+            exponent = rf'\times10^{{{exp_number}}}'
 
         replacements = [
             ('(', r'\left('),
@@ -625,7 +604,7 @@ def _stylize(text, fmt):
 
     if exp_match:
         start, end = exp_match.span()
-        text = '{0}{1}{2}'.format(text[:start], exponent, text[end:])
+        text = f'{text[:start]}{exponent}{text[end:]}'
 
     for old, new in replacements:
         text = text.replace(old, new)
@@ -667,7 +646,7 @@ def _round(value, fmt, exponent=None):
         factor = 10. ** exponent
         digits = max(exponent - fmt._u_exponent, 0)
         precision = digits
-        suffix = '{0:.0{1}}'.format(factor, _type)[1:]
+        suffix = f'{factor:.0{_type}}'[1:]
 
     if _type in 'eg%':
         _type = 'f'
@@ -731,12 +710,12 @@ def _to_string_ureal(ureal, fmt, sign=None):
     if _nan_or_inf(x, u):
         x_str = fmt._value(x, sign=sign)
         u_str = fmt._uncertainty(u, type=None)
-        result = '{0}({1})'.format(x_str, u_str)
+        result = f'{x_str}({u_str})'
         # move an exponential term (if it exists) to the end of the string
         exp = _exponent_regex.search(result)
         if exp:
             start, end = exp.span()
-            result = '{0}{1}{2}'.format(result[:start], result[end:], exp.group())
+            result = f'{result[:start]}{result[end:]}{exp.group()}'
         return result
 
     x_rounded, u_rounded = _round_ureal(ureal, fmt)
@@ -762,4 +741,4 @@ def _to_string_ureal(ureal, fmt, sign=None):
     x_str = fmt._value(x_rounded.value, precision=precision, sign=sign,
                        type=x_rounded.type)
 
-    return '{0}({1}){2}'.format(x_str, u_str, x_rounded.suffix)
+    return f'{x_str}({u_str}){x_rounded.suffix}'

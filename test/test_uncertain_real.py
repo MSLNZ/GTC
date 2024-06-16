@@ -872,7 +872,7 @@ class TestUncertainReal(unittest.TestCase):
 
         un = ureal(x,u)
 
-        rep = "ureal({!r},{!r},inf)".format(x,u)
+        rep = f"ureal({x!r},{u!r},inf)"
         self.assertEqual( rep,repr(un) )
         self.assertEqual( x_str,str(un) )
 
