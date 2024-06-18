@@ -10,7 +10,7 @@ In addition to the github repository, each release of GTC is archived automatica
 Version 1.5.1 (in development)
 ==============================
 
-    * Restrict the version of numpy to be `<2.0`
+    * Add support for numpy version >= 2.0
 
 Version 1.5.0 (2024-02-27)
 ==========================
