@@ -221,7 +221,7 @@ def k2_factor_sq(df=inf,p=95):
         
         # `fdtri` is the inverse of the cumulative F distribution
         # returning `x` such that `fdtr(dfn, dfd, x) = p`
-        return norm*special.fdtri(2.0,df-1.0,p)
+        return float(norm*special.fdtri(2.0,df-1.0,p))
         
     else:
         raise RuntimeError("invalid df={!r}".format( df ) )
@@ -252,10 +252,10 @@ def k_factor(df=inf,p=95):
     
     if df > inf_dof:
         # inverse cumulative Gaussian distribution
-        return special.ndtri(p)
+        return float(special.ndtri(p))
     elif df >= 1:
         # inverse cumulative Student-t distribution
-        return special.stdtrit(df,p)
+        return float(special.stdtrit(df,p))
     else:
         raise RuntimeError( "invalid df: {}".format( df ) )
    
@@ -275,8 +275,8 @@ def k_to_dof(k,p=95):
     **Example**::
 
         >>> reporting.k_to_dof(2.0,95)
-        60.43756442698591
-        
+        60.4375644...
+
     """
     if k <= 0:
         raise RuntimeError( "invalid k:  {}".format( k ) )  
@@ -286,7 +286,7 @@ def k_to_dof(k,p=95):
         p = (1.0 + p/100.0)/2.0         
         df = special.stdtridf(p,k) 
         
-        return df if df < inf_dof else inf 
+        return float(df) if df < inf_dof else inf
 
 #----------------------------------------------------------------------------
 def sensitivity(y,x):
