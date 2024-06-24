@@ -91,7 +91,7 @@ def fetch_init(key):
 
 
 install_requires = [
-    'numpy>=1.13.0,<2.0',  # >=1.13 to override __array_ufunc__ in UncertainArray
+    'numpy>=1.13.0',  # >=1.13 to override __array_ufunc__ in UncertainArray
     'scipy'
 ]
 tests_require = [
