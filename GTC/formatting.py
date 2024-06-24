@@ -71,7 +71,7 @@ _unicode_superscripts = {
 _Rounded = namedtuple('Rounded', 'value precision type exponent suffix')
 
 
-class Format(object):
+class Format:
     """Format specification for an uncertain number.
 
     Do not instantiate this class directly. The proper way to create a

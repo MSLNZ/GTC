@@ -167,7 +167,7 @@ def mean(seq,*args,**kwargs):
     # If `seq` has uncertain number elements then `mu` will be an uncertain number.     
     return mu
 #-----------------------------------------------------------------------------------------
-class LineFit(object):
+class LineFit:
     
     """
     Base class for the results of regression to a line.
@@ -244,7 +244,7 @@ class LineFitOLS(LineFit):
     """
     
     def __init__(self,a,b,ssr,N):
-        LineFit.__init__(self,a,b,ssr,N)
+        super().__init__(a,b,ssr,N)
 
     def __str__(self):
         header = '''
@@ -312,7 +312,7 @@ class LineFitWLS(LineFitOLS):
     """
     
     def __init__(self,a,b,ssr,N):
-        LineFitOLS.__init__(self,a,b,ssr,N)
+        super().__init__(a,b,ssr,N)
 
     def __str__(self):
         header = '''
@@ -331,7 +331,7 @@ class LineFitWTLS(LineFit):
     """
     
     def __init__(self,a,b,ssr,N):
-        LineFit.__init__(self,a,b,ssr,N)
+        super().__init__(a,b,ssr,N)
 
     def __str__(self):
         header = '''
@@ -741,7 +741,7 @@ def _arrays(sin_a,cos_a,sin_2a,cos_2a,x,y,u2_x,u2_y,cov):
     return v_k,u2_x,u2_y,g_k,u2,x_bar,y_bar,p_hat
 
 #--------------------------------------------------------------------
-class ChiSq(object):
+class ChiSq:
 
     """
     A callable object representing Chi-squared as a function of alpha.
@@ -818,7 +818,7 @@ class ChiSq(object):
         return chi_2
 
 #--------------------------------------------------------------------
-class dChiSq_dalpha(object):
+class dChiSq_dalpha:
 
     """
     Callable object representing the derivative of Chi-squared wrt alpha. 

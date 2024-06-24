@@ -20,7 +20,7 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
-class Context(object):
+class Context:
 
     """
     A ``Context`` object the creation of uncertain numbers 

@@ -105,7 +105,7 @@ def value_seq(x):
     return rtn    
     
 #----------------------------------------------------------------------------
-class UncertainReal(object):
+class UncertainReal:
     
     """
     An :class:`UncertainReal` holds information about the measured 
@@ -2310,7 +2310,7 @@ def z_to_seq( z ):
     return (re, -im, im, re)
 
 #---------------------------------------------------------------------------
-class UncertainComplex(object):
+class UncertainComplex:
     
     """
     An :class:`UncertainComplex` holds information about the measured
@@ -4295,7 +4295,7 @@ def _covariance_submatrix(u_re,u_im):
     return v_rr, v_ri, v_ii
 
 #---------------------------------------------------------------------------
-class _EnsembleComponents(object):
+class _EnsembleComponents:
     
     """
     Worker class for the willink_hall function 

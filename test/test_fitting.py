@@ -917,7 +917,7 @@ from GTC.type_b import _arrays
     # return v_k,u2_x,u2_y,g_k,u2,x_bar,y_bar,p_hat
 
 #--------------------------------------------------------------------
-class _Chi(object):
+class _Chi:
 
     """
     Defines a callable object that can be used in the Brent minimum-search.
