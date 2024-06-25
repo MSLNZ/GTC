@@ -125,8 +125,8 @@ class LineFitOLS(LineFit):
     """
     
     def __init__(self,a,b,ssr,N):
-        super().__init__(a,b,ssr,N)
-            
+        LineFit.__init__(self,a,b,ssr,N)
+
     def __str__(self):
         header = '''
 Ordinary Least-Squares Results:
@@ -235,7 +235,7 @@ class LineFitRWLS(LineFit):
     """
     
     def __init__(self,a,b,ssr,N):
-        super().__init__(a,b,ssr,N)
+        LineFit.__init__(self,a,b,ssr,N)
 
     def __str__(self):
         header = '''
@@ -338,7 +338,7 @@ class LineFitWLS(LineFit):
     """
     
     def __init__(self,a,b,ssr,N):
-        super().__init__(a,b,ssr,N)
+        LineFit.__init__(self,a,b,ssr,N)
 
     def __str__(self):
         header = '''

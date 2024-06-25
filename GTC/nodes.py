@@ -44,8 +44,8 @@ class Leaf(Node):
     ]
     
     def __init__(self,uid,label,u,df,independent=True):
-        super().__init__(uid,label,u,df)
-    
+        Node.__init__(self,uid,label,u,df)
+
         self.independent = independent
         if not independent:
             # Provide objects for these attributes.
