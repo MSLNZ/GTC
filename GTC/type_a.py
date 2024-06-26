@@ -126,7 +126,7 @@ class LineFitOLS(LineFit):
     
     def __init__(self,a,b,ssr,N):
         LineFit.__init__(self,a,b,ssr,N)
-            
+
     def __str__(self):
         header = '''
 Ordinary Least-Squares Results:

@@ -22,7 +22,7 @@ from testing_tools import *
 #----------------------------------------------------------------------------
 # The index of a vector is an object that must have a `uid` attribute
 #
-class Dummy(object):
+class Dummy:
     def __init__(self,uid):
         self.uid = (uid, 0)
         

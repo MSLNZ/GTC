@@ -29,7 +29,7 @@ __all__ = (
 # When an archive is prepared for storage, uncertain number  
 # objects are converted into simple representations
 #
-class LeafNode(object):
+class LeafNode:
     def __init__(self,node):
         
         self.uid = node.uid
@@ -56,12 +56,12 @@ class LeafNode(object):
             # `ensemble` is a set in the Leaf node
             self.ensemble = frozenset( node.ensemble )
         
-class ElementaryReal(object):
+class ElementaryReal:
     def __init__(self,x,uid):
         self.x = x
         self.uid = uid
 
-class IntermediateReal(object):
+class IntermediateReal:
     def __init__(self,value,u_components,d_components,i_components,label,uid):
         self.value = value
         self.u_components = u_components    
@@ -70,7 +70,7 @@ class IntermediateReal(object):
         self.label = label
         self.uid = uid
     
-class Complex(object):
+class Complex:
     def __init__(self,n_re,n_im,label):
         self.n_re = n_re
         self.n_im = n_im
@@ -99,7 +99,7 @@ class Complex(object):
 # the specific uncertain numbers that were saved initially. Finally, 
 # these uncertain numbers may be restored (on demand).
 # """
-class Archive(object):
+class Archive:
     """
     An :class:`Archive` helps to store and retrieve uncertain numbers,
     so that they can be used in later calculations. 

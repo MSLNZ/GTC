@@ -23,7 +23,7 @@ from testing_tools import *
 TOL = 1E-13 
             
 #---------------------------------------------------------
-class StdDataSets(object):
+class StdDataSets:
     """
     See section 5 in:
     'Design and us of reference data sets for testing scientific software'

@@ -55,7 +55,7 @@ __all__ = (
 
 # INF = ( '\U0010FFFF', float('inf') )
 INF = ( float('inf'), float('inf') )
-class INF_UID(object): uid = INF
+class INF_UID: uid = INF
         
 #--------------------------------------------------------------
 # TODO:
@@ -64,7 +64,7 @@ class INF_UID(object): uid = INF
 #
 # Look at using the bisect module to improve performance
 #
-class Vector(object):
+class Vector:
     
     """
     A Vector is a collection of ordered index-value pairs.
