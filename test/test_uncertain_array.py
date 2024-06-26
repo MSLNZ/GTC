@@ -6,10 +6,8 @@ import tempfile
 import sys
 try:
     from itertools import izip  # Python 2
-    PY2 = True
 except ImportError:
     izip = zip
-    PY2 = False
 
 import numpy as np
 
@@ -2686,10 +2684,7 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(self.xa.base[i] is self.x[i])
 
     def test_data(self):
-        if PY2:
-            self.assertTrue(isinstance(self.xa.data, buffer))
-        else:
-            self.assertTrue(isinstance(self.xa.data, memoryview))
+        self.assertTrue(isinstance(self.xa.data, memoryview))
 
     def test_copy(self):
         c = self.xa.copy()

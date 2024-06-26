@@ -6,13 +6,10 @@ import functools
 import inspect
 import os
 import re
-import sys
 import textwrap
 import warnings
 
 from GTC import version
-
-PY2 = sys.version_info.major == 2
 
 # This environment variable is defined in conftest.py when pytest runs the tests
 _running_tests = os.getenv('GTC_RUNNING_TESTS', 'false') == 'true'
@@ -201,10 +198,7 @@ def _prepare_warning(wrapped,
     """
     if not kind:
         if inspect.isfunction(wrapped):
-            if PY2:
-                args = inspect.getargspec(wrapped).args
-            else:
-                args = inspect.getfullargspec(wrapped).args
+            args = inspect.getfullargspec(wrapped).args
 
             if args and args[0] == 'self':
                 kind = 'method'

@@ -15,7 +15,6 @@ from GTC.archive import (
     ElementaryReal,
     IntermediateReal,
     Complex,
-    PY2,
 )
 from GTC.nodes import Leaf
 from GTC.vector import Vector
@@ -59,22 +58,6 @@ def _py38indent(tree, space="  ", level=0):
     _indent_children(tree, 0)
 
 
-def _py27uid(iterable):
-    # TODO In Python 2, the letter "L" is appended to all long integers
-    #  when repr() is applied to the object but not when str() is applied.
-    #  In Python 3, the concept of long integers does not exist. Since a
-    #  Context currently uses long integers for the id's, the "L" must be
-    #  suppressed when Python 2.7 is used to convert an Archive to XML so
-    #  that the XML document can be validated against the XML Schema (don't
-    #  want to allow an "L" in the Schema regex). Once support for Python
-    #  2.7 isdropped, this _py27uid() function should be deleted and the
-    #  uid (as a tuple of ints) can be directly used as the attribute
-    #  value of an XML Element.
-    if PY2:
-        return '(' + ', '.join(map(str, iterable)) + ')'
-    return iterable
-
-
 def _find(parent, name):
     # Find and return the first matching sub-element
     return parent.find(f'{{{XMLNS}}}{name}')
@@ -104,15 +87,15 @@ def archive_to_xml(archive, indent=None, prefix=None):
         # Add Vector components to the parent element
         elem = SubElement(parent, f'{pre}{name}')
         for k, v in items():
-            SubElement(elem, f'{pre}component', uid=_py27uid(k)).text = str(v)
+            SubElement(elem, f'{pre}component', uid=k).text = str(v)
 
     def add_real(parent, tag, real):
         # Add an ElementaryReal or IntermediateReal to the parent element
         if isinstance(real, ElementaryReal):
-            er = SubElement(parent, f'{pre}elementaryReal', tag=tag, uid=_py27uid(real.uid))
+            er = SubElement(parent, f'{pre}elementaryReal', tag=tag, uid=real.uid)
             SubElement(er, f'{pre}value').text = str(real.x)
         elif isinstance(real, IntermediateReal):
-            ir = SubElement(parent, f'{pre}intermediateReal', tag=tag, uid=_py27uid(real.uid))
+            ir = SubElement(parent, f'{pre}intermediateReal', tag=tag, uid=real.uid)
             SubElement(ir, f'{pre}value').text = str(real.value)
             SubElement(ir, f'{pre}label').text = real.label
             add_components(ir, 'uComponents', real.u_components.items)
@@ -127,18 +110,11 @@ def archive_to_xml(archive, indent=None, prefix=None):
 
     archive._freeze()
 
-    if PY2:
-        leaf_nodes_items = archive._leaf_nodes.iteritems
-        tagged_real_items = archive._tagged_real.iteritems
-        tagged_complex_items = archive._tagged_complex.iteritems
-        untagged_real_items = archive._untagged_real.iteritems
-        intermediate_uids_items = archive._intermediate_uids.iteritems
-    else:
-        leaf_nodes_items = archive._leaf_nodes.items
-        tagged_real_items = archive._tagged_real.items
-        tagged_complex_items = archive._tagged_complex.items
-        untagged_real_items = archive._untagged_real.items
-        intermediate_uids_items = archive._intermediate_uids.items
+    leaf_nodes_items = archive._leaf_nodes.items
+    tagged_real_items = archive._tagged_real.items
+    tagged_complex_items = archive._tagged_complex.items
+    untagged_real_items = archive._untagged_real.items
+    intermediate_uids_items = archive._intermediate_uids.items
 
     if prefix:
         if prefix.lower().startswith('xml'):
@@ -166,23 +142,23 @@ def archive_to_xml(archive, indent=None, prefix=None):
     leaf_nodes = SubElement(root, f'{pre}leafNodes')
     for uid, ln in leaf_nodes_items():
         assert uid == ln.uid, f'LeafNode(uid={ln.uid}) != {uid}'
-        leaf_node = SubElement(leaf_nodes, f'{pre}leafNode', uid=_py27uid(uid))
+        leaf_node = SubElement(leaf_nodes, f'{pre}leafNode', uid=uid)
         SubElement(leaf_node, f'{pre}u').text = str(ln.u)
         SubElement(leaf_node, f'{pre}df').text = normalise_df(ln.df)
         SubElement(leaf_node, f'{pre}label').text = ln.label
         SubElement(leaf_node, f'{pre}independent').text = 'true' if ln.independent else 'false'
         if hasattr(ln, 'complex'):
             c = SubElement(leaf_node, f'{pre}complex')
-            SubElement(c, f'{pre}real', uid=_py27uid(ln.complex[0]))
-            SubElement(c, f'{pre}imag', uid=_py27uid(ln.complex[1]))
+            SubElement(c, f'{pre}real', uid=ln.complex[0])
+            SubElement(c, f'{pre}imag', uid=ln.complex[1])
         if hasattr(ln, 'correlation'):
             c = SubElement(leaf_node, f'{pre}correlations')
             for cid, value in ln.correlation:
-                SubElement(c, f'{pre}correlation', uid=_py27uid(cid)).text = str(value)
+                SubElement(c, f'{pre}correlation', uid=cid).text = str(value)
         if hasattr(ln, 'ensemble'):
             e = SubElement(leaf_node, f'{pre}ensemble')
             for eid in ln.ensemble:
-                SubElement(e, f'{pre}node', uid=_py27uid(eid))
+                SubElement(e, f'{pre}node', uid=eid)
 
     tagged_reals = SubElement(root, f'{pre}taggedReals')
     for key, value in tagged_real_items():
@@ -200,7 +176,7 @@ def archive_to_xml(archive, indent=None, prefix=None):
     intermediates = SubElement(root, f'{pre}intermediates')
     for key, value in intermediate_uids_items():
         label, u, df = value
-        inter = SubElement(intermediates, f'{pre}intermediate', uid=_py27uid(key))
+        inter = SubElement(intermediates, f'{pre}intermediate', uid=key)
         SubElement(inter, f'{pre}label').text = label
         SubElement(inter, f'{pre}u').text = str(u)
         SubElement(inter, f'{pre}df').text = normalise_df(df)

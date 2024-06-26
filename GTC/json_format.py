@@ -13,7 +13,6 @@ from GTC.archive import (
     ElementaryReal,
     IntermediateReal,
     Complex,
-    PY2,
 )
 
 from GTC.vector import Vector
@@ -56,10 +55,9 @@ def jason_to_leaf(j):
             from_uid_string( j['complex'][1] )
         ]
     if 'correlation' in j:
-        items = j['correlation'].iteritems() if PY2 else j['correlation'].items()
         n.correlation = {
             from_uid_string(x_i) : r_i 
-                for x_i,r_i in items
+                for x_i,r_i in j['correlation'].items()
         }
     if 'ensemble' in j:
         n.ensemble = frozenset( 
@@ -174,18 +172,11 @@ def archive_to_json(a):
         version = JSON_SCHEMA
     )
 
-    if PY2:
-        leaf_nodes_items = a._leaf_nodes.iteritems
-        tagged_real_items = a._tagged_real.iteritems
-        tagged_complex_items = a._tagged_complex.iteritems
-        untagged_real_items = a._untagged_real.iteritems
-        intermediate_uids_items = a._intermediate_uids.iteritems
-    else:
-        leaf_nodes_items = a._leaf_nodes.items
-        tagged_real_items = a._tagged_real.items
-        tagged_complex_items = a._tagged_complex.items
-        untagged_real_items = a._untagged_real.items
-        intermediate_uids_items = a._intermediate_uids.items
+    leaf_nodes_items = a._leaf_nodes.items
+    tagged_real_items = a._tagged_real.items
+    tagged_complex_items = a._tagged_complex.items
+    untagged_real_items = a._untagged_real.items
+    intermediate_uids_items = a._intermediate_uids.items
     
     j['leaf_nodes'] = {
         to_uid_string(i) : leaf_to_json(o_i)
@@ -278,12 +269,8 @@ def json_to_archive(j):
         ar._dump = ar._ready = False
         
         # Load the data
-        if PY2:
-            leaf_nodes_items = j['leaf_nodes'].iteritems
-            intermediate_uids_items = j['intermediate_uids'].iteritems
-        else:
-            leaf_nodes_items = j['leaf_nodes'].items
-            intermediate_uids_items = j['intermediate_uids'].items
+        leaf_nodes_items = j['leaf_nodes'].items
+        intermediate_uids_items = j['intermediate_uids'].items
 
         ar._leaf_nodes = {
             from_uid_string(i) : o

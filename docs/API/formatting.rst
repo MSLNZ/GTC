@@ -15,11 +15,6 @@ Three functions help to format and display uncertain numbers:
 * :func:`~GTC.formatting.apply_format`
 * :func:`~GTC.formatting.to_string`
 
-
-.. invisible-code-block: pycon
-
-    >>> SKIP_IF_PYTHON_27()
-
 Generating strings
 ------------------
 

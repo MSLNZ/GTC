@@ -10,9 +10,6 @@ Module contents
 """
 import copy
 import itertools
-import sys
-
-PY2 = bool( sys.version_info[0] == 2 )
 
 from GTC.lib import (
     UncertainComplex,
@@ -44,14 +41,7 @@ class LeafNode:
         if hasattr(node,'correlation'):
             # `correlation` is a dict in the Leaf node, but this 
             # does not pickle, so LeafNode holds a list of item pairs.
-            self.correlation = node.correlation.items()
-            if not PY2:
-                # In Python 2 items() returns a list but
-                # in Python 3 a `dict_items` object is returned.
-                # Since it is not possible to pickle a
-                # `dict_items` object we convert it to a list
-                # of tuple pairs.
-                self.correlation = list(self.correlation)
+            self.correlation = list(node.correlation.items())
         if hasattr(node,'ensemble'):
             # `ensemble` is a set in the Leaf node
             self.ensemble = frozenset( node.ensemble )
@@ -150,26 +140,15 @@ class Archive:
         ar = Archive()        
         ar._dump = ar._ready = False
         
-        if PY2:
-            for k,obj in old._tagged_reals.iteritems():
-                if k in old._tagged:
-                    ar._tagged_real[k] = obj 
-                else:
-                    ar._untagged_real[k] = obj
-             
-            for k,obj in old._tagged.iteritems():
-                if isinstance(obj,UncertainComplex):  
-                    ar._tagged_complex[k] = obj
-        else:
-            for k,obj in old._tagged_reals.items():
-                if k in old._tagged:
-                    ar._tagged_real[k] = obj 
-                else:
-                    ar._untagged_real[k] = obj
-             
-            for k,obj in old._tagged.items():
-                if isinstance(obj,UncertainComplex):  
-                    ar._tagged_complex[k] = obj
+        for k,obj in old._tagged_reals.items():
+            if k in old._tagged:
+                ar._tagged_real[k] = obj
+            else:
+                ar._untagged_real[k] = obj
+
+        for k,obj in old._tagged.items():
+            if isinstance(obj,UncertainComplex):
+                ar._tagged_complex[k] = obj
 
         ar._leaf_nodes = old._leaf_nodes 
         ar._intermediate_uids = old._intermediate_uids
@@ -229,16 +208,10 @@ class Archive:
     def iterkeys(self):
         """Return an iterator for names 
         """
-        if PY2:
-            return itertools.chain(
-                self._tagged_real.iterkeys(),
-                self._tagged_complex.iterkeys()
-            )
-        else:
-            return itertools.chain(
-                self._tagged_real.keys(),
-                self._tagged_complex.keys()
-            )
+        return itertools.chain(
+            self._tagged_real.keys(),
+            self._tagged_complex.keys()
+        )
 
     def values(self):
         """Return a list of uncertain numbers 
@@ -248,16 +221,10 @@ class Archive:
     def itervalues(self):
         """Return an iterator for uncertain numbers 
         """
-        if PY2:
-            return itertools.chain(
-                self._tagged_real.itervalues(),
-                self._tagged_complex.itervalues()
-            )
-        else:
-            return itertools.chain(
-                self._tagged_real.values(),
-                self._tagged_complex.values()
-            )
+        return itertools.chain(
+            self._tagged_real.values(),
+            self._tagged_complex.values()
+        )
 
     def items(self):
         """Return a list of name -to- uncertain-number pairs 
@@ -267,16 +234,10 @@ class Archive:
     def iteritems(self):
         """Return an iterator of name -to- uncertain-number pairs 
         """
-        if PY2:
-            return itertools.chain(
-                self._tagged_real.iteritems(),
-                self._tagged_complex.iteritems()
-            )
-        else:
-            return itertools.chain(
-                self._tagged_real.items(),
-                self._tagged_complex.items()
-            )
+        return itertools.chain(
+            self._tagged_real.items(),
+            self._tagged_complex.items()
+        )
 
     def _iter_unreals(self):
         # Tagged UncertainComplex numbers are composed of
@@ -284,18 +245,11 @@ class Archive:
         # are generally untagged but must be tracked.
         # This iterator spans all of the UncertainReal
         # numbers stored in the archive.
-        if PY2:
-            objects = itertools.chain(
-                self._tagged_real.itervalues(), 
-                self._untagged_real.itervalues()
-            )
-        else:
-            objects = itertools.chain(
-                self._tagged_real.values(), 
-                self._untagged_real.values()
-            )
-        return objects 
-        
+        return itertools.chain(
+            self._tagged_real.values(),
+            self._untagged_real.values()
+        )
+
     def __len__(self):
         """Return the number of entries 
         """
@@ -415,8 +369,7 @@ class Archive:
             >>> f.close()  
 
         """
-        items = kwargs.iteritems() if PY2 else kwargs.items()
-        for key,value in items:
+        for key,value in kwargs.items():
             self._setitem(key,value)
 
     def _getitem(self,key):
@@ -655,9 +608,8 @@ class Archive:
             # It only makes sense to thaw an archive in this case 
             
             _leaf_nodes = dict()
-            items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
-                            
-            for uid_i,fl_i in items:
+
+            for uid_i,fl_i in self._leaf_nodes.items():
                 l = context._context.new_leaf(
                     uid_i, 
                     fl_i.label, 
@@ -677,11 +629,10 @@ class Archive:
             # Create the nodes associated with intermediate 
             # uncertain numbers. This must be done before the 
             # intermediate uncertain numbers are recreated.
-            items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items() 
-            
+
             _nodes = {
                 uid: context._context.new_node(uid, *args )
-                    for uid, args in items
+                    for uid, args in self._intermediate_uids.items()
             }
                
             self._uid_to_intermediate = {}
