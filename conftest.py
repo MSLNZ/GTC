@@ -21,10 +21,3 @@ def add_gtc(doctest_namespace):
 
     if sys.version_info.major > 2:
         doctest_namespace['xrange'] = range
-
-    if sys.version_info.major == 2:
-        PY27 = lambda: pytest.skip(msg="Skip Python 2.7 since unicode strings require u''")
-    else:
-        PY27 = lambda: None
-
-    doctest_namespace['SKIP_IF_PYTHON_27'] = PY27
