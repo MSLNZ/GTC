@@ -190,30 +190,30 @@ class LineFit:
 
     @property
     def a_b(self):
-        """Return a tuple of uncertain numbers (intercept, slope)
+        """A tuple of uncertain numbers (intercept, slope)
         """
         return self._a_b
 
     @property
     def intercept(self):
-        """Return the intercept as an uncertain number.
+        """The intercept as an uncertain number.
         """
         return self._a_b[0]
 
     @property
     def slope(self):
-        """Return the slope as an uncertain number.
+        """The slope as an uncertain number.
         """
         return self._a_b[1]
 
     @property
     def ssr(self):
-        """Sum of the squared residuals
+        """The sum of squared residuals
         
-        The sum of the squared differences between values 
-        predicted by the model and the actual data.
+        The sum of the differences between values 
+        predicted by the model and the actual data squared .
         
-        If weights are used during the fit, the squares of 
+        If weights are used, the squares of 
         weighted differences are summed.
         
         """
