@@ -1,23 +1,20 @@
 """
 Sample estimates
 ----------------
-    *   :func:`estimate` returns an uncertain number determined from
-        the statistics of a sample of data.
+    *   :func:`estimate` returns an uncertain number for the sample mean of data (real- or complex-valued data).
     *   :func:`multi_estimate_real` returns a sequence of related 
-        uncertain real numbers determined from the multivariate statistics 
-        of a sample of data. 
+        uncertain numbers for the multivariate sample means of real-valued data. 
     *   :func:`multi_estimate_complex` returns a sequence of related uncertain
-        complex numbers determined from the multivariate statistics of a sample of data. 
-    *   :func:`estimate_digitized` returns an uncertain number for 
-        the sample mean for data that have been quantised by rounding or truncation.
-    *   :func:`mean` returns the mean of a sample of data.
+        numbers for the multivariate sample means of  complex-valued data. 
+    *   :func:`estimate_digitized` returns an uncertain number for the sample mean 
+        of real-valued data quantised by rounding or truncation.
+    *   :func:`mean` evaluates the sample mean of data (real- or complex-valued data).
     *   :func:`standard_uncertainty` evaluates the standard 
-        uncertainty associated with the sample mean.
+        uncertainty associated with the sample mean (real- or complex-valued data).
     *   :func:`standard_deviation` evaluates the standard 
-        deviation of a sample of data.
+        deviation of data (real-valued or complex-valued).
     *   :func:`variance_covariance_complex` evaluates the variances
-        and covariance associated with the mean real component 
-        and mean imaginary component of a sample of complex-valued data.
+        and covariance associated with the sample mean of complex-valued data.
     
 Least squares regression
 ------------------------
@@ -31,11 +28,12 @@ Least squares regression
     *   :func:`line_fit_wtls` performs a weighted total least-squares straight 
         line fit to a sample of data.   
 
-    The results of fitting are returned in objects with attributes
-    related to the type of regression: :class:`LineFitOLS`, :class:`LineFitRWLS`,
+    Fitting results are returned in objects related to the type of regression: 
+    :class:`LineFitOLS`, :class:`LineFitRWLS`,
     :class:`LineFitWLS`, and :class:`LineFitWTLS`.
     
-    These objects define a few methods that make use of information collected during regression. 
+    These objects provide attributes to access results and define a few methods 
+    that make use of this regression information. 
     
 Merging uncertain components
 ----------------------------
@@ -44,12 +42,20 @@ Merging uncertain components
  
 .. note::
 
-    Many functions in :mod:`type_a` treat data as pure numbers. 
+    Many functions in :mod:`type_a` treat data as pure numbers . 
     Sequences of uncertain numbers can be passed to these 
     functions, but only the uncertain-number values will be used.
     
-    :func:`merge` is provided so that the results of type-A 
-    and type-B analyses on the same data can be combined. 
+    Many function names in :mod:`type_b` are the same as those used in :mod:`type_a`. 
+    These functions take uncertain-number arguments and propagate uncertainty through 
+    the regression formulae. The values obtained will be the same when using 
+    :mod:`type_a` and :mod:`type_b` functions for the same type of regression.
+    However, the interpretation of uncertainty is
+    different.
+
+    :func:`merge` is provided to allow the results of type-A 
+    and type-B analyses, for the same type of regression on the 
+    same data, to be combined when appropriate. 
     
 
 Module contents
