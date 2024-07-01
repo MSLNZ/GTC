@@ -1,22 +1,8 @@
 import unittest
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    xrange = range
 
 import numpy
 
 from GTC import *
-
-from GTC.lib import (
-    UncertainReal, 
-    UncertainComplex,
-    set_correlation_real,
-    real_ensemble,
-    complex_ensemble,
-    append_real_ensemble
-)
 
 from testing_tools import *
 
@@ -41,7 +27,7 @@ class StdDataSets:
         self._k = k
         
         N = self._n
-        a = numpy.array( xrange(-N,N+1) ) * self._h
+        a = numpy.array( range(-N,N+1) ) * self._h
         q = self._q ** self._k
         
         return (self._mu + q) - a
@@ -145,7 +131,7 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             re_seq = re_data_.seq(k)
             im_seq = im_data_.seq(k)
-            zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
+            zseq = [ complex(i,j) for i,j in zip(re_seq,im_seq) ]
         
             self.assertTrue(
                 equivalent_complex(
@@ -165,7 +151,7 @@ class TestTypeA(unittest.TestCase):
 
         re_seq = re_data_.seq()
         im_seq = im_data_.seq()
-        zseq = [ ucomplex(complex(i,j),1.0) for i,j in izip(re_seq,im_seq) ]
+        zseq = [ ucomplex(complex(i,j),1.0) for i,j in zip(re_seq,im_seq) ]
         
         equivalent_complex(
             type_a.mean(zseq),
@@ -191,7 +177,7 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             re_seq = re_data_.seq(k)
             im_seq = im_data_.seq(k)
-            zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
+            zseq = [ complex(i,j) for i,j in zip(re_seq,im_seq) ]
 
             root_N = math.sqrt( len(zseq) )            
 
@@ -211,7 +197,7 @@ class TestTypeA(unittest.TestCase):
         
         re_seq = re_data_.seq()
         im_seq = im_data_.seq()
-        zseq = [ ucomplex( complex(i,j), 1) for i,j in izip(re_seq,im_seq) ]
+        zseq = [ ucomplex( complex(i,j), 1) for i,j in zip(re_seq,im_seq) ]
 
         root_N = math.sqrt( len(zseq) )            
 
@@ -239,7 +225,7 @@ class TestTypeA(unittest.TestCase):
         for k in range(5):
             re_seq = re_data_.seq(k)
             im_seq = im_data_.seq(k)
-            zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
+            zseq = [ complex(i,j) for i,j in zip(re_seq,im_seq) ]
 
             root_N = math.sqrt( len(zseq) )            
 
@@ -263,7 +249,7 @@ class TestTypeA(unittest.TestCase):
         
         re_seq = re_data_.seq()
         im_seq = im_data_.seq()
-        zseq = [ complex(i,j) for i,j in izip(re_seq,im_seq) ]
+        zseq = [ complex(i,j) for i,j in zip(re_seq,im_seq) ]
 
         root_N = math.sqrt( len(zseq) )            
 

@@ -27,7 +27,7 @@ Module contents
 
 """
 import json
-import xml.etree.cElementTree as ElementTree
+import xml.etree.ElementTree as ElementTree
 
 from GTC.archive import Archive
 

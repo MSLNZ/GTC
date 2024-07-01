@@ -15,30 +15,24 @@ Module contents
 
 """
 import math
-import numpy as np 
-from GTC.type_b import mean 
+import builtins
+from collections.abc import Iterable
 
-try:  # Python 2
-    import __builtin__ as builtins
-    from collections import Iterable
-    from itertools import izip
-except ImportError:
-    import builtins
-    from collections.abc import Iterable
-    izip = zip
-    xrange = range
+import numpy as np
 
+from GTC.type_b import mean
 from GTC import (
     is_sequence,
-    inf ,
+    inf,
     EPSILON
 )
-
 from GTC.lib import (
-    UncertainReal, UncertainComplex, 
-    mult_2nd_real_pair, mult_2nd_complex_pair,mult_2nd_real_complex
+    UncertainReal,
+    UncertainComplex,
+    mult_2nd_real_pair,
+    mult_2nd_complex_pair,
+    mult_2nd_real_complex
 )
-
 from GTC import vector
         
 __all__ = (
@@ -463,7 +457,7 @@ def nr_get_root(fn,x_min,x_max,epsilon):
     f = value( f_x )
     df = f_x.sensitivity(x)
 
-    for i in xrange(100): 
+    for i in range(100):
         if  (((xk-upper) * df-f) * ((xk-lower) * df - f) > 0.0
             or  ( abs(2.0 * f) > abs(dx2 * df) )):
             # Bisect if Newton out of range or

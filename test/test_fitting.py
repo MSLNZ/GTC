@@ -1,23 +1,7 @@
 import unittest
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    xrange = range
-
 import sys
-import numpy
 
 from GTC import *
-
-from GTC.lib import (
-    UncertainReal, 
-    UncertainComplex,
-    set_correlation_real,
-    real_ensemble,
-    complex_ensemble,
-    append_real_ensemble
-)
 
 from testing_tools import *
 
@@ -42,17 +26,17 @@ def simple_sigma_abr(x,y,u_y=None):
     v = [ u_i*u_i for u_i in u_y ]
         
     S = sum( 1.0/v_i for v_i in v)
-    S_x = sum( x_i/v_i for x_i,v_i in izip(x,v) )
-    S_xx = sum( x_i**2/v_i for x_i,v_i in izip(x,v) )
+    S_x = sum( x_i/v_i for x_i,v_i in zip(x,v) )
+    S_xx = sum( x_i**2/v_i for x_i,v_i in zip(x,v) )
 
-    S_y = sum( y_i/v_i for y_i,v_i in izip(y,v) )
+    S_y = sum( y_i/v_i for y_i,v_i in zip(y,v) )
 
     k = S_x / S
-    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+    t = [ (x_i - k)/u_y_i for x_i,u_y_i in zip(x,u_y) ]
 
     S_tt = sum( t_i*t_i for t_i in t )
 
-    b = sum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    b = sum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in zip(t,y,u_y) )
     a = (S_y - b*S_x)/S
 
     delta = S*S_xx - S_x**2
@@ -63,7 +47,7 @@ def simple_sigma_abr(x,y,u_y=None):
     if not weights:
         # Need chi-square to adjust the values
         f = lambda x_i,y_i,u_y_i: ((y_i - a - b*x_i))**2 
-        chisq = sum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
+        chisq = sum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in zip(x,y,u_y) )
         data_u = math.sqrt( chisq/(N-2) )
         sigma_a *= data_u
         sigma_b *= data_u
@@ -402,7 +386,7 @@ class TestLineFitWeighted(unittest.TestCase):
         u0 = .2
         u = [u0] * N
         
-        x = [ float(x_i) for x_i in xrange(10) ]
+        x = [ float(x_i) for x_i in range(10) ]
         y = [ ureal(b0*x_i + a0,u0) for x_i in x ]
 
         a,b = type_b.line_fit_wls(x,y,u).a_b
@@ -430,7 +414,7 @@ class TestLineFitWeighted(unittest.TestCase):
         u0 = .2
         u = [u0] * N
         
-        x = [ float(x_i) for x_i in xrange(10) ]
+        x = [ float(x_i) for x_i in range(10) ]
         y = [ ureal(b0*x_i + a0,u0) for x_i in x ]
 
         a,b = ta.line_fit_wls(x,y,u).a_b
@@ -560,7 +544,7 @@ class UncertainLineTests(unittest.TestCase):
         uncertain number in y only with unity weight
 
         """
-        x = [ float(x_i) for x_i in xrange(10) ]
+        x = [ float(x_i) for x_i in range(10) ]
         y = [ ureal(y_i,1) for y_i in x ]
 
         fit = type_b.line_fit(x,y)
@@ -583,7 +567,7 @@ class UncertainLineTests(unittest.TestCase):
         equivalent(r,a.get_correlation(b),TOL)        
         
         # Horizontal line
-        x = [ float(x_i) for x_i in xrange(5) ]
+        x = [ float(x_i) for x_i in range(5) ]
         y = [ ureal(2,1) for y_i in x ]
         
         fit = type_b.line_fit(x,y)
@@ -617,8 +601,8 @@ class UncertainLineTests(unittest.TestCase):
 
         """
         N = 10
-        y = [ ureal(y_i,1) for y_i in xrange(N) ]
-        x = [ ureal(x_i,1) for x_i in xrange(N) ]
+        y = [ ureal(y_i,1) for y_i in range(N) ]
+        x = [ ureal(x_i,1) for x_i in range(N) ]
 
         a,b = type_b.line_fit( x,y ).a_b
         equivalent( value(a) ,0.0,TOL)
@@ -660,8 +644,8 @@ class UncertainLineTests(unittest.TestCase):
         u0 = .2
         u = [u0] * N
         
-        x = [ value(x_i) for x_i in xrange(10) ]
-        y = [ ureal(b0*x_i + a0,u_i) for x_i,u_i in izip(x,u) ]
+        x = [ value(x_i) for x_i in range(10) ]
+        y = [ ureal(b0*x_i + a0,u_i) for x_i,u_i in zip(x,u) ]
 
         a,b = type_b.line_fit_wls(x,y).a_b
 
@@ -683,7 +667,7 @@ class UncertainLineTests(unittest.TestCase):
     def test_horizontal_wls(self):
         
         # Horizontal line
-        x = [ float(x_i) for x_i in xrange(5) ]
+        x = [ float(x_i) for x_i in range(5) ]
         y = [ ureal(2,1) for y_i in x ]
         
         fit = type_b.line_fit_wls(x,y)
@@ -707,10 +691,10 @@ class UncertainLineTests(unittest.TestCase):
         u0 = .2
 
         N = 10        
-        x = [ ureal(x_i,u0) for x_i in xrange(N) ]
+        x = [ ureal(x_i,u0) for x_i in range(N) ]
         y = [ ureal( b0 * value(x_i) + a0, 1) for x_i in x ]    # unity uncertainty
 
-        u = [uncertainty(y_i - b0*x_i) for x_i,y_i in izip(x,y)]
+        u = [uncertainty(y_i - b0*x_i) for x_i,y_i in zip(x,y)]
 
         a,b = type_b.line_fit_wls(x,y).a_b
 
@@ -731,7 +715,7 @@ class UncertainLineTests(unittest.TestCase):
         equivalent(r,a.get_correlation(b),TOL)        
 
         # We can calculate the uncertainty sequence directly
-        d = [ math.sqrt(1 + (b0 * u0)**2) for i in xrange(N) ]
+        d = [ math.sqrt(1 + (b0 * u0)**2) for i in range(N) ]
         sig_a, sig_b, r = simple_sigma_abr(
             [value(x_i) for x_i in x],
             [value(y_i) for y_i in y],
@@ -805,7 +789,7 @@ def brent(a,b,c,fn,tol=math.sqrt(EPSILON)):
     x = w = v = b
     fx = fw = fv = fn(x)
 
-    for i in xrange(ITMAX):
+    for i in range(ITMAX):
 
         xm = 0.5*(a + b)
         tol1 = tol*abs(x) + ZEPS
@@ -883,12 +867,12 @@ from GTC.type_b import _arrays
     # # eqn(53)
     # g_k = [
         # (u2_x_i + u2_y_i)/2.0 - (u2_x_i - u2_y_i)*cos_2a/2.0 - 2.0*cov_i*sin_2a
-            # for u2_x_i, u2_y_i, cov_i in izip(u2_x,u2_y,cov)
+            # for u2_x_i, u2_y_i, cov_i in zip(u2_x,u2_y,cov)
     # ]
 # ##    # eqn(32)
 # ##    g_k = [
 # ##        u2_x_i*sin_a_2 + u2_y_i*cos_a_2 - two_sin_cos_a*cov_i
-# ##            for u2_x_i, u2_y_i, cov_i in izip(u2_x,u2_y,cov)
+# ##            for u2_x_i, u2_y_i, cov_i in zip(u2_x,u2_y,cov)
 # ##    ]
 
     # N = len(g_k)
@@ -902,17 +886,17 @@ from GTC.type_b import _arrays
 
     # # Eqns (35,36,43)
     # x_bar = sum(
-        # w_k_i*x_i for w_k_i,x_i in izip(w_k,x)
+        # w_k_i*x_i for w_k_i,x_i in zip(w_k,x)
     # ) / N
     
     # y_bar = sum(
-        # w_k_i*y_i for w_k_i,y_i in izip(w_k,y)
+        # w_k_i*y_i for w_k_i,y_i in zip(w_k,y)
     # ) / N
 
     # p_hat = y_bar*cos_a - x_bar*sin_a    
 
     # # eqn(31)
-    # v_k = [ y_i*cos_a - x_i*sin_a - p_hat for x_i,y_i in izip(x,y) ]  
+    # v_k = [ y_i*cos_a - x_i*sin_a - p_hat for x_i,y_i in zip(x,y) ]  
 
     # return v_k,u2_x,u2_y,g_k,u2,x_bar,y_bar,p_hat
 
@@ -933,7 +917,7 @@ class _Chi:
         self.u2_y = [ variance(y_i) for y_i in y ]
         
         self.cov = [ uncertainty(x_i)*x_i.get_correlation(y_i)*uncertainty(y_i)
-                         for x_i,y_i in izip(x,y)]
+                         for x_i,y_i in zip(x,y)]
         
     #--------------------------------------------------------------------
     def arrays(self,alpha):
@@ -954,7 +938,7 @@ class _Chi:
         
         # Eqn (30)
         chi_2 = sum(
-            v_k_i**2/g_k_i for v_k_i,g_k_i in izip(v_k,g_k)
+            v_k_i**2/g_k_i for v_k_i,g_k_i in zip(v_k,g_k)
         )
         
         return chi_2
@@ -976,7 +960,7 @@ def _WTLS(x,y,a0,b0):
     Meas. Sci. Technol. 22 (2011) 035101 (9pp)
     
     """
-    for x_i,y_i in izip(x,y):
+    for x_i,y_i in zip(x,y):
         assert reporting.is_ureal(x_i)
         assert reporting.is_ureal(y_i)
         
@@ -1017,29 +1001,29 @@ def _WTLS(x,y,a0,b0):
         sin_a,cos_a,sin_2a,cos_2a,x,y,u2_x,u2_y,data.cov
     )
     
-    v_ka = [ -y_i*sin_a - x_i*cos_a for x_i,y_i in izip(x,y)]
+    v_ka = [ -y_i*sin_a - x_i*cos_a for x_i,y_i in zip(x,y)]
     v_kaa = [ -v_k_i - p_hat for v_k_i in v_k ]
     f_k = [ v_k_i**2 for v_k_i in v_k ]
-    f_ka = [ 2.0*v_k_i*v_ka_i for v_k_i,v_ka_i in izip(v_k,v_ka)]
-    f_kaa = [ 2.0*(v_ka_i**2 + v_k_i*v_kaa_i) for v_k_i,v_ka_i,v_kaa_i in izip(v_k,v_ka,v_kaa)]
+    f_ka = [ 2.0*v_k_i*v_ka_i for v_k_i,v_ka_i in zip(v_k,v_ka)]
+    f_kaa = [ 2.0*(v_ka_i**2 + v_k_i*v_kaa_i) for v_k_i,v_ka_i,v_kaa_i in zip(v_k,v_ka,v_kaa)]
 
     g_ka = [ 
         (u2_x_i-u2_y_i)*sin_2a - 2.0*cov_i*cos_2a 
-            for u2_x_i,u2_y_i,cov_i in izip(u2_x,u2_y,data.cov)
+            for u2_x_i,u2_y_i,cov_i in zip(u2_x,u2_y,data.cov)
     ]
     k = 2.0*(cos_a**2 - sin_a**2)
-    g_kaa = [ k*(u2_x_i - u2_y_i) for u2_x_i,u2_y_i in izip(u2_x,u2_y) ]
+    g_kaa = [ k*(u2_x_i - u2_y_i) for u2_x_i,u2_y_i in zip(u2_x,u2_y) ]
     Hpp = 2*N/u2
     H_alpha_p = -2.0*sum(
         (v_ka_i*g_k_i - g_ka_i*v_k_i) / g_k_i**2
-            for g_k_i,v_k_i,g_ka_i,v_ka_i in izip(g_k,v_k,g_ka,v_ka)
+            for g_k_i,v_k_i,g_ka_i,v_ka_i in zip(g_k,v_k,g_ka,v_ka)
     )
     H_alpha_alpha = sum(
             f_kaa_i/g_k_i
         -   2.0*f_ka_i*g_ka_i/g_k_i**2
         +   2.0*g_ka_i**2*f_k_i/g_k_i**3
         -   g_kaa_i*f_k_i/g_k_i**2
-       for g_k_i,g_ka_i,g_kaa_i,f_k_i,f_ka_i,f_kaa_i in izip(g_k,g_ka,g_kaa,f_k,f_ka,f_kaa)
+       for g_k_i,g_ka_i,g_kaa_i,f_k_i,f_ka_i,f_kaa_i in zip(g_k,g_ka,g_kaa,f_k,f_ka,f_kaa)
     )
     NN = 2.0 / (Hpp*H_alpha_alpha - H_alpha_p**2)
     var_p = NN*H_alpha_alpha
@@ -1228,8 +1212,8 @@ class TestLineFitTLS(unittest.TestCase):
         uxin=[1./math.sqrt(wx_i) for wx_i in wx ]
         uyin=[1./math.sqrt(wy_i) for wy_i in wy ]
 
-        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
-        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
+        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in zip(xin,uxin) ]
+        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
 
         # a0, b0 = tb.line_fit(x,y).a_b
         # result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
@@ -1337,8 +1321,8 @@ class TestLineFitTLS(unittest.TestCase):
         uxin=[1./math.sqrt(wx_i) for wx_i in wx ]
         uyin=[1./math.sqrt(wy_i) for wy_i in wy ]
 
-        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
-        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
+        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in zip(xin,uxin) ]
+        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
 
         # a0, b0 = tb.line_fit(x,y).a_b
         # result = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0))
@@ -1387,8 +1371,8 @@ class TestLineFitTLS(unittest.TestCase):
         uxin=[1./math.sqrt(wx_i) for wx_i in wx ]
         uyin=[1./math.sqrt(wy_i) for wy_i in wy ]
 
-        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
-        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
+        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in zip(xin,uxin) ]
+        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
 
         # a0, b0 = tb.line_fit(x,y).a_b
         # result = tb.line_fit_wtls(x,y,a_b=(a0,b0))
@@ -1435,8 +1419,8 @@ class TestLineFitTLS(unittest.TestCase):
         uxin=[1./math.sqrt(wx_i) for wx_i in wx ]
         uyin=[1./math.sqrt(wy_i) for wy_i in wy ]
 
-        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in izip(xin,uxin) ]
-        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in izip(yin,uyin) ]
+        x = [ ureal(xin_i,uxin_i) for xin_i,uxin_i in zip(xin,uxin) ]
+        y = [ ureal(yin_i,uyin_i) for yin_i,uyin_i in zip(yin,uyin) ]
 
         # a0, b0 = ta.line_fit(x,y).a_b
         # a,b = ta.line_fit_wtls(x,y,u_x=uxin,u_y=uyin,a0_b0=(a0,b0)).a_b
@@ -1538,11 +1522,11 @@ class TestLineFitTLS(unittest.TestCase):
     
         un_x = [
             ureal(x_i,u_i,label=f"x_{i}" ) 
-                for i,x_i,u_i in zip(xrange(len(x)),x,ux)
+                for i,x_i,u_i in zip(range(len(x)),x,ux)
         ]
         un_y = [
             ureal(y_i,u_i,label=f"y_{i}") 
-                for i,y_i,u_i in zip(xrange(len(y)),y,uy)
+                for i,y_i,u_i in zip(range(len(y)),y,uy)
         ]
         
         # OLS initial estimate

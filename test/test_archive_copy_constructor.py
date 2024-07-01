@@ -1,10 +1,5 @@
 import unittest
 import os
-import sys
-
-import json
-
-from lxml import etree
 
 from GTC import *
 

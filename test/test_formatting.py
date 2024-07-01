@@ -4,7 +4,13 @@ import math
 import sys
 import unittest
 
-from GTC import ureal, ucomplex, inf_dof, inf, nan
+from GTC import (
+    ureal,
+    ucomplex,
+    inf_dof,
+    inf,
+    nan,
+)
 from GTC.formatting import (
     Format,
     create_format,
@@ -15,7 +21,10 @@ from GTC.formatting import (
     _order_of_magnitude,
     _truncate_dof,
 )
-from GTC.lib import UncertainReal, UncertainComplex
+from GTC.lib import (
+    UncertainReal,
+    UncertainComplex,
+)
 
 original_locale = locale.getlocale(locale.LC_NUMERIC)
 

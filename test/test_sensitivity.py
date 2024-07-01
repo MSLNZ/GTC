@@ -1,18 +1,10 @@
 import unittest
-import os
-import numpy
-
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
 
 from GTC import *
-from GTC.context import Context
-from GTC import context
-from GTC import persistence
-from GTC.vector import is_ordered
-from GTC.linear_algebra import uarray, UncertainArray
+from GTC.linear_algebra import (
+    uarray,
+    UncertainArray,
+)
 
 from testing_tools import *
 

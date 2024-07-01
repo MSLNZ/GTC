@@ -46,25 +46,16 @@ Module contents
 """
 import math
 import numbers
-
 from operator import attrgetter as getter
 from functools import reduce
 
 from scipy import special, optimize
 
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    long = int
-
 from GTC.named_tuples import (
-    ComponentOfUncertainty,     # relates to complex quantities
     Influence,
     Component                   
 )
 from GTC.vector import extend_vector
-
 from GTC import (
     is_sequence,
     inf,
@@ -583,7 +574,7 @@ def components(y,**kwargs):
         if len(values):
             cut_off = max(values) * float(trim)
             this_budget = [ Component( uid=n, u=u )
-                            for (u,n) in izip(values,uids) if u >= cut_off ]
+                            for (u,n) in zip(values,uids) if u >= cut_off ]
         else:
             this_budget = [ ]
         
@@ -697,7 +688,7 @@ def components(y,**kwargs):
             cut_off = max(values) * float(trim)
             this_budget = [ 
                 Component( uid=n, u=u ) 
-                    for (u,n) in izip(values,uids) 
+                    for (u,n) in zip(values,uids)
                         if u >= cut_off  
             ]
             
@@ -867,7 +858,7 @@ def budget(y,**kwargs):
         if len(values):
             cut_off = max(values) * float(trim)
             this_budget = [ Influence( label=n, u=u, uid=uid )
-                            for (u,n,uid) in izip(values,labels,uids) if u >= cut_off ]
+                            for (u,n,uid) in zip(values,labels,uids) if u >= cut_off ]
         else:
             this_budget = [ ]
         
@@ -1014,7 +1005,7 @@ def budget(y,**kwargs):
             cut_off = max(values) * float(trim)
             this_budget = [ 
                 Influence( label=n, u=u, uid=uid ) 
-                    for (u,n,uid) in izip(values,labels,uids) 
+                    for (u,n,uid) in zip(values,labels,uids)
                         if u >= cut_off  
             ]
             
