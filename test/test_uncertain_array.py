@@ -3,7 +3,6 @@ import os
 import math
 import cmath
 import tempfile
-import sys
 
 import numpy as np
 
@@ -36,7 +35,6 @@ from GTC.core import (
     variance,
     dof
 )
-
 from GTC import (
     inf,
     nan,
@@ -64,7 +62,11 @@ from GTC.linear_algebra import (
     uarray,
 )
 
-from testing_tools import *
+from testing_tools import (
+    equivalent,
+    equivalent_complex,
+    TOL,
+)
 
 
 class TestUncertainArray(unittest.TestCase):
@@ -2866,11 +2868,7 @@ class TestUncertainArray(unittest.TestCase):
                 self.assertTrue(equivalent(z[i][j].u, za[i,j].u))
 
     def test_matmul(self):
-        # From Python 3.5+ the @ symbol can also be used for matrix multiplication
-        if sys.version_info >= (3, 5):
-            from uarray_matmul import run
-            run()
-
+        # Tests the matmul function
         m = [[ureal(5, 1), ureal(-1, 0.3), ureal(3, 1.3)],
              [ureal(1, 0.1), ureal(2, 0.8), ureal(-3, 1)],
              [ureal(-1, 0.5), ureal(2, 1.1), ureal(4, 0.3)]]
@@ -2942,7 +2940,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # switch the ndarray and uarray order and also use a regular Python list
         for mix in [matmul(na, ub), matmul(ua, nb), matmul(na.tolist(), ub), matmul(ua, nb.tolist())]:
-            assert mix.shape == nc.shape
+            self.assertTrue(mix.shape == nc.shape)
             i, j = mix.shape
             for ii in range(i):
                 for jj in range(j):
@@ -2953,7 +2951,6 @@ class TestUncertainArray(unittest.TestCase):
 
         # test a bunch of different dimensions
         test_dims = [
-            #[(), ()],
             [(0,), (1, 3)],
             [(1,), (1, 3)],
             [(4,), (4, 3)],
@@ -2975,24 +2972,155 @@ class TestUncertainArray(unittest.TestCase):
         ]
 
         for s1, s2 in test_dims:
+            # numpy calculates the multiplication with ndarray
             na = np.arange(int(np.prod(np.array(s1)))).reshape(s1)
             nb = np.arange(int(np.prod(np.array(s2)))).reshape(s2)
             try:
                 nc = np.matmul(na, nb)
-            except:
+            except ValueError:
                 nc = None
 
+            # GTC calculates the multiplication with uarray
             ua = uarray(na.copy() * ureal(1, 0))
             ub = uarray(nb.copy() * ureal(1, 0))
             try:
                 uc = matmul(ua, ub)
-            except:
+            except ValueError:
                 if nc is not None:
                     raise AssertionError('The regular matmul PASSED, the custom-written matmul FAILED')
             else:
                 if nc is None:
                     raise AssertionError('The regular matmul FAILED, the custom-written matmul PASSED')
                 self.assertTrue(np.array_equal(nc, uc), f'The arrays are not equal\n{nc}\n{uc}')
+
+    def test_matmul_binary_operator(self):
+        # From Python 3.5+, the @ symbol can be used for matrix multiplication
+        m = [[ureal(5, 1), ureal(-1, 0.3), ureal(3, 1.3)],
+             [ureal(1, 0.1), ureal(2, 0.8), ureal(-3, 1)],
+             [ureal(-1, 0.5), ureal(2, 1.1), ureal(4, 0.3)]]
+        b = [ureal(1, 0.2), ureal(2, 1.1), ureal(3, 0.4)]
+
+        ma = uarray(m)
+        ba = uarray(b)
+
+        # uarray @ list
+        z = b[0] * 1 + b[1] * 2 + b[2] * 3
+        za = ba @ [1, 2, 3]
+        self.assertTrue(equivalent(z.x, za.value()))
+        self.assertTrue(equivalent(z.u, za.uncertainty()))
+
+        # switch lhs and rhs
+        z = 1 * b[0] + 2 * b[1] + 3 * b[2]
+        za = [1, 2, 3] @ ba
+        self.assertTrue(equivalent(z.x, za.value()))
+        self.assertTrue(equivalent(z.u, za.uncertainty()))
+
+        # Expect this error -> shapes (3,) and (2,) not aligned: 3 (dim 0) != 2 (dim 0)
+        with self.assertRaises(ValueError):
+            _ = ba @ [1, 2]
+
+        # vector * matrix
+
+        z = [1 * m[0][0] + 2 * m[1][0] + 3 * m[2][0],
+             1 * m[0][1] + 2 * m[1][1] + 3 * m[2][1],
+             1 * m[0][2] + 2 * m[1][2] + 3 * m[2][2]]
+        za = [1, 2, 3] @ ma
+        for i in range(3):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # Expect this error -> shapes (2,) and (3,3) not aligned: 2 (dim 0) != 3 (dim 0)
+        with self.assertRaises(ValueError):
+            _ = [1, 2] @ ma
+
+        # matrix * vector
+
+        z = [m[0][0] * b[0] + m[0][1] * b[1] + m[0][2] * b[2],
+             m[1][0] * b[0] + m[1][1] * b[1] + m[1][2] * b[2],
+             m[2][0] * b[0] + m[2][1] * b[1] + m[2][2] * b[2]]
+
+        za = ma @ ba
+        for i in range(3):
+            self.assertTrue(equivalent(z[i].x, za[i].x))
+            self.assertTrue(equivalent(z[i].u, za[i].u))
+
+        # Expect this error -> shapes (3,3) and (4,) not aligned: 3 (dim 1) != 4 (dim 0)
+        with self.assertRaises(ValueError):
+            _ = ma @ np.arange(4)
+
+        # matrix * matrix
+
+        na = np.arange(10 * 10).reshape(10, 10) * -3.1
+        nb = np.arange(10 * 10).reshape(10, 10) * 2.3
+        nc = na @ nb
+
+        ua = uarray(na.copy() * ureal(1, 0))
+        ub = uarray(nb.copy() * ureal(1, 0))
+        uc = ua @ ub
+        self.assertTrue(nc.shape == uc.shape)
+
+        i, j = nc.shape
+        for ii in range(i):
+            for jj in range(j):
+                self.assertTrue(equivalent(na[ii, jj], ua[ii, jj].x))
+                self.assertTrue(equivalent(nb[ii, jj], ub[ii, jj].x))
+                self.assertTrue(equivalent(nc[ii, jj], uc[ii, jj].x, tol=1e-10))
+
+        # switch the ndarray and uarray order and also use a regular Python list
+        for mix in [na @ ub, ua @ nb, na.tolist() @ ub, ua @ nb.tolist()]:
+            self.assertTrue(mix.shape == nc.shape)
+            i, j = mix.shape
+            for ii in range(i):
+                for jj in range(j):
+                    self.assertTrue(equivalent(mix[ii, jj].x, nc[ii, jj], tol=1e-10))
+
+        # Expect this error -> shapes (3,3) and (4,4) not aligned: 3 (dim 1) != 4 (dim 0)
+        with self.assertRaises(ValueError):
+            _ = ma @ np.arange(4 * 4).reshape(4, 4)
+
+        # test a bunch of different dimensions
+        test_dims = [
+            [(0,), (1, 3)],
+            [(1,), (1, 3)],
+            [(4,), (4, 3)],
+            [(2, 4), (4,)],
+            [(2, 4), (3,)],
+            [(2, 4), (3, 2)],
+            [(2, 4), (4, 2)],
+            [(1, 2, 4), (1, 4, 2)],
+            [(2, 2, 4), (1, 4, 2)],
+            [(1, 2, 4), (2, 4, 2)],
+            [(2, 2, 4), (2, 4, 2)],
+            [(3, 2, 4), (3, 4, 2)],
+            [(6, 2, 4), (3, 2, 2)],
+            [(6, 2, 4), (3, 4, 8)],
+            [(6, 2, 4), (6, 4, 8)],
+            [(5, 3, 2, 4), (5, 3, 4, 2)],
+            [(3, 2, 2, 4), (3, 9, 4, 2)],
+            [(8, 3, 1, 2, 4), (8, 3, 9, 4, 2)],
+        ]
+
+        for s1, s2 in test_dims:
+            # numpy calculates the multiplication with ndarray
+            na = np.arange(int(np.prod(np.array(s1)))).reshape(s1)
+            nb = np.arange(int(np.prod(np.array(s2)))).reshape(s2)
+            try:
+                nc = na @ nb
+            except ValueError:
+                nc = None
+
+            # GTC calculates the multiplication with uarray
+            ua = uarray(na.copy() * ureal(1, 0))
+            ub = uarray(nb.copy() * ureal(1, 0))
+            try:
+                uc = ua @ ub
+            except ValueError:
+                if nc is not None:
+                    raise AssertionError('The regular @ PASSED, the custom-written @ FAILED')
+            else:
+                if nc is None:
+                    raise AssertionError('The regular @ FAILED, the custom-written @ PASSED')
+                assert np.array_equal(nc, uc), f'The arrays are not equal\n{nc}\n{uc}'
 
     def test_astype(self):
         # make sure that the following is not allowed
