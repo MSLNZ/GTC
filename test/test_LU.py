@@ -1,22 +1,15 @@
 import unittest
-import sys
-import math
-import cmath
-import numpy
-import operator
-import collections
-try:
-    xrange  # Python 2
-except NameError:
-    xrange = range
 
-TOL = 1E-13
-DIGITS = 13
+import numpy
 
 from GTC import *
 from GTC.LU import *
 
 from testing_tools import *
+
+TOL = 1E-13
+DIGITS = 13
+
 
 #-----------------------------------------------------------------------------------
 def one_port_xratio(measured,nominal):
@@ -135,8 +128,8 @@ class TestLUInvProduct(unittest.TestCase):
         # Calculate the inverse matrix
         a_inv = invab(a,numpy.identity(3))
         a_b = numpy.dot(a,a_inv)
-        for i in xrange(3):
-            for j in xrange(3):
+        for i in range(3):
+            for j in range(3):
                 if i == j:
                     self.assertTrue( equivalent(1.0,a_b[i,i]) )   
                 else:
@@ -147,8 +140,8 @@ class TestLUInvProduct(unittest.TestCase):
         b = numpy.dot(a,x)
         
         a_b = invab(a,b)
-        for i in xrange(a_b.shape[0]):
-            for j in xrange(a_b.shape[1]):
+        for i in range(a_b.shape[0]):
+            for j in range(a_b.shape[1]):
                 self.assertTrue( equivalent(x[i,j],a_b[i,j]) )
 
 #-----------------------------------------------------

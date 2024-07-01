@@ -2,7 +2,6 @@
 Injects GTC in to the doctest namespace for pytest.
 """
 import os
-import sys
 
 import pytest
 
@@ -18,6 +17,3 @@ def add_gtc(doctest_namespace):
         if key.startswith('_'):
             continue
         doctest_namespace[key] = val
-
-    if sys.version_info.major > 2:
-        doctest_namespace['xrange'] = range

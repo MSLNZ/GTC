@@ -1,9 +1,5 @@
 """
 """
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
 import math
 
 __all__ = (
@@ -26,7 +22,7 @@ def equivalent_sequence(u,m,tol=TOL):
     """
     assert len(u) == len(m), f"different lengths: {u} and {m}"
     OK = True
-    for u_i,m_i in izip(u,m):
+    for u_i,m_i in zip(u,m):
         OK &=  abs(u_i - m_i) < tol       
 
     if OK:
@@ -34,7 +30,7 @@ def equivalent_sequence(u,m,tol=TOL):
     else:
         print(f"Tolerance = {tol:G}")
         print("Differences: ")
-        for u_i,m_i in izip(u,m):
+        for u_i,m_i in zip(u,m):
             print(abs(u_i - m_i))
             
         raise AssertionError(f"'{u}' <> '{m}'")

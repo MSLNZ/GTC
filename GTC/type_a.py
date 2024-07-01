@@ -53,21 +53,11 @@ Module contents
 import sys
 import math
 import numbers
-import numpy as np
 from functools import reduce
 
-try:
-    from itertools import izip  # Python 2
-    from collections import Iterable
-except ImportError:
-    izip = zip
-    xrange = range
-    from collections.abc import Iterable
-
 from GTC import (
-    inf, 
-    function,
-    is_sequence
+    inf,
+    type_b,
 )
 from GTC.lib import (
     UncertainReal, 
@@ -79,21 +69,19 @@ from GTC.lib import (
     value,
     value_seq
 )
-ureal = UncertainReal._elementary
-ucomplex = UncertainComplex._elementary
-result = lambda un,label: un._intermediate(label)
-
-from GTC import type_b
 from GTC.type_b import (
-    LineFit, LineFitWTLS,
+    LineFit,
+    LineFitWTLS,
 )
-
 from GTC.named_tuples import (
     VarianceCovariance,
     StandardUncertainty,
     StandardDeviation,
-    InterceptSlope
 )
+
+ureal = UncertainReal._elementary
+ucomplex = UncertainComplex._elementary
+result = lambda un,label: un._intermediate(label)
 
 EPSILON = sys.float_info.epsilon 
 HALF_PI = math.pi/2.0
@@ -474,7 +462,7 @@ def line_fit(x,y,label=None):
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
-    b_ =  math.fsum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
+    b_ =  math.fsum( t_i*y_i/S_tt for t_i,y_i in zip(t,y) )
     a_ = (S_y - b_*S_x)/N
 
     siga = math.sqrt( (1.0 + S_x*S_x/(N*S_tt))/N )
@@ -483,7 +471,7 @@ def line_fit(x,y,label=None):
     
     # Sum of squared residuals needed to correctly calculate parameter uncertainties
     f = lambda x_i,y_i: (y_i - a_ - b_*x_i)**2 
-    ssr =  math.fsum( f(x_i,y_i) for x_i,y_i in izip(x,y) )
+    ssr =  math.fsum( f(x_i,y_i) for x_i,y_i in zip(x,y) )
 
     data_u = math.sqrt( ssr/df )
     siga *= data_u
@@ -520,15 +508,15 @@ def _line_fit_wls(x,y,u_y):
     v = [ u_y_i*u_y_i for u_y_i in u_y ]
     S =  math.fsum( 1.0/v_i for v_i in v)
 
-    S_x =  math.fsum( x_i/v_i for x_i,v_i in izip(x,v) )
-    S_y =  math.fsum( y_i/v_i for y_i,v_i in izip(y,v) )
+    S_x =  math.fsum( x_i/v_i for x_i,v_i in zip(x,v) )
+    S_y =  math.fsum( y_i/v_i for y_i,v_i in zip(y,v) )
 
     k = S_x / S
-    t = [ (x_i - k)/u_y_i for x_i,u_y_i in izip(x,u_y) ]
+    t = [ (x_i - k)/u_y_i for x_i,u_y_i in zip(x,u_y) ]
 
     S_tt =  math.fsum( t_i*t_i for t_i in t )
 
-    b_ =  math.fsum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in izip(t,y,u_y) )
+    b_ =  math.fsum( t_i*y_i/u_y_i/S_tt for t_i,y_i,u_y_i in zip(t,y,u_y) )
     a_ = (S_y - b_*S_x)/S
 
     siga = math.sqrt( (1.0 + S_x*S_x/(S*S_tt))/S )
@@ -536,7 +524,7 @@ def _line_fit_wls(x,y,u_y):
     r_ab = -S_x/(S*S_tt*siga*sigb)
     
     f = lambda x_i,y_i,u_y_i: ((y_i - a_ - b_*x_i)/u_y_i)**2 
-    ssr =  math.fsum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in izip(x,y,u_y) )
+    ssr =  math.fsum( f(x_i,y_i,u_y_i) for x_i,y_i,u_y_i in zip(x,y,u_y) )
 
     return a_,b_,siga,sigb,r_ab,ssr,N
 
@@ -785,13 +773,13 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
     independent = r_xy is None
 
     x_u = [ ureal( value(x_i),u_i,inf,None,independent=independent)
-        for x_i, u_i in izip(x,u_x)
+        for x_i, u_i in zip(x,u_x)
     ]
     y_u = [ ureal( value(y_i),u_i,inf,None,independent=independent)
-        for y_i, u_i in izip(y,u_y)
+        for y_i, u_i in zip(y,u_y)
     ]
     if not independent:
-        for x_i,y_i,r_i in izip(x_u,y_u,r_xy):
+        for x_i,y_i,r_i in zip(x_u,y_u,r_xy):
             x_i.set_correlation(r_i,y_i)
 
     result = type_b.line_fit_wtls(x_u,y_u,a_b=a0_b0)
@@ -1307,7 +1295,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
             cv[i].append(
                 math.fsum(
                     d_i*d_j
-                        for d_i,d_j in izip(seq_i,seq_j)
+                        for d_i,d_j in zip(seq_i,seq_j)
                 )/N_N_1
             )
 
@@ -1316,7 +1304,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
     # to normalise the CV matrix.
     df = N-1
     rtn = []
-    for i in xrange(M):
+    for i in range(M):
         mu_i = means[i]
         u_i = u[i]
         l_i = labels[i] if labels is not None else ""
@@ -1327,11 +1315,11 @@ def multi_estimate_real(seq_of_seq,labels=None):
     # set the correlation between nodes
     real_ensemble( rtn, df )
     
-    for i in xrange(M):
+    for i in range(M):
         u_i = u[i]
         un_i = rtn[i]
         
-        for j in xrange(M-1-i):
+        for j in range(M-1-i):
             cv_ij = cv[i][j]
             if cv_ij != 0.0:
                 r =  cv_ij / (u_i*u[i+j+1])
@@ -1390,7 +1378,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
 
     # 1. Create a 2M sequence of sequences of real values
     x = []
-    for i in xrange(M):
+    for i in range(M):
         x.append( [ value(z_i.real) for z_i in seq_of_seq[i] ] )
         x.append( [ value(z_i.imag) for z_i in seq_of_seq[i] ] )
         if len(x[-1]) != N:
@@ -1405,7 +1393,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     # 2. Evaluate the means and uncertainties (keep the deviation sequences)
     x_mean = [ value( math.fsum(seq_i) / N ) for seq_i in x ]
     x_u = []
-    for i in xrange(TWOM):
+    for i in range(TWOM):
         mu_i = x_mean[i]
         x[i] = [ mu_i - x_ij for x_ij in x[i] ]
         x_u.append(
@@ -1416,7 +1404,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     # 3. Define uncertain M complex numbers
     x_influences = []
     rtn = []
-    for i in xrange(M):
+    for i in range(M):
         j = 2*i
         uc = ucomplex(
             complex(x_mean[j],x_mean[j+1]),
@@ -1430,13 +1418,13 @@ def multi_estimate_complex(seq_of_seq,labels=None):
         
 
     # 4. Calculate covariances and set correlation coefficients
-    for i in xrange(TWOM-1):
+    for i in range(TWOM-1):
         x_i = x[i]
         un_i = x_influences[i]
-        for j in xrange(i+1,TWOM):
+        for j in range(i+1,TWOM):
             x_j = x[j]
             cv = math.fsum( 
-                d_i*d_j for d_i,d_j in izip(x_i,x_j)
+                d_i*d_j for d_i,d_j in zip(x_i,x_j)
             )/N_N_1
             if cv != 0.0:
                 r = cv/(x_u[i]*x_u[j]) 

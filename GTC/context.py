@@ -4,10 +4,6 @@ Copyright (c) 2024, Measurement Standards Laboratory of New Zealand.
 """
 import uuid
 import weakref
-try:
-    long  # Python 2
-except NameError:
-    long = int
 
 from GTC.nodes import (
     Leaf,
@@ -34,8 +30,8 @@ class Context:
         # Context IDs will be unique - user beware!)
         self._id = uuid.uuid4().int if id is None else id
     
-        self._elementary_id_counter = long(0)
-        self._intermediate_id_counter = long(0)
+        self._elementary_id_counter = 0
+        self._intermediate_id_counter = 0
   
         # Caching to avoid duplication when unpacking archives 
         self._registered_leaf_nodes = weakref.WeakValueDictionary()

@@ -8,14 +8,8 @@ in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 """
 import math
 import cmath
-import sys 
-
-try:
-    basestring  # Python 2
-    from collections import Sequence
-except NameError:
-    basestring = (str, bytes)
-    from collections.abc import Sequence
+import sys
+from collections.abc import Sequence
 
 #----------------------------------------------------------------------------
 # Global constants, etc
@@ -32,7 +26,7 @@ EPSILON = sys.float_info.epsilon
 # Note numpy arrays are not detected as sequences
 # by this function.
 def is_sequence(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, (str, bytes)):
         return False
     else:
         return isinstance(obj, Sequence)

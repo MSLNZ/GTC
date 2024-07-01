@@ -3,19 +3,13 @@ import cmath
 import numbers
 import warnings
 
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-
 from GTC import lib
 from GTC import reporting
 from GTC import type_b
 from GTC import type_a
 from GTC import persistence
 from GTC import function
-
-from GTC import (   
+from GTC import (
     inf,
     nan,
     is_sequence,
@@ -388,7 +382,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     rtn = [
         # NB `ureal` creates constant objects when u == 0
         ureal(x_i,u_i,df,label=l_i,independent=False)
-            for x_i,u_i,l_i in izip(
+            for x_i,u_i,l_i in zip(
                 x_seq,u_seq,label_seq
             )
     ]
@@ -666,7 +660,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
         # When the uncertainty term u_i corresponds to zero, 
         # constant ucomplex objects are created
         ucomplex(x_i,u_i,df,label=l_i,independent=False)
-            for x_i,u_i,l_i in izip(
+            for x_i,u_i,l_i in zip(
                 x_seq,u_seq,label_seq
             )
     ]

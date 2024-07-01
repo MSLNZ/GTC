@@ -1,29 +1,16 @@
 import unittest
 import math
-try:
-    xrange  # Python 2
-except NameError:
-    xrange = range
-
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    xrange = range
 
 import numpy as np
 
 from GTC import function
-
 from GTC.core import (
     ureal,
     ucomplex,
     value,
     uncertainty,
-    variance,
-    dof
 )
-from GTC.linear_algebra import matmul, uarray
+from GTC.linear_algebra import uarray
 
 from testing_tools import *
 
@@ -48,7 +35,7 @@ class StdDataSets:
         self._k = k
         
         N = self._n
-        a = np.array( xrange(-N,N+1) ) * self._h
+        a = np.array( range(-N,N+1) ) * self._h
         q = self._q ** self._k
         
         return (self._mu + q) - a

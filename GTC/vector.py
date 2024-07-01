@@ -18,11 +18,7 @@ of elements is checked when appending (but not during construction).
 Copyright (c) 2024, Measurement Standards Laboratory of New Zealand.
 
 """
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    cmp = lambda a, b: (a > b) - (a < b)
+cmp = lambda a, b: (a > b) - (a < b)
 
 __all__ = (
     'Vector',
@@ -133,7 +129,7 @@ class Vector:
         return iter(self._index)
 
     def __str__(self):
-        return str( dict( izip(self._index,self._value) ) )
+        return str( dict( zip(self._index,self._value) ) )
 
     def __contains__(self,i):
         return i in self._index
@@ -168,7 +164,7 @@ class Vector:
         return self._value
 
     def iteritems(self):
-        return izip(self._index,self._value)
+        return zip(self._index,self._value)
     
     def iterkeys(self):
         return iter(self._index)
@@ -287,7 +283,7 @@ def merge_vectors(v1,v2):
 
     if v1._index == v2._index:
         # No need to check indices => much faster
-        value = [ x1 + x2 for (x1,x2) in izip(v1._value,v2._value) ]
+        value = [ x1 + x2 for (x1,x2) in zip(v1._value,v2._value) ]
         index = v1._index
     else:
         # A marker at the ends: must remove afterwards!
@@ -361,7 +357,7 @@ def merge_weighted_vectors(v1,w1,v2,w2):
 
     if v1._index == v2._index:
         # No need to check indices => much faster
-        value = [ w1*x1 + w2*x2 for (x1,x2) in izip(v1._value,v2._value) ]
+        value = [ w1*x1 + w2*x2 for (x1,x2) in zip(v1._value,v2._value) ]
         index = v1._index
     else:
         # A marker at the ends: must remove afterwards!
@@ -470,8 +466,8 @@ def merge_weighted_vectors_twice(v1,w1,v2,w2):
     w12,w22 = w2
     if v1._index == v2._index:
         # No need to check indices => much faster
-        value1 = [ w11*x1 + w12*x2 for (x1,x2) in izip(v1._value,v2._value) ]
-        value2 = [ w21*x1 + w22*x2 for (x1,x2) in izip(v1._value,v2._value) ]
+        value1 = [ w11*x1 + w12*x2 for (x1,x2) in zip(v1._value,v2._value) ]
+        value2 = [ w21*x1 + w22*x2 for (x1,x2) in zip(v1._value,v2._value) ]
         index = v1._index
     else:
         # A marker at the ends: must remove afterwards!

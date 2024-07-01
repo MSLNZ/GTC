@@ -4,7 +4,7 @@ and then restoration of an Archive from XML.
 """
 from ast import literal_eval
 from math import isinf
-from xml.etree.cElementTree import (
+from xml.etree.ElementTree import (
     Element,
     SubElement,
 )

@@ -4,10 +4,6 @@ import math
 import cmath
 import tempfile
 import sys
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
 
 import numpy as np
 
@@ -41,12 +37,32 @@ from GTC.core import (
     dof
 )
 
-from GTC import inf, nan
-from GTC.uncertain_array import UncertainArray, _isinf, _isnan
-from GTC.named_tuples import StandardUncertainty, VarianceCovariance
-from GTC.lib import UncertainReal, UncertainComplex
-from GTC import type_a, function, linear_algebra
-from GTC.linear_algebra import matmul, uarray
+from GTC import (
+    inf,
+    nan,
+)
+from GTC.uncertain_array import (
+    UncertainArray,
+    _isinf,
+    _isnan,
+)
+from GTC.named_tuples import (
+    StandardUncertainty,
+    VarianceCovariance,
+)
+from GTC.lib import (
+    UncertainReal,
+    UncertainComplex,
+)
+from GTC import (
+    type_a,
+    function,
+    linear_algebra,
+)
+from GTC.linear_algebra import (
+    matmul,
+    uarray,
+)
 
 from testing_tools import *
 
@@ -711,8 +727,8 @@ class TestUncertainArray(unittest.TestCase):
         n = len(self.x)
 
         # 1D array of uncertain numbers, no vectorization
-        z = [x + y for x, y in izip(self.x, self.y)]
-        zc = [x + y for x, y in izip(self.xc, self.yc)]
+        z = [x + y for x, y in zip(self.x, self.y)]
+        zc = [x + y for x, y in zip(self.xc, self.yc)]
         za = self.xa + self.ya
         zca = self.xca + self.yca
         for i in range(n):
@@ -725,8 +741,8 @@ class TestUncertainArray(unittest.TestCase):
         # 1D array of uncertain numbers, with vectorization
         # also switch the addition order to be y + x
         for m in range(n):
-            z = [y + x for y, x in izip(self.y[m:], self.x[m:])]
-            zc = [y + x for y, x in izip(self.yc[m:], self.xc[m:])]
+            z = [y + x for y, x in zip(self.y[m:], self.x[m:])]
+            zc = [y + x for y, x in zip(self.yc[m:], self.xc[m:])]
             za = self.ya[m:] + self.xa[m:]
             zca = self.yca[m:] + self.xca[m:]
             for i in range(n-m):
@@ -849,7 +865,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check addition with a list -> UncertainArray[ureal] + list
         my_list = list(range(n))
-        z = [x + val for x, val in izip(self.x, my_list)]
+        z = [x + val for x, val in zip(self.x, my_list)]
         za = self.xa + my_list
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
@@ -857,7 +873,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check addition with a list -> UncertainArray[ucomplex] + list
         my_list = [1+3j, 5j, -3+2.2j, 0.1+0.4j, 8., 1.9+3.4j]
-        zc = [x + val for x, val in izip(self.xc, my_list)]
+        zc = [x + val for x, val in zip(self.xc, my_list)]
         zca = self.xca + my_list
         for i in range(n):
             self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
@@ -866,7 +882,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check addition with a list -> list + UncertainArray[ureal]
         my_list = list(range(n))
-        z = [val + x for val, x in izip(my_list, self.x)]
+        z = [val + x for val, x in zip(my_list, self.x)]
         za = my_list + self.xa
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
@@ -874,7 +890,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check addition with a list -> list + UncertainArray[ucomplex]
         my_list = [3.1-2.3j, 4+5j, 3.2+7.3j, 5.1-0.4j, 0.1, 6.1+3.7j]
-        zc = [val + x for val, x in izip(my_list, self.xc)]
+        zc = [val + x for val, x in zip(my_list, self.xc)]
         zca = my_list + self.xca
         for i in range(n):
             self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
@@ -907,8 +923,8 @@ class TestUncertainArray(unittest.TestCase):
         n = len(self.x)
 
         # 1D array of uncertain numbers, no vectorization
-        z = [x - y for x, y in izip(self.x, self.y)]
-        zc = [x - y for x, y in izip(self.xc, self.yc)]
+        z = [x - y for x, y in zip(self.x, self.y)]
+        zc = [x - y for x, y in zip(self.xc, self.yc)]
         za = self.xa - self.ya
         zca = self.xca - self.yca
         for i in range(n):
@@ -921,8 +937,8 @@ class TestUncertainArray(unittest.TestCase):
         # 1D array of uncertain numbers, with vectorization
         # also switch the subtraction order to be y - x
         for m in range(n):
-            z = [y - x for y, x in izip(self.y[m:], self.x[m:])]
-            zc = [y - x for y, x in izip(self.yc[m:], self.xc[m:])]
+            z = [y - x for y, x in zip(self.y[m:], self.x[m:])]
+            zc = [y - x for y, x in zip(self.yc[m:], self.xc[m:])]
             za = self.ya[m:] - self.xa[m:]
             zca = self.yca[m:] - self.xca[m:]
             for i in range(n-m):
@@ -1045,7 +1061,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check subtraction with a list -> UncertainArray[ureal] - list
         my_list = list(range(n))
-        z = [x - val for x, val in izip(self.x, my_list)]
+        z = [x - val for x, val in zip(self.x, my_list)]
         za = self.xa - my_list
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
@@ -1053,7 +1069,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check subtraction with a list -> UncertainArray[ucomplex] - list
         my_list = [1+3j, 5j, -3+2.2j, 0.1+0.4j, 8., 1.9+3.4j]
-        zc = [x - val for x, val in izip(self.xc, my_list)]
+        zc = [x - val for x, val in zip(self.xc, my_list)]
         zca = self.xca - my_list
         for i in range(n):
             self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
@@ -1062,7 +1078,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check subtraction with a list -> list - UncertainArray[ureal]
         my_list = list(range(n))
-        z = [val - x for val, x in izip(my_list, self.x)]
+        z = [val - x for val, x in zip(my_list, self.x)]
         za = my_list - self.xa
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
@@ -1070,7 +1086,7 @@ class TestUncertainArray(unittest.TestCase):
 
         # check subtraction with a list -> list - UncertainArray[ucomplex]
         my_list = [3.1-2.3j, 4+5j, 3.2+7.3j, 5.1-0.4j, 0.1, 6.1+3.7j]
-        zc = [val - x for val, x in izip(my_list, self.xc)]
+        zc = [val - x for val, x in zip(my_list, self.xc)]
         zca = my_list - self.xca
         for i in range(n):
             self.assertTrue(equivalent_complex(zc[i].x, zca[i].x))
@@ -1096,7 +1112,7 @@ class TestUncertainArray(unittest.TestCase):
         n = len(self.x)
 
         # x * y
-        z = [x * y for x, y in izip(self.x, self.y)]
+        z = [x * y for x, y in zip(self.x, self.y)]
         za = self.xa * self.ya
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
@@ -1117,7 +1133,7 @@ class TestUncertainArray(unittest.TestCase):
         za = self.xa / self.ya
 
         # x / y
-        z = [x / y for x, y in izip(self.x, self.y)]
+        z = [x / y for x, y in zip(self.x, self.y)]
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
             self.assertTrue(equivalent(z[i].u, za[i].u))
@@ -1200,37 +1216,37 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(not np.array_equal(self.xa, self.ya))
 
         # == element-wise
-        z = [x == y for x, y in izip(self.x, self.y)]
+        z = [x == y for x, y in zip(self.x, self.y)]
         za = np.equal(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(z[i] == za[i])
 
         # != element-wise
-        z = [x != y for x, y in izip(self.x, self.y)]
+        z = [x != y for x, y in zip(self.x, self.y)]
         za = np.not_equal(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(z[i] == za[i])
 
         # < element-wise
-        z = [x < y for x, y in izip(self.x, self.y)]
+        z = [x < y for x, y in zip(self.x, self.y)]
         za = np.less(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(z[i] == za[i])
 
         # <= element-wise
-        z = [x <= y for x, y in izip(self.x, self.y)]
+        z = [x <= y for x, y in zip(self.x, self.y)]
         za = np.less_equal(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(z[i] == za[i])
 
         # > element-wise
-        z = [x > y for x, y in izip(self.x, self.y)]
+        z = [x > y for x, y in zip(self.x, self.y)]
         za = np.greater(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(z[i] == za[i])
 
         # >= element-wise
-        z = [x >= y for x, y in izip(self.x, self.y)]
+        z = [x >= y for x, y in zip(self.x, self.y)]
         za = np.greater_equal(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(z[i] == za[i])
@@ -1566,7 +1582,7 @@ class TestUncertainArray(unittest.TestCase):
         xa = uarray(x)
         ya = uarray(y)
         n = len(x)
-        z = [atan2(v1, v2) for v1, v2 in izip(x, y)]
+        z = [atan2(v1, v2) for v1, v2 in zip(x, y)]
 
         # call np.arctan2 
         za = np.arctan2(xa, ya)
@@ -1652,8 +1668,8 @@ class TestUncertainArray(unittest.TestCase):
         n = len(self.x)
 
         # use the "**" syntax -> UncertainArray ** UncertainArray
-        z = [x ** y for x, y in izip(self.x, self.y)]
-        zc = [x ** y for x, y in izip(self.xc, self.yc)]
+        z = [x ** y for x, y in zip(self.x, self.y)]
+        zc = [x ** y for x, y in zip(self.xc, self.yc)]
         za = self.xa ** self.ya
         zca = self.xca ** self.yca
         for i in range(n):
@@ -1708,7 +1724,7 @@ class TestUncertainArray(unittest.TestCase):
                 self.assertTrue(equivalent(zc[i].u.imag, zca[i].u.imag))
 
         # use GTC.core.pow -> UncertainArray ** UncertainArray
-        z = [pow(x, y) for x, y in izip(self.x, self.y)]
+        z = [pow(x, y) for x, y in zip(self.x, self.y)]
         za = pow(self.xa, self.ya)
         for i in range(n):
             self.assertTrue(equivalent(z[i].x, za[i].x))
