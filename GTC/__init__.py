@@ -103,15 +103,15 @@ if sys.version_info[:2] < (3, 8):
     import warnings
     warnings.simplefilter('once', DeprecationWarning)
     warnings.warn(
-        'GTC will stop supporting Python %d.%d in GTC version 2.0. '
-        'GTC 2.0 will require Python 3.8, or above. '
-        'Please update your version of Python.' % sys.version_info[:2],
+        f'GTC will stop supporting Python {sys.version_info.major}.{sys.version_info.minor} in GTC version 2.0. '
+        f'GTC 2.0 will require Python 3.8, or above. '
+        f'Please update your version of Python.',
         DeprecationWarning,
         stacklevel=2
     )
     del warnings
 #----------------------------------------------------------------------------
-version = "1.5.1.dev0"
+version = "2.0.0.dev0"
 
 copyright = """Copyright (c) 2024, \
 Measurement Standards Laboratory of New Zealand"""

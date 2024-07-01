@@ -55,7 +55,7 @@ __all__ = (
 
 # INF = ( '\U0010FFFF', float('inf') )
 INF = ( float('inf'), float('inf') )
-class INF_UID(object): uid = INF
+class INF_UID: uid = INF
         
 #--------------------------------------------------------------
 # TODO:
@@ -64,7 +64,7 @@ class INF_UID(object): uid = INF
 #
 # Look at using the bisect module to improve performance
 #
-class Vector(object):
+class Vector:
     
     """
     A Vector is a collection of ordered index-value pairs.
@@ -104,13 +104,13 @@ class Vector(object):
             idx = kwargs['index']
             if getattr(idx,'append',None) is None:
                 raise RuntimeError(
-                    "mutable sequence required, got {!r}".format(type(idx))
+                    f"mutable sequence required, got {type(idx)!r}"
                 )
                 
             val = kwargs['value']
             if getattr(val,'append',None) is None:
                 raise RuntimeError(
-                    "mutable sequence required, got {!r}".format(type(val))
+                    f"mutable sequence required, got {type(val)!r}"
                 )
                 
             self._index = idx
@@ -118,7 +118,7 @@ class Vector(object):
             
         elif len(kwargs) != 0:
             raise RuntimeError(
-                "unidentified keywords '%s'" % kwargs.keys()
+                f"unidentified keywords '{kwargs.keys()}'"
             )
 
 ### There appears to be a large overhead associated with this            

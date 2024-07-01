@@ -50,8 +50,8 @@ def fn():
     unc_o = numpy.zeros(N,object)   # The initial values are over-written 
                                     # immediately below
     for i in range(N):
-        name_i = 'unc_i[%s]' %i
-        name_o = 'unc_o[%s]' %i
+        name_i = f'unc_i[{i}]'
+        name_o = f'unc_o[{i}]'
         unc_i[i] = ucomplex(0., [10e-6,0.0])
         unc_o[i] = ucomplex(0., [20e-6,0.0])
         
@@ -126,11 +126,11 @@ def fn():
 
     _t4 = time.time()
 
-    print('set up time: {}'.format(_t1 - _t0))
-    print('initialisation time: {}'.format(_t2 - _t1))
-    print('build-up time: {}'.format(_t3 - _t2))
-    print('results time: {}'.format(_t4 - _t3))
-    print('total time: {}'.format(_t4 - _t0))
+    print(f'set up time: {_t1 - _t0}')
+    print(f'initialisation time: {_t2 - _t1}')
+    print(f'build-up time: {_t3 - _t2}')
+    print(f'results time: {_t4 - _t3}')
+    print(f'total time: {_t4 - _t0}')
 
 #========================================================
 if __name__ == '__main__':

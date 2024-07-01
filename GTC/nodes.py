@@ -9,7 +9,7 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
-class Node(object):
+class Node:
     
     """
     A `Node` holds information about an intermediate uncertain real number
@@ -45,7 +45,7 @@ class Leaf(Node):
     
     def __init__(self,uid,label,u,df,independent=True):
         Node.__init__(self,uid,label,u,df)
-    
+
         self.independent = independent
         if not independent:
             # Provide objects for these attributes.

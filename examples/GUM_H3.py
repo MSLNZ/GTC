@@ -20,9 +20,9 @@ t_rel = [ t_k - t_0 for t_k in t ]
 # Least-squares regression
 cal = type_a.line_fit(t_rel,b)
 print( cal )
-print
+print()
 
 # Apply correction at 30 C
 b_30 = cal.intercept + cal.slope*(30.0 - t_0)
 
-print("Correction at 30 C: {}".format(b_30))
+print(f"Correction at 30 C: {b_30}")

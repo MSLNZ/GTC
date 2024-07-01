@@ -309,14 +309,14 @@ def ureal(x,u,df=inf,label=None,independent=True):
     """    
     # Arguments to these math functions must be compatible with float
     if math.isnan(x) or math.isinf(x):
-        raise ValueError("invalid: '{!r}'".format(x) )
+        raise ValueError(f"invalid: '{x!r}'" )
 
     if u < 0 or math.isinf(u) or math.isnan(u):
-        raise ValueError("invalid uncertainty: '{!r}'".format(u) )
+        raise ValueError(f"invalid uncertainty: '{u!r}'" )
 
     # inf is allowed, but not nan
     if df < 1 or math.isnan(df):
-        raise ValueError("invalid dof: '{!r}'".format(df) )
+        raise ValueError(f"invalid dof: '{df!r}'" )
     
     if u == 0:
         # Is this what we want? Perhaps not.
@@ -370,7 +370,7 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     """
     if len(x_seq) != len(u_seq):
         raise RuntimeError(
-            "unequal length sequences: x={!r} u={!r}".format(x_seq,u_seq)
+            f"unequal length sequences: x={x_seq!r} u={u_seq!r}"
         )
 
     if label_seq is None:
@@ -378,11 +378,11 @@ def multiple_ureal(x_seq,u_seq,df,label_seq=None):
     elif is_sequence(label_seq):
         if len(x_seq) != len(label_seq):
             raise RuntimeError(
-                "unequal length sequences: x={!r} label_seq={!r}".format(x_seq,u_seq)
+                f"unequal length sequences: x={x_seq!r} label_seq={u_seq!r}"
             )
     else:
         raise RuntimeError(
-            "invalid `label_seq`: {!r}".format(label_seq)
+            f"invalid `label_seq`: {label_seq!r}"
         )
         
     rtn = [
@@ -431,7 +431,7 @@ def constant(x,label=None):
         return UncertainComplex._constant(x,label)
     else:
         raise TypeError(
-            "Cannot make a constant: {!r}".format( x )
+            f"Cannot make a constant: {x!r}"
         )
   
 #----------------------------------------------------------------------------
@@ -480,8 +480,8 @@ def result(un,label=None):
         # This covers any pure number type
         if label is not None:
             warnings.warn(
-                "A label cannot be applied to a pure number by result():"
-                " the label {!r} has been ignored".format(label),
+                f"A label cannot be applied to a pure number by result():"
+                f" the label {label!r} has been ignored",
                 RuntimeWarning
             )
         
@@ -489,7 +489,7 @@ def result(un,label=None):
         
     else:
         raise TypeError(
-            "undefined for {!r}'".format(un)
+            f"undefined for {un!r}"
         )
           
 
@@ -540,10 +540,10 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
     # Arguments to these math functions must be compatible with float
     # otherwise a TypeError is raised by Python
     if cmath.isnan(z) or cmath.isinf(z):
-        raise ValueError("invalid: '{!r}'".format(z) )
+        raise ValueError(f"invalid: '{z!r}'" )
         
     if df < 1 or math.isnan(df):
-        raise ValueError("invalid dof: '{!r}'".format(df) )
+        raise ValueError(f"invalid dof: '{df!r}'" )
         
     if is_sequence(u):
     
@@ -560,7 +560,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
             # nan != nan is True
             if math.isinf(cv1) or cv1 != cv2:
                 raise ValueError(
-                    "covariance elements not equal: {!r} and {!r}".format(cv1,cv2) 
+                    f"covariance elements not equal: {cv1!r} and {cv2!r}" 
                 )
                 
             # Note that for cv1 to be non-zero, both u_r and u_i must be non-zero
@@ -571,7 +571,7 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
             # Allow a little tolerance for numerical imprecision
             if r is not None and abs(r) > 1 + 1E-10:
                 raise ValueError(
-                    "invalid correlation: {!r}, cv={}".format(r,u)
+                    f"invalid correlation: {r!r}, cv={u}"
                 )
             if r is not None:
                 # This overrides an initial assignment
@@ -579,22 +579,22 @@ def ucomplex(z,u,df=inf,label=None,independent=True):
                 
         else:
             raise ValueError(
-                "invalid uncertainty sequence: '{!r}'".format(u)
+                f"invalid uncertainty sequence: '{u!r}'"
             )
         
     elif not math.isinf(u) and not math.isnan(u):
         u_r = u_i = float(u)
         r = None
     else:
-        raise TypeError("invalid uncertainty: '{!r}'".format(u) )
+        raise TypeError(f"invalid uncertainty: '{u!r}'" )
 
     # Checking of valid uncertainty values
     # Note, comparisons with nan are always false
     if not( 0 <= u_r and u_r < inf ):
-        raise ValueError("invalid real uncertainty: '{!r}'".format(u_r) )
+        raise ValueError(f"invalid real uncertainty: '{u_r!r}'" )
 
     if not ( 0 <= u_i and u_i < inf ):
-        raise ValueError("invalid imag uncertainty: '{!r}'".format(u_i) )
+        raise ValueError(f"invalid imag uncertainty: '{u_i!r}'" )
         
     # TODO: is this what we want? Perhaps not!
     if u_r == 0 and u_i == 0:
@@ -647,7 +647,7 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     """
     if len(x_seq) != len(u_seq):
         raise RuntimeError(
-            "unequal length sequences: x={!r} u={!r}".format(x_seq,u_seq)
+            f"unequal length sequences: x={x_seq!r} u={u_seq!r}"
         )
  
     if label_seq is None:
@@ -655,11 +655,11 @@ def multiple_ucomplex(x_seq,u_seq,df,label_seq=None):
     elif is_sequence(label_seq):
         if len(x_seq) != len(label_seq):
             raise RuntimeError(
-                "unequal length sequences: x={!r} label_seq={!r}".format(x_seq,u_seq)
+                f"unequal length sequences: x={x_seq!r} label_seq={u_seq!r}"
             )
     else:
         raise RuntimeError(
-            "invalid `label_seq`: {!r}".format(label_seq)
+            f"invalid `label_seq`: {label_seq!r}"
         )
  
     rtn = [
@@ -749,9 +749,7 @@ def set_correlation(r,arg1,arg2=None):
         arg1.set_correlation(r,arg2)
     else:
         raise TypeError(
-            "illegal arguments: {}, {}, {}".format( 
-                repr(r), repr(arg1), repr(arg2) 
-            )
+            f"illegal arguments: {r!r}, {arg1!r}, {arg2!r}"
         )
 
 #---------------------------------------------------------------------------
@@ -781,7 +779,7 @@ def get_correlation(arg1,arg2=None):
         
     else:
         raise TypeError(
-            "illegal first argument {!r}".format(arg1)
+            f"illegal first argument {arg1!r}"
         )
         
 #---------------------------------------------------------------------------
@@ -810,7 +808,7 @@ def get_covariance(arg1,arg2=None):
         
     else:
         raise TypeError(
-            "illegal first argument {!r}".format(arg1)
+            f"illegal first argument {arg1!r}"
         )
         
 #---------------------------------------------------------------------------
@@ -833,7 +831,7 @@ def log(x):
             return cmath.log(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
     
 #---------------------------------------------------------------------------
@@ -856,7 +854,7 @@ def log10(x):
             return cmath.log10(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
     
 #---------------------------------------------------------------------------
@@ -874,7 +872,7 @@ def exp(x):
             return cmath.exp(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
     
 #---------------------------------------------------------------------------
@@ -921,7 +919,7 @@ def sqrt(x):
             return cmath.sqrt(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 
 #----------------------------------------------------------------------------
@@ -939,7 +937,7 @@ def sin(x):
             return cmath.sin(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 
 #----------------------------------------------------------------------------
@@ -957,7 +955,7 @@ def cos(x):
             return cmath.cos(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 #----------------------------------------------------------------------------
 def tan(x):
@@ -974,7 +972,7 @@ def tan(x):
             return cmath.tan(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 
 #---------------------------------------------------------------------------
@@ -1012,7 +1010,7 @@ def asin(x):
             return cmath.asin(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 #---------------------------------------------------------------------------
 def acos(x):
@@ -1049,7 +1047,7 @@ def acos(x):
             return cmath.acos(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
             
 #---------------------------------------------------------------------------
@@ -1075,7 +1073,7 @@ def atan(x):
             return cmath.atan(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
             
 #----------------------------------------------------------------------------
@@ -1112,7 +1110,7 @@ def atan2(y,x):
                 return math.atan2(y,x)
             else:
                 raise TypeError(
-                    "illegal arguments: x={!r} y={!r}".format(x,y)
+                    f"illegal arguments: x={x!r} y={y!r}"
                 )
 
 #---------------------------------------------------------------------------
@@ -1130,7 +1128,7 @@ def sinh(x):
             return cmath.sinh(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 #---------------------------------------------------------------------------
 def cosh(x):
@@ -1147,7 +1145,7 @@ def cosh(x):
             return cmath.cosh(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
     
 #---------------------------------------------------------------------------
@@ -1165,7 +1163,7 @@ def tanh(x):
             return cmath.tanh(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
             
 #---------------------------------------------------------------------------
@@ -1192,7 +1190,7 @@ def asinh(x):
             return cmath.asinh(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 
 #---------------------------------------------------------------------------
@@ -1215,7 +1213,7 @@ def acosh(x):
             return cmath.acosh(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
 
 #---------------------------------------------------------------------------
@@ -1240,7 +1238,7 @@ def atanh(x):
             return cmath.atanh(x)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(x)
+                f"illegal argument: {x!r}"
             )
             
 #----------------------------------------------------------------------------
@@ -1276,7 +1274,7 @@ def phase(z):
             return cmath.phase(z)
         else:
             raise TypeError(
-                "illegal argument: {!r}".format(z)
+                f"illegal argument: {z!r}"
             )
 
 #---------------------------------------------------------------------------

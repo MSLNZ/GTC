@@ -20,7 +20,7 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
-class Context(object):
+class Context:
 
     """
     A ``Context`` object the creation of uncertain numbers 
@@ -119,7 +119,7 @@ class Context(object):
             )
             if not OK:
                 raise RuntimeError(
-                    "the Leaf node uid({}) is in use already".format(uid)
+                    f"the Leaf node uid({uid}) is in use already"
                 )
         else:          
             l = Leaf(uid,label,u,df,independent)
@@ -151,9 +151,7 @@ class Context(object):
             )
             if not OK:
                 raise RuntimeError(
-                    "intermediate node uid({}), '{}', u={}, df={} is used".format(
-                        uid,label,u,df
-                    )
+                    f"intermediate node uid({uid}), {label!r}, u={u}, df={df} is used"
                 )
         else:          
             n = Node(uid,label,u,df)

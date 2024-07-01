@@ -1,6 +1,5 @@
 import io
 import os
-import sys
 import tempfile
 import unittest
 from math import isinf
@@ -11,9 +10,6 @@ from GTC import *
 from GTC import context
 from GTC.context import Context
 from testing_tools import *
-
-PY27 = sys.version_info[:2] == (2, 7)
-PY35 = sys.version_info[:2] == (3, 5)
 
 schema_file = r'../GTC/schema/gtc_v_1_5_0.xsd'
 _file = os.path.join(os.path.dirname(__file__), schema_file)
@@ -51,14 +47,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=4e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.r, z.r)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
     def test_with_file2(self):
         """
@@ -93,14 +82,7 @@ class TestArchiveXML(unittest.TestCase):
             ar1 = persistence.load_xml(f)
         z1 = ar1.extract('z')
 
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=4e-12))
-            self.assertEqual(z1.r, z.r)
-            self.assertTrue(equivalent(z1.df, z.df, tol=3e-12))
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         with open(path, 'r') as f:
             # The attempt to create the uncertain number again is allowed
@@ -146,14 +128,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=2e-12))
-            self.assertEqual(z1.r, z.r)
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         self.assertEqual(get_correlation(x, y), r)
 
@@ -190,14 +165,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=2e-12))
-            self.assertEqual(z1.r, z.r)
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         self.assertEqual(get_correlation(x1, y1), r)
 
@@ -230,32 +198,9 @@ class TestArchiveXML(unittest.TestCase):
 
         x1, y1, z1 = ar.extract('x', 'y', 'z')
 
-        if PY27:
-            self.assertEqual(x1.x, x.x)
-            self.assertTrue(equivalent_sequence(x1.u, x.u, tol=2e-12))
-            self.assertTrue(equivalent(x1.r, x.r))
-            self.assertEqual(x1.df, x.df)
-            self.assertEqual(x1.label, x.label)
-        else:
-            self.assertEqual(repr(x1), repr(x))
-
-        if PY27:
-            self.assertEqual(y1.x, y.x)
-            self.assertTrue(equivalent_sequence(y1.u, y.u, tol=2e-12))
-            self.assertTrue(equivalent(y1.r, y.r))
-            self.assertEqual(y1.df, y.df)
-            self.assertEqual(y1.label, y.label)
-        else:
-            self.assertEqual(repr(y1), repr(y))
-
-        if PY27:
-            self.assertTrue(equivalent_complex(z1.x, z.x, tol=3e-12))
-            self.assertTrue(equivalent_sequence(z1.u, z.u, tol=5e-12))
-            self.assertTrue(equivalent(z1.r, z.r, tol=1e-12))
-            self.assertTrue(equivalent(z1.df, z.df, tol=4e-11))
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(x1), repr(x))
+        self.assertEqual(repr(y1), repr(y))
+        self.assertEqual(repr(z1), repr(z))
 
     def test_with_string1(self):
         """
@@ -280,14 +225,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=4e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.r, z.r)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
     def test_with_string2(self):
         """
@@ -351,14 +289,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=2e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.r, z.r)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         self.assertEqual(get_correlation(x, y), r)
 
@@ -388,14 +319,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=2e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.r, z.r)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         self.assertEqual(get_correlation(x, y), r)
 
@@ -421,32 +345,9 @@ class TestArchiveXML(unittest.TestCase):
 
         x1, y1, z1 = ar.extract('x', 'y', 'z')
 
-        if PY27:
-            self.assertEqual(x1.x, x.x)
-            self.assertTrue(equivalent_sequence(x1.u, x.u, tol=2e-12))
-            self.assertTrue(equivalent(x1.r, x.r))
-            self.assertEqual(x1.df, x.df)
-            self.assertEqual(x1.label, x.label)
-        else:
-            self.assertEqual(repr(x1), repr(x))
-
-        if PY27:
-            self.assertEqual(y1.x, y.x)
-            self.assertTrue(equivalent_sequence(y1.u, y.u, tol=2e-12))
-            self.assertTrue(equivalent(y1.r, y.r))
-            self.assertEqual(y1.df, y.df)
-            self.assertEqual(y1.label, y.label)
-        else:
-            self.assertEqual(repr(y1), repr(y))
-
-        if PY27:
-            self.assertTrue(equivalent_complex(z1.x, z.x, tol=3e-12))
-            self.assertTrue(equivalent_sequence(z1.u, z.u, tol=5e-12))
-            self.assertTrue(equivalent(z1.r, z.r, tol=1e-12))
-            self.assertTrue(equivalent(z1.df, z.df, tol=4e-11))
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(x1), repr(x))
+        self.assertEqual(repr(y1), repr(y))
+        self.assertEqual(repr(z1), repr(z))
 
     def test_dumps_bytestring(self):
         ar = persistence.Archive()
@@ -458,7 +359,6 @@ class TestArchiveXML(unittest.TestCase):
         persistence.loads_xml(bytestring.decode())
         schema.assertValid(etree.fromstring(bytestring))
 
-    @unittest.skipIf(PY27, reason='Requires Python 3')
     def test_dumps_loads_unicode(self):
         ar = persistence.Archive()
         ar.add(x=ureal(1, 1))
@@ -505,7 +405,6 @@ class TestArchiveXML(unittest.TestCase):
         persistence.load_xml(path)
         os.remove(path)
 
-    @unittest.skipIf(PY27 or PY35, reason='Requires Python 3.6+')
     def test_dump_load_pathlike(self):
         from pathlib import Path
 
@@ -554,48 +453,24 @@ class TestArchiveXML(unittest.TestCase):
         x1, y1, z1 = ar1.extract('x', 'y', 'z')
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=4e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         mx1, my1, mz1, mr1 = ar1.extract('mx', 'my', 'mz', 'mr')
         self.assertEqual(repr(mx1), repr(mx))
         self.assertEqual(repr(my1), repr(my))
         self.assertEqual(repr(mz1), repr(mz))
-        if PY27:
-            self.assertEqual(mr1.x, mr.x)
-            self.assertTrue(equivalent(mr1.u, mr.u, tol=4e-12))
-            self.assertTrue(equivalent(mr1.df, mr.df))
-            self.assertEqual(mr1.label, mr.label)
-        else:
-            self.assertEqual(repr(mr1), repr(mr))
+        self.assertEqual(repr(mr1), repr(mr))
 
         cx1, cy1, cz1 = ar1.extract('cx', 'cy', 'cz')
         self.assertEqual(repr(cx1), repr(cx))
         self.assertEqual(repr(cy1), repr(cy))
-        if PY27:
-            self.assertTrue(equivalent_complex(cz1.x, cz.x, tol=3e-13))
-            self.assertTrue(equivalent_sequence(cz1.u, cz.u, tol=4e-12))
-            self.assertTrue(equivalent(cz1.df, cz.df, tol=2e-11))
-            self.assertEqual(cz1.label, cz.label)
-        else:
-            self.assertEqual(repr(cz1), repr(cz))
+        self.assertEqual(repr(cz1), repr(cz))
 
         mca1, mcb1, mcc1 = ar1.extract('mca', 'mcb', 'mcc')
         self.assertTrue(equivalent_sequence(get_correlation(mca1, mcb1), corr))
         self.assertEqual(repr(mca1), repr(mca))
         self.assertEqual(repr(mcb1), repr(mcb))
-        if PY27:
-            self.assertTrue(equivalent_complex(mcc1.x, mcc.x))
-            self.assertTrue(equivalent_sequence(mcc1.u, mcc.u, tol=3e-13))
-            self.assertTrue(equivalent(mcc1.df, mcc.df, tol=2e-11))
-            self.assertEqual(mcc1.label, mcc.label)
-        else:
-            self.assertEqual(repr(mcc1), repr(mcc))
+        self.assertEqual(repr(mcc1), repr(mcc))
 
     def test_indent_0(self):
         context._context = Context(id=1)
@@ -832,7 +707,6 @@ class TestArchiveXML(unittest.TestCase):
                 f.seek(0)
                 persistence.load_xml(f)
 
-    @unittest.skipIf(PY27, reason='Requires Python 3')
     def test_kwarg_short_empty_elements(self):
         ar = persistence.Archive()
         ar.add(x=ureal(1, 1))
@@ -924,9 +798,7 @@ class TestArchiveXML(unittest.TestCase):
       <msl:independent>true</msl:independent>
     </msl:leafNode>"""
 
-        if not (PY27 or PY35):
-            # dict preserved insertion order starting from Python 3.6
-            self.assertTrue(s.startswith(expect))
+        self.assertTrue(s.startswith(expect))
 
         ar = persistence.loads_xml(s)
 
@@ -938,38 +810,15 @@ class TestArchiveXML(unittest.TestCase):
         _z = _x * _y
         self.assertEqual(repr(w), repr(_w))
         self.assertEqual(repr(x), repr(_x))
-        if PY27:
-            self.assertEqual(y.x, _y.x)
-            self.assertTrue(equivalent(y.u, _y.u, tol=4e-12))
-            self.assertEqual(y.df, _y.df)
-            self.assertEqual(y.label, _y.label)
-        else:
-            self.assertEqual(repr(y), repr(_y))
-        if PY27:
-            self.assertEqual(z.x, _z.x)
-            self.assertTrue(equivalent(z.u, _z.u, tol=5e-12))
-            self.assertEqual(z.df, _z.df)
-            self.assertEqual(z.label, _z.label)
-        else:
-            self.assertEqual(repr(z), repr(_z))
+        self.assertEqual(repr(y), repr(_y))
+        self.assertEqual(repr(z), repr(_z))
         self.assertEqual(component(z, w), 2)
         self.assertEqual(component(z, x), 5)
-        if PY27:
-            self.assertTrue(equivalent(
-                component(z, y),
-                2 * uncertainty(_w + _x), tol=4e-12))
-        else:
-            self.assertEqual(component(z, y), 2 * uncertainty(_w + _x))
+        self.assertEqual(component(z, y), 2 * uncertainty(_w + _x))
 
         z1 = ar.extract('z1')
         _z1 = ureal(1, 1, 3) + ureal(2, 1, 4)
-        if PY27:
-            self.assertEqual(z1.x, _z1.x)
-            self.assertTrue(equivalent(z1.u, _z1.u, tol=4e-12))
-            self.assertTrue(equivalent(z1.df, _z1.df, tol=3e-12))
-            self.assertEqual(z1.label, _z1.label)
-        else:
-            self.assertEqual(repr(z1), repr(_z1))
+        self.assertEqual(repr(z1), repr(_z1))
 
         x1, y1, z1 = ar.extract('x2', 'y2', 'z2')
 
@@ -981,13 +830,7 @@ class TestArchiveXML(unittest.TestCase):
 
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=2e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         x1, y1, z1 = ar.extract('x3', 'y3', 'z3')
 
@@ -997,13 +840,7 @@ class TestArchiveXML(unittest.TestCase):
         z = result(x + y)
         self.assertEqual(repr(x1), repr(x))
         self.assertEqual(repr(y1), repr(y))
-        if PY27:
-            self.assertEqual(z1.x, z.x)
-            self.assertTrue(equivalent(z1.u, z.u, tol=2e-12))
-            self.assertEqual(z1.df, z.df)
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(z1), repr(z))
 
         self.assertEqual(get_correlation(x1, y1), r)
 
@@ -1014,29 +851,6 @@ class TestArchiveXML(unittest.TestCase):
 
         z = result(log(x * y))
 
-        if PY27:
-            self.assertEqual(x1.x, x.x)
-            self.assertTrue(equivalent_sequence(x1.u, x.u, tol=2e-12))
-            self.assertTrue(equivalent(x1.r, x.r))
-            self.assertEqual(x1.df, x.df)
-            self.assertEqual(x1.label, x.label)
-        else:
-            self.assertEqual(repr(x1), repr(x))
-
-        if PY27:
-            self.assertEqual(y1.x, y.x)
-            self.assertTrue(equivalent_sequence(y1.u, y.u, tol=2e-12))
-            self.assertTrue(equivalent(y1.r, y.r))
-            self.assertEqual(y1.df, y.df)
-            self.assertEqual(y1.label, y.label)
-        else:
-            self.assertEqual(repr(y1), repr(y))
-
-        if PY27:
-            self.assertTrue(equivalent_complex(z1.x, z.x, tol=3e-12))
-            self.assertTrue(equivalent_sequence(z1.u, z.u, tol=5e-12))
-            self.assertTrue(equivalent(z1.r, z.r, tol=7e-13))
-            self.assertTrue(equivalent(z1.df, z.df, tol=4e-11))
-            self.assertEqual(z1.label, z.label)
-        else:
-            self.assertEqual(repr(z1), repr(z))
+        self.assertEqual(repr(x1), repr(x))
+        self.assertEqual(repr(y1), repr(y))
+        self.assertEqual(repr(z1), repr(z))

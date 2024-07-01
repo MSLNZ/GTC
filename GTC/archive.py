@@ -10,9 +10,6 @@ Module contents
 """
 import copy
 import itertools
-import sys
-
-PY2 = bool( sys.version_info[0] == 2 )
 
 from GTC.lib import (
     UncertainComplex,
@@ -29,7 +26,7 @@ __all__ = (
 # When an archive is prepared for storage, uncertain number  
 # objects are converted into simple representations
 #
-class LeafNode(object):
+class LeafNode:
     def __init__(self,node):
         
         self.uid = node.uid
@@ -44,24 +41,17 @@ class LeafNode(object):
         if hasattr(node,'correlation'):
             # `correlation` is a dict in the Leaf node, but this 
             # does not pickle, so LeafNode holds a list of item pairs.
-            self.correlation = node.correlation.items()
-            if not PY2:
-                # In Python 2 items() returns a list but
-                # in Python 3 a `dict_items` object is returned.
-                # Since it is not possible to pickle a
-                # `dict_items` object we convert it to a list
-                # of tuple pairs.
-                self.correlation = list(self.correlation)
+            self.correlation = list(node.correlation.items())
         if hasattr(node,'ensemble'):
             # `ensemble` is a set in the Leaf node
             self.ensemble = frozenset( node.ensemble )
         
-class ElementaryReal(object):
+class ElementaryReal:
     def __init__(self,x,uid):
         self.x = x
         self.uid = uid
 
-class IntermediateReal(object):
+class IntermediateReal:
     def __init__(self,value,u_components,d_components,i_components,label,uid):
         self.value = value
         self.u_components = u_components    
@@ -70,7 +60,7 @@ class IntermediateReal(object):
         self.label = label
         self.uid = uid
     
-class Complex(object):
+class Complex:
     def __init__(self,n_re,n_im,label):
         self.n_re = n_re
         self.n_im = n_im
@@ -99,7 +89,7 @@ class Complex(object):
 # the specific uncertain numbers that were saved initially. Finally, 
 # these uncertain numbers may be restored (on demand).
 # """
-class Archive(object):
+class Archive:
     """
     An :class:`Archive` helps to store and retrieve uncertain numbers,
     so that they can be used in later calculations. 
@@ -150,26 +140,15 @@ class Archive(object):
         ar = Archive()        
         ar._dump = ar._ready = False
         
-        if PY2:
-            for k,obj in old._tagged_reals.iteritems():
-                if k in old._tagged:
-                    ar._tagged_real[k] = obj 
-                else:
-                    ar._untagged_real[k] = obj
-             
-            for k,obj in old._tagged.iteritems():
-                if isinstance(obj,UncertainComplex):  
-                    ar._tagged_complex[k] = obj
-        else:
-            for k,obj in old._tagged_reals.items():
-                if k in old._tagged:
-                    ar._tagged_real[k] = obj 
-                else:
-                    ar._untagged_real[k] = obj
-             
-            for k,obj in old._tagged.items():
-                if isinstance(obj,UncertainComplex):  
-                    ar._tagged_complex[k] = obj
+        for k,obj in old._tagged_reals.items():
+            if k in old._tagged:
+                ar._tagged_real[k] = obj
+            else:
+                ar._untagged_real[k] = obj
+
+        for k,obj in old._tagged.items():
+            if isinstance(obj,UncertainComplex):
+                ar._tagged_complex[k] = obj
 
         ar._leaf_nodes = old._leaf_nodes 
         ar._intermediate_uids = old._intermediate_uids
@@ -229,16 +208,10 @@ class Archive(object):
     def iterkeys(self):
         """Return an iterator for names 
         """
-        if PY2:
-            return itertools.chain(
-                self._tagged_real.iterkeys(),
-                self._tagged_complex.iterkeys()
-            )
-        else:
-            return itertools.chain(
-                self._tagged_real.keys(),
-                self._tagged_complex.keys()
-            )
+        return itertools.chain(
+            self._tagged_real.keys(),
+            self._tagged_complex.keys()
+        )
 
     def values(self):
         """Return a list of uncertain numbers 
@@ -248,16 +221,10 @@ class Archive(object):
     def itervalues(self):
         """Return an iterator for uncertain numbers 
         """
-        if PY2:
-            return itertools.chain(
-                self._tagged_real.itervalues(),
-                self._tagged_complex.itervalues()
-            )
-        else:
-            return itertools.chain(
-                self._tagged_real.values(),
-                self._tagged_complex.values()
-            )
+        return itertools.chain(
+            self._tagged_real.values(),
+            self._tagged_complex.values()
+        )
 
     def items(self):
         """Return a list of name -to- uncertain-number pairs 
@@ -267,16 +234,10 @@ class Archive(object):
     def iteritems(self):
         """Return an iterator of name -to- uncertain-number pairs 
         """
-        if PY2:
-            return itertools.chain(
-                self._tagged_real.iteritems(),
-                self._tagged_complex.iteritems()
-            )
-        else:
-            return itertools.chain(
-                self._tagged_real.items(),
-                self._tagged_complex.items()
-            )
+        return itertools.chain(
+            self._tagged_real.items(),
+            self._tagged_complex.items()
+        )
 
     def _iter_unreals(self):
         # Tagged UncertainComplex numbers are composed of
@@ -284,18 +245,11 @@ class Archive(object):
         # are generally untagged but must be tracked.
         # This iterator spans all of the UncertainReal
         # numbers stored in the archive.
-        if PY2:
-            objects = itertools.chain(
-                self._tagged_real.itervalues(), 
-                self._untagged_real.itervalues()
-            )
-        else:
-            objects = itertools.chain(
-                self._tagged_real.values(), 
-                self._untagged_real.values()
-            )
-        return objects 
-        
+        return itertools.chain(
+            self._tagged_real.values(),
+            self._untagged_real.values()
+        )
+
     def __len__(self):
         """Return the number of entries 
         """
@@ -307,14 +261,14 @@ class Archive(object):
         if self._dump and self._ready:
             if key in self._tagged_real or key in self._tagged_complex:
                 raise RuntimeError(
-                    "The tag '{!s}' is already in use".format(key)
+                    f"The tag '{key}' is already in use"
                 )
             else:
                 # This uncertain-number object can be elementary or intermediate
                 if isinstance(obj,UncertainReal):
                     if key in self._untagged_real:
                         raise RuntimeError(
-                            "The tag '{!s}' is being used".format(key)
+                            f"The tag '{key}' is being used"
                         )
                         
                     # An intermediate UncertainReal needs to be recorded
@@ -323,7 +277,7 @@ class Archive(object):
                             uid = obj._node.uid
                         except AttributeError:
                             raise RuntimeError(
-                                "uncertain number labelled '{}' is not declared intermediate".format(key)
+                                f"uncertain number labelled '{key}' is not declared intermediate"
                             )
                         self._uid_to_intermediate[uid] = obj            
                     
@@ -331,16 +285,16 @@ class Archive(object):
 
                 elif isinstance(obj,UncertainComplex):
                 
-                    n_re = "{!s}_re".format(key)
+                    n_re = f"{key}_re"
                     if n_re in self._tagged_real or n_re in self._untagged_real:
                         raise RuntimeError(
-                            "'{!s}' is being used as a name-tag".format(n_re)
+                            f"{n_re!r} is being used as a name-tag"
                         )
 
-                    n_im = "{!s}_im".format(key)
+                    n_im = f"{key}_im"
                     if n_im in self._tagged_real or n_im in self._untagged_real:
                         raise RuntimeError(
-                            "'{!s}' is being used as a name-tag".format(n_im)
+                            f"{n_im!r} is being used as a name-tag"
                         )
                         
                     self._untagged_real[n_re] = obj.real
@@ -354,7 +308,7 @@ class Archive(object):
                             uid_i = obj.imag._node.uid
                         except AttributeError:
                             raise RuntimeError(
-                                "uncertain number labelled '{}' is not declared intermediate".format(key)
+                                f"uncertain number labelled '{key}' is not declared intermediate"
                             )
                             
                         self._uid_to_intermediate[uid_r] = obj.real
@@ -364,7 +318,7 @@ class Archive(object):
                     
                 else:
                     raise RuntimeError(
-                        "'{!r}' cannot be archived: wrong type".format(obj)
+                        f"'{obj!r}' cannot be archived: wrong type"
                     )
         else:
             raise RuntimeError('Archive cannot be added to')
@@ -405,7 +359,7 @@ class Archive(object):
         .. invisible-code-block: pycon
         
             >>> import tempfile
-            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.json', 'wt')
+            >>> f = open(f'{tempfile.gettempdir()}/GTC-archive-test.json', 'wt')
 
         Here ``f`` is a file stream opened in mode 'wt':
         
@@ -415,8 +369,7 @@ class Archive(object):
             >>> f.close()  
 
         """
-        items = kwargs.iteritems() if PY2 else kwargs.items()
-        for key,value in items:
+        for key,value in kwargs.items():
             self._setitem(key,value)
 
     def _getitem(self,key):
@@ -430,7 +383,7 @@ class Archive(object):
                 return self._tagged_complex[key]
             else:
                 raise RuntimeError(
-                    "'{!s}' not found".format(key)
+                    f"{key!r} not found"
                 )
             
         else:
@@ -461,7 +414,7 @@ class Archive(object):
         .. invisible-code-block: pycon
 
             >>> import tempfile
-            >>> f = open(tempfile.gettempdir() + '/GTC-archive-test.json', 'rt')
+            >>> f = open(f'{tempfile.gettempdir()}/GTC-archive-test.json', 'rt')
             
         .. code-block:: pycon
         
@@ -481,7 +434,7 @@ class Archive(object):
         .. invisible-code-block: pycon
             
             >>> import os, tempfile
-            >>> os.remove(tempfile.gettempdir() + '/GTC-archive-test.json')
+            >>> os.remove(f'{tempfile.gettempdir()}/GTC-archive-test.json')
   
         """        
         lst = [ self._getitem(n) for n in args ]               
@@ -564,10 +517,10 @@ class Archive(object):
                             uid=obj.imag._node.uid
                         )
                         
-                        n_re = "{}_re".format(n)
+                        n_re = f"{n}_re"
                         self._untagged_real[n_re] = re
                         
-                        n_im = "{}_im".format(n)
+                        n_im = f"{n}_im"
                         self._untagged_real[n_im] = im 
                         
                         self._tagged_complex[n] = Complex(
@@ -609,7 +562,7 @@ class Archive(object):
                             uid = obj.real._node.uid,
                         )
                             
-                        n_re = "{}_re".format(n)
+                        n_re = f"{n}_re"
                         self._untagged_real[n_re] = re
                         
                         im = IntermediateReal(
@@ -626,7 +579,7 @@ class Archive(object):
                             uid = obj.imag._node.uid,
                         )
 
-                        n_im = "{}_im".format(n)
+                        n_im = f"{n}_im"
                         self._untagged_real[n_im] = im
                         
                         self._tagged_complex[n] = Complex(
@@ -655,9 +608,8 @@ class Archive(object):
             # It only makes sense to thaw an archive in this case 
             
             _leaf_nodes = dict()
-            items = self._leaf_nodes.iteritems() if PY2 else self._leaf_nodes.items()
-                            
-            for uid_i,fl_i in items:
+
+            for uid_i,fl_i in self._leaf_nodes.items():
                 l = context._context.new_leaf(
                     uid_i, 
                     fl_i.label, 
@@ -677,11 +629,10 @@ class Archive(object):
             # Create the nodes associated with intermediate 
             # uncertain numbers. This must be done before the 
             # intermediate uncertain numbers are recreated.
-            items = self._intermediate_uids.iteritems() if PY2 else self._intermediate_uids.items() 
-            
+
             _nodes = {
                 uid: context._context.new_node(uid, *args )
-                    for uid, args in items
+                    for uid, args in self._intermediate_uids.items()
             }
                
             self._uid_to_intermediate = {}
@@ -845,7 +796,7 @@ def _builder(o_name,_nodes,_tagged_real):
         _tagged_real[o_name] = un
 
     else:
-        assert False, "unexpected: {!r}".format(obj)
+        assert False, f"unexpected: {obj!r}"
 
     return un
 

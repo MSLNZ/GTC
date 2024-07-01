@@ -161,13 +161,13 @@ def mean(seq,*args,**kwargs):
         
     else:
         raise RuntimeError(
-            "{!r} is not iterable".format(seq)
+            f"{seq!r} is not iterable"
         )
     
     # If `seq` has uncertain number elements then `mu` will be an uncertain number.     
     return mu
 #-----------------------------------------------------------------------------------------
-class LineFit(object):
+class LineFit:
     
     """
     Base class to hold the results of regression to a line.
@@ -181,18 +181,12 @@ class LineFit(object):
         self._N = N
         
     def __repr__(self):
-        return """{}(
-  a={!r},
-  b={!r},
-  ssr={},
-  N={}
-)""".format(
-            self.__class__.__name__,
-            self._a_b[0],
-            self._a_b[1],
-            self._ssr,
-            self._N
-        )
+        return f"""{self.__class__.__name__}(
+  a={self._a_b[0]!r},
+  b={self._a_b[1]!r},
+  ssr={self._ssr},
+  N={self._N}
+)"""
 
     @property
     def a_b(self):
@@ -232,19 +226,13 @@ class LineFit(object):
 
     def __str__(self):
         a, b = self.a_b
-        return '''
-  Intercept: {!s}
-  Slope: {!s}
-  Correlation: {:.2G}
-  Sum of the squared residuals: {}
-  Number of points: {}
-'''.format(
-    a,
-    b,
-    a.get_correlation(b),
-    self._ssr,
-    self.N
-)
+        return f'''
+  Intercept: {a}
+  Slope: {b}
+  Correlation: {a.get_correlation(b):.2G}
+  Sum of the squared residuals: {self._ssr}
+  Number of points: {self.N}
+'''
  
 #-----------------------------------------------------------------------------------------
 class LineFitOLS(LineFit):
@@ -400,7 +388,7 @@ def line_fit(x,y):
     N = len(x) 
     if N != len(y):
         raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+            f"Different sequence lengths: len({x!r}) != len({y!r})"
         )
     
     S_x = sum( x ) 
@@ -484,7 +472,7 @@ def line_fit_wls(x,y,u_y=None):
     """
     if len(x)!= len(y):
         raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+            f"Different sequence lengths: len({x!r}) != len({y!r})"
         )
 
     if u_y is None:
@@ -753,7 +741,7 @@ def _arrays(sin_a,cos_a,sin_2a,cos_2a,x,y,u2_x,u2_y,cov):
     return v_k,u2_x,u2_y,g_k,u2,x_bar,y_bar,p_hat
 
 #--------------------------------------------------------------------
-class ChiSq(object):
+class ChiSq:
 
     """
     A callable object representing Chi-squared as a function of alpha.
@@ -830,7 +818,7 @@ class ChiSq(object):
         return chi_2
 
 #--------------------------------------------------------------------
-class dChiSq_dalpha(object):
+class dChiSq_dalpha:
 
     """
     Callable object representing the derivative of Chi-squared wrt alpha. 
@@ -964,7 +952,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
     N = len(x)
     if N != len(y):
         raise RuntimeError(
-            "Different sequence lengths: len({!r}) != len({!r})".format(x,y)
+            f"Different sequence lengths: len({x!r}) != len({y!r})"
         )
 
     if (u_x is not None or u_y is not None):
@@ -978,7 +966,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
         
         if len(u_x) != N or len(u_y) != N:
             raise RuntimeError(
-                "incompatible sequence lengths: {!r}, {!r}".format(u_x,u_y)
+                f"incompatible sequence lengths: {u_x!r}, {u_y!r}"
             )
 
     for x_i,y_i in izip(x,y):

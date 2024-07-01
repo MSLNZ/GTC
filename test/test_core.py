@@ -522,14 +522,14 @@ class TestPolymorphicMaths(unittest.TestCase):
         # an appropriate library or exception, not numerical accuracy.
         for d in unary_fns:
             self.assertTrue( equivalent(
-                eval("{}({})".format(d[0],d[1])),
-                eval("math.{}({})".format(d[0],d[1]))
+                eval(f"{d[0]}({d[1]})"),
+                eval(f"math.{d[0]}({d[1]})")
             ) )
             self.assertTrue( equivalent_complex(
-                eval("{}({})".format(d[0],d[2])),
-                eval("cmath.{}({})".format(d[0],d[2]))
+                eval(f"{d[0]}({d[2]})"),
+                eval(f"cmath.{d[0]}({d[2]})")
             ) )
-            eval("self.assertRaises(TypeError,{},'s')".format(d[0]))
+            eval(f"self.assertRaises(TypeError,{d[0]},'s')")
             
     def test_special_cases(self):
         """

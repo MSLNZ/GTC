@@ -6,10 +6,8 @@ import tempfile
 import sys
 try:
     from itertools import izip  # Python 2
-    PY2 = True
 except ImportError:
     izip = zip
-    PY2 = False
 
 import numpy as np
 
@@ -2686,10 +2684,7 @@ class TestUncertainArray(unittest.TestCase):
             self.assertTrue(self.xa.base[i] is self.x[i])
 
     def test_data(self):
-        if PY2:
-            self.assertTrue(isinstance(self.xa.data, buffer))
-        else:
-            self.assertTrue(isinstance(self.xa.data, memoryview))
+        self.assertTrue(isinstance(self.xa.data, memoryview))
 
     def test_copy(self):
         c = self.xa.copy()
@@ -2981,7 +2976,7 @@ class TestUncertainArray(unittest.TestCase):
             else:
                 if nc is None:
                     raise AssertionError('The regular matmul FAILED, the custom-written matmul PASSED')
-                self.assertTrue(np.array_equal(nc, uc), 'The arrays are not equal\n{}\n{}'.format(nc, uc))
+                self.assertTrue(np.array_equal(nc, uc), f'The arrays are not equal\n{nc}\n{uc}')
 
     def test_astype(self):
         # make sure that the following is not allowed
@@ -3081,20 +3076,20 @@ class TestUncertainArray(unittest.TestCase):
                     self.assertTrue(xa.item(idx).u is xa[i, j, k].u)
                     idx += 1
 
-    def test_itemset(self):
+    def test_index(self):
         xa = uarray(np.ones(9).reshape(3, 3) * ureal(1, 0.1))
         self.assertTrue(xa.item(4).x == 1)
         self.assertTrue(xa.item(4).u == 0.1)
         self.assertTrue(xa[1, 1].x == 1)
         self.assertTrue(xa[1, 1].u == 0.1)
 
-        xa.itemset(4, ureal(99, .9))
+        xa[(1, 1)] = ureal(99, .9)
         self.assertTrue(xa.item(4).x == 99.)
         self.assertTrue(xa.item(4).u == 0.9)
         self.assertTrue(xa[1, 1].x == 99.)
         self.assertTrue(xa[1, 1].u == 0.9)
 
-        xa.itemset((2, 2), ureal(-99, 9.9))
+        xa[(2, 2)] = ureal(-99, 9.9)
         self.assertTrue(xa.item(xa.size-1).x == -99.)
         self.assertTrue(xa.item(xa.size-1).u == 9.9)
         self.assertTrue(xa[2, 2].x == -99.)
@@ -3248,39 +3243,6 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(out[2] == 1)
         self.assertTrue(out[3] == 2)
 
-    def test_ptp(self):
-        self.assertRaises(TypeError, self.xa.ptp)
-        self.assertRaises(TypeError, np.ptp, self.xa)
-
-        # xa = uarray([[[ureal(i*j*k, 0.8) for k in range(2)] for j in range(3)] for i in range(4)])
-        #
-        # ptp = xa.ptp()
-        # self.assertTrue(value(ptp) == 6)
-        #
-        # ptp = xa.ptp(axis=0)
-        # self.assertTrue(value( function.sum( ptp[:, 0] ) ) == 0)
-        # self.assertTrue(value( function.sum( ptp[0, :] ) ) == 0)
-        # self.assertTrue(value( function.sum( ptp[:, 1] ) ) == 9)
-        # self.assertTrue(value( function.sum( ptp[1, :] ) ) == 3)
-        # self.assertTrue(value( function.sum( ptp[2, :] ) ) == 6)
-        #
-        # ptp = xa.ptp(axis=1)
-        # self.assertTrue(value( function.sum( ptp[:, 0] ) ) == 0)
-        # self.assertTrue(value( function.sum( ptp[0, :] ) ) == 0)
-        # self.assertTrue(value( function.sum( ptp[:, 1] ) ) == 12)
-        # self.assertTrue(value( function.sum( ptp[1, :] ) ) == 2)
-        # self.assertTrue(value( function.sum( ptp[2, :] ) ) == 4)
-        # self.assertTrue(value( function.sum( ptp[3, :] ) ) == 6)
-        #
-        # ptp = xa.ptp(axis=2)
-        # self.assertTrue(value( function.sum( ptp[:, 0] ) ) == 0)
-        # self.assertTrue(value( function.sum( ptp[0, :] ) ) == 0)
-        # self.assertTrue(value( function.sum( ptp[:, 1] ) ) == 6)
-        # self.assertTrue(value( function.sum( ptp[:, 2] ) ) == 12)
-        # self.assertTrue(value( function.sum( ptp[1, :] ) ) == 3)
-        # self.assertTrue(value( function.sum( ptp[2, :] ) ) == 6)
-        # self.assertTrue(value( function.sum( ptp[3, :] ) ) == 9)
-
     def test_round(self):
         self.assertRaises(TypeError, self.xa.round)
         if np.__version__ < '1.17.0':
@@ -3320,21 +3282,13 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue(np.array_equal(indices[0], [0, 1, 2, 2]))
         self.assertTrue(np.array_equal(indices[1], [0, 1, 0, 1]))
 
-    def test_newbyteorder(self):
-        # just testing that calling newbyteorder does not raise an exception
-        # calling this method doesn't do anything to the uarray
-        self.assertTrue(isinstance(self.xa.newbyteorder(), UncertainArray))
-        self.assertTrue(np.array_equal(self.xa.newbyteorder('S'), self.xa))
-        self.assertTrue(np.array_equal(self.xa.newbyteorder('L'), self.xa))
-        self.assertTrue(np.array_equal(self.xa.newbyteorder('N'), self.xa))
-
     def test_ctypes(self):
         # just testing that calling ctypes does not raise an exception
         self.assertTrue(isinstance(self.xa.ctypes, object))
 
     def test_tofile(self):
         path = os.path.join(tempfile.gettempdir(), 'uarray-tofile.txt')
-        self.xa.tofile(path, sep=' ')
+        self.xa.tofile(path, sep=' ', format='%r')
         with open(path, 'rt') as fp:
             text = fp.read()
         self.assertTrue(text.startswith('ureal('))

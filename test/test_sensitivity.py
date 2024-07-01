@@ -290,18 +290,18 @@ class TestSensitivity(unittest.TestCase):
         y = log10(x4) 
      
         for i,x4_i in enumerate(x4):
-            self.assertEqual('x4[{0}]'.format(i),x4_i.label)
+            self.assertEqual(f'x4[{i}]',x4_i.label)
             
         dy_dx = rp.sensitivity(y,x4)
         uy_x = rp.u_component(y,x4)       
         self.assertTrue( equivalent_sequence(dy_dx,uy_x/x4.u) ) 
   
-        label = [ "x4[{}]".format(i) for i in range(x4.size) ]
+        label = [ f"x4[{i}]" for i in range(x4.size) ]
         x4 = result(x3 ** x1 * x2, label=label)        
         y = log10(x4) 
      
         for i,x4_i in enumerate(x4):
-            self.assertEqual('x4[{0}]'.format(i),x4_i.label)
+            self.assertEqual(f'x4[{i}]',x4_i.label)
  
     def test_intermediate_ucomplex(self):
         """
@@ -337,9 +337,9 @@ class TestSensitivity(unittest.TestCase):
         z = log(z4) 
      
         for i,z4_i in enumerate(z4):
-            self.assertEqual('z4[{0}]'.format(i),z4_i.label)
-            self.assertEqual('z4[{0}]_re'.format(i),z4_i.real.label)
-            self.assertEqual('z4[{0}]_im'.format(i),z4_i.imag.label)
+            self.assertEqual(f'z4[{i}]',z4_i.label)
+            self.assertEqual(f'z4[{i}]_re',z4_i.real.label)
+            self.assertEqual(f'z4[{i}]_im',z4_i.imag.label)
             
         for z_i, z4_i in zip(z,z4):
         
@@ -359,14 +359,14 @@ class TestSensitivity(unittest.TestCase):
                 equivalent(dz_i_dz4_i.ii,uz_i_z4_i.ii/z4_i.imag.u)
             )
 
-        label = [ "z4[{}]".format(i) for i in range(z4.size) ]
+        label = [ f"z4[{i}]" for i in range(z4.size) ]
         z4 = result(z1**z2 * z3, label=label)        
         z = log(z4) 
      
         for i,z4_i in enumerate(z4):
-            self.assertEqual('z4[{0}]'.format(i),z4_i.label)
-            self.assertEqual('z4[{0}]_re'.format(i),z4_i.real.label)
-            self.assertEqual('z4[{0}]_im'.format(i),z4_i.imag.label) 
+            self.assertEqual(f'z4[{i}]',z4_i.label)
+            self.assertEqual(f'z4[{i}]_re',z4_i.real.label)
+            self.assertEqual(f'z4[{i}]_im',z4_i.imag.label) 
 #=====================================================
 if(__name__== '__main__'):
 
