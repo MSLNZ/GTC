@@ -13,15 +13,8 @@ Still TODO:
             It is not possible to go from y_0 to the vector x_0, of course!
                
 """
-from __future__ import division
-
 import math
 import numpy as np
-
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
 
 from GTC.lib import value
 from GTC.type_b import mean
@@ -629,6 +622,7 @@ def ols(x,y,fn,fn_inv=None):
     # return beta,chisq,N,P
     
 #-----------------------------------------------------------------------------------------
+# TODO: don't define this class twice!
 class LSFit(object):
  
     """
@@ -644,30 +638,20 @@ class LSFit(object):
         self._P = len(beta)
         
     def __repr__(self):
-        return """{}(
-  beta={!r},
-  ssr={},
-  N={},
-  P={}
-)""".format(
-            self.__class__.__name__,
-            self._beta,
-            self._ssr,
-            self._N,
-            self._P
-        )
+        return f"""{self.__class__.__name__}(
+  beta={self._beta!r},
+  ssr={self._ssr},
+  N={self._N:G},
+  P={self._P}
+)"""
 
     def __str__(self):
-        return '''
-  Number of points: {}
-  Number of parameters: {}
-  Parameters: {!r}
-  Sum of the squared residuals: %G
-'''.format(
-    self._N,
-    self._P,
-    self._beta,
-    self._ssr,
+        return f'''
+  Number of points: {self._N}
+  Number of parameters: {self._P}
+  Parameters: {self._beta!r}
+  Sum of the squared residuals: {self._ssr:G}
+'''
 )
 
     #------------------------------------------------------------------------

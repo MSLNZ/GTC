@@ -5,15 +5,8 @@ Module contents
 ---------------
 
 """
-from __future__ import division
-
 import math
 import numpy as np
-
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
 
 from GTC.lib import (
     UncertainReal,
@@ -248,15 +241,15 @@ def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
      
 #----------------------------------------------------------------------------
 def ols(x,y,fn,fn_inv=None,label=None):
-    """Ordinary least squares fit of ``y`` to ``x``
+    """Ordinary least squares fit of response data to stimulus values
     
-    :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    :arg y: a sequence of ``M`` responses (dependent-variable)  
-    :arg fn: a user-defined function relating ``x`` the response
-    :arg fn_inv: a user-defined function relating the response ``y`` to the stimulus ``x``
-    :arg label: a label for the fitted parameters
-    
-    Return a :class:`OLSFit` object containing the results 
+    :arg x: sequence of stimulus values (independent-variable)
+    :arg y: sequence of response data (dependent-variable)   
+    :arg fn: a user-defined function relating the stimulus to the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :arg label: suffix to label the fitted parameters
+    :returns:   an object containing regression results
+    :rtype:     :class:`OLSFit``
     
     """
     M = len(y)
@@ -277,6 +270,8 @@ class LSFit(object):
  
     """
     Base class for regression results
+    
+    .. versionadded:: 2.0
     """
 
     def __init__(self,beta,ssr,fn,fn_inv,N):
@@ -288,30 +283,20 @@ class LSFit(object):
         self._P = len(beta)
         
     def __repr__(self):
-        return """{}(
-  beta={!r},
-  ssr={},
-  N={},
-  P={}
-)""".format(
-            self.__class__.__name__,
-            self._beta,
-            self._ssr,
-            self._N,
-            self._P
-        )
+        return f"""{self.__class__.__name__}(
+  beta={self._beta!r},
+  ssr={self._ssr},
+  N={self._N:G},
+  P={self._P}
+)"""
 
     def __str__(self):
-        return '''
-  Number of points: {}
-  Number of parameters: {}
-  Parameters: {!r}
-  Sum of the squared residuals: %G
-'''.format(
-    self._N,
-    self._P,
-    self._beta,
-    self._ssr,
+        return f'''
+  Number of points: {self._N}
+  Number of parameters: {self._P}
+  Parameters: {self._beta!r}
+  Sum of the squared residuals: {self._ssr:G}
+'''
 )
 
     #------------------------------------------------------------------------
@@ -395,8 +380,8 @@ class LSFit(object):
     def ssr(self):
         """Sum of the squared residuals
         
-        The sum of the squared deviations between values 
-        predicted by the model and the actual data.
+        The sum of the squared deviations between  
+        predicted values and the actual data.
         
         If weights are used during the fit, the squares of 
         weighted deviations are summed.
