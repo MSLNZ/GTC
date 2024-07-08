@@ -107,7 +107,7 @@ def uarray(array, label=None, names=None):
 
     .. attention::
 
-       Requires numpy :math:`\geq` v1.13.0 to be installed.
+       Requires numpy :math:`\\geq` v1.13.0 to be installed.
 
     :param array: An array-like object containing :class:`int`, :class:`float`, :class:`complex`
                   :class:`~lib.UncertainReal` or :class:`~lib.UncertainComplex` elements.
@@ -171,7 +171,7 @@ def uarray(array, label=None, names=None):
             raise TypeError('The elements in the uarray must be a tuple if specifying field names')
 
         if a_len != len(names):
-            raise ValueError('len(array[0]) != len(names) -> {} != {}'.format(a_len, len(names)))
+            raise ValueError(f'len(array[0]) != len(names) -> {a_len} != {len(names)}')
 
         dtype = [(name, type(val)) for name, val in izip(names, array[0])]
 
@@ -255,7 +255,7 @@ def transpose(a, axes=None):
 
 #---------------------------------------------------------------------------
 def solve(a,b):
-    """Return :math:`x`, the solution of :math:`a \cdot x = b`
+    """Return :math:`x`, the solution of :math:`a \\cdot x = b`
 
     .. versionadded:: 1.1
 

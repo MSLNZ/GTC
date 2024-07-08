@@ -50,8 +50,6 @@ Module contents
 ---------------
 
 """
-from __future__ import division
-
 import sys
 import math
 import numbers
@@ -128,7 +126,7 @@ class LineFitOLS(LineFit):
     
     def __init__(self,a,b,ssr,N):
         LineFit.__init__(self,a,b,ssr,N)
-            
+
     def __str__(self):
         header = '''
 Ordinary Least-Squares Results:
@@ -462,7 +460,7 @@ def line_fit(x,y,label=None):
     df = N-2
     if df <= 0 or N != len(y):
         raise RuntimeError(
-            "Invalid sequences: len({!r}), len({!r})".format(x,y)
+            f"Invalid sequences: len({x!r}), len({y!r})"
         )
     
     x = value_seq(x)
@@ -495,14 +493,14 @@ def line_fit(x,y,label=None):
         a_,
         siga,
         df=df,
-        label='a_{}'.format(label) if label is not None else None,
+        label=f'a_{label}' if label is not None else None,
         independent=False
     )
     b = ureal(
         b_,
         sigb,
         df=df,
-        label='b_{}'.format(label) if label is not None else None,
+        label=f'b_{label}' if label is not None else None,
         independent=False
     )
     
@@ -579,7 +577,7 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
     N = len(x)
     if N-2 <= 0 or N != len(y) or N != len(u_y):
         raise RuntimeError(
-            "Invalid sequences: len({!r}), len({!r}), len({!r})".format(x,y,u_y)
+            f"Invalid sequences: len({x!r}), len({y!r}), len({u_y!r})"
         )
         
     x = value_seq(x)
@@ -594,21 +592,21 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
             df = dof
         else:
             raise RuntimeError( 
-                "{!r} is an invalid degrees of freedom".format(dof) 
+                f"{dof!r} is an invalid degrees of freedom" 
             )
     
     a = ureal(
         a_,
         siga,
         df,
-        label='a_{}'.format(label) if label is not None else None,
+        label=f'a_{label}' if label is not None else None,
         independent=False
     )
     b = ureal(
         b_,
         sigb,
         df,
-        label='b_{}'.format(label) if label is not None else None,
+        label=f'b_{label}' if label is not None else None,
         independent=False
     )    
 
@@ -673,12 +671,12 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
             df = dof
         else:
             raise RuntimeError( 
-                "{!r} is an invalid degrees of freedom".format(dof) 
+                f"{dof!r} is an invalid degrees of freedom" 
             )
     
     if N != len(y) or N != len(s_y):
         raise RuntimeError(
-            "Invalid sequences: len({!r}), len({!r}), len({!r})".format(x,y,s_y)
+            f"Invalid sequences: len({x!r}), len({y!r}), len({s_y!r})"
         )
         
     x = value_seq(x)
@@ -694,14 +692,14 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
         a_,
         siga,
         df,
-        label='a_{}'.format(label) if label is not None else None,
+        label=f'a_{label}' if label is not None else None,
         independent=False
     )
     b = ureal(
         b_,
         sigb,
         df,
-        label='b_{}'.format(label) if label is not None else None,
+        label=f'b_{label}' if label is not None else None,
         independent=False
     )
     
@@ -772,16 +770,16 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
             df = dof
         else:
             raise RuntimeError( 
-                "{!r} is an invalid degrees of freedom".format(dof) 
+                f"{dof!r} is an invalid degrees of freedom" 
             )
     
     if N != len(y):
         raise RuntimeError(
-            "Invalid sequences: len({!r}), len({!r})".format(x,y)
+            f"Invalid sequences: len({x!r}), len({y!r})"
         )
     if N != len(u_x) or N != len(u_y):
         raise RuntimeError(
-            "Invalid sequences: len({!r}), len({!r})".format(u_x,u_y)
+            f"Invalid sequences: len({u_x!r}), len({u_y!r})"
         )
 
     independent = r_xy is None
@@ -807,14 +805,14 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
         a.x,
         a.u,
         df,
-        label='a_{}'.format(label) if label is not None else None,
+        label=f'a_{label}' if label is not None else None,
         independent=False
     )
     b = ureal(
         b.x,
         b.u,
         df,
-        label='b_{}'.format(label) if label is not None else None,
+        label=f'b_{label}' if label is not None else None,
         independent=False
     )
 
@@ -964,7 +962,7 @@ def estimate(seq,label=None):
     df = len(seq)-1
     if 0 >= df:
         raise RuntimeError(
-            "require: 0 >= len({!r})".format(seq)
+            f"require: 0 >= len({seq!r})"
         )
         
     df = len(seq)-1
@@ -1063,7 +1061,7 @@ def standard_deviation(seq,mu=None):
     N = len(seq)
     if N == 0:
         raise RuntimeError(
-            "empty sequence: {!r}".format(seq)
+            f"empty sequence: {seq!r}"
         )
     
     if mu is None:
@@ -1098,7 +1096,7 @@ def standard_deviation(seq,mu=None):
         
     else:
         raise RuntimeError(
-            "unexpected type for mean value: {!r}".format(mu)
+            f"unexpected type for mean value: {mu!r}"
         )
 
 #-----------------------------------------------------------------------------------------
@@ -1150,7 +1148,7 @@ def standard_uncertainty(seq,mu=None):
     N = len(seq)
     if N == 0:
         raise RuntimeError(
-            "empty sequence: {!r}".format(seq)
+            f"empty sequence: {seq!r}"
         )
 
     ROOT_N = math.sqrt(N)
@@ -1167,7 +1165,7 @@ def standard_uncertainty(seq,mu=None):
         return StandardUncertainty(sd.real/ROOT_N,sd.imag/ROOT_N),r
         
     else:
-        assert False,"unexpected, mu={!r}".format(mu)
+        assert False, f"unexpected, mu={mu!r}"
 
 #-----------------------------------------------------------------------------------------
 def variance_covariance_complex(seq,mu=None):
@@ -1216,7 +1214,7 @@ def variance_covariance_complex(seq,mu=None):
     df = len(seq)-1
     if 0 >= df:
         raise RuntimeError(
-            "require: 0 >= len({!r})".format(seq)
+            f"require: 0 >= len({seq!r})"
         )
     
     zseq = value_seq(seq)
@@ -1281,7 +1279,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
     
     if labels is not None and len(labels) != M:
         raise RuntimeError(
-            "Incorrect number of labels: '{!r}'".format(labels) 
+            f"Incorrect number of labels: '{labels!r}'" 
         ) 
         
     # Calculate the deviations from the mean for each sequence
@@ -1289,7 +1287,7 @@ def multi_estimate_real(seq_of_seq,labels=None):
     dev = []
     for i,seq_i in enumerate(seq_of_seq):
         if len(seq_i) != N:
-            raise RuntimeError( "{:d}th sequence length inconsistent".format(i) )
+            raise RuntimeError( f"{i:d}th sequence length inconsistent" )
 
         mu_i =  value( sum(seq_i) / N )
         means.append( mu_i )
@@ -1387,7 +1385,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
     
     if labels is not None and len(labels) != M:
         raise RuntimeError( 
-            "Incorrect number of labels: '{!r}'".format(labels) 
+            f"Incorrect number of labels: '{labels!r}'" 
         ) 
 
     # 1. Create a 2M sequence of sequences of real values
@@ -1397,7 +1395,7 @@ def multi_estimate_complex(seq_of_seq,labels=None):
         x.append( [ value(z_i.imag) for z_i in seq_of_seq[i] ] )
         if len(x[-1]) != N:
             raise RuntimeError(
-                "{:d}th sequence length is incorrect".format(i)
+                f"{i:d}th sequence length is incorrect"
             )
 
     TWOM = 2*M
@@ -1521,9 +1519,7 @@ def merge(a,b,TOL=1E-13):
     """
     if abs( value(a) - value(b) ) > TOL:
         raise RuntimeError(
-            "|a - b| = {} > {}: {!r} != {!r}".format(
-                abs( value(a) - value(b) ),TOL,a,b
-            )
+            f"|a - b| = {abs(value(a) - value(b))} > {TOL}: {a!r} != {b!r}"
         )
     else:
         return a + (b - value(b))

@@ -23,7 +23,7 @@ from testing_tools import *
 TOL = 1E-13 
             
 #---------------------------------------------------------
-class StdDataSets(object):
+class StdDataSets:
     """
     See section 5 in:
     'Design and us of reference data sets for testing scientific software'
@@ -1128,7 +1128,7 @@ class TestCombineComponents(unittest.TestCase):
         self.assertTrue( equivalent(component(mu,mu_b),mu_b.u, TOL) )
         self.assertTrue( equivalent(component(mu,e_sys),u, TOL) )
         
-        self.assertRaises(RuntimeError,type_a.merge,mu_a+1E-12,mu_b)
+        self.assertRaises(RuntimeError,type_a.merge,mu_a+2E-13,mu_b)
 
     def test_line_fit(self):
         """

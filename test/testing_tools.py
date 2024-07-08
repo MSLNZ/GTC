@@ -24,7 +24,7 @@ def equivalent_sequence(u,m,tol=TOL):
     for equivalence
     
     """
-    assert len(u) == len(m), "different lengths: %s and %s" % (u,m)
+    assert len(u) == len(m), f"different lengths: {u} and {m}"
     OK = True
     for u_i,m_i in izip(u,m):
         OK &=  abs(u_i - m_i) < tol       
@@ -32,12 +32,12 @@ def equivalent_sequence(u,m,tol=TOL):
     if OK:
         return True
     else:
-        print("Tolerance = %G" % tol)
+        print(f"Tolerance = {tol:G}")
         print("Differences: ")
         for u_i,m_i in izip(u,m):
             print(abs(u_i - m_i))
             
-        raise AssertionError("'%s' <> '%s' " % (u,m))
+        raise AssertionError(f"'{u}' <> '{m}'")
 
 #-----------------------------------------------------
 def equivalent_matt(m,n,tol=TOL):
@@ -55,12 +55,7 @@ def equivalent_matt(m,n,tol=TOL):
     if (keys == n.keys()):
         for k in keys:
             if abs(m[k] - n[k]) >= tol:
-                print("Values for '%s' differ: abs(%.15G - %.15G) = %.15G" % (
-                        k,
-                        m[k],
-                        n[k],
-                        abs(m[k] - n[k])
-                    ))
+                print(f"Values for '{k}' differ: abs({m[k]:.15G} - {n[k]:.15G}) = {abs(m[k] - n[k]):.15G}")
                 return False
         return True
     else:
@@ -76,19 +71,19 @@ def equivalent_matrix(u,m,tol=TOL):
     ):
         return True
     else:
-        print("Differences and tolerance: {} {} {} {} {}".format(
-            abs(u[0,0] - m[0,0])
-        ,   abs(u[1,0] - m[1,0])
-        ,   abs(u[0,1] - m[0,1])
-        ,   abs(u[1,1] - m[1,1])
-        ,   tol))
-        raise AssertionError("'%s' <> '%s' " % (u,m))
+        print(f"Differences and tolerance: "
+              f"{abs(u[0,0] - m[0,0])} "
+              f"{abs(u[1,0] - m[1,0])} "
+              f"{abs(u[0,1] - m[0,1])} "
+              f"{abs(u[1,1] - m[1,1])} "
+              f"{tol}")
+        raise AssertionError(f"'{u}' <> '{m}'")
 #-----------------------------------------------------
 def show_complex_difference(x,y):
     """-> a string showing the difference in each component
     """
     z = complex(x)-complex(y)
-    return "Differences: (%.15G,%.15G)" %(z.real, z.imag)
+    return f"Differences: ({z.real:.15G},{z.imag:.15G)}"
     
 #-----------------------------------------------------
 def equivalent_complex(x,y,tol=TOL):
@@ -98,8 +93,8 @@ def equivalent_complex(x,y,tol=TOL):
     if _equivalent(xc.real,yc.real,tol) and _equivalent(xc.imag,yc.imag,tol):
         return True
     else:
-        print("Differences and tolerance: {} {} {}".format(abs(xc.real-yc.real), abs(xc.imag-yc.imag), tol))
-        raise AssertionError("'(%.15G,%.15G)' <> '(%.15G,%.15G)' " % (x.real,x.imag,y.real,y.imag))
+        print(f"Differences and tolerance: {abs(xc.real-yc.real)} {abs(xc.imag-yc.imag)} {tol}")
+        raise AssertionError(f"'({x.real:.15G},{x.imag:.15G})' <> '({y.real:.15G},{y.imag:.15G})'")
 
 #-----------------------------------------------------
 def _equivalent(x,y,tol):
@@ -116,6 +111,5 @@ def equivalent(x,y,tol=TOL):
     if _equivalent(x,y,tol):
         return True
     else:
-        msg = "Values are not numerically equivalent: abs(%.16G-%.16G) = %.16G with tol= %.16G" % (
-            x,y,abs(x-y),tol)
-        raise AssertionError(msg)
+        raise AssertionError(f"Values are not numerically equivalent: "
+                             f"abs({x:.16G}-{y:.16G}) = {abs(x-y):.16G} with tol= {tol:.16G}")

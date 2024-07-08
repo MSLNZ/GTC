@@ -6,7 +6,6 @@ Provides LU decomposition functions for Python objects stored in 2D arrays.
 :func:`ludcmp` performs LU decomposition
 :func:`invab` 
 """
-from __future__ import division
 from functools import reduce
 try:
     xrange  # Python 2
@@ -46,11 +45,11 @@ def ludcmp(a):
     """
     if len(a.shape) != 2:
         raise RuntimeError( 
-            "A 2D array is needed, got  shape={}".format(a.shape)
+            f"A 2D array is needed, got  shape={a.shape}"
         )
     elif a.shape[0] != a.shape[1]:
         raise RuntimeError( 
-            "A square array is needed, shape={}".format(a.shape)
+            f"A square array is needed, shape={a.shape}"
         )
         
     N = a.shape[0]
@@ -167,12 +166,11 @@ def invab(a,b):
     
     """
     # Required by _lubksb
-    assert a.dtype == b.dtype,\
-        "{} != {}".format(a.dtype, b.dtype)
+    assert a.dtype == b.dtype, f"{a.dtype} != {b.dtype}"
         
     if len(b.shape) != 2:
         raise RuntimeError( 
-            "A 2D array is needed for `b`, got  shape={}".format(b.shape)
+            f"A 2D array is needed for `b`, got  shape={b.shape}"
         )
     # `a` shape is checked when `ludcmp` is called 
     a_lu,idx,p = ludcmp(a.copy())
@@ -209,11 +207,11 @@ def ludet(a_lu,p):
     Nx,Ny = a_lu.shape
     if Nx != Ny:
         raise RuntimeError(
-            "matrix must be square, got {}".format(a_lu.shape)
+            f"matrix must be square, got {a_lu.shape}"
         )
     elif p not in (1,-1):
         raise RuntimeError(
-            "parity must be +/- 1, got {!r}".format(p)
+            f"parity must be +/- 1, got {p!r}"
         )
         
     return reduce(
@@ -233,8 +231,7 @@ def solve(a,b):
 
     """
     # Required by _lubksb
-    assert a.dtype == b.dtype,\
-        "{} != {}".format(a.dtype, b.dtype)
+    assert a.dtype == b.dtype, f"{a.dtype} != {b.dtype}"
         
     a_lu,i,p = ludcmp( a.copy() )
     return _lubksb( a_lu,i,b.copy() )

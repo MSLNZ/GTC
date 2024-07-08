@@ -6,8 +6,6 @@ The method of uncertainty propagation is compatible with the approach described
 in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 
 """
-from __future__ import division
-
 import math
 import cmath
 import sys 
@@ -82,7 +80,8 @@ __all__ = (
     ,   'magnitude'
     ,   'phase'
     ,   'fmod'
-    ,   'copyright',    'version'
+    ,   'copyright'
+    ,   'version'
     ,   'reporting',    'rp'
     ,   'function',     'fn'
     ,   'type_b',       'tb'
@@ -100,21 +99,21 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
-if sys.version_info[:2] < (3, 7):
+if sys.version_info[:2] < (3, 8):
     import warnings
     warnings.simplefilter('once', DeprecationWarning)
     warnings.warn(
-        'GTC will stop supporting Python %d.%d in 2023 (GTC version 2.0). '
-        'GTC 2.0 will require Python 3.7, or above. '
-        'Please update your version of Python.' % sys.version_info[:2],
+        f'GTC will stop supporting Python {sys.version_info.major}.{sys.version_info.minor} in GTC version 2.0. '
+        f'GTC 2.0 will require Python 3.8, or above. '
+        f'Please update your version of Python.',
         DeprecationWarning,
         stacklevel=2
     )
     del warnings
 #----------------------------------------------------------------------------
-version = "1.4.2.dev0"
+version = "2.0.0.dev0"
 
-copyright = """Copyright (c) 2023, \
+copyright = """Copyright (c) 2024, \
 Measurement Standards Laboratory of New Zealand"""
 
 from .core import *

@@ -1,4 +1,3 @@
-from __future__ import print_function
 from GTC import *
 
 print("""
@@ -30,7 +29,7 @@ print
 # Least-squares regression for type-A
 cal_a = ta.line_fit(t_rel,b_sys)
 print( cal_a )
-print
+print()
 
 # Combine results
 intercept = ta.merge(cal_a.intercept,cal_b.intercept)
@@ -38,9 +37,9 @@ slope = ta.merge(cal_a.slope,cal_b.slope)
 
 print( repr(intercept) )
 print( repr(slope) )
-print
+print()
 
 # Apply correction at 30 C
 b_30 = intercept + slope*(30.0 - t_0)
 
-print("Correction at 30 C: {}".format(b_30))
+print(f"Correction at 30 C: {b_30}")

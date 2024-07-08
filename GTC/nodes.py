@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018, Measurement Standards Laboratory of New Zealand.
+Copyright (c) 2024, Measurement Standards Laboratory of New Zealand.
 
 """
 
@@ -9,7 +9,7 @@ __all__ = (
 )
 
 #----------------------------------------------------------------------------
-class Node(object):
+class Node:
     
     """
     A `Node` holds information about an intermediate uncertain real number
@@ -45,9 +45,12 @@ class Leaf(Node):
     
     def __init__(self,uid,label,u,df,independent=True):
         Node.__init__(self,uid,label,u,df)
-    
+
         self.independent = independent
         if not independent:
+            # Provide objects for these attributes.
+            # The objects may be filled independently, 
+            # or may remain in this default state.
             self.correlation = {uid: 1.0}
             self.ensemble = set()
         

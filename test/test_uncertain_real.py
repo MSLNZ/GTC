@@ -716,7 +716,7 @@ class ArithmeticTestsReal(unittest.TestCase):
         y = 1.0 / self.w
         self.assertTrue( y is not self.w )
         
-        self.assertRaises(ZeroDivisionError,UncertainReal.__div__, self.z, 0)
+        self.assertRaises(ZeroDivisionError,UncertainReal.__truediv__, self.z, 0)
 
         newy = y/(1.0+0j)
         self.assertFalse( newy is y )
@@ -872,7 +872,7 @@ class TestUncertainReal(unittest.TestCase):
 
         un = ureal(x,u)
 
-        rep = "ureal({!r},{!r},inf)".format(x,u)
+        rep = f"ureal({x!r},{u!r},inf)"
         self.assertEqual( rep,repr(un) )
         self.assertEqual( x_str,str(un) )
 

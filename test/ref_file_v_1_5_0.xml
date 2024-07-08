@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gtcArchive version="1.5.0" xmlns="https://measurement.govt.nz/gtc/xml">
+  <leafNodes>
+    <leafNode uid="(141974644394059311221185532474557481443, 1)">
+      <u>1.0</u>
+      <df>INF</df>
+      <label />
+      <independent>true</independent>
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 2)">
+      <u>1.0</u>
+      <df>INF</df>
+      <label />
+      <independent>true</independent>
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 3)">
+      <u>1.0</u>
+      <df>3.0</df>
+      <label>x1</label>
+      <independent>true</independent>
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 4)">
+      <u>1.0</u>
+      <df>4.0</df>
+      <label>y1</label>
+      <independent>true</independent>
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 5)">
+      <u>1.0</u>
+      <df>INF</df>
+      <label />
+      <independent>false</independent>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 5)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 6)">0.5</correlation>
+      </correlations>
+      <ensemble />
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 6)">
+      <u>1.0</u>
+      <df>INF</df>
+      <label />
+      <independent>false</independent>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 6)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 5)">0.5</correlation>
+      </correlations>
+      <ensemble />
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 7)">
+      <u>1.0</u>
+      <df>4.0</df>
+      <label />
+      <independent>false</independent>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 7)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 8)">0.5</correlation>
+      </correlations>
+      <ensemble>
+        <node uid="(141974644394059311221185532474557481443, 7)" />
+        <node uid="(141974644394059311221185532474557481443, 8)" />
+      </ensemble>
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 8)">
+      <u>1.0</u>
+      <df>4.0</df>
+      <label />
+      <independent>false</independent>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 8)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 7)">0.5</correlation>
+      </correlations>
+      <ensemble>
+        <node uid="(141974644394059311221185532474557481443, 7)" />
+        <node uid="(141974644394059311221185532474557481443, 8)" />
+      </ensemble>
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 9)">
+      <u>3.1622776601683795</u>
+      <df>5.0</df>
+      <label />
+      <independent>false</independent>
+      <complex>
+        <real uid="(141974644394059311221185532474557481443, 9)" />
+        <imag uid="(141974644394059311221185532474557481443, 10)" />
+      </complex>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 9)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 10)">0.19999999999999996</correlation>
+      </correlations>
+      <ensemble />
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 10)">
+      <u>3.1622776601683795</u>
+      <df>5.0</df>
+      <label />
+      <independent>false</independent>
+      <complex>
+        <real uid="(141974644394059311221185532474557481443, 9)" />
+        <imag uid="(141974644394059311221185532474557481443, 10)" />
+      </complex>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 10)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 9)">0.19999999999999996</correlation>
+      </correlations>
+      <ensemble />
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 11)">
+      <u>3.1622776601683795</u>
+      <df>7.0</df>
+      <label />
+      <independent>false</independent>
+      <complex>
+        <real uid="(141974644394059311221185532474557481443, 11)" />
+        <imag uid="(141974644394059311221185532474557481443, 12)" />
+      </complex>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 11)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 12)">0.19999999999999996</correlation>
+      </correlations>
+      <ensemble />
+    </leafNode>
+    <leafNode uid="(141974644394059311221185532474557481443, 12)">
+      <u>3.1622776601683795</u>
+      <df>7.0</df>
+      <label />
+      <independent>false</independent>
+      <complex>
+        <real uid="(141974644394059311221185532474557481443, 11)" />
+        <imag uid="(141974644394059311221185532474557481443, 12)" />
+      </complex>
+      <correlations>
+        <correlation uid="(141974644394059311221185532474557481443, 12)">1.0</correlation>
+        <correlation uid="(141974644394059311221185532474557481443, 11)">0.19999999999999996</correlation>
+      </correlations>
+      <ensemble />
+    </leafNode>
+  </leafNodes>
+  <taggedReals>
+    <elementaryReal tag="w" uid="(141974644394059311221185532474557481443, 1)">
+      <value>1.0</value>
+    </elementaryReal>
+    <elementaryReal tag="x" uid="(141974644394059311221185532474557481443, 2)">
+      <value>2.0</value>
+    </elementaryReal>
+    <intermediateReal tag="y" uid="(141974644394059311221185532474557481443, 1, 0)">
+      <value>3.0</value>
+      <label />
+      <uComponents>
+        <component uid="(141974644394059311221185532474557481443, 1)">1.0</component>
+        <component uid="(141974644394059311221185532474557481443, 2)">1.0</component>
+      </uComponents>
+      <dComponents />
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 1, 0)">1.4142135623730951</component>
+      </iComponents>
+    </intermediateReal>
+    <intermediateReal tag="z" uid="(141974644394059311221185532474557481443, 2, 0)">
+      <value>6.0</value>
+      <label />
+      <uComponents>
+        <component uid="(141974644394059311221185532474557481443, 1)">2.0</component>
+        <component uid="(141974644394059311221185532474557481443, 2)">5.0</component>
+      </uComponents>
+      <dComponents />
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 1, 0)">2.8284271247461903</component>
+        <component uid="(141974644394059311221185532474557481443, 2, 0)">5.385164807134504</component>
+      </iComponents>
+    </intermediateReal>
+    <intermediateReal tag="z1" uid="(141974644394059311221185532474557481443, 3, 0)">
+      <value>3.0</value>
+      <label />
+      <uComponents>
+        <component uid="(141974644394059311221185532474557481443, 3)">1.0</component>
+        <component uid="(141974644394059311221185532474557481443, 4)">1.0</component>
+      </uComponents>
+      <dComponents />
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 3, 0)">1.4142135623730951</component>
+      </iComponents>
+    </intermediateReal>
+    <elementaryReal tag="x2" uid="(141974644394059311221185532474557481443, 5)">
+      <value>1.0</value>
+    </elementaryReal>
+    <elementaryReal tag="y2" uid="(141974644394059311221185532474557481443, 6)">
+      <value>2.0</value>
+    </elementaryReal>
+    <intermediateReal tag="z2" uid="(141974644394059311221185532474557481443, 4, 0)">
+      <value>3.0</value>
+      <label />
+      <uComponents />
+      <dComponents>
+        <component uid="(141974644394059311221185532474557481443, 5)">1.0</component>
+        <component uid="(141974644394059311221185532474557481443, 6)">1.0</component>
+      </dComponents>
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 4, 0)">1.7320508075688772</component>
+      </iComponents>
+    </intermediateReal>
+    <elementaryReal tag="x3" uid="(141974644394059311221185532474557481443, 7)">
+      <value>1.0</value>
+    </elementaryReal>
+    <elementaryReal tag="y3" uid="(141974644394059311221185532474557481443, 8)">
+      <value>2.0</value>
+    </elementaryReal>
+    <intermediateReal tag="z3" uid="(141974644394059311221185532474557481443, 5, 0)">
+      <value>3.0</value>
+      <label />
+      <uComponents />
+      <dComponents>
+        <component uid="(141974644394059311221185532474557481443, 7)">1.0</component>
+        <component uid="(141974644394059311221185532474557481443, 8)">1.0</component>
+      </dComponents>
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 5, 0)">1.7320508075688772</component>
+      </iComponents>
+    </intermediateReal>
+  </taggedReals>
+  <untaggedReals>
+    <elementaryReal tag="x4_re" uid="(141974644394059311221185532474557481443, 9)">
+      <value>1.0</value>
+    </elementaryReal>
+    <elementaryReal tag="x4_im" uid="(141974644394059311221185532474557481443, 10)">
+      <value>0.0</value>
+    </elementaryReal>
+    <elementaryReal tag="y4_re" uid="(141974644394059311221185532474557481443, 11)">
+      <value>1.0</value>
+    </elementaryReal>
+    <elementaryReal tag="y4_im" uid="(141974644394059311221185532474557481443, 12)">
+      <value>-6.0</value>
+    </elementaryReal>
+    <intermediateReal tag="z4_re" uid="(141974644394059311221185532474557481443, 6, 0)">
+      <value>1.8054589563221122</value>
+      <label />
+      <uComponents />
+      <dComponents>
+        <component uid="(141974644394059311221185532474557481443, 9)">3.162277660168379</component>
+        <component uid="(141974644394059311221185532474557481443, 10)">0.0</component>
+        <component uid="(141974644394059311221185532474557481443, 11)">0.08546696378833457</component>
+        <component uid="(141974644394059311221185532474557481443, 12)">-0.5128017827300074</component>
+      </dComponents>
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 6, 0)">3.2019898853232185</component>
+      </iComponents>
+    </intermediateReal>
+    <intermediateReal tag="z4_im" uid="(141974644394059311221185532474557481443, 7, 0)">
+      <value>-1.4056476493802699</value>
+      <label />
+      <uComponents />
+      <dComponents>
+        <component uid="(141974644394059311221185532474557481443, 9)">0.0</component>
+        <component uid="(141974644394059311221185532474557481443, 10)">3.162277660168379</component>
+        <component uid="(141974644394059311221185532474557481443, 11)">0.5128017827300074</component>
+        <component uid="(141974644394059311221185532474557481443, 12)">0.08546696378833457</component>
+      </dComponents>
+      <iComponents>
+        <component uid="(141974644394059311221185532474557481443, 7, 0)">3.2074602592749826</component>
+      </iComponents>
+    </intermediateReal>
+  </untaggedReals>
+  <taggedComplexes>
+    <complex tag="x4">
+      <label />
+    </complex>
+    <complex tag="y4">
+      <label />
+    </complex>
+    <complex tag="z4">
+      <label />
+    </complex>
+  </taggedComplexes>
+  <intermediates>
+    <intermediate uid="(141974644394059311221185532474557481443, 1, 0)">
+      <label />
+      <u>1.4142135623730951</u>
+      <df>INF</df>
+    </intermediate>
+    <intermediate uid="(141974644394059311221185532474557481443, 2, 0)">
+      <label />
+      <u>5.385164807134504</u>
+      <df>INF</df>
+    </intermediate>
+    <intermediate uid="(141974644394059311221185532474557481443, 3, 0)">
+      <label />
+      <u>1.4142135623730951</u>
+      <df>6.857142857142858</df>
+    </intermediate>
+    <intermediate uid="(141974644394059311221185532474557481443, 4, 0)">
+      <label />
+      <u>1.7320508075688772</u>
+      <df>INF</df>
+    </intermediate>
+    <intermediate uid="(141974644394059311221185532474557481443, 5, 0)">
+      <label />
+      <u>1.7320508075688772</u>
+      <df>4.0</df>
+    </intermediate>
+    <intermediate uid="(141974644394059311221185532474557481443, 6, 0)">
+      <label />
+      <u>3.2019898853232185</u>
+      <df>5.253536076276617</df>
+    </intermediate>
+    <intermediate uid="(141974644394059311221185532474557481443, 7, 0)">
+      <label />
+      <u>3.2074602592749826</u>
+      <df>5.28881372103952</df>
+    </intermediate>
+  </intermediates>
+</gtcArchive>

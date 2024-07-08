@@ -917,7 +917,7 @@ from GTC.type_b import _arrays
     # return v_k,u2_x,u2_y,g_k,u2,x_bar,y_bar,p_hat
 
 #--------------------------------------------------------------------
-class _Chi(object):
+class _Chi:
 
     """
     Defines a callable object that can be used in the Brent minimum-search.
@@ -1537,11 +1537,11 @@ class TestLineFitTLS(unittest.TestCase):
         uy = [ 150.00,340.71,553.54,956.76,1649.68 ]
     
         un_x = [
-            ureal(x_i,u_i,label="x_{}".format(i) ) 
+            ureal(x_i,u_i,label=f"x_{i}" ) 
                 for i,x_i,u_i in zip(xrange(len(x)),x,ux)
         ]
         un_y = [
-            ureal(y_i,u_i,label="y_{}".format(i)) 
+            ureal(y_i,u_i,label=f"y_{i}") 
                 for i,y_i,u_i in zip(xrange(len(y)),y,uy)
         ]
         

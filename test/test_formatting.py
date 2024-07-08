@@ -178,31 +178,31 @@ class TestFormatting(unittest.TestCase):
 
         f = Format()
         number = -9.3+123.456789j
-        self.assertEqual(f._value(number), '{:.2f}'.format(number))
+        self.assertEqual(f._value(number), f'{number:.2f}')
         number = 123.456789
         self.assertEqual(f._value(number, precision=4, type='f', sign=' '),
-                         '{: .4f}'.format(number))
+                         f'{number: .4f}')
 
         f = Format(precision=4, sign='+')
         number = 123.456789
-        self.assertEqual(f._value(number), '{:+.4f}'.format(number))
+        self.assertEqual(f._value(number), f'{number:+.4f}')
         number = -9.3+123.456789j
-        self.assertEqual(f._value(number), '{:+.4f}'.format(number))
+        self.assertEqual(f._value(number), f'{number:+.4f}')
 
         f = Format(precision=4, sign='+', width=20, fill='*', align='>')
         number = 123.456789
         self.assertEqual(f._result(f._value(number)),
-                         '{:*>+20.4f}'.format(number))
+                         f'{number:*>+20.4f}')
 
         f = Format(precision=4, sign='+', type='e')
         number = 123.456789
-        self.assertEqual(f._value(number), '{:+.4e}'.format(number))
+        self.assertEqual(f._value(number), f'{number:+.4e}')
         number = -9.3+123.456789j
-        self.assertEqual(f._value(number, type='E'), '{:+.4E}'.format(number))
+        self.assertEqual(f._value(number, type='E'), f'{number:+.4E}')
 
         f = Format(grouping=',', precision=0, type='f')
         number = 123456789
-        self.assertEqual(f._value(number), '{:,.0f}'.format(number))
+        self.assertEqual(f._value(number), f'{number:,.0f}')
 
         f = create_format(1.23)
         self.assertEqual(f._precision, 3)
@@ -284,7 +284,7 @@ class TestFormatting(unittest.TestCase):
         def check(ur, expected):
             # different ways to get the same result
             self.assertEqual(repr(ur), expected)
-            self.assertEqual('{!r}'.format(ur), expected)
+            self.assertEqual(f'{ur!r}', expected)
 
         check(ureal(1.23456789, 0.001),
               'ureal(1.23456789,0.001,inf)')
@@ -305,7 +305,7 @@ class TestFormatting(unittest.TestCase):
         def check(uc, expected):
             # different ways to get the same result
             self.assertEqual(repr(uc), expected)
-            self.assertEqual('{!r}'.format(uc), expected)
+            self.assertEqual(f'{uc!r}', expected)
 
         check(ucomplex(1.23456789+0.12345j, 0.001),
               'ucomplex((1.23456789+0.12345j), u=[0.001,0.001], r=0.0, df=inf)')
@@ -324,12 +324,12 @@ class TestFormatting(unittest.TestCase):
         def check(ur, expected):
             # different ways to get the same result
             self.assertEqual(str(ur), expected)
-            self.assertEqual('{}'.format(ur), expected)
-            self.assertEqual('{!s}'.format(ur), expected)
-            self.assertEqual('{: }'.format(ur), expected)
-            self.assertEqual('{: f}'.format(ur), expected)
-            self.assertEqual('{: .2}'.format(ur), expected)
-            self.assertEqual('{: .2f}'.format(ur), expected)
+            self.assertEqual(f'{ur}', expected)
+            self.assertEqual(f'{ur!s}', expected)
+            self.assertEqual(f'{ur: }', expected)
+            self.assertEqual(f'{ur: f}', expected)
+            self.assertEqual(f'{ur: .2}', expected)
+            self.assertEqual(f'{ur: .2f}', expected)
 
         check(ureal(1.23456789, 1000), ' 0(1000)')
         check(ureal(1.23456789, 100), ' 0(100)')
@@ -354,11 +354,11 @@ class TestFormatting(unittest.TestCase):
         def check(uc, expected):
             # different ways to get the same result
             self.assertEqual(str(uc), expected)
-            self.assertEqual('{}'.format(uc), expected)
-            self.assertEqual('{!s}'.format(uc), expected)
-            self.assertEqual('{:+.2f}'.format(uc), expected)
-            self.assertEqual('{:+.2}'.format(uc), expected)
-            self.assertEqual('{:+f}'.format(uc), expected)
+            self.assertEqual(f'{uc}', expected)
+            self.assertEqual(f'{uc!s}', expected)
+            self.assertEqual(f'{uc:+.2f}', expected)
+            self.assertEqual(f'{uc:+.2}', expected)
+            self.assertEqual(f'{uc:+f}', expected)
 
         check(ucomplex(1.23456789 + 9.87654321j, 1000),
               '(+0(1000)+0(1000)j)')
@@ -397,8 +397,8 @@ class TestFormatting(unittest.TestCase):
     def test_bracket_nan_inf_ureal(self):
         ur = UncertainReal._elementary(inf, inf, inf, None, True)
         self.assertEqual(str(ur), ' inf(inf)')
-        self.assertEqual('{}'.format(ur), ' inf(inf)')
-        self.assertEqual('{!s}'.format(ur), ' inf(inf)')
+        self.assertEqual(f'{ur}', ' inf(inf)')
+        self.assertEqual(f'{ur!s}', ' inf(inf)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(ur, type=t)
             self.assertEqual(to_string(ur, fmt), 'inf(inf)')
@@ -412,8 +412,8 @@ class TestFormatting(unittest.TestCase):
 
         ur = UncertainReal._elementary(inf, nan, inf, None, True)
         self.assertEqual(str(ur), ' inf(nan)')
-        self.assertEqual('{}'.format(ur), ' inf(nan)')
-        self.assertEqual('{!s}'.format(ur), ' inf(nan)')
+        self.assertEqual(f'{ur}', ' inf(nan)')
+        self.assertEqual(f'{ur!s}', ' inf(nan)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(ur, type=t)
             self.assertEqual(to_string(ur, fmt), 'inf(nan)')
@@ -427,8 +427,8 @@ class TestFormatting(unittest.TestCase):
 
         ur = UncertainReal._elementary(-inf, nan, inf, None, True)
         self.assertEqual(str(ur), '-inf(nan)')
-        self.assertEqual('{}'.format(ur), '-inf(nan)')
-        self.assertEqual('{!s}'.format(ur), '-inf(nan)')
+        self.assertEqual(f'{ur}', '-inf(nan)')
+        self.assertEqual(f'{ur!s}', '-inf(nan)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(ur, type=t)
             self.assertEqual(to_string(ur, fmt), '-inf(nan)')
@@ -442,8 +442,8 @@ class TestFormatting(unittest.TestCase):
 
         ur = UncertainReal._elementary(nan, inf, inf, None, True)
         self.assertEqual(str(ur), ' nan(inf)')
-        self.assertEqual('{}'.format(ur), ' nan(inf)')
-        self.assertEqual('{!s}'.format(ur), ' nan(inf)')
+        self.assertEqual(f'{ur}', ' nan(inf)')
+        self.assertEqual(f'{ur!s}', ' nan(inf)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(ur, type=t)
             self.assertEqual(to_string(ur, fmt), 'nan(inf)')
@@ -457,8 +457,8 @@ class TestFormatting(unittest.TestCase):
 
         ur = UncertainReal._elementary(nan, nan, inf, None, True)
         self.assertEqual(str(ur), ' nan(nan)')
-        self.assertEqual('{}'.format(ur), ' nan(nan)')
-        self.assertEqual('{!s}'.format(ur), ' nan(nan)')
+        self.assertEqual(f'{ur}', ' nan(nan)')
+        self.assertEqual(f'{ur!s}', ' nan(nan)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(ur, type=t)
             self.assertEqual(to_string(ur, fmt), 'nan(nan)')
@@ -472,28 +472,28 @@ class TestFormatting(unittest.TestCase):
 
         ur = UncertainReal._elementary(3.141, inf, inf, None, True)
         self.assertEqual(str(ur), ' 3.14(inf)')
-        self.assertEqual('{: F}'.format(ur), ' 3.14(INF)')
-        self.assertEqual('{: .3f}'.format(ur), ' 3.141(inf)')
+        self.assertEqual(f'{ur: F}', ' 3.14(INF)')
+        self.assertEqual(f'{ur: .3f}', ' 3.141(inf)')
 
         ur = UncertainReal._elementary(3.141e8, inf, inf, None, True)
         self.assertEqual(str(ur), ' 314100000.00(inf)')
-        self.assertEqual('{: .1F}'.format(ur), ' 314100000.0(INF)')
-        self.assertEqual('{: .1e}'.format(ur), ' 3.1(inf)e+08')
-        self.assertEqual('{: .4E}'.format(ur), ' 3.1410(INF)E+08')
+        self.assertEqual(f'{ur: .1F}', ' 314100000.0(INF)')
+        self.assertEqual(f'{ur: .1e}', ' 3.1(inf)e+08')
+        self.assertEqual(f'{ur: .4E}', ' 3.1410(INF)E+08')
 
         ur = UncertainReal._elementary(3.141, nan, inf, None, True)
         self.assertEqual(str(ur), ' 3.14(nan)')
-        self.assertEqual('{: F}'.format(ur), ' 3.14(NAN)')
-        self.assertEqual('{: .1F}'.format(ur), ' 3.1(NAN)')
+        self.assertEqual(f'{ur: F}', ' 3.14(NAN)')
+        self.assertEqual(f'{ur: .1F}', ' 3.1(NAN)')
 
         ur = UncertainReal._elementary(nan, 3.141, inf, None, True)
         self.assertEqual(str(ur), ' nan(3.141)')
-        self.assertEqual('{: F}'.format(ur), ' NAN(3.141)')
+        self.assertEqual(f'{ur: F}', ' NAN(3.141)')
 
         ur = UncertainReal._elementary(nan, 3.141e8, inf, None, True)
         self.assertEqual(str(ur), ' nan(314100000)')
-        self.assertEqual('{: E}'.format(ur), ' NAN(3)E+08')
-        self.assertEqual('{: e}'.format(ur), ' nan(3)e+08')
+        self.assertEqual(f'{ur: E}', ' NAN(3)E+08')
+        self.assertEqual(f'{ur: e}', ' nan(3)e+08')
 
     def test_bracket_nan_inf_ucomplex(self):
         uc = UncertainComplex._elementary(
@@ -502,8 +502,8 @@ class TestFormatting(unittest.TestCase):
         )
 
         self.assertEqual(str(uc), '(+inf(inf)+inf(inf)j)')
-        self.assertEqual('{}'.format(uc), '(+inf(inf)+inf(inf)j)')
-        self.assertEqual('{!s}'.format(uc), '(+inf(inf)+inf(inf)j)')
+        self.assertEqual(f'{uc}', '(+inf(inf)+inf(inf)j)')
+        self.assertEqual(f'{uc!s}', '(+inf(inf)+inf(inf)j)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(uc, type=t, sign='+')
             self.assertEqual(to_string(uc, fmt), '(+inf(inf)+inf(inf)j)')
@@ -529,8 +529,8 @@ class TestFormatting(unittest.TestCase):
         )
 
         self.assertEqual(str(uc), '(+nan(inf)-inf(nan)j)')
-        self.assertEqual('{}'.format(uc), '(+nan(inf)-inf(nan)j)')
-        self.assertEqual('{!s}'.format(uc), '(+nan(inf)-inf(nan)j)')
+        self.assertEqual(f'{uc}', '(+nan(inf)-inf(nan)j)')
+        self.assertEqual(f'{uc!s}', '(+nan(inf)-inf(nan)j)')
         for t in ['f', 'g', 'e']:
             fmt = create_format(uc, type=t, sign='+')
             self.assertEqual(to_string(uc, fmt), '(+nan(inf)-inf(nan)j)')
@@ -573,8 +573,8 @@ class TestFormatting(unittest.TestCase):
 
         fmt = create_format(ur, digits=1)
         self.assertEqual(to_string(ur, fmt),   '1.23(1)')
-        self.assertEqual('{:.1}'.format(ur),   '1.23(1)')  # f and B are defaults
-        self.assertEqual('{:.1f}'.format(ur),  '1.23(1)')
+        self.assertEqual(f'{ur:.1}',   '1.23(1)')  # f and B are defaults
+        self.assertEqual(f'{ur:.1f}',  '1.23(1)')
         self.assertEqual(to_string(ur.x, fmt), '1.23')
         self.assertEqual(to_string(ur.u, fmt), '0.01')
         self.assertEqual(to_string(1, fmt),    '1.00')
@@ -583,25 +583,25 @@ class TestFormatting(unittest.TestCase):
 
         fmt = create_format(ur, digits=2)
         self.assertEqual(to_string(ur, fmt),   '1.235(12)')
-        self.assertEqual('{:.2f}'.format(ur),  '1.235(12)')
+        self.assertEqual(f'{ur:.2f}',  '1.235(12)')
         self.assertEqual(to_string(ur.x, fmt), '1.235')
         self.assertEqual(to_string(ur.u, fmt), '0.012')
 
         fmt = create_format(ur, digits=3)
         self.assertEqual(to_string(ur, fmt),   '1.2346(123)')
-        self.assertEqual('{:.3f}'.format(ur),  '1.2346(123)')
+        self.assertEqual(f'{ur:.3f}',  '1.2346(123)')
         self.assertEqual(to_string(ur.x, fmt), '1.2346')
         self.assertEqual(to_string(ur.u, fmt), '0.0123')
 
         fmt = create_format(ur, digits=9)
         self.assertEqual(to_string(ur, fmt),   '1.2345678900(123456789)')
-        self.assertEqual('{:.9f}'.format(ur),  '1.2345678900(123456789)')
+        self.assertEqual(f'{ur:.9f}',  '1.2345678900(123456789)')
         self.assertEqual(to_string(ur.x, fmt), '1.2345678900')
         self.assertEqual(to_string(ur.u, fmt), '0.0123456789')
 
         fmt = create_format(ur, digits=14)
         self.assertEqual(to_string(ur, fmt),   '1.234567890000000(12345678900000)')
-        self.assertEqual('{:.14f}'.format(ur), '1.234567890000000(12345678900000)')
+        self.assertEqual(f'{ur:.14f}', '1.234567890000000(12345678900000)')
         self.assertEqual(to_string(ur.x, fmt), '1.234567890000000')
         self.assertEqual(to_string(ur.u, fmt), '0.012345678900000')
 
@@ -1251,37 +1251,37 @@ class TestFormatting(unittest.TestCase):
         ur = ureal(1.23456789, 0)
 
         fmt = create_format(ur, type='f')
-        self.assertEqual('{:.2f}'.format(ur.x), '1.23')
+        self.assertEqual(f'{ur.x:.2f}', '1.23')
         self.assertEqual(to_string(ur, fmt),    '1.23')
         self.assertEqual(to_string(ur.x, fmt),  '1.23')
         self.assertEqual(to_string(ur.u, fmt),  '0.00')
 
         fmt = create_format(ur, type='f', digits=4)
-        self.assertEqual('{:.4f}'.format(ur.x), '1.2346')
+        self.assertEqual(f'{ur.x:.4f}', '1.2346')
         self.assertEqual(to_string(ur, fmt),    '1.2346')
         self.assertEqual(to_string(ur.x, fmt),  '1.2346')
         self.assertEqual(to_string(ur.u, fmt),  '0.0000')
 
         fmt = create_format(ur, type='g')
-        self.assertEqual('{:.2g}'.format(ur.x), '1.2')
+        self.assertEqual(f'{ur.x:.2g}', '1.2')
         self.assertEqual(to_string(ur, fmt),    '1.2')
         self.assertEqual(to_string(ur.x, fmt),  '1.2')
         self.assertEqual(to_string(ur.u, fmt),  '0')
 
         fmt = create_format(ur, type='g', digits=5)
-        self.assertEqual('{:.5g}'.format(ur.x), '1.2346')
+        self.assertEqual(f'{ur.x:.5g}', '1.2346')
         self.assertEqual(to_string(ur, fmt),    '1.2346')
         self.assertEqual(to_string(ur.x, fmt),  '1.2346')
         self.assertEqual(to_string(ur.u, fmt),  '0')
 
         fmt = create_format(ur, type='E')
-        self.assertEqual('{:.2E}'.format(ur.x), '1.23E+00')
+        self.assertEqual(f'{ur.x:.2E}', '1.23E+00')
         self.assertEqual(to_string(ur, fmt),    '1.23E+00')
         self.assertEqual(to_string(ur.x, fmt),  '1.23E+00')
         self.assertEqual(to_string(ur.u, fmt),  '0.00E+00')
 
         fmt = create_format(ur, type='E', digits=1)
-        self.assertEqual('{:.1E}'.format(ur.x), '1.2E+00')
+        self.assertEqual(f'{ur.x:.1E}', '1.2E+00')
         self.assertEqual(to_string(ur, fmt),    '1.2E+00')
         self.assertEqual(to_string(ur.x, fmt),  '1.2E+00')
         self.assertEqual(to_string(ur.u, fmt),  '0.0E+00')
@@ -1289,37 +1289,37 @@ class TestFormatting(unittest.TestCase):
         uc = ucomplex(12.3456789 + 0.87654321j, 0)
 
         fmt = create_format(uc, type='f')
-        self.assertEqual('{:.2f}'.format(uc.x), '12.35+0.88j')
+        self.assertEqual(f'{uc.x:.2f}', '12.35+0.88j')
         self.assertEqual(to_string(uc, fmt),   '(12.35+0.88j)')
         self.assertEqual(to_string(uc.x, fmt), '(12.35+0.88j)')
         self.assertEqual(to_string(uc.u, fmt), '(0.00+0.00j)')
 
         fmt = create_format(uc, type='f', digits=4)
-        self.assertEqual('{:.4f}'.format(uc.x), '12.3457+0.8765j')
+        self.assertEqual(f'{uc.x:.4f}', '12.3457+0.8765j')
         self.assertEqual(to_string(uc, fmt),   '(12.3457+0.8765j)')
         self.assertEqual(to_string(uc.x, fmt), '(12.3457+0.8765j)')
         self.assertEqual(to_string(uc.u, fmt), '(0.0000+0.0000j)')
 
         fmt = create_format(uc, type='g')
-        self.assertEqual('{:.2g}'.format(uc.x), '12+0.88j')
+        self.assertEqual(f'{uc.x:.2g}', '12+0.88j')
         self.assertEqual(to_string(uc, fmt),   '(12+0.88j)')
         self.assertEqual(to_string(uc.x, fmt), '(12+0.88j)')
         self.assertEqual(to_string(uc.u, fmt), '(0+0j)')
 
         fmt = create_format(uc, type='g', digits=5)
-        self.assertEqual('{:.5g}'.format(uc.x), '12.346+0.87654j')
+        self.assertEqual(f'{uc.x:.5g}', '12.346+0.87654j')
         self.assertEqual(to_string(uc, fmt),   '(12.346+0.87654j)')
         self.assertEqual(to_string(uc.x, fmt), '(12.346+0.87654j)')
         self.assertEqual(to_string(uc.u, fmt), '(0+0j)')
 
         fmt = create_format(uc, type='E')
-        self.assertEqual('{:.2E}'.format(uc.x), '1.23E+01+8.77E-01j')
+        self.assertEqual(f'{uc.x:.2E}', '1.23E+01+8.77E-01j')
         self.assertEqual(to_string(uc, fmt),   '(1.23E+01+8.77E-01j)')
         self.assertEqual(to_string(uc.x, fmt), '(1.23E+01+8.77E-01j)')
         self.assertEqual(to_string(uc.u, fmt), '(0.00E+00+0.00E+00j)')
 
         fmt = create_format(uc, type='e', digits=1)
-        self.assertEqual('{:.1e}'.format(uc.x), '1.2e+01+8.8e-01j')
+        self.assertEqual(f'{uc.x:.1e}', '1.2e+01+8.8e-01j')
         self.assertEqual(to_string(uc, fmt),   '(1.2e+01+8.8e-01j)')
         self.assertEqual(to_string(uc.x, fmt), '(1.2e+01+8.8e-01j)')
         self.assertEqual(to_string(uc.u, fmt), '(0.0e+00+0.0e+00j)')
@@ -1725,29 +1725,29 @@ class TestFormatting(unittest.TestCase):
 
     def test_type_g(self):
         ur = ureal(43.842, 0.0123)
-        self.assertEqual('{:.1g}'.format(ur), '43.84(1)')
+        self.assertEqual(f'{ur:.1g}', '43.84(1)')
 
         ur = ureal(4384.2, 1.23)
-        self.assertEqual('{:.3g}'.format(ur), '4384.20(1.23)')
-        self.assertEqual('{:.1G}'.format(ur), '4.384(1)E+03')
+        self.assertEqual(f'{ur:.3g}', '4384.20(1.23)')
+        self.assertEqual(f'{ur:.1G}', '4.384(1)E+03')
 
         ur = ureal(123456789., 1234.56789)
-        self.assertEqual('{:.4g}'.format(ur), '1.23456789(1235)e+08')
-        self.assertEqual('{:.2G}'.format(ur), '1.234568(12)E+08')
+        self.assertEqual(f'{ur:.4g}', '1.23456789(1235)e+08')
+        self.assertEqual(f'{ur:.2G}', '1.234568(12)E+08')
 
         ur = ureal(7.2524e-8, 5.429e-10)
-        self.assertEqual('{:.2g}'.format(ur), '7.252(54)e-08')
-        self.assertEqual('{:.1G}'.format(ur), '7.25(5)E-08')
+        self.assertEqual(f'{ur:.2g}', '7.252(54)e-08')
+        self.assertEqual(f'{ur:.1G}', '7.25(5)E-08')
 
         ur = ureal(7.2524e4, 5.429e3)
-        self.assertEqual('{:.4G}'.format(ur), '7.2524(5429)E+04')
-        self.assertEqual('{:.1g}'.format(ur), '7.3(5)e+04')
+        self.assertEqual(f'{ur:.4G}', '7.2524(5429)E+04')
+        self.assertEqual(f'{ur:.1g}', '7.3(5)e+04')
 
         uc = ucomplex(12.3456789 + 0.87654321j, 0.31532)
-        self.assertEqual('{:.3G}'.format(uc), '(12.346(315)+0.877(315)j)')
+        self.assertEqual(f'{uc:.3G}', '(12.346(315)+0.877(315)j)')
 
         uc = ucomplex(1.23e6 - 87.e3j, (313e4, 4.75e2))
-        self.assertEqual('{:.2g}'.format(uc), '(1.23000(3.13000)e+06-8.700(48)e+04j)')
+        self.assertEqual(f'{uc:.2g}', '(1.23000(3.13000)e+06-8.700(48)e+04j)')
 
     def test_unicode(self):
         ur = ureal(18.5424, 0.94271)
@@ -1760,16 +1760,16 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(ur, digits=2, type=t, style='U')
-            self.assertEqual(to_string(ur, fmt),   u'1.854(94)×10¹')
-            self.assertEqual(to_string(ur.x, fmt), u'1.854×10¹')
-            self.assertEqual(to_string(ur.u, fmt), u'9.4×10⁻¹')
+            self.assertEqual(to_string(ur, fmt),   '1.854(94)×10¹')
+            self.assertEqual(to_string(ur.x, fmt), '1.854×10¹')
+            self.assertEqual(to_string(ur.u, fmt), '9.4×10⁻¹')
 
         ur = ureal(1.23456789, 0.123456789)
-        self.assertEqual('{:.3eU}'.format(ur), '1.235(123)')
-        self.assertEqual(u'{:.3EU}'.format(ur * 1e-6), u'1.235(123)×10⁻⁶')
-        self.assertEqual(u'{:.3EU}'.format(ur * 1e12), u'1.235(123)×10¹²')
-        self.assertEqual(u'{:.3eU}'.format(ur * 1e100), u'1.235(123)×10¹⁰⁰')
-        self.assertEqual(u'{:.3EU}'.format(ur * 1e-100), u'1.235(123)×10⁻¹⁰⁰')
+        self.assertEqual(f'{ur:.3eU}', '1.235(123)')
+        self.assertEqual(f'{ur * 1e-6:.3EU}', '1.235(123)×10⁻⁶')
+        self.assertEqual(f'{ur * 1e12:.3EU}', '1.235(123)×10¹²')
+        self.assertEqual(f'{ur * 1e100:.3eU}', '1.235(123)×10¹⁰⁰')
+        self.assertEqual(f'{ur * 1e-100:.3EU}', '1.235(123)×10⁻¹⁰⁰')
 
         uc = ucomplex(18.5424+1.2j, 0.94271)
 
@@ -1781,23 +1781,23 @@ class TestFormatting(unittest.TestCase):
 
         for t in ['e', 'E']:
             fmt = create_format(uc, digits=2, type=t, style='U')
-            self.assertEqual(to_string(uc, fmt),   u'(1.854(94)×10¹+1.20(94)j)')
-            self.assertEqual(to_string(uc.x, fmt), u'(1.854×10¹+1.20j)')
-            self.assertEqual(to_string(uc.u, fmt), u'(9.4×10⁻¹+9.4×10⁻¹j)')
+            self.assertEqual(to_string(uc, fmt),   '(1.854(94)×10¹+1.20(94)j)')
+            self.assertEqual(to_string(uc.x, fmt), '(1.854×10¹+1.20j)')
+            self.assertEqual(to_string(uc.u, fmt), '(9.4×10⁻¹+9.4×10⁻¹j)')
 
     @unittest.skipIf(sys.version_info.major == 2, 'not supported for this version of Python')
     def test_hash_symbol(self):
         ur = ureal(5.4, 1.2)
 
         fmt = create_format(ur, digits=1, hash='#')
-        self.assertEqual('{:#.1}'.format(ur), '5.(1.)')
+        self.assertEqual(f'{ur:#.1}', '5.(1.)')
         self.assertEqual(to_string(ur, fmt), '5.(1.)')
         self.assertEqual(to_string(ur.x, fmt), '5.')
         self.assertEqual(to_string(ur.u, fmt), '1.')
         self.assertEqual(to_string(3, fmt), '3.')
 
         fmt = create_format(ur, digits=2, hash=True)
-        self.assertEqual('{:#.2}'.format(ur), '5.4(1.2)')
+        self.assertEqual(f'{ur:#.2}', '5.4(1.2)')
         self.assertEqual(to_string(ur, fmt), '5.4(1.2)')
         self.assertEqual(to_string(ur.x, fmt), '5.4')
         self.assertEqual(to_string(ur.u, fmt), '1.2')
@@ -1805,63 +1805,63 @@ class TestFormatting(unittest.TestCase):
 
         uc = ucomplex(5.4 + 7.2j, (1.4, 1.2))
         fmt = create_format(uc, digits=1, hash='#')
-        self.assertEqual('{:#.1}'.format(uc), '(5.(1.)+7.(1.)j)')
+        self.assertEqual(f'{uc:#.1}', '(5.(1.)+7.(1.)j)')
         self.assertEqual(to_string(uc, fmt), '(5.(1.)+7.(1.)j)')
         self.assertEqual(to_string(uc.x, fmt), '(5.+7.j)')
         self.assertEqual(to_string(uc.u, fmt), '(1.+1.j)')
 
         ur = ureal(1, 0.001)
         fmt = create_format(ur, hash=1, digits=1)
-        self.assertEqual('{:#.1}'.format(ur),  '1.000(1)')
+        self.assertEqual(f'{ur:#.1}',  '1.000(1)')
         self.assertEqual(to_string(ur, fmt),   '1.000(1)')
         self.assertEqual(to_string(ur.x, fmt), '1.000')
         self.assertEqual(to_string(ur.u, fmt), '0.001')
 
         ur = ureal(1, 0.1)
         fmt = create_format(ur, hash=True, digits=1)
-        self.assertEqual('{:#.1}'.format(ur),  '1.0(1)')
+        self.assertEqual(f'{ur:#.1}',  '1.0(1)')
         self.assertEqual(to_string(ur, fmt),   '1.0(1)')
         self.assertEqual(to_string(ur.x, fmt), '1.0')
         self.assertEqual(to_string(ur.u, fmt), '0.1')
 
         ur = ureal(1, 1)
         fmt = create_format(ur, hash='#', digits=1)
-        self.assertEqual('{:#.1}'.format(ur),  '1.(1.)')
+        self.assertEqual(f'{ur:#.1}',  '1.(1.)')
         self.assertEqual(to_string(ur, fmt),   '1.(1.)')
         self.assertEqual(to_string(ur.x, fmt), '1.')
         self.assertEqual(to_string(ur.u, fmt), '1.')
 
         ur = ureal(1, 1)
         fmt = create_format(ur, hash=False, digits=1)
-        self.assertEqual('{:.1}'.format(ur),   '1(1)')
+        self.assertEqual(f'{ur:.1}',   '1(1)')
         self.assertEqual(to_string(ur, fmt),   '1(1)')
         self.assertEqual(to_string(ur.x, fmt), '1')
         self.assertEqual(to_string(ur.u, fmt), '1')
 
         ur = ureal(1, 0.9876)
         fmt = create_format(ur, hash='#', digits=1)
-        self.assertEqual('{:#.1}'.format(ur),  '1.(1.)')
+        self.assertEqual(f'{ur:#.1}',  '1.(1.)')
         self.assertEqual(to_string(ur, fmt),   '1.(1.)')
         self.assertEqual(to_string(ur.x, fmt), '1.')
         self.assertEqual(to_string(ur.u, fmt), '1.')
 
         ur = ureal(1, 0.9876)
         fmt = create_format(ur, hash='#', digits=2)
-        self.assertEqual('{:#.2}'.format(ur),  '1.00(99)')
+        self.assertEqual(f'{ur:#.2}',  '1.00(99)')
         self.assertEqual(to_string(ur, fmt),   '1.00(99)')
         self.assertEqual(to_string(ur.x, fmt), '1.00')
         self.assertEqual(to_string(ur.u, fmt), '0.99')
 
         ur = ureal(1, 10)
         fmt = create_format(ur, hash=1, digits=1)
-        self.assertEqual('{:#.1}'.format(ur),  '0.(10.)')
+        self.assertEqual(f'{ur:#.1}',  '0.(10.)')
         self.assertEqual(to_string(ur, fmt),   '0.(10.)')
         self.assertEqual(to_string(ur.x, fmt), '0.')
         self.assertEqual(to_string(ur.u, fmt), '10.')
 
         ur = ureal(1, 1000)
         fmt = create_format(ur, hash=True, digits=1)
-        self.assertEqual('{:#.1}'.format(ur),  '0.(1000.)')
+        self.assertEqual(f'{ur:#.1}',  '0.(1000.)')
         self.assertEqual(to_string(ur, fmt),   '0.(1000.)')
         self.assertEqual(to_string(ur.x, fmt), '0.')
         self.assertEqual(to_string(ur.u, fmt), '1000.')
@@ -1870,9 +1870,9 @@ class TestFormatting(unittest.TestCase):
         fmt = create_format(ur, type='e', hash=True)
         self.assertEqual(to_string(ur, fmt),     '1.23(99)e+04')
         self.assertEqual(to_string(ur.x, fmt),   '1.23e+04')
-        self.assertEqual('{:#.2e}'.format(ur.x), '1.23e+04')
+        self.assertEqual(f'{ur.x:#.2e}', '1.23e+04')
         self.assertEqual(to_string(ur.u, fmt),   '9.9e+03')
-        self.assertEqual('{:#.1e}'.format(ur.u), '9.9e+03')
+        self.assertEqual(f'{ur.u:#.1e}', '9.9e+03')
 
         fmt = create_format(ur, hash=True)
         self.assertEqual(to_string(ur, fmt),   '12300.(9900.)')
@@ -1883,28 +1883,28 @@ class TestFormatting(unittest.TestCase):
         fmt = create_format(ur, type='e', digits=1, hash=True)
         self.assertEqual(to_string(ur, fmt),     '1.(1.)e+01')
         self.assertEqual(to_string(ur.x, fmt),   '1.e+01')
-        self.assertEqual('{:#.0e}'.format(ur.x), '1.e+01')
+        self.assertEqual(f'{ur.x:#.0e}', '1.e+01')
         self.assertEqual(to_string(ur.u, fmt),   '1.e+01')
-        self.assertEqual('{:#.0e}'.format(ur.u), '1.e+01')
+        self.assertEqual(f'{ur.u:#.0e}', '1.e+01')
 
     def test_grouping_field(self):
         ur = ureal(123456789, 123456)
 
         fmt = create_format(ur, digits=6, grouping=',')
-        self.assertEqual('{:,.6}'.format(ur),  '123,456,789(123,456)')
+        self.assertEqual(f'{ur:,.6}',  '123,456,789(123,456)')
         self.assertEqual(to_string(ur, fmt),   '123,456,789(123,456)')
         self.assertEqual(to_string(ur.x, fmt), '123,456,789')
         self.assertEqual(to_string(ur.u, fmt), '123,456')
 
         fmt = create_format(ur, digits=2, grouping=',')
-        self.assertEqual('{:,.2}'.format(ur),  '123,460,000(120,000)')
+        self.assertEqual(f'{ur:,.2}',  '123,460,000(120,000)')
         self.assertEqual(to_string(ur, fmt),   '123,460,000(120,000)')
         self.assertEqual(to_string(ur.x, fmt), '123,460,000')
         self.assertEqual(to_string(ur.u, fmt), '120,000')
 
         if sys.version_info[:2] >= (3, 6):
             fmt = create_format(ur, digits=1, grouping='_')
-            self.assertEqual('{:_.1}'.format(ur),  '123_500_000(100_000)')
+            self.assertEqual(f'{ur:_.1}',  '123_500_000(100_000)')
             self.assertEqual(to_string(ur, fmt),   '123_500_000(100_000)')
             self.assertEqual(to_string(ur.x, fmt), '123_500_000')
             self.assertEqual(to_string(ur.u, fmt), '100_000')
@@ -1912,14 +1912,14 @@ class TestFormatting(unittest.TestCase):
         uc = ucomplex(123456789-987654321j, (123456, 654321))
 
         fmt = create_format(uc, digits=3, grouping=',')
-        self.assertEqual('{:,.3}'.format(uc),  '(123,457,000(123,000)-987,654,000(654,000)j)')
+        self.assertEqual(f'{uc:,.3}',  '(123,457,000(123,000)-987,654,000(654,000)j)')
         self.assertEqual(to_string(uc, fmt),   '(123,457,000(123,000)-987,654,000(654,000)j)')
         self.assertEqual(to_string(uc.x, fmt), '(123,457,000-987,654,000j)')
         self.assertEqual(to_string(uc.u, fmt), '(123,000+654,000j)')
 
         if sys.version_info[:2] >= (3, 6):
             fmt = create_format(uc, digits=4, grouping='_', sign=' ')
-            self.assertEqual('{: _.4}'.format(uc), '( 123_456_800(123_500)-987_654_300(654_300)j)')
+            self.assertEqual(f'{uc: _.4}', '( 123_456_800(123_500)-987_654_300(654_300)j)')
             self.assertEqual(to_string(uc, fmt),   '( 123_456_800(123_500)-987_654_300(654_300)j)')
             self.assertEqual(to_string(uc.x, fmt), '( 123_456_800-987_654_300j)')
             self.assertEqual(to_string(uc.u, fmt), '( 123_500+654_300j)')
@@ -1928,20 +1928,20 @@ class TestFormatting(unittest.TestCase):
     def test_zero_field(self):
         ur = ureal(1.342, 0.0041)
         fmt = create_format(ur, digits=1, zero=True, width=15)
-        self.assertEqual('{:015.1}'.format(ur), '1.342(4)0000000')
+        self.assertEqual(f'{ur:015.1}', '1.342(4)0000000')
         self.assertEqual(to_string(ur, fmt),    '1.342(4)0000000')
         self.assertEqual(to_string(ur.x, fmt),  '1.3420000000000')
         self.assertEqual(to_string(ur.u, fmt),  '0.0040000000000')
 
         fmt = create_format(ur, digits=1, zero=False, width=15)
-        self.assertEqual('{:15.1}'.format(ur),  '1.342(4)       ')
+        self.assertEqual(f'{ur:15.1}',  '1.342(4)       ')
         self.assertEqual(to_string(ur, fmt),    '1.342(4)       ')
         self.assertEqual(to_string(ur.x, fmt),  '1.342          ')
         self.assertEqual(to_string(ur.u, fmt),  '0.004          ')
 
         uc = ucomplex(5.4 + 7.2j, (1.4, 1.2))
         fmt = create_format(uc, digits=2, zero='0', width=24, align='>', sign='+')
-        self.assertEqual('{:>+024.2}'.format(uc), '000(+5.4(1.4)+7.2(1.2)j)')
+        self.assertEqual(f'{uc:>+024.2}', '000(+5.4(1.4)+7.2(1.2)j)')
         self.assertEqual(to_string(uc, fmt),      '000(+5.4(1.4)+7.2(1.2)j)')
         self.assertEqual(to_string(uc.x, fmt),    '0000000000000(+5.4+7.2j)')
         self.assertEqual(to_string(uc.u, fmt),    '0000000000000(+1.4+1.2j)')
@@ -2093,27 +2093,27 @@ class TestFormatting(unittest.TestCase):
 
     def test_latex(self):
         ur = ureal(1.23456789, 0.123456789)
-        self.assertEqual('{:.3eL}'.format(ur), r'1.235\left(123\right)')
-        self.assertEqual('{:.3EL}'.format(ur * 1e-6), r'1.235\left(123\right)\times10^{-6}')
-        self.assertEqual('{:.3EL}'.format(ur * 1e12), r'1.235\left(123\right)\times10^{12}')
-        self.assertEqual('{:.3eL}'.format(ur * 1e100), r'1.235\left(123\right)\times10^{100}')
-        self.assertEqual('{:.3EL}'.format(ur * 1e-100), r'1.235\left(123\right)\times10^{-100}')
+        self.assertEqual(f'{ur:.3eL}', r'1.235\left(123\right)')
+        self.assertEqual(f'{ur * 1e-6:.3EL}', r'1.235\left(123\right)\times10^{-6}')
+        self.assertEqual(f'{ur * 1e12:.3EL}', r'1.235\left(123\right)\times10^{12}')
+        self.assertEqual(f'{ur * 1e100:.3eL}', r'1.235\left(123\right)\times10^{100}')
+        self.assertEqual(f'{ur * 1e-100:.3EL}', r'1.235\left(123\right)\times10^{-100}')
 
         ur = UncertainReal._elementary(3.14159, nan, inf, None, True)
-        self.assertEqual('{:fL}'.format(ur), r'3.14\left(\mathrm{NaN}\right)')
-        self.assertEqual('{:.4fL}'.format(ur), r'3.1416\left(\mathrm{NaN}\right)')
+        self.assertEqual(f'{ur:fL}', r'3.14\left(\mathrm{NaN}\right)')
+        self.assertEqual(f'{ur:.4fL}', r'3.1416\left(\mathrm{NaN}\right)')
 
         ur = UncertainReal._elementary(nan, 3.142, inf, None, True)
-        self.assertEqual('{:L}'.format(ur), r'\mathrm{NaN}\left(3.142\right)')
+        self.assertEqual(f'{ur:L}', r'\mathrm{NaN}\left(3.142\right)')
 
         ur = UncertainReal._elementary(-inf, inf, inf, None, True)
-        self.assertEqual('{:FL}'.format(ur), r'-\infty\left(\infty\right)')
+        self.assertEqual(f'{ur:FL}', r'-\infty\left(\infty\right)')
 
     def test_percent_type(self):
         ur = ureal(0.1548175123, 0.0123456)
 
         fmt = create_format(ur, digits=1, type='%')
-        self.assertEqual('{:.1%}'.format(ur),  '15(1)%')
+        self.assertEqual(f'{ur:.1%}',  '15(1)%')
         self.assertEqual(to_string(ur, fmt),   '15(1)%')
         self.assertEqual(to_string(ur.x, fmt), '15%')
         self.assertEqual(to_string(ur.u, fmt), '1%')
@@ -2128,7 +2128,7 @@ class TestFormatting(unittest.TestCase):
                          'label=None)')
 
         fmt = create_format(ur, digits=3, type='%', style='L')
-        self.assertEqual('{:.3%L}'.format(ur), r'15.48\left(1.23\right)\%')
+        self.assertEqual(f'{ur:.3%L}', r'15.48\left(1.23\right)\%')
         self.assertEqual(to_string(ur, fmt),   r'15.48\left(1.23\right)\%')
         self.assertEqual(to_string(ur.x, fmt), r'15.48\%')
         self.assertEqual(to_string(ur.u, fmt), r'1.23\%')
@@ -2145,7 +2145,7 @@ class TestFormatting(unittest.TestCase):
         ur = ureal(0.1548175123, 0.000123456)
 
         fmt = create_format(ur, type='%', style='L')
-        self.assertEqual('{:%L}'.format(ur),  r'15.482\left(12\right)\%')
+        self.assertEqual(f'{ur:%L}',  r'15.482\left(12\right)\%')
         self.assertEqual(to_string(ur, fmt),  r'15.482\left(12\right)\%')
         self.assertEqual(to_string(ur.x, fmt), r'15.482\%')
         self.assertEqual(to_string(ur.u, fmt), r'0.012\%')
@@ -2162,7 +2162,7 @@ class TestFormatting(unittest.TestCase):
         uc = ucomplex(1548175.123+4321.45j, (123.456, 1.32))
 
         fmt = create_format(uc, digits=1, type='%')
-        self.assertEqual('{:.1%}'.format(uc),  '(154817500(12300)+432100(100)j)%')
+        self.assertEqual(f'{uc:.1%}',  '(154817500(12300)+432100(100)j)%')
         self.assertEqual(to_string(uc, fmt),   '(154817500(12300)+432100(100)j)%')
         self.assertEqual(to_string(uc.x, fmt), '(154817500+432100j)%')
         self.assertEqual(to_string(uc.u, fmt), '(12300+100j)%')
@@ -2180,7 +2180,7 @@ class TestFormatting(unittest.TestCase):
         uc = ucomplex(0.062872513, 0.00023164)
 
         fmt = create_format(uc, digits=3, type='%', style='L')
-        self.assertEqual('{:.3%L}'.format(uc),  r'\left(6.2873\left(232\right)+0.0000\left(232\right)j\right)\%')
+        self.assertEqual(f'{uc:.3%L}',  r'\left(6.2873\left(232\right)+0.0000\left(232\right)j\right)\%')
         self.assertEqual(to_string(uc, fmt),   r'\left(6.2873\left(232\right)+0.0000\left(232\right)j\right)\%')
         self.assertEqual(to_string(uc.x, fmt), r'\left(6.2873+0.0000j\right)\%')
         self.assertEqual(to_string(uc.u, fmt), r'\left(0.0232+0.0232j\right)\%')
@@ -2215,73 +2215,73 @@ class TestFormatting(unittest.TestCase):
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),    '1,23(99)')
             self.assertEqual(to_string(ur.x, fmt),  '1,23')
-            self.assertEqual('{:.3n}'.format(ur.x), '1,23')
+            self.assertEqual(f'{ur.x:.3n}', '1,23')
             self.assertEqual(to_string(ur.u, fmt),  '0,99')
-            self.assertEqual('{:.2n}'.format(ur.u), '0,99')
+            self.assertEqual(f'{ur.u:.2n}', '0,99')
         else:
             self.assertEqual(to_string(ur, fmt),    '1.23(99)')
             self.assertEqual(to_string(ur.x, fmt),  '1.23')
-            self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+            self.assertEqual(f'{ur.x:.3n}', '1.23')
             self.assertEqual(to_string(ur.u, fmt),  '0.99')
-            self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+            self.assertEqual(f'{ur.u:.2n}', '0.99')
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1234567,8987')
+            self.assertEqual(f'{ur.x:.11n}', '1234567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
         elif sys.version_info[:2] == (2, 7) or (sys.platform == 'win32' and
                                                 sys.version_info[:2] == (3, 5)):
             if sys.platform == 'win32':
                 self.assertEqual(to_string(ur, fmt),     '1\x92234\x92567.8987(9877)')
                 self.assertEqual(to_string(ur.x, fmt),   '1\x92234\x92567.8987')
-                self.assertEqual('{:.11n}'.format(ur.x), '1\x92234\x92567.8987')
+                self.assertEqual(f'{ur.x:.11n}', '1\x92234\x92567.8987')
                 self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-                self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+                self.assertEqual(f'{ur.u:.4n}',  '0.9877')
             else:
                 self.assertEqual(to_string(ur, fmt),     '1\xe2\x80\x99234\xe2\x80\x99567.8987(9877)')
                 self.assertEqual(to_string(ur.x, fmt),   '1\xe2\x80\x99234\xe2\x80\x99567.8987')
-                self.assertEqual('{:.11n}'.format(ur.x), '1\xe2\x80\x99234\xe2\x80\x99567.8987')
+                self.assertEqual(f'{ur.x:.11n}', '1\xe2\x80\x99234\xe2\x80\x99567.8987')
                 self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-                self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+                self.assertEqual(f'{ur.u:.4n}',  '0.9877')
         else:
             self.assertEqual(to_string(ur, fmt),     '1’234’567.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1’234’567.8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1’234’567.8987')
+            self.assertEqual(f'{ur.x:.11n}', '1’234’567.8987')
             self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12345,6789')
+            self.assertEqual(f'{ur.x:.9n}', '12345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9876,5432')
+            self.assertEqual(f'{ur.u:.8n}', '9876,5432')
         elif sys.version_info[:2] == (2, 7) or (sys.platform == 'win32' and
                                                 sys.version_info[:2] == (3, 5)):
             if sys.platform == 'win32':
                 self.assertEqual(to_string(ur, fmt),    '12\x92345.6789(9\x92876.5432)')
                 self.assertEqual(to_string(ur.x, fmt),  '12\x92345.6789')
-                self.assertEqual('{:.9n}'.format(ur.x), '12\x92345.6789')
+                self.assertEqual(f'{ur.x:.9n}', '12\x92345.6789')
                 self.assertEqual(to_string(ur.u, fmt),  '9\x92876.5432')
-                self.assertEqual('{:.8n}'.format(ur.u), '9\x92876.5432')
+                self.assertEqual(f'{ur.u:.8n}', '9\x92876.5432')
             else:
                 self.assertEqual(to_string(ur, fmt),    '12\xe2\x80\x99345.6789(9\xe2\x80\x99876.5432)')
                 self.assertEqual(to_string(ur.x, fmt),  '12\xe2\x80\x99345.6789')
-                self.assertEqual('{:.9n}'.format(ur.x), '12\xe2\x80\x99345.6789')
+                self.assertEqual(f'{ur.x:.9n}', '12\xe2\x80\x99345.6789')
                 self.assertEqual(to_string(ur.u, fmt),  '9\xe2\x80\x99876.5432')
-                self.assertEqual('{:.8n}'.format(ur.u), '9\xe2\x80\x99876.5432')
+                self.assertEqual(f'{ur.u:.8n}', '9\xe2\x80\x99876.5432')
         else:
             self.assertEqual(to_string(ur, fmt),    '12’345.6789(9’876.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12’345.6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12’345.6789')
+            self.assertEqual(f'{ur.x:.9n}', '12’345.6789')
             self.assertEqual(to_string(ur.u, fmt),  '9’876.5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9’876.5432')
+            self.assertEqual(f'{ur.u:.8n}', '9’876.5432')
 
     def test_type_n_german(self):
         if sys.platform == 'win32':
@@ -2296,39 +2296,39 @@ class TestFormatting(unittest.TestCase):
         fmt = create_format(ur, type='n')
         self.assertEqual(to_string(ur, fmt),    '1,23(99)')
         self.assertEqual(to_string(ur.x, fmt),  '1,23')
-        self.assertEqual('{:.3n}'.format(ur.x), '1,23')
+        self.assertEqual(f'{ur.x:.3n}', '1,23')
         self.assertEqual(to_string(ur.u, fmt),  '0,99')
-        self.assertEqual('{:.2n}'.format(ur.u), '0,99')
+        self.assertEqual(f'{ur.u:.2n}', '0,99')
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1234567,8987')
+            self.assertEqual(f'{ur.x:.11n}', '1234567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
         else:
             self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1.234.567,8987')
+            self.assertEqual(f'{ur.x:.11n}', '1.234.567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12345,6789')
+            self.assertEqual(f'{ur.x:.9n}', '12345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9876,5432')
+            self.assertEqual(f'{ur.u:.8n}', '9876,5432')
         else:
             self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12.345,6789')
+            self.assertEqual(f'{ur.x:.9n}', '12.345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9.876,5432')
+            self.assertEqual(f'{ur.u:.8n}', '9.876,5432')
 
         if sys.version_info.major > 2:
             # Python 2.7 does not support the # symbol but Python 3.x does
@@ -2336,9 +2336,9 @@ class TestFormatting(unittest.TestCase):
             fmt = create_format(ur, type='n', digits=1, hash=True)
             self.assertEqual(to_string(ur, fmt),     '2,(1,)e+03')
             self.assertEqual(to_string(ur.x, fmt),   '2,e+03')
-            self.assertEqual('{:#.1n}'.format(ur.x), '2,e+03')
+            self.assertEqual(f'{ur.x:#.1n}', '2,e+03')
             self.assertEqual(to_string(ur.u, fmt),   '1,e+03')
-            self.assertEqual('{:#.1n}'.format(ur.u), '1,e+03')
+            self.assertEqual(f'{ur.u:#.1n}', '1,e+03')
 
         ur = ureal(12345, 9876)
         fmt = create_format(ur, type='n', sign=' ', hash=True)
@@ -2347,8 +2347,8 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur.u, fmt),    ' 9,9e+03')
         if sys.version_info.major > 2:
             # Python 2.7 does not support the # symbol but Python 3.x does
-            self.assertEqual('{: #.3n}'.format(ur.x), ' 1,23e+04')
-            self.assertEqual('{: #.2n}'.format(ur.u), ' 9,9e+03')
+            self.assertEqual(f'{ur.x: #.3n}', ' 1,23e+04')
+            self.assertEqual(f'{ur.u: #.2n}', ' 9,9e+03')
 
     def test_type_n_india(self):
         # this locale is interesting because it can have a different
@@ -2365,39 +2365,39 @@ class TestFormatting(unittest.TestCase):
         fmt = create_format(ur, type='n')
         self.assertEqual(to_string(ur, fmt),    '1.23(99)')
         self.assertEqual(to_string(ur.x, fmt),  '1.23')
-        self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+        self.assertEqual(f'{ur.x:.3n}', '1.23')
         self.assertEqual(to_string(ur.u, fmt),  '0.99')
-        self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+        self.assertEqual(f'{ur.u:.2n}', '0.99')
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),     '12,345,67.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '12,345,67.8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '12,345,67.8987')
+            self.assertEqual(f'{ur.x:.11n}', '12,345,67.8987')
             self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
         else:
             self.assertEqual(to_string(ur, fmt),     '12,34,567.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '12,34,567.8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '12,34,567.8987')
+            self.assertEqual(f'{ur.x:.11n}', '12,34,567.8987')
             self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
         if sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),    '123,45.6789(98,76.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '123,45.6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '123,45.6789')
+            self.assertEqual(f'{ur.x:.9n}', '123,45.6789')
             self.assertEqual(to_string(ur.u, fmt),  '98,76.5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '98,76.5432')
+            self.assertEqual(f'{ur.u:.8n}', '98,76.5432')
         else:
             self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
+            self.assertEqual(f'{ur.x:.9n}', '12,345.6789')
             self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
+            self.assertEqual(f'{ur.u:.8n}', '9,876.5432')
 
     def test_type_n_kiwi(self):
         # make sure the native locale for MSL is good
@@ -2413,33 +2413,33 @@ class TestFormatting(unittest.TestCase):
         fmt = create_format(ur, type='n')
         self.assertEqual(to_string(ur, fmt),    '1.23(99)')
         self.assertEqual(to_string(ur.x, fmt),  '1.23')
-        self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+        self.assertEqual(f'{ur.x:.3n}', '1.23')
         self.assertEqual(to_string(ur.u, fmt),  '0.99')
-        self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+        self.assertEqual(f'{ur.u:.2n}', '0.99')
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
         self.assertEqual(to_string(ur, fmt),     '1,234,567.8987(9877)')
         self.assertEqual(to_string(ur.x, fmt),   '1,234,567.8987')
-        self.assertEqual('{:.11n}'.format(ur.x), '1,234,567.8987')
+        self.assertEqual(f'{ur.x:.11n}', '1,234,567.8987')
         self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-        self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+        self.assertEqual(f'{ur.u:.4n}',  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
         self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
         self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
-        self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
+        self.assertEqual(f'{ur.x:.9n}', '12,345.6789')
         self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
-        self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
+        self.assertEqual(f'{ur.u:.8n}', '9,876.5432')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8, sign='+')
         self.assertEqual(to_string(ur, fmt),     '+12,345.6789(9,876.5432)')
         self.assertEqual(to_string(ur.x, fmt),   '+12,345.6789')
-        self.assertEqual('{:+.9n}'.format(ur.x), '+12,345.6789')
+        self.assertEqual(f'{ur.x:+.9n}', '+12,345.6789')
         self.assertEqual(to_string(ur.u, fmt),   '+9,876.5432')
-        self.assertEqual('{:+.8n}'.format(ur.u), '+9,876.5432')
+        self.assertEqual(f'{ur.u:+.8n}', '+9,876.5432')
 
     def test_type_n_afrikaans(self):
         # this locale is interesting because it can have non-ascii characters
@@ -2456,57 +2456,57 @@ class TestFormatting(unittest.TestCase):
         if sys.platform.startswith('linux'):
             self.assertEqual(to_string(ur, fmt),    '1.23(99)')
             self.assertEqual(to_string(ur.x, fmt),  '1.23')
-            self.assertEqual('{:.3n}'.format(ur.x), '1.23')
+            self.assertEqual(f'{ur.x:.3n}', '1.23')
             self.assertEqual(to_string(ur.u, fmt),  '0.99')
-            self.assertEqual('{:.2n}'.format(ur.u), '0.99')
+            self.assertEqual(f'{ur.u:.2n}', '0.99')
         else:
             self.assertEqual(to_string(ur, fmt),    '1,23(99)')
             self.assertEqual(to_string(ur.x, fmt),  '1,23')
-            self.assertEqual('{:.3n}'.format(ur.x), '1,23')
+            self.assertEqual(f'{ur.x:.3n}', '1,23')
             self.assertEqual(to_string(ur.u, fmt),  '0,99')
-            self.assertEqual('{:.2n}'.format(ur.u), '0,99')
+            self.assertEqual(f'{ur.u:.2n}', '0,99')
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
         if sys.platform == 'win32':
             self.assertEqual(to_string(ur, fmt),     '1\xa0234\xa0567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1\xa0234\xa0567,8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1\xa0234\xa0567,8987')
+            self.assertEqual(f'{ur.x:.11n}', '1\xa0234\xa0567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
         elif sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1.234.567,8987')
+            self.assertEqual(f'{ur.x:.11n}', '1.234.567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0,9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
         else:
             self.assertEqual(to_string(ur, fmt),     '1,234,567.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1,234,567.8987')
-            self.assertEqual('{:.11n}'.format(ur.x), '1,234,567.8987')
+            self.assertEqual(f'{ur.x:.11n}', '1,234,567.8987')
             self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual('{:.4n}'.format(ur.u),  '0.9877')
+            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
         if sys.platform == 'win32':
             self.assertEqual(to_string(ur, fmt),    '12\xa0345,6789(9\xa0876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12\xa0345,6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12\xa0345,6789')
+            self.assertEqual(f'{ur.x:.9n}', '12\xa0345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9\xa0876,5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9\xa0876,5432')
+            self.assertEqual(f'{ur.u:.8n}', '9\xa0876,5432')
         elif sys.platform == 'darwin':
             self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12.345,6789')
+            self.assertEqual(f'{ur.x:.9n}', '12.345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9.876,5432')
+            self.assertEqual(f'{ur.u:.8n}', '9.876,5432')
         else:
             self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
-            self.assertEqual('{:.9n}'.format(ur.x), '12,345.6789')
+            self.assertEqual(f'{ur.x:.9n}', '12,345.6789')
             self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
-            self.assertEqual('{:.8n}'.format(ur.u), '9,876.5432')
+            self.assertEqual(f'{ur.u:.8n}', '9,876.5432')
 
     def test_to_string_raises(self):
         ur = ureal(1, 1)
