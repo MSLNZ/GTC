@@ -652,7 +652,6 @@ class LSFit(object):
   Parameters: {self._beta!r}
   Sum of the squared residuals: {self._ssr:G}
 '''
-)
 
     #------------------------------------------------------------------------
     def y_from_x(self,x,label=None):
