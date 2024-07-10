@@ -14,12 +14,18 @@ from GTC.lib import (
     append_real_ensemble,
     value,
 )
+from GTC import cholesky 
 from GTC import magnitude, sqrt     # Polymorphic functions
-from GTC import result              # To apply labels
+from GTC import result              
 
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
 
+# We mostly use numpy routines in this module because they will 
+# execute more quickly than the Numerical Recipe equivalents.
+# A consequence is that arguments cannot be uncertain numbers,
+# which is possible in the type_a module. Perhaps we need to
+# strip off the values.
 #----------------------------------------------------------------------------
 def svbksb(u,w,v,b):
     """
@@ -82,14 +88,14 @@ def solve(a,b,TOL=1E-5):
 #----------------------------------------------------------------------------
 def svdfit(x,y,sig,fn):
     """
-    Return the LS coefficients of the ``fn`` parameters 
+    Return estimates of the best-fit parameters for ``fn`` to the data
 
     .. versionadded:: 1.4.x
     
     :arg x: an ``M`` element array
     :arg y: an ``M`` element array
-    :arg sig: an ``M`` element array of float
-    :arg fn: user-defined function to evaluate basis functions 
+    :arg sig: an ``M`` element array of standard deviations in ``y``
+    :arg fn: user-defined function to evaluate basis functions at a stimulus value
     
     """
     # `TOL` is used to set relatively small singular values to zero
@@ -97,19 +103,18 @@ def svdfit(x,y,sig,fn):
     # solution slightly less accurate. The value can be varied.
     TOL = 1E-5
     
+    # fn(x_i) returns an P-sized array of values for
+    # each basis function at the stimulus point `x_i`
     afunc_i = fn(x[0])  
     
-    M = len(x) 
-    P = len( afunc_i )  # fn() returns a sequence of length M 
-
-    if M <= P:
-        raise RuntimeError(
-            "M = {} but should be > {}".format(M,P)
-        )     
-     
     # M - number of data points 
     # P - number of parameters to fit 
-   
+    M = len(x) 
+    P = len( afunc_i )   
+
+    if M <= P:
+        raise RuntimeError( f"M = {M} but should be > {P}" )     
+        
     a = np.empty( (M,P), dtype=float )
     b = np.empty( (M,), dtype=float )    
     
@@ -122,7 +127,10 @@ def svdfit(x,y,sig,fn):
         
         if i < M-1:
             afunc_i = fn(x[i+1])
-    
+
+    # TODO: these two lines and the use of `value` are the only difference between this routine 
+    # and the type-B one! Perhaps define an svd_decomp function reference as argument?
+    # In this module, svd_decomp would wrap around these two lines
     u,w,vh = np.linalg.svd(a, full_matrices=False )
     v = vh.T    # NR routines work for V not V.T
     
@@ -160,6 +168,8 @@ def svdfit(x,y,sig,fn):
     return coef, chisq, w, v
  
 #----------------------------------------------------------------------------
+# TODO: this is identical to the type-B definition (value() is used there but
+# would be ok in this version too.
 def svdvar(v,w):
     """
     Calculate the variance-covariance matrix after ``svdfit``
@@ -170,6 +180,7 @@ def svdvar(v,w):
     :arg w: an ``P`` element sequence of float 
     
     """
+    # Based on Numerical Recipes 'svdvar'
     P = len(w)  
     cv = np.empty( (P,P), dtype=float )
     
@@ -188,12 +199,11 @@ def svdvar(v,w):
     return cv  
  
 #----------------------------------------------------------------------------
-def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
+def coef_as_uncertain_numbers(coef,chisq,w,v,M,label=None):
     """
     Create uncertain numbers for the fitted parameters 
 
     """
-    M = len(sig)
     P = len(coef) 
     df = M - P
            
@@ -204,9 +214,9 @@ def coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=None):
     ensemble = []
     for i in range(P):
         if label is None:
-            label_i = 'b_{}'.format(i)   
+            label_i = f'b_{i}' 
         else:
-            label_i = '{}_{}'.format(label,i)
+            label_i = f'{label}_{i}'
             
         u_i = math.sqrt(cv[i,i])
         
@@ -261,9 +271,77 @@ def ols(x,y,fn,fn_inv=None,label=None):
             
     sig = np.ones( (M,) )
     coef, chisq, w, v = svdfit(x,y,sig,fn)
-    coef = coef_as_uncertain_numbers(coef,chisq,w,v,sig,label=label)
+    coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
 
     return OLSFit( coef,chisq,fn,fn_inv,M )  
+    
+#----------------------------------------------------------------------------
+def wls(x,y,u_y,fn,fn_inv=None,label=None):
+    """Ordinary least squares fit of response data to stimulus values
+    
+    :arg x: sequence of stimulus values (independent-variable)
+    :arg y: sequence of response data (dependent-variable)   
+    :arg y: sequence of standard uncertainties for response data    
+    :arg fn: a user-defined function relating the stimulus to the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :arg label: suffix to label the fitted parameters
+    :returns:   an object containing regression results
+    :rtype:     :class:`WLSFit``
+    
+    """
+    M = len(y)   
+    if M != len(x):
+        raise RuntimeError( "len(x) != len(y)" )
+    if M != len(u_y):
+        raise RuntimeError( "len(x) != len(u_y)")
+        
+    coef, chisq, w, v = svdfit(x,y,u_y,fn)
+    coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
+
+    return WLSFit( coef,chisq,fn,fn_inv,M )  
+
+#----------------------------------------------------------------------------
+def gls(x,y,cv,fn,fn_inv=None,label=None):
+    """Generalised least squares fit of ``y`` to ``x``
+    
+    :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    :arg y: a sequence of ``M`` responses (dependent-variable)  
+    :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :returns:   an object containing regression results
+    :rtype:     :class:`GLSFit``
+    
+    """
+    M = len(x) 
+
+    # P - number of parameters to fit 
+    afunc_i = fn(x[0])  
+    P = len( afunc_i )   
+
+    if cv.shape != (M,M):
+        raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
+    
+    K = cholesky.cholesky_decomp(cv)
+    Kinv = cholesky.cholesky_inv(K)
+    
+    X = np.array( x, dtype=object )
+    Y = np.array( y, dtype=object ).T
+    
+    Q = np.matmul(Kinv,X) 
+    Z = np.matmul(Kinv,Y) 
+   
+    x = []
+    y = []
+    for i in range(M):
+        x.append( [ Q[i,j] for j in range(P) ] )    # x is M by P 
+        y.append( Z[i] )
+         
+    coef, chisq, w, v = svdfit(x,y,np.ones( (M,) ),fn)
+    coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
+
+    return GLSFit( coef,chisq,fn,fn_inv,M )
+    
 
 #-----------------------------------------------------------------------------------------
 class LSFit(object):
@@ -292,17 +370,16 @@ class LSFit(object):
 
     def __str__(self):
         return f'''
-  Number of points: {self._N}
+  Number of observations: {self._N}
   Number of parameters: {self._P}
   Parameters: {self._beta!r}
   Sum of the squared residuals: {self._ssr:G}
 '''
 
-
     #------------------------------------------------------------------------
     def y_from_x(self,x,s_label=None,y_label=None):
         """
-        Return the uncertain number ``y`` that is the response to ``x`` 
+        Return an uncertain number ``y`` that predicts the response to ``x``
         
         :arg x: a real number array, or an uncertain real number array
         :arg s_label: a label for an elementary uncertain number associated with observation variability  
@@ -312,8 +389,8 @@ class LSFit(object):
         
         The variability in observations is based on residuals obtained during regression.
         
-        An uncertain real number can be used for ``x``, in which
-        case the associated uncertainty will also be propagated into ``y``.
+        If an uncertain real number is used for ``x``, 
+        the uncertainty associated with ``x`` will be propagated into ``y``.
 
         .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
@@ -331,7 +408,7 @@ class LSFit(object):
         )
         append_real_ensemble(self.beta[0],noise)
         
-        # This `_y` represents the mean response to `x`.
+        # `_y` estimates the mean response to `x`.
         _y = np.dot( self.beta,np.array( self._fn(x) ) ) + noise
         
         if y_label is not None: _y = result(_y,y_label)
@@ -417,5 +494,37 @@ class OLSFit(LSFit):
     def __str__(self):
         header = '''
 Ordinary Least-Squares Results:
+'''
+        return header + str(LSFit)
+        
+#----------------------------------------------------------------------------
+class WLSFit(LSFit):
+
+    """
+    Results of a weighted least squares regression
+    """
+
+    def __init__(self,beta,ssr,fn,fn_inv,N):
+        LSFit.__init__(self,beta,ssr,fn,fn_inv,N)
+ 
+    def __str__(self):
+        header = '''
+Weighted Least-Squares Results:
+'''
+        return header + str(LSFit)
+        
+#----------------------------------------------------------------------------
+class GLSFit(LSFit):
+
+    """
+    Results of a general least squares regression
+    """
+
+    def __init__(self,beta,ssr,fn,fn_inv,N):
+        LSFit.__init__(self,beta,ssr,fn,fn_inv,N)
+ 
+    def __str__(self):
+        header = '''
+General Least-Squares Results:
 '''
         return header + str(LSFit)
