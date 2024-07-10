@@ -168,8 +168,8 @@ def svdfit(x,y,sig,fn):
     return coef, chisq, w, v
  
 #----------------------------------------------------------------------------
-# TODO: this is identical to the type-B definition (value() is used there but
-# would be ok in this version too.
+# This function is used internally in this module, and called by some 
+# unit tests in both test_type_a_SVD.py and test_type_b_SVD.py modules.
 def svdvar(v,w):
     """
     Calculate the variance-covariance matrix after ``svdfit``

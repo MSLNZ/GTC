@@ -444,7 +444,9 @@ def svdfit(x,y,sig,fn):
     return coef, chisq, w, v
    
 # #----------------------------------------------------------------------------
-# # TODO: why would anyone want this in the type-B module? 
+# # This function is not needed to evaluate variance-covariance in this module,
+# # but it completes the NR implementation and is called by some unit tests for 
+# # this module.
 # def svdvar(v,w):
     # """
     # Calculate the variance-covariance matrix after ``svdfit``
