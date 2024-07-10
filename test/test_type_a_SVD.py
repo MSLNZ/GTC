@@ -15,7 +15,7 @@ from GTC import cholesky
 from GTC import type_a_SVD as SVD
 from GTC.lib import _is_constant
 
-from testing_tools import *
+from testing_tools import * 
 
 #----------------------------------------------------------------------------
 class TestSVDWLS(unittest.TestCase):
@@ -556,6 +556,9 @@ class TestSVDOLS(unittest.TestCase):
     #------------------------------------------------------------------------
     def test5gls(self):
         # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
+        # which in turn came from Julian J. Faraway, 
+        # "Practical Regression and Anova using R", 2002
+        # https://cran.r-project.org/doc/contrib/Faraway-PRA.pdf
         #
         # year, GNP.deflator, GNP, Unemployed, Armed.Forces, Population, Year, Employed
         s =  """
