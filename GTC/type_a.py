@@ -301,8 +301,8 @@ Relative Weighted Least-Squares Results:
         that the standard deviation in the ``y`` value is 
         proportional to ``s_y``.
         
-        An uncertain real number can be used for ``x``, in which
-        case the associated uncertainty is also propagated into ``y``.
+        If an uncertain real number is used for ``x``, 
+        the uncertainty associated with ``x`` will be propagated into ``y``.
         
         .. note::
             When ``y_label`` is defined, the uncertain number returned will be 
