@@ -74,21 +74,13 @@ import math
 
 import numpy as np
 
-try:  # Python 2
-    import __builtin__ as builtins
-    from collections import Iterable
-    from itertools import izip
-except ImportError:
-    import builtins
-    from collections.abc import Iterable
-    izip = zip
-    xrange = range
+import builtins
+from collections.abc import Iterable
     
 from GTC import (
     inf ,
     EPSILON,
     is_sequence
-
 )
 
 from GTC.named_tuples import InterceptSlope
@@ -375,7 +367,7 @@ def line_fit(x,y):
         >>> b0 = -3
         >>> u0 = .2
 
-        >>> x = [ float(x_i) for x_i in xrange(10) ]
+        >>> x = [ float(x_i) for x_i in range(10) ]
         >>> y = [ ureal(b0*x_i + a0,u0) for x_i in x ]
 
         >>> a,b = tb.line_fit(x,y).a_b
@@ -399,7 +391,7 @@ def line_fit(x,y):
 
     S_tt = sum( t_i*t_i for t_i in t )
     
-    b = sum( t_i*y_i/S_tt for t_i,y_i in izip(t,y) )
+    b = sum( t_i*y_i/S_tt for t_i,y_i in zip(t,y) )
     a = (S_y - b*S_x)/N
 
     if not isinstance(a, UncertainReal):
@@ -416,7 +408,7 @@ def line_fit(x,y):
     
     ssr =  math.fsum( 
         f2( value(x_i), value(y_i) ) 
-            for x_i,y_i in izip(x,y) 
+            for x_i,y_i in zip(x,y) 
     )
 
     return LineFitOLS(a,b,ssr,N)
@@ -483,15 +475,15 @@ def line_fit_wls(x,y,u_y=None):
         u = u_y     
         
     S = sum( 1.0/v_i for v_i in v)
-    S_x = sum( x_i/v_i for x_i,v_i in izip(x,v) )    
-    S_y = sum( y_i/v_i for y_i,v_i in izip(y,v) )
+    S_x = sum( x_i/v_i for x_i,v_i in zip(x,v) )    
+    S_y = sum( y_i/v_i for y_i,v_i in zip(y,v) )
 
     k = S_x / S
-    t = [ (x_i - k)/u_i for x_i,u_i in izip(x,u) ]
+    t = [ (x_i - k)/u_i for x_i,u_i in zip(x,u) ]
 
     S_tt = sum( t_i*t_i for t_i in t )
 
-    b = sum( t_i*y_i/u_i/S_tt for t_i,y_i,u_i in izip(t,y,u) )
+    b = sum( t_i*y_i/u_i/S_tt for t_i,y_i,u_i in zip(t,y,u) )
     a = (S_y - b*S_x)/S
 
     if not isinstance(a, UncertainReal):
@@ -508,7 +500,7 @@ def line_fit_wls(x,y,u_y=None):
     
     ssr =  math.fsum( 
         f2( value(x_i), value(y_i), u_i ) 
-            for x_i,y_i,u_i in izip(x,y,u) 
+            for x_i,y_i,u_i in zip(x,y,u) 
     )
 
     return LineFitWLS(a,b,ssr,len(x))
@@ -562,7 +554,7 @@ def _dbrent(ax,bx,cx,fn,tol=math.sqrt(EPSILON)):
     # value of `w`, `u` is the point at which the function was most 
     # recently evaluated.
     
-    for i in xrange(ITMAX):
+    for i in range(ITMAX):
         
         xm = 0.5*(a + b)
         tol1 = tol*abs(x) + ZEPS
@@ -704,13 +696,13 @@ def _arrays(sin_a,cos_a,sin_2a,cos_2a,x,y,u2_x,u2_y,cov):
     # eqn(53)
     g_k = [
         (u2_x_i + u2_y_i)/2.0 - (u2_x_i - u2_y_i)*cos_2a/2.0 - 2.0*cov_i*sin_2a
-            for u2_x_i, u2_y_i, cov_i in izip(u2_x,u2_y,cov)
+            for u2_x_i, u2_y_i, cov_i in zip(u2_x,u2_y,cov)
     ]
 
 ##    # eqn(32)
 ##    g_k = [
 ##        u2_x_i*sin_a_2 + u2_y_i*cos_a_2 - two_sin_cos_a*cov_i
-##            for u2_x_i, u2_y_i, cov_i in izip(u2_x,u2_y,cov)
+##            for u2_x_i, u2_y_i, cov_i in zip(u2_x,u2_y,cov)
 ##    ]
 
     N = len(g_k)
@@ -726,17 +718,17 @@ def _arrays(sin_a,cos_a,sin_2a,cos_2a,x,y,u2_x,u2_y,cov):
 
     # Eqns (35,36,43)
     x_bar = sum(
-        w_k_i*x_i for w_k_i,x_i in izip(w_k,x)
+        w_k_i*x_i for w_k_i,x_i in zip(w_k,x)
     ) / N
     
     y_bar = sum(
-        w_k_i*y_i for w_k_i,y_i in izip(w_k,y)
+        w_k_i*y_i for w_k_i,y_i in zip(w_k,y)
     ) / N
 
     p_hat = y_bar*cos_a - x_bar*sin_a    
     
     # eqn(31)
-    v_k = [ y_i*cos_a - x_i*sin_a - p_hat for x_i,y_i in izip(x,y) ]  
+    v_k = [ y_i*cos_a - x_i*sin_a - p_hat for x_i,y_i in zip(x,y) ]  
 
     return v_k,u2_x,u2_y,g_k,u2,x_bar,y_bar,p_hat
 
@@ -766,14 +758,14 @@ class ChiSq:
             self.u2_x = [ u_i**2 for u_i in u_x ]
             self.u2_y = [ u_i**2 for u_i in u_y ]
             self.cov = [ u_x_i*u_y_i*r_i
-                for u_x_i,u_y_i,r_i in izip(u_x,u_y,r_xy) 
+                for u_x_i,u_y_i,r_i in zip(u_x,u_y,r_xy) 
             ]  
         else:    
             self.u2_x = [ x_i.v for x_i in x ]
             self.u2_y = [ y_i.v for y_i in y ]
         
             self.cov = [ x_i.get_covariance(y_i)
-                for x_i,y_i in izip(x,y)
+                for x_i,y_i in zip(x,y)
             ]
         
     #--------------------------------------------------------------------
@@ -812,7 +804,7 @@ class ChiSq:
             
         # Eqn (30)
         chi_2 = sum(
-            v_k_i**2/g_k_i for v_k_i,g_k_i in izip(v_k,g_k)
+            v_k_i**2/g_k_i for v_k_i,g_k_i in zip(v_k,g_k)
         )
         
         return chi_2
@@ -844,13 +836,13 @@ class dChiSq_dalpha:
             self.u2_x = [ u_i**2 for u_i in u_x ]
             self.u2_y = [ u_i**2 for u_i in u_y ]
             self.cov = [ u_x_i*u_y_i*r_i
-                for u_x_i,u_y_i,r_i in izip(u_x,u_y,r_xy) 
+                for u_x_i,u_y_i,r_i in zip(u_x,u_y,r_xy) 
             ]  
         else:
             self.u2_x = [ x_i.v for x_i in x ]
             self.u2_y = [ y_i.v for y_i in y ]
             self.cov = [ x_i.get_covariance(y_i)
-                for x_i,y_i in izip(x,y) 
+                for x_i,y_i in zip(x,y) 
             ]      
         
     #--------------------------------------------------------------------
@@ -867,11 +859,11 @@ class dChiSq_dalpha:
         )
 
         # d(v_k)_d(alpha)
-        v_ka = [ -y_i*sin_a - x_i*cos_a for x_i,y_i in izip(self.x,self.y) ]
+        v_ka = [ -y_i*sin_a - x_i*cos_a for x_i,y_i in zip(self.x,self.y) ]
         
         # d(g_k)_d(alpha)
         g_ka = [ sin_2a*(u2_x_i-u2_y_i) - 2.0*cov_i*cos_2a
-            for u2_x_i,u2_y_i,cov_i in izip(u2_x,u2_y,self.cov) ]
+            for u2_x_i,u2_y_i,cov_i in zip(u2_x,u2_y,self.cov) ]
         
         return v_k, v_ka, g_k, g_ka
 
@@ -889,7 +881,7 @@ class dChiSq_dalpha:
         dy_dx = sum(
            (2.0*v_k_i*g_k_i*v_ka_i - v_k_i**2*g_ka_i)/g_k_i**2
                 for v_k_i,v_ka_i,g_k_i,g_ka_i
-                    in izip(v_k, v_ka, g_k, g_ka)
+                    in zip(v_k, v_ka, g_k, g_ka)
         )
         
         return dy_dx
@@ -969,7 +961,7 @@ def line_fit_wtls(x,y,u_x=None,u_y=None,a_b=None,r_xy=None):
                 f"incompatible sequence lengths: {u_x!r}, {u_y!r}"
             )
 
-    for x_i,y_i in izip(x,y):
+    for x_i,y_i in zip(x,y):
         assert isinstance(x_i,UncertainReal), 'uncertain real required'
         assert isinstance(y_i,UncertainReal), 'uncertain real required'
 
