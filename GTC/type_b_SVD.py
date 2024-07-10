@@ -374,23 +374,23 @@ def svdfit(x,y,sig,fn):
     :arg fn: user-defined function to evaluate basis functions 
     
     """
+    # Based on Numerical Recipes 'svdfit'
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
     # solution slightly less accurate. The value can be varied.
     TOL = 1E-5
     
+    # fn(x_i) returns an P-sized array of values for
+    # each basis function at the stimulus point `x_i`
     afunc_i = fn(x[0])
     
     # M - number of data points 
-    # P - number of parameters to fit 
-    
+    # P - number of parameters to fit    
     M = len(x) 
     P = len( afunc_i )
     
     if M <= P:
-        raise RuntimeError(
-            "M = {} but should be > {}".format(M,P)
-        )     
+        raise RuntimeError( f"M = {M} but should be > {P}" )     
      
     a = np.empty( (M,P), dtype=object )
     b = np.empty( (M,), dtype=object )    
@@ -443,44 +443,46 @@ def svdfit(x,y,sig,fn):
     # w and v are used to evaluate parameter covariance 
     return coef, chisq, w, v
    
-#----------------------------------------------------------------------------
-def svdvar(v,w):
-    """
-    Calculate the variance-covariance matrix after ``svdfit``
+# #----------------------------------------------------------------------------
+# # TODO: why would anyone want this in the type-B module? 
+# def svdvar(v,w):
+    # """
+    # Calculate the variance-covariance matrix after ``svdfit``
     
-    .. versionadded:: 1.4.x
+    # .. versionadded:: 1.4.x
     
-    :arg v: an ``P`` by ``P`` matrix of float
-    :arg w: an ``P`` element sequence of float 
+    # :arg v: an ``P`` by ``P`` matrix of float
+    # :arg w: an ``P`` element sequence of float 
     
-    """
-    P = len(w)  
-    cv = np.empty( (P,P), dtype=float )
+    # """
+    # P = len(w)  
+    # cv = np.empty( (P,P), dtype=float )
     
-    wti = [
-        1.0/value(w_i*w_i) if w_i != 0 else 0.0
-            for w_i in w 
-    ]
+    # wti = [
+        # 1.0/value(w_i*w_i) if w_i != 0 else 0.0
+            # for w_i in w 
+    # ]
     
-    for i in range(P):
-        for j in range(i+1):
-            cv[i,j] = cv[j,i] = math.fsum(
-                value( v[i,k]*v[j,k]*wti[k] )
-                    for k in range(P)
-            )
+    # for i in range(P):
+        # for j in range(i+1):
+            # cv[i,j] = cv[j,i] = math.fsum(
+                # value( v[i,k]*v[j,k]*wti[k] )
+                    # for k in range(P)
+            # )
     
-    return cv  
+    # return cv  
 
 #----------------------------------------------------------------------------
 def ols(x,y,fn,fn_inv=None):
     """Ordinary least squares fit of ``y`` to ``x``
     
-    :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    :arg y: a sequence of ``M`` responses (dependent-variable)  
-    :arg fn: a user-defined function relating ``x`` the response ``y``
-    :arg fn_inv: a user-defined function relating the response ``y`` to the stimulus ``x``
-    
-    Return a :class:`OLSFit` object containing the results 
+    :arg x: sequence of stimulus values (independent-variable)
+    :arg y: sequence of response data (dependent-variable)   
+    :arg fn: a user-defined function relating the stimulus to the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :arg label: suffix to label the fitted parameters
+    :returns:   an object containing regression results
+    :rtype:     :class:`OLSFit``
     
     """
     M = len(y)
@@ -494,100 +496,54 @@ def ols(x,y,fn,fn_inv=None):
     coef, chisq, w, v = svdfit(x,y,sig,fn)
    
     return OLSFit( coef,chisq,fn,fn_inv,M )
-    
 
+#----------------------------------------------------------------------------
+def wls(x,y,u_y,fn,fn_inv=None):    
+    """Weighted least squares fit of ``y`` to ``x``
+    
+    :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    :arg y: a sequence of ``M`` responses (dependent-variable)  
+    :arg u_y: a sequence of ``M`` standard uncertainties in the responses
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :returns:   an object containing regression results
+    :rtype:     :class:`WLSFit``
+    
+    """
+    M = len(y)
+    
+    if M != len(x):
+        raise RuntimeError( f"len(x) != len(y)" )
+    if M != len(u_y):
+        raise RuntimeError( "len(x) != len(u_y)")
+    
+    coef, chisq, w, v = svdfit(x,y,u_y,fn)
+    
+    return WLSFit( coef,chisq,fn,fn_inv,M )
+
+
+## _ls is used in the type-A calc to set up the elementary uncertain numbers.
+# No need for that in type-B. However, do we want to allow the parameters 
+# to be declared results, with labels?
 # #----------------------------------------------------------------------------
-# def wls(x,y,u_y,fn,P,label=None):    
-    # """Weighted least squares fit of ``y`` to ``x``
-    
-    # :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    # :arg y: a sequence of ``M`` responses (dependent-variable)  
-    # :arg u_y: a sequence of ``M`` standard uncertainties in the responses
-    # :arg fn: a user-defined function relating ``x`` the response
-    # :arg P: the number of parameters to be fitted 
-    # :arg label: a label for the fitted parameters
-    
-    # Return a :class:`WLSFit` object containing the results 
+# def _ls(x,y,sig,fn,label=None):
+    # """
     
     # """
-    # M = len(y)
+    # M = len(x) 
+    # if M != len(y):
+        # raise RuntimeError( "len(x) != len(y)" )
+
+    # b, chisq, w, v = svdfit(x,y,sig,fn)
     
-    # if M != len(x):
-        # raise RuntimeError(
-            # "len(x) {} != len(y) {}".format(len(x),M)
-        # )
-        
+    # P = len(w)
     # if M <= P:
-        # raise RuntimeError(
-            # "N {} should be > P {}".format(M,P)
-        # )     
-        
-    # return WLSFit( _ls(x,y,u_y,fn,P,label=label) )
-
-    
-# #----------------------------------------------------------------------------
-# def gls(x,y,cv,fn,P,label=None):
-    # """Generalised least squares fit of ``y`` to ``x``
-    
-    # :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    # :arg y: a sequence of ``M`` responses (dependent-variable)  
-    # :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
-    # :arg fn: a user-defined function relating ``x`` the response
-    # :arg P: the number of parameters to be fitted 
-    # :arg label: a label for the fitted parameters
-    
-    # Return a :class:`GLSFit` object containing the results 
-    
-    # """
-    # M = len(y)
-    
-    # if M != len(x):
-        # raise RuntimeError(
-            # "len(x) {} != len(y) {}".format(len(x),M)
-        # )
-        
-    # if M <= P:
-        # raise RuntimeError(
-            # "N {} should be > P {}".format(N,P)
-        # )     
-
-    # if cv.shape != (M,M):
-        # raise RuntimeError(
-            # "cv.shape {0:!s} should be {({1},{1})}".format(cv.shape,M)
-        # )     
-    
-    # # NB `cv` is real-valued
-    # K = cholesky.cholesky_decomp(cv)
-    # Kinv = cholesky.cholesky_inv(K)
-    
-    # X = np.array( x, dtype=object )
-    # Y = np.array( y, dtype=object ).T
-    
-    # Q = np.matmul(Kinv,X) 
-    # Z = np.matmul(Kinv,Y) 
-
-    # # X is M by P 
-    # x = []
-    # y = []
-    # for i in range(M):
-        # x.append( [ Q[i,j] for j in range(P) ] )
-        # y.append( Z[i,0] )
-         
-    # sig = np.ones( (M,) ) 
-
-    # return GLSFit( _ls(x,y,sig,fn,P,label=label) )
-        
-# #----------------------------------------------------------------------------
-# def _ls(x,y,sig,fn,P,label=None):
-    # """
-    
-    # """
-    # b, chisq, w, v = svdfit(x,y,sig,fn,P)
+        # raise RuntimeError( f"{M} should be > {P}" )     
     
     # df = N - P
     
     # s2 = chisq/df
-    # cv = s2*svd.svdvar(v,w)
+    # cv = s2*svdvar(v,w)
     
     # u = []
     # beta = []
@@ -595,9 +551,9 @@ def ols(x,y,fn,fn_inv=None):
         # u.append( math.sqrt(cv[i,i]) )
         
         # if label is None:
-            # label_i = 'b_{}'.format(i)   
+            # label_i = f'b_{i}'   
         # else:
-            # label_i = '{}_{}'.format(label,i)
+            # label_i = f'{label}_{i}'
             
         # b_i = _ureal(
             # b[i],
@@ -619,7 +575,44 @@ def ols(x,y,fn,fn_inv=None):
             # if r != 0:
                 # beta[i].set_correlation(r,beta[j])
             
-    # return beta,chisq,N,P
+    # return beta,chisq,M,P
+    
+    
+#----------------------------------------------------------------------------
+def gls(x,y,cv,fn,fn_inv=None,label=None):
+    """Generalised least squares fit of ``y`` to ``x``
+    
+    :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    :arg y: a sequence of ``M`` responses (dependent-variable)  
+    :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
+    :arg fn: a user-defined function relating ``x`` the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :returns:   an object containing regression results
+    :rtype:     :class:`GLSFit``
+    
+    """
+    M = len(y)        
+    if cv.shape != (M,M):
+        raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
+    
+    K = cholesky.cholesky_decomp(cv)
+    Kinv = cholesky.cholesky_inv(K)
+    
+    X = np.array( x, dtype=object )
+    Y = np.array( y, dtype=object ).T
+    
+    Q = np.matmul(Kinv,X) 
+    Z = np.matmul(Kinv,Y) 
+   
+    x = []
+    y = []
+    for i in range(M):
+        x.append( [ Q[i,j] for j in range(P) ] )    # x is M by P 
+        y.append( Z[i,0] )
+         
+    coef, chisq, w, v = svdfit(x,y,np.ones( (M,) ),fn)
+
+    return GLSFit( coef,chisq,fn,fn_inv,M )
     
 #-----------------------------------------------------------------------------------------
 # TODO: don't define this class twice!
