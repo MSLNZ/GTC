@@ -1,7 +1,5 @@
 """
 """
-from __future__ import division
-
 import math 
 import cmath 
 import numpy as np
@@ -47,7 +45,7 @@ def cholesky_decomp(a):
             )
                         
             if i == j: 
-                if isinstance(s,(int,float)): 
+                if isinstance(s,(int,float)) or np.issubdtype(type(s), np.generic): 
                     if abs(s)>0:
                         p_i = math.sqrt( s )
                     else:
@@ -63,7 +61,7 @@ def cholesky_decomp(a):
                         )                        
                     p_i = cmath.sqrt( s.real )
                 else:
-                    assert False, "unexpected: !r".format(s)
+                    assert False, f"unexpected: {s!r} {type(s)}"
                     
             L[j,i] = s / p_i
                  
