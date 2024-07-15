@@ -7,6 +7,7 @@ Module contents
 """
 import math
 import numpy as np
+from GTC.linear_algebra import _dtype_float
 
 from GTC.lib import (
     UncertainReal,
@@ -17,6 +18,7 @@ from GTC.lib import (
 from GTC import cholesky 
 from GTC import magnitude, sqrt     # Polymorphic functions
 from GTC import result              
+from GTC import inf
 
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
@@ -86,7 +88,7 @@ def solve(a,b,TOL=1E-5):
     return svbksb(u,w,v,b)
 
 #----------------------------------------------------------------------------
-def svdfit(x,y,sig,fn):
+def svdfit(x,y,sig=None,fn=None):
     """
     Return estimates of the best-fit parameters for ``fn`` to the data
 
@@ -98,42 +100,52 @@ def svdfit(x,y,sig,fn):
     :arg fn: user-defined function to evaluate basis functions at a stimulus value
     
     """
+    if fn is None:
+        if sig is None: sig = np.ones( (len(x),) )
+        # Allow uncertain-number inputs:
+        # construct `a` and `b` from values 
+        def row(row_i,s_i):
+            return [ value(x_i/s_i) for x_i in row_i ]
+            
+        a = np.array( [ row(row_i,s_i) for row_i,s_i in zip(x,sig) ],
+            dtype=_dtype_float(x) 
+        )
+        b = np.array( [ value(y_i/s_i) for y_i,s_i in zip(y,sig) ], 
+            dtype=_dtype_float(x) 
+        )   
+        M, P = a.shape
+        print(a.shape)
+    else:       
+        # M - number of data points 
+        # P - number of parameters to fit 
+        M = len(x) 
+        # fn(x_i) returns an P-sized array of values for
+        # each basis function at the stimulus point `x_i`
+        P = len( fn(x[0])  )   
+
+        if sig is None: sig = np.ones( (M,) )
+
+        a = np.empty( (M,P), dtype=_dtype_float(x) )
+        b = np.empty( (M,), dtype=_dtype_float(x) )    
+        
+        for i in range(M):
+            afunc_i = fn(x[i])
+            tmp = 1.0/sig[i]
+            for j in range(P):
+                a[i,j] = value( tmp*afunc_i[j] )
+                
+            b[i] = value( tmp*y[i] ) 
+            
+    if M <= P:
+        raise RuntimeError( f"M = {M} but should be > {P}" )     
+                    
+    u,w,vh = np.linalg.svd(a, full_matrices=False )
+    v = vh.T    
+    
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
     # solution slightly less accurate. The value can be varied.
     TOL = 1E-5
-    
-    # fn(x_i) returns an P-sized array of values for
-    # each basis function at the stimulus point `x_i`
-    afunc_i = fn(x[0])  
-    
-    # M - number of data points 
-    # P - number of parameters to fit 
-    M = len(x) 
-    P = len( afunc_i )   
-
-    if M <= P:
-        raise RuntimeError( f"M = {M} but should be > {P}" )     
-        
-    a = np.empty( (M,P), dtype=float )
-    b = np.empty( (M,), dtype=float )    
-    
-    for i in range(M):
-        tmp = 1.0/sig[i]
-        for j in range(P):
-            a[i,j] = value( tmp*afunc_i[j] )
-            
-        b[i] = value( tmp*y[i] ) 
-        
-        if i < M-1:
-            afunc_i = fn(x[i+1])
-
-    # TODO: these two lines and the use of `value` are the only difference between this routine 
-    # and the type-B one! Perhaps define an svd_decomp function reference as argument?
-    # In this module, svd_decomp would wrap around these two lines
-    u,w,vh = np.linalg.svd(a, full_matrices=False )
-    v = vh.T    # NR routines work for V not V.T
-    
     # Select almost singular values
     wmax = max(w)
     # wmin = min(w)
@@ -151,21 +163,38 @@ def svdfit(x,y,sig,fn):
             for w_i in w 
     ])
     
-    coef = svbksb(u,w,v,b)
+    # coef = svbksb(u,w,v,b)
+    w_inv = np.diag(1 / w)
+    coef = v @ w_inv @ u.T @ b
+    cv_coef = svdvar(v,w) 
+    
+    # wti = [
+        # 1.0/(w_i*w_i) if w_i != 0 else 0.0
+            # for w_i in w 
+    # ]
+    # cv_coef = v @ np.diag(wti) @ vh
 
-    # Residuals -> chisq
-    chisq = 0.0 
-    for i in range(M):
-        afunc_i = fn(x[i])
-        s = math.fsum(
-                coef[j]*afunc_i[j]
+    # sum of squared residuals
+    ssr = 0.0 
+    if fn is None:
+        for i,row_i in enumerate(x):
+            f_i = math.fsum(
+                coef[j]*row_i[j]
                     for j in range(P)
             )
-        tmp = value( (y[i] - s)/sig[i] )
-        chisq += tmp*tmp 
+            tmp = value( (y[i] - f_i)/sig[i] )
+            ssr += tmp*tmp            
+    else:
+        for i in range(M):
+            afunc_i = fn(x[i])
+            f_i = math.fsum(
+                    coef[j]*afunc_i[j]
+                        for j in range(P)
+                )
+            tmp = value( (y[i] - f_i)/sig[i] )
+            ssr += tmp*tmp 
           
-    # w and v are needed to evaluate parameter covariance 
-    return coef, chisq, w, v
+    return coef, cv_coef, ssr 
  
 #----------------------------------------------------------------------------
 # This function is used internally in this module, and called by some 
@@ -180,15 +209,14 @@ def svdvar(v,w):
     :arg w: an ``P`` element sequence of float 
     
     """
-    # Based on Numerical Recipes 'svdvar'
-    P = len(w)  
-    cv = np.empty( (P,P), dtype=float )
-    
+    # Based on Numerical Recipes 'svdvar'   
     wti = [
         1.0/(w_i*w_i) if w_i != 0 else 0.0
             for w_i in w 
     ]
     
+    P = len(w)  
+    cv = np.empty( (P,P), dtype=float )
     for i in range(P):
         for j in range(i+1):
             cv[i,j] = cv[j,i] = math.fsum(
@@ -199,34 +227,27 @@ def svdvar(v,w):
     return cv  
  
 #----------------------------------------------------------------------------
-def coef_as_uncertain_numbers(coef,chisq,w,v,M,label=None):
+def coef_as_uncertain_numbers(coef,cv,df=inf,label=None):
     """
     Create uncertain numbers for the fitted parameters 
 
     """
-    P = len(coef) 
-    df = M - P
-           
-    s2 = chisq/df
-    cv = s2*svdvar(v,w)
-    
     beta = []
     ensemble = []
-    for i in range(P):
+    for i in range( len(coef) ):
         if label is None:
             label_i = f'b_{i}' 
         else:
-            label_i = f'{label}_{i}'
-            
-        u_i = math.sqrt(cv[i,i])
+            label_i = f'{label}_{i}'       
         
-        if abs(u_i) <= 1E-13:    # Negligible uncertainty 
+        u_i = math.sqrt(cv[i,i])
+        if abs(u_i) <= 1E-13:    
             u_i = 0.0
             b_i = _const(
                 coef[i],
                 label=label_i
             )
-        else:           
+        else:    
             b_i = _ureal(
                 coef[i],
                 u_i,
@@ -270,19 +291,24 @@ def ols(x,y,fn,fn_inv=None,label=None):
         )
             
     sig = np.ones( (M,) )
-    coef, chisq, w, v = svdfit(x,y,sig,fn)
-    coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
+    coef, cv, ssr = svdfit(x,y,sig,fn)
 
-    return OLSFit( coef,chisq,fn,fn_inv,M )  
+    df = M - len(coef)
+    cv = ssr/df * cv
+
+    coef = coef_as_uncertain_numbers(coef,cv,df,label=label)
+
+    return OLSFit( coef,ssr,fn,fn_inv,M )  
     
 #----------------------------------------------------------------------------
-def wls(x,y,u_y,fn,fn_inv=None,label=None):
-    """Ordinary least squares fit of response data to stimulus values
+def wls(x,y,u_y,fn,dof=None,fn_inv=None,label=None):
+    """Weighted least squares fit of response data to stimulus values
     
     :arg x: sequence of stimulus values (independent-variable)
     :arg y: sequence of response data (dependent-variable)   
-    :arg y: sequence of standard uncertainties for response data    
+    :arg u_y: sequence of standard uncertainties for response data    
     :arg fn: a user-defined function relating the stimulus to the response
+    :arg dof: degrees of freedom    
     :arg fn_inv: a user-defined function relating the response to the stimulus 
     :arg label: suffix to label the fitted parameters
     :returns:   an object containing regression results
@@ -295,10 +321,47 @@ def wls(x,y,u_y,fn,fn_inv=None,label=None):
     if M != len(u_y):
         raise RuntimeError( "len(x) != len(u_y)")
         
-    coef, chisq, w, v = svdfit(x,y,u_y,fn)
-    coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
+    coef, cv, ssr = svdfit(x,y,u_y,fn)   
+    
+    if dof is None:
+        df = inf
+    else:
+        df = M - len(coef)
+        cv = ssr/df * cv
+        
+    coef = coef_as_uncertain_numbers(coef,cv,df,label=label)
 
-    return WLSFit( coef,chisq,fn,fn_inv,M )  
+    return WLSFit( coef,ssr,fn,fn_inv,M )  
+
+#----------------------------------------------------------------------------
+def rwls(x,y,s_y,fn,dof=None,fn_inv=None,label=None):
+    """Relative least squares fit of response data to stimulus values
+    
+    :arg x: sequence of stimulus values (independent-variable)
+    :arg y: sequence of response data (dependent-variable)   
+    :arg s_y: sequence of scale factors for response data    
+    :arg dof: degrees of freedom    
+    :arg fn: a user-defined function relating the stimulus to the response
+    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :arg label: suffix to label the fitted parameters
+    :returns:   an object containing regression results
+    :rtype:     :class:`WLSFit``
+    
+    """
+    M = len(y)   
+    if M != len(x):
+        raise RuntimeError( "len(x) != len(y)" )
+    if M != len(s_y):
+        raise RuntimeError( "len(x) != len(s_y)")
+        
+    coef, cv, ssr = svdfit(x,y,s_y,fn)   
+    
+    df = M - len(coef) if dof is None else dof        
+    cv = ssr/df * cv
+        
+    coef = coef_as_uncertain_numbers(coef,cv,df,label=label)
+    
+    return RWLSFit( coef,ssr,fn,fn_inv,M )  
 
 #----------------------------------------------------------------------------
 def gls(x,y,cv,fn,fn_inv=None,label=None):
@@ -307,40 +370,117 @@ def gls(x,y,cv,fn,fn_inv=None,label=None):
     :arg x: a sequence of ``M`` stimulus values (independent-variables)
     :arg y: a sequence of ``M`` responses (dependent-variable)  
     :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
-    :arg fn: a user-defined function relating ``x`` the response
-    :arg fn_inv: a user-defined function relating the response to the stimulus 
+    :arg fn: a user-defined function ?????
+    :arg fn_inv: a user-defined function ????
     :returns:   an object containing regression results
     :rtype:     :class:`GLSFit``
     
     """
-    M = len(x) 
-
-    # P - number of parameters to fit 
-    afunc_i = fn(x[0])  
-    P = len( afunc_i )   
+    M = len(x)    
+    P = len( fn(x[0]) ) # number of parameters to fit 
 
     if cv.shape != (M,M):
         raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
     
-    K = cholesky.cholesky_decomp(cv)
-    Kinv = cholesky.cholesky_inv(K)
-    
-    X = np.array( x, dtype=object )
-    Y = np.array( y, dtype=object ).T
-    
-    Q = np.matmul(Kinv,X) 
-    Z = np.matmul(Kinv,Y) 
-   
-    x = []
-    y = []
-    for i in range(M):
-        x.append( [ Q[i,j] for j in range(P) ] )    # x is M by P 
-        y.append( Z[i] )
-         
-    coef, chisq, w, v = svdfit(x,y,np.ones( (M,) ),fn)
-    coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
+    K = np.linalg.cholesky(cv)
+    Kinv = np.linalg.inv(K)
 
-    return GLSFit( coef,chisq,fn,fn_inv,M )
+    # fn expands the P basis function values at x_i
+    X = np.row_stack( [fn(x_i) for x_i in x] )
+    Y = np.array( y ).T
+    
+    # The GLS is solved by transforming the input data 
+    a = Kinv @ X 
+    b = Kinv @ Y  
+   
+    u,w,vh = np.linalg.svd(a, full_matrices=False )
+    v = vh.T    
+
+    # Select almost singular values
+    wmax = max(w)
+    # wmin = min(w)
+    # logC = math.log10(wmax/wmin)
+    # # The base-b logarithm of C is an estimate of how many 
+    # # base-b digits will be lost in solving a linear system 
+    # # with the matrix. In other words, it estimates worst-case 
+    # # loss of precision. 
+    # # C is the condition number: the ratio of the largest to smallest 
+    # # singular value in the SVD
+    
+    TOL = 1E-5
+    thresh = TOL*wmax 
+    w = np.array([ 
+        w_i if w_i >= thresh else 0. 
+            for w_i in w 
+    ]) 
+   
+    # coef = svbksb(u,w,v,b)
+    
+    w_inv = np.diag(1 / w)
+    coef = v @ w_inv @ u.T @ b
+    cv_coef = svdvar(v,w) 
+
+    # wti = [
+        # 1.0/(w_i*w_i) if w_i != 0 else 0.0
+            # for w_i in w 
+    # ]
+    # cv_coef = v @ np.diag(wti) @ vh
+
+    ssr = 0.0 
+    for i in range(M):
+        afunc_i = fn(x[i])
+        s = math.fsum(
+                coef[j]*afunc_i[j]
+                    for j in range(P)
+            )
+        tmp = value( y[i] - s )
+        ssr += tmp*tmp 
+        
+    df = inf   
+    coef = coef_as_uncertain_numbers(coef,cv_coef,df,label=label)    
+
+    return GLSFit( coef,ssr,fn,fn_inv,M )
+# #----------------------------------------------------------------------------
+# def _gls(x,y,cv,fn,fn_inv=None,label=None):
+    # """Generalised least squares fit of ``y`` to ``x``
+    
+    # :arg x: a sequence of ``M`` stimulus values (independent-variables)
+    # :arg y: a sequence of ``M`` responses (dependent-variable)  
+    # :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
+    # :arg fn: a user-defined function relating ``x`` the response
+    # :arg fn_inv: a user-defined function relating the response to the stimulus 
+    # :returns:   an object containing regression results
+    # :rtype:     :class:`GLSFit``
+    
+    # """
+    # M = len(x) 
+
+    # # P - number of parameters to fit 
+    # afunc_i = fn(x[0])  
+    # P = len( afunc_i )   
+
+    # if cv.shape != (M,M):
+        # raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
+    
+    # K = cholesky.cholesky_decomp(cv)
+    # Kinv = cholesky.cholesky_inv(K)
+    
+    # X = np.array( x, dtype=object )
+    # Y = np.array( y, dtype=object ).T
+    
+    # Q = np.matmul(Kinv,X) 
+    # Z = np.matmul(Kinv,Y) 
+   
+    # x = []
+    # y = []
+    # for i in range(M):
+        # x.append( [ Q[i,j] for j in range(P) ] )    # x is M by P 
+        # y.append( Z[i] )
+         
+    # coef, chisq, w, v = svdfit(x,y,np.ones( (M,) ),fn)
+    # coef = coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
+    
+    # return GLSFit( coef,chisq,fn,fn_inv,M )
     
 
 #-----------------------------------------------------------------------------------------
@@ -512,7 +652,23 @@ class WLSFit(LSFit):
 Weighted Least-Squares Results:
 '''
         return header + str(LSFit)
-        
+ 
+#----------------------------------------------------------------------------
+class RWLSFit(LSFit):
+
+    """
+    Results of a weighted least squares regression
+    """
+
+    def __init__(self,beta,ssr,fn,fn_inv,N):
+        LSFit.__init__(self,beta,ssr,fn,fn_inv,N)
+ 
+    def __str__(self):
+        header = '''
+Relative weighted Least-Squares Results:
+'''
+        return header + str(LSFit)
+ 
 #----------------------------------------------------------------------------
 class GLSFit(LSFit):
 
