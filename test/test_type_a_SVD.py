@@ -44,13 +44,15 @@ class TestSVDWLS(unittest.TestCase):
             # for linear fits 
             return [x_i,1]
         
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)  
+        # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)  
+        a, cv, ssr = SVD.svdfit(x,y,sig,fn)  
  
         self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
         self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
         
-        s2 = chisq/(N-M)
-        cv = s2*SVD.svdvar(v,w)
+        s2 = ssr/(N-M)
+        # cv = s2*SVD.svdvar(v,w)
+        cv = s2*cv
         
         self.assertTrue( equivalent(math.sqrt(cv[1,1]),2.2441,tol=1E-4) )
         self.assertTrue( equivalent(math.sqrt(cv[0,0]),0.9892,tol=1E-4) )
@@ -75,9 +77,10 @@ class TestSVDWLS(unittest.TestCase):
             # for linear fits 
             return [x_i,1]
         
-        fit = SVD.wls(x,y,sig,fn)  
+        fit = SVD.rwls(x,y,sig,fn)  
  
         a = fit.beta
+
         self.assertTrue( equivalent( value(a[0]),-7.3753,tol=1E-4) )
         self.assertTrue( equivalent( value(a[1]),-36.9588,tol=1E-4) )
         
@@ -105,12 +108,12 @@ class TestSVDOLS(unittest.TestCase):
             
         P = 2 
         N = 10
-        sig = np.ones( (N,) )
+        # sig = np.ones( (N,) )
         
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
-        # a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
+        # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)
         ls = SVD.ols(x,y,fn,P)
         
         self.assertTrue( equivalent(ls.beta[1].x,1.5) )
@@ -164,7 +167,6 @@ class TestSVDOLS(unittest.TestCase):
         N = int( len(s)/step )
         M = 3 
 
-        sig = [1]*N
         x = []
         y = []
         for i in range(0,N):
@@ -174,20 +176,18 @@ class TestSVDOLS(unittest.TestCase):
                 float(s[i*step+1])
             ])
             y.append( float(s[i*step+2]) )        
-        
-        def fn(x_i):
-            return x_i 
- 
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
+         
+        a, cv, ssr = SVD.svdfit(x,y)  
         
         self.assertTrue( equivalent(a[2],3.939524,tol=1E-6) )
         self.assertTrue( equivalent(a[1],1.696528,tol=1E-6) )
         self.assertTrue( equivalent(a[0],28.312636,tol=1E-6) )
 
-        s2 = chisq/(N-M)
+        s2 = ssr/(N-M)
         self.assertTrue( equivalent(s2,112.3413,tol=1E-4) )
 
-        cv = s2*SVD.svdvar(v,w)
+        # cv = s2*SVD.svdvar(v,w)
+        cv = s2*cv
         r_cv = numpy.array([
             [403.2310528, -6.517061844, -0.691727735],
             [-6.5170618,  0.112537458,  0.001218182],
@@ -254,10 +254,11 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return x_i 
  
-        fit = SVD.wls(x,y,sig,fn)  
+        # The reference determines sigma from the residuals
+        fit = SVD.rwls(x,y,sig,fn)  
  
         a = fit.beta
-
+        
         self.assertTrue( equivalent(value(a[2]),3.939524,tol=1E-6) )
         self.assertTrue( equivalent(value(a[1]),1.696528,tol=1E-6) )
         self.assertTrue( equivalent(value(a[0]),28.312636,tol=1E-6) )
@@ -267,7 +268,11 @@ class TestSVDOLS(unittest.TestCase):
             [-6.5170618,  0.112537458,  0.001218182],
             [-0.6917277,  0.001218182,  0.018260902]
         ])
-        
+ 
+        self.assertTrue( equivalent(variance(a[2]),0.018260902,tol=1E-6) )
+        self.assertTrue( equivalent(variance(a[1]),0.112537458,tol=1E-6) )
+        self.assertTrue( equivalent(variance(a[0]),403.2310528,tol=1E-6) )
+ 
         for i in range(3):
             for j in range(i):
                 cv1 = get_covariance(a[i],a[j])
@@ -413,145 +418,6 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(uncertainty(a[0]),0.15261611,tol=1E-7) )
         self.assertTrue( equivalent(uncertainty(a[1]),0.10885040,tol=1E-7) )
         self.assertTrue( equivalent(uncertainty(a[2]),0.05024342,tol=1E-7) )
-   
-    #------------------------------------------------------------------------
-    def test5svdfit(self):
-        # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
-        #
-        # year, GNP.deflator, GNP, Unemployed, Armed.Forces, Population, Year, Employed
-        s =  """
-            1947         83.0 234.289      235.6        159.0    107.608 1947   60.323
-            1948         88.5 259.426      232.5        145.6    108.632 1948   61.122
-            1949         88.2 258.054      368.2        161.6    109.773 1949   60.171
-            1950         89.5 284.599      335.1        165.0    110.929 1950   61.187
-            1951         96.2 328.975      209.9        309.9    112.075 1951   63.221
-            1952         98.1 346.999      193.2        359.4    113.270 1952   63.639
-            1953         99.0 365.385      187.0        354.7    115.094 1953   64.989
-            1954        100.0 363.112      357.8        335.0    116.219 1954   63.761
-            1955        101.2 397.469      290.4        304.8    117.388 1955   66.019
-            1956        104.6 419.180      282.2        285.7    118.734 1956   67.857
-            1957        108.4 442.769      293.6        279.8    120.445 1957   68.169
-            1958        110.8 444.546      468.1        263.7    121.950 1958   66.513
-            1959        112.6 482.704      381.3        255.2    123.366 1959   68.655
-            1960        114.2 502.601      393.1        251.4    125.368 1960   69.564
-            1961        115.7 518.173      480.6        257.2    127.852 1961   69.331
-            1962        116.9 554.894      400.7        282.7    130.081 1962   70.551
-
-        """.strip().split()
-
-        step = 8
-        N = int( len(s)/step )
-        M = 3
-        
-        sig = [1]*N
-        x = []
-        y = []
-        for i in range(0,N):
-            x.append([
-                1.0,
-                float(s[i*step+2]),
-                float(s[i*step+5])
-            ])
-            y.append( float(s[i*step+7]) )        
-        
-        def fn(x_i):
-            return x_i 
- 
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
-
-        self.assertTrue( equivalent(a[0],88.93880,tol=1E-5) )
-        self.assertTrue( equivalent(a[1],0.06317,tol=1E-5) )
-        self.assertTrue( equivalent(a[2],-0.40974,tol=1E-5) )
-                
-        s2 = chisq/(N-M)
-        cv = s2*SVD.svdvar(v,w)
-        
-        se = [
-            math.sqrt(cv[0,0]),
-            math.sqrt(cv[1,1]),
-            math.sqrt(cv[2,2])
-        ]
-
-        r = numpy.identity(M) 
-        for i in range(M):
-            for j in range(i+1):
-                den = se[i]*se[j]
-                r[i,j] = r[j,i] = cv[i,j]/den 
-                  
-        self.assertTrue( equivalent(se[0],13.78503,tol=1E-5) )
-        self.assertTrue( equivalent(se[1],0.01065,tol=1E-5) )
-        self.assertTrue( equivalent(se[2],0.15214,tol=1E-5) )
-        
-        # Output from R calculation for covariance matrix (see reference)      
-        strings="""
-                1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06 8.002303e-07 2.483989e-07 7.710529e-08 2.393419e-08
-                3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06 8.002303e-07 2.483989e-07 7.710529e-08
-                9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06 8.002303e-07 2.483989e-07
-                2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06 8.002303e-07
-                9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06
-                2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06
-                8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05
-                2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05
-                8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04
-                2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04
-                8.305119e-06 2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03
-                2.577985e-06 8.305119e-06 2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03
-                8.002303e-07 2.577985e-06 8.305119e-06 2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02
-                2.483989e-07 8.002303e-07 2.577985e-06 8.305119e-06 2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02
-                7.710529e-08 2.483989e-07 8.002303e-07 2.577985e-06 8.305119e-06 2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00 3.104092e-01
-                2.393419e-08 7.710529e-08 2.483989e-07 8.002303e-07 2.577985e-06 8.305119e-06 2.675539e-05 8.619393e-05 2.776784e-04 8.945559e-04 2.881860e-03 9.284069e-03 2.990913e-02 9.635387e-02 3.104092e-01 1.000000e+00""".strip().split()
-
-        V = numpy.array(strings, dtype=float)
-        V.shape = 16,16 
-         
-        K = cholesky.cholesky_decomp(V)
-        Kinv = cholesky.cholesky_inv(K)
-        
-        X = numpy.array( x )
-        Y = numpy.array( y ).T
-        
-        Z = numpy.matmul(Kinv,Y) 
-        Q = numpy.matmul(Kinv,X) 
-
-        # X is N by M 
-        x = []
-        y = []
-        for i in range(N):
-            x.append( [ Q[i,j] for j in range(M) ] )
-            y.append( Z[i] )
-         
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
-
-        s2 = chisq/(N-M)
-        cv = s2*SVD.svdvar(v,w)
-        
-        se = [
-            math.sqrt(cv[0,0]),
-            math.sqrt(cv[1,1]),
-            math.sqrt(cv[2,2])
-        ]
-        
-        # Values agree well with reference
-        self.assertTrue( equivalent(a[0],94.89887752,tol=1E-7) )
-        self.assertTrue( equivalent(a[1],0.06738948,tol=1E-7) )
-        self.assertTrue( equivalent(a[2],-0.47427391,tol=1E-7) )
-        
-        # The std errors do not agree with the reference values, which are incorrect!
-        # If a straightforward R OLS is carried out, 
-        # i.e. add this to these steps in the reference
-        # > gl <- lm(z~B-1)
-        # > summary(gl,cor=T)
-        # then we get the following standard errors
-        self.assertTrue( equivalent(se[0],13.94477,tol=1E-5) )
-        self.assertTrue( equivalent(se[1],0.01070,tol=1E-5) )
-        self.assertTrue( equivalent(se[2],0.15339,tol=1E-5) )
-        # Note, that I am sure the reference is wrong because using 
-        # the formula in Draper & Smith p79 
-        # (or wikipedia: https://en.wikipedia.org/wiki/Confidence_region )
-        # the sum of squares for the residuals is 
-        #   Z'Z - b'Q'Z 
-        # I evaluated this in R and it is not the same as the reference 
-        # value, but it is the same value that I obtain here.
 
     #------------------------------------------------------------------------
     def test5gls(self):
@@ -634,29 +500,116 @@ class TestSVDOLS(unittest.TestCase):
         fit = SVD.gls(x,y,V,fn)
  
         a = fit.beta
+        sigma = math.sqrt( fit.ssr/(N-M) )
         
         # Values agree well with reference
         self.assertTrue( equivalent(value(a[0]),94.89887752,tol=1E-7) )
         self.assertTrue( equivalent(value(a[1]),0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(value(a[2]),-0.47427391,tol=1E-7) )
         
-        # The std errors do not agree with the reference values, which are incorrect!
-        # If a straightforward R OLS is carried out, 
-        # i.e. add this to these steps in the reference
-        # > gl <- lm(z~B-1)
-        # > summary(gl,cor=T)
-        # then we get the following standard errors
-        self.assertTrue( equivalent(uncertainty(a[0]),13.94477,tol=1E-5) )
-        self.assertTrue( equivalent(uncertainty(a[1]),0.01070,tol=1E-5) )
-        self.assertTrue( equivalent(uncertainty(a[2]),0.15339,tol=1E-5) )
-        # Note, that I am sure the reference is wrong because using 
-        # the formula in Draper & Smith p79 
-        # (or wikipedia: https://en.wikipedia.org/wiki/Confidence_region )
-        # the sum of squares for the residuals is 
-        #   Z'Z - b'Q'Z 
-        # I evaluated this in R and it is not the same as the reference 
-        # value, but it is the same value that I obtain here.
+        # Values agree well with reference
+        # Note that the reference only assumed a covariance matrix with terms
+        # proportional to the actual values. The residuals are used to estimate
+        # sigma squared and sigma must be applied to the uncertainties to match 
+        # the published values.
+        self.assertTrue( equivalent(sigma*uncertainty(a[0]),14.15760467,tol=1E-5) )
+        self.assertTrue( equivalent(sigma*uncertainty(a[1]),0.01086675,tol=1E-5) )
+        self.assertTrue( equivalent(sigma*uncertainty(a[2]),0.15572652,tol=1E-5) )
 
+    #------------------------------------------------------------------------
+    def test6gls(self):
+        """
+        Example from ISO/TS 28037:2010 "Determination and use of straight-line 
+        calibration functions", Section 9: "Model for uncertainties and covariances
+        associated with the y_i"
+        
+        """
+        M = 10
+        P = 2
+        x = range(1,11)
+        y = (1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0)
+        
+        cv = np.diag([2] * 10)
+        for i in range(5):
+            for j in range(i+1,5):
+                cv[i][j] = cv[j][i] = 1
+
+        for i in range(5,10):
+            cv[i][i] = 5
+
+        for i in range(5,10):
+            for j in range(i+1,10):
+                cv[i][j] = cv[j][i] = 4
+        
+        x = []
+        for x_i in range(1,11):
+            x.append( [x_i,1] )
+         
+        fit = SVD.gls(x,y,cv,lambda x: x)
+        a = fit.beta
+
+        # Values agree well with reference
+        self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
+
+        # Values agree well with reference
+        self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
+
+    #------------------------------------------------------------------------
+    def test7wls(self):
+        # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
+        # which in turn came from Julian J. Faraway, 
+        # "Practical Regression and Anova using R", 2002
+        # https://cran.r-project.org/doc/contrib/Faraway-PRA.pdf
+
+        momentum = (4, 6, 8, 10, 12, 15, 20, 30, 75, 150)
+        energy = (0.345, 0.287, 0.251, 0.225, 0.207, 0.186, 0.161, 0.132, 0.084, 0.060)
+        crossx = (367, 311, 295, 268, 253, 239, 220, 213, 193, 192)
+        sd = (17, 9, 9, 7, 7, 6, 6, 6, 5, 5)
+
+        x = np.array( energy, dtype=float)
+        y = np.array( crossx, dtype=float )
+        
+        def fn(x_i):
+            return [x_i, 1] 
+ 
+        fit = SVD.ols(x,y,fn)
+
+        a = fit.beta
+        self.assertTrue( equivalent(value(a[0]),619.71,tol=1E-2) )
+        self.assertTrue( equivalent(value(a[1]),135.00,tol=1E-2) )
+
+        self.assertTrue( equivalent(uncertainty(a[0]),47.68,tol=1E-2) )
+        self.assertTrue( equivalent(uncertainty(a[1]),10.08,tol=1E-2) )
+
+        u_y = np.array( sd, dtype=float)
+
+        fit = SVD.rwls(x,y,u_y,fn)
+ 
+        a = fit.beta
+        
+        # Values agree well with reference
+        self.assertTrue( equivalent(value(a[0]),530.835,tol=1E-3) )
+        self.assertTrue( equivalent(value(a[1]),148.473,tol=1E-3) )
+        
+        # Values agree well with reference
+        self.assertTrue( equivalent(uncertainty(a[0]),47.550,tol=1E-3) )
+        self.assertTrue( equivalent(uncertainty(a[1]),8.079,tol=1E-3) )
+        
+        # Alternative formulation with x data in MxP array 
+        X = np.array( [ fn(x_i) for x_i in x ], dtype=float)
+        
+        fit = SVD.rwls(X,y,u_y,lambda x: x)
+
+        a = fit.beta
+        # Values agree well with reference
+        self.assertTrue( equivalent(value(a[0]),530.835,tol=1E-3) )
+        self.assertTrue( equivalent(value(a[1]),148.473,tol=1E-3) )
+        
+        # Values agree well with reference
+        self.assertTrue( equivalent(uncertainty(a[0]),47.550,tol=1E-3) )
+        self.assertTrue( equivalent(uncertainty(a[1]),8.079,tol=1E-3) )
     #------------------------------------------------------------------------
     def test_bevington(self):
         """
