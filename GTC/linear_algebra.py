@@ -75,11 +75,6 @@ Module contents
 ---------------
 
 """
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-
 import numpy as np
 
 from GTC import (
@@ -97,6 +92,22 @@ __all__ = (
     'identity','zeros','ones','empty','full',
     'transpose'
 )
+
+#----------------------------------------------------------------------------
+def _dtype_float(a):
+    """Promote integer arrays to float 
+    
+    Use this to avoid creating an array that might truncate values when 
+    you do not know the dtype.
+    
+    """
+    try:
+        if np.issubdtype(a.dtype, np.integer):
+            return np.float64
+        else:
+            return a.dtype
+    except AttributeError:  
+            return np.float64
 
 def uarray(array, label=None, names=None):
     """Create an array of uncertain numbers.
@@ -173,7 +184,7 @@ def uarray(array, label=None, names=None):
         if a_len != len(names):
             raise ValueError(f'len(array[0]) != len(names) -> {a_len} != {len(names)}')
 
-        dtype = [(name, type(val)) for name, val in izip(names, array[0])]
+        dtype = [(name, type(val)) for name, val in zip(names, array[0])]
 
     return UncertainArray(array, dtype=dtype, label=label)
 
@@ -221,7 +232,7 @@ def matmul(lhs, rhs):
     slices = np.array([[slice(None), slice(None)]]).repeat(len(indices), axis=0)
     i1 = np.hstack((i1, slices))
     i2 = np.hstack((i2, slices))
-    out = np.array([matmul(lhs[tuple(a)], rhs[tuple(b)]) for a, b in izip(i1, i2)])
+    out = np.array([matmul(lhs[tuple(a)], rhs[tuple(b)]) for a, b in zip(i1, i2)])
     return UncertainArray(out.reshape(list(broadcast.shape) + [lhs.shape[-2], rhs.shape[-1]]))
 
 
