@@ -620,12 +620,12 @@ class TestSVDOLS(unittest.TestCase):
         """.strip().split()
 
         step = 8
-        N = int( len(s)/step )
-        M = 3
+        M = int( len(s)/step )
+        P = 3
         
         x = []
         y = []
-        for i in range(0,N):
+        for i in range(M):
             x.append([
                 1.0,
                 float(s[i*step+2]),
@@ -636,14 +636,14 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return x_i 
  
-        sig = numpy.ones( (N,) )
+        sig = numpy.ones( (M,) )
         a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
         
         self.assertTrue( equivalent(a[0],88.93880,tol=1E-5) )
         self.assertTrue( equivalent(a[1],0.06317,tol=1E-5) )
         self.assertTrue( equivalent(a[2],-0.40974,tol=1E-5) )
                 
-        s2 = chisq/(N-M)
+        s2 = chisq/(M-P)
         cv = s2*svdvar(v,w)
         
         se = [
@@ -651,12 +651,6 @@ class TestSVDOLS(unittest.TestCase):
             math.sqrt(cv[1,1]),
             math.sqrt(cv[2,2])
         ]
-
-        r = numpy.identity(M) 
-        for i in range(M):
-            for j in range(i+1):
-                den = se[i]*se[j]
-                r[i,j] = r[j,i] = cv[i,j]/den 
                   
         self.assertTrue( equivalent(se[0],13.78503,tol=1E-5) )
         self.assertTrue( equivalent(se[1],0.01065,tol=1E-5) )
@@ -684,25 +678,55 @@ class TestSVDOLS(unittest.TestCase):
         V = numpy.array(strings, dtype=float)
         V.shape = 16,16 
         
+        # GLS problem 
+        
         K = cholesky.cholesky_decomp(V)
         Kinv = cholesky.cholesky_inv(K)
         
-        X = numpy.array( x )
+        X = x
         Y = numpy.array( y ).T
+ 
+        a = Kinv @ X 
+        b = Kinv @ Y 
+
+        u,w,v = SVD.svd_decomp(a)
+
+        # Select almost singular values
+        wmax = max(w)
+        # wmin = min(w)
+        # logC = math.log10(wmax/wmin)
+        # # The base-b logarithm of C is an estimate of how many 
+        # # base-b digits will be lost in solving a linear system 
+        # # with the matrix. In other words, it estimates worst-case 
+        # # loss of precision. 
+        # # C is the condition number: the ratio of the largest to smallest 
+        # # singular value in the SVD
         
-        Z = numpy.matmul(Kinv,Y) 
-        Q = numpy.matmul(Kinv,X) 
+        TOL = 1E-5
+        thresh = TOL*wmax 
+        w = numpy.array([ 
+            w_i if w_i >= thresh else 0. 
+                for w_i in w 
+        ]) 
 
-        # X is N by M 
-        x = []
-        y = []
-        for i in range(N):
-            x.append( [ Q[i,j] for j in range(M) ] )
-            y.append( Z[i] )
-         
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
-
-        s2 = chisq/(N-M)
+        coef = SVD.svbksb(u,w,v,b)
+        
+        # Values agree well with reference
+        self.assertTrue( equivalent(coef[0],94.89887752,tol=1E-7) )
+        self.assertTrue( equivalent(coef[1],0.06738948,tol=1E-7) )
+        self.assertTrue( equivalent(coef[2],-0.47427391,tol=1E-7) )
+        
+        chisq = 0.0 
+        for i in range(M):
+            afunc_i = fn(x[i])
+            s = math.fsum(
+                    coef[j]*afunc_i[j]
+                        for j in range(P)
+                )
+            tmp = value( y[i] - s )
+            chisq += tmp*tmp 
+            
+        s2 = chisq/(M-P)
         cv = s2*svdvar(v,w)
         
         se = [
@@ -710,28 +734,11 @@ class TestSVDOLS(unittest.TestCase):
             math.sqrt(cv[1,1]),
             math.sqrt(cv[2,2])
         ]
-        
-        # Values agree well with reference
-        self.assertTrue( equivalent(a[0],94.89887752,tol=1E-7) )
-        self.assertTrue( equivalent(a[1],0.06738948,tol=1E-7) )
-        self.assertTrue( equivalent(a[2],-0.47427391,tol=1E-7) )
-        
-        # The std errors do not agree with the reference values, which are incorrect!
-        # If a straightforward R OLS is carried out, 
-        # i.e. add this to these steps in the reference
-        # > gl <- lm(z~B-1)
-        # > summary(gl,cor=T)
-        # then we get the following standard errors
-        self.assertTrue( equivalent(se[0],13.94477,tol=1E-5) )
-        self.assertTrue( equivalent(se[1],0.01070,tol=1E-5) )
-        self.assertTrue( equivalent(se[2],0.15339,tol=1E-5) )
-        # Note, that I am sure the reference is wrong because using 
-        # the formula in Draper & Smith p79 
-        # (or wikipedia: https://en.wikipedia.org/wiki/Confidence_region )
-        # the sum of squares for the residuals is 
-        #   Z'Z - b'Q'Z 
-        # I evaluated this in R and it is not the same as the reference 
-        # value, but it is the same value that I obtain here.
+ 
+        # The std errors agree with the reference values
+        self.assertTrue( equivalent(se[0],14.15760467,tol=1E-5) )
+        self.assertTrue( equivalent(se[1],0.01086675,tol=1E-5) )
+        self.assertTrue( equivalent(se[2],0.15572652,tol=1E-5) )
         
 #----------------------------------------------------------------------------
 class TestSVDLinearSystems(unittest.TestCase):
