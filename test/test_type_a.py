@@ -1036,6 +1036,11 @@ class TestLineFit(unittest.TestCase):
 
         fit = ta.line_fit(x_data,y_data)
         a, b = fit.a_b
+        
+        self.assertTrue(equivalent(value(a),0.0087,1E-4))
+        self.assertTrue(equivalent(value(b),0.2410,1E-4))
+        self.assertTrue(equivalent(uncertainty(a),0.0029,1E-4))
+        self.assertTrue(equivalent(uncertainty(b),0.0050,1E-4))
 
         # The classical uncertainty
         N = len(x_data)
