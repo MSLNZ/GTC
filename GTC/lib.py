@@ -2269,16 +2269,15 @@ def real_ensemble(seq,df):
     a multivariate distribution. 
     
     """
-    # TODO: assertions not required in release version
-    # have been declared independent=False 
-    # They will raise AssertionError
-    # ensemble members must be elementary
-    assert all( s_i.is_elementary for s_i in seq )
+    # # TODO: assertions not required in release version
+    # # They will raise AssertionError
+    # # ensemble members must be elementary
+    # assert all( s_i.is_elementary for s_i in seq )
 
-    assert all( s_i._node.independent == False for s_i in seq )
+    # assert all( s_i._node.independent == False for s_i in seq )
 
-    # ensemble members must have the same degrees of freedom
-    assert all( s_i.df == df for s_i in seq )
+    # # ensemble members must have the same degrees of freedom
+    # assert all( s_i.df == df for s_i in seq )
             
     ensemble = set( x._node.uid for x in seq )
     for s_i in seq:
