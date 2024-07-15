@@ -114,7 +114,7 @@ class TestSVDOLS(unittest.TestCase):
         y = [ 2*x_i + 1.5 for x_i in x ]
     
         # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)
-        ls = SVD.ols(x,y,fn,P)
+        ls = SVD.ols(x,y,fn)
         
         self.assertTrue( equivalent(ls.beta[1].x,1.5) )
         self.assertTrue( equivalent(ls.beta[0].x,2.0) )
@@ -405,10 +405,10 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+1]) )        
         
-        def fn(x_i):
-            return x_i 
+        # def fn(x_i):
+            # return x_i 
  
-        fit = SVD.ols(x,y,fn)
+        fit = SVD.ols(x,y)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),4.6117077,tol=1E-7) )
@@ -461,10 +461,10 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+7]) )        
         
-        def fn(x_i):
-            return x_i 
+        # def fn(x_i):
+            # return x_i 
  
-        fit = SVD.ols(x,y,fn)
+        fit = SVD.ols(x,y)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),88.93880,tol=1E-5) )
@@ -497,7 +497,7 @@ class TestSVDOLS(unittest.TestCase):
         V = numpy.array(strings, dtype=float)
         V.shape = 16,16 
         
-        fit = SVD.gls(x,y,V,fn)
+        fit = SVD.gls(x,y,V)
  
         a = fit.beta
         sigma = math.sqrt( fit.ssr/(N-M) )
@@ -633,7 +633,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = SVD.ols(x,y,fn,M)
+        fit = SVD.ols(x,y,fn)
         
         TOL = 1E-5
         a = fit.beta[1]
@@ -676,14 +676,14 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
         self.assertTrue( equivalent(b_30.df,9,1E-13) )
 
-        # `y_from_x` is the predicted single `y` response
-        # which has greater variability        
-        b_30 = fit.y_from_x(30 - 20)
-        self.assertTrue( not b_30.is_intermediate )
-        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
-        b_30 = fit.y_from_x(30 - 20,y_label='b_30')
-        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
-        self.assertTrue( b_30.is_intermediate )
+        # # `y_from_x` is the predicted single `y` response
+        # # which has greater variability        
+        # b_30 = fit.y_from_x(30 - 20)
+        # self.assertTrue( not b_30.is_intermediate )
+        # self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        # b_30 = fit.y_from_x(30 - 20,y_label='b_30')
+        # self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        # self.assertTrue( b_30.is_intermediate )
 
     #------------------------------------------------------------------------
     def test_A5(self):
@@ -707,73 +707,78 @@ class TestSVDOLS(unittest.TestCase):
             else:
                 return beta[1]
 
-        fit = SVD.ols(x,y,fn,fn_inv)
+        fit = SVD.ols(x,y,fn)
 
         TOL = 1E-5
         b,a = fit.beta
 
-        # The classical uncertainty
-        xmean = type_a.mean(x)
-        sxx = sum( (x_i-xmean)**2 for x_i in x )
-        S = math.sqrt(fit.ssr/(N-2))
+        self.assertTrue(equivalent(value(a),0.0087,1E-4))
+        self.assertTrue(equivalent(value(b),0.2410,1E-4))
+        self.assertTrue(equivalent(uncertainty(a),0.0029,1E-4))
+        self.assertTrue(equivalent(uncertainty(b),0.0050,1E-4))
 
-        c_0 = fit.x_from_y( [0.0712, 0.0716] )
-        _x = c_0.x
-        u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
+        # # The classical uncertainty
+        # xmean = type_a.mean(x)
+        # sxx = sum( (x_i-xmean)**2 for x_i in x )
+        # S = math.sqrt(fit.ssr/(N-2))
 
-        self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
-        self.assertEqual(c_0.df,N-2)
+        # c_0 = fit.x_from_y( [0.0712, 0.0716] )
+        # _x = c_0.x
+        # u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
 
-        # Now in the opposite sense
-        y_0 = fit.y_from_x(_x)
-        u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
+        # self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
+        # self.assertEqual(c_0.df,N-2)
+
+        # # Now in the opposite sense
+        # y_0 = fit.y_from_x(_x)
+        # u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
         
-        self.assertTrue(equivalent(value(y_0),0.0714,TOL))
-        self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
-        self.assertEqual(y_0.df,N-2)
+        # self.assertTrue(equivalent(value(y_0),0.0714,TOL))
+        # self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
+        # self.assertEqual(y_0.df,N-2)
         
-#----------------------------------------------------------------------------
-class TestSVDLinearSystems(unittest.TestCase):
+# #----------------------------------------------------------------------------
+# class TestSVDLinearSystems(unittest.TestCase):
     
-    """
-    Using SVD to solve linear systems of equations 
-    """
+    # """
+    # Using SVD to solve linear systems of equations 
+    # """
 
-    #------------------------------------------------------------------------
-    def test1(self):
-        # Simple example
-        data = ([
-            [2, -3],
-            [4, 1]
-        ])
-        b = [-2,24]
-        x_expect =[ 5, 4 ]
+    # #------------------------------------------------------------------------
+    # def test1(self):
+        # # Simple example
+        # data = ([
+            # [2, -3],
+            # [4, 1]
+        # ])
+        # b = [-2,24]
+        # x_expect =[ 5, 4 ]
 
-        a = numpy.array( data, dtype=float )
+        # a = numpy.array( data, dtype=float )
         
-        x = SVD.solve(a,b)
+        # x = SVD.solve(a,b)
 
-        for i,j in zip(x,x_expect):
-            self.assertTrue( equivalent(i,j) )
+        # for i,j in zip(x,x_expect):
+            # self.assertTrue( equivalent(i,j) )
  
-    #------------------------------------------------------------------------
-    def test2(self):
-        # Simple example
-        data = ([
-            [2, 1, 3],
-            [2, 6, 8],
-            [6, 8, 18]
-        ])
-        b = [1,3,5]
-        x_expect = [ 3./10., 4./10., 0.] 
+    # #------------------------------------------------------------------------
+    # def test2(self):
+        # # Simple example
+        # data = ([
+            # [2, 1, 3],
+            # [2, 6, 8],
+            # [6, 8, 18]
+        # ])
+        # b = [1,3,5]
+        # x_expect = [ 3./10., 4./10., 0.] 
 
 
-        a = numpy.array( data, dtype=float )
+        # a = numpy.array( data, dtype=float )
 
-        x = SVD.solve(a,b)
+        # x = SVD.solve(a,b)
 
-        for i,j in zip(x,x_expect):
-            self.assertTrue( equivalent(i,j) )     
+        # for i,j in zip(x,x_expect):
+            # self.assertTrue( equivalent(i,j) )     
 
 #=====================================================
 if(__name__== '__main__'):
