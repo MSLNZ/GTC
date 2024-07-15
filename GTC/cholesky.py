@@ -5,9 +5,11 @@ import cmath
 import numpy as np
 
 from GTC import la 
+from GTC.linear_algebra import _dtype_float
 
 __all__ = ('cholesky_decomp',)
 
+        
 #----------------------------------------------------------------------------
 def cholesky_decomp(a):
     """
@@ -33,8 +35,8 @@ def cholesky_decomp(a):
     # Don't want `a` to change, but the algorithm is  
     # iterative and so matrix entries are modified.
     # Results will have an upper triangle of zeros 
-    L = np.zeros( (N,M), dtype=a.dtype ) 
-    
+    L = np.zeros( (N,M), dtype=_dtype_float(a) ) 
+
     for i in range(N):
         for j in range(i,N):
         
@@ -62,7 +64,7 @@ def cholesky_decomp(a):
                     p_i = cmath.sqrt( s.real )
                 else:
                     assert False, f"unexpected: {s!r} {type(s)}"
-                    
+ 
             L[j,i] = s / p_i
                  
     return L
