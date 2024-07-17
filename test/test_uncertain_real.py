@@ -1,5 +1,6 @@
 import re
 import unittest
+
 import numpy
 
 from GTC import *
@@ -2343,35 +2344,38 @@ class TestRealEnsemble(unittest.TestCase):
         # influences with different DoF 
         x1 = ureal(0,1,3,independent=False)
         x2 = ureal(0,1,4,independent=False)
-                
-        self.assertRaises(
-            AssertionError,
-            real_ensemble,
-            [x1,x2], 
-            4
-        )
+               
+        # # Assertions commented out in production 
+        # self.assertRaises(
+            # AssertionError,
+            # real_ensemble,
+            # [x1,x2], 
+            # 4
+        # )
         
-        x3 = ureal(0,1,4,independent=False)
-        real_ensemble([x2,x3],4)
-        self.assertRaises(
-            AssertionError,
-            append_real_ensemble,
-            x2,x1
-        )
+        # # Assertions commented out in production 
+        # x3 = ureal(0,1,4,independent=False)
+        # real_ensemble([x2,x3],4)
+        # self.assertRaises(
+            # AssertionError,
+            # append_real_ensemble,
+            # x2,x1
+        # )
         
-        # non-elementary influences 
-        y = x1+ureal(0,1,3,independent=False) 
-        self.assertRaises(
-            AssertionError,
-            real_ensemble,
-            [x1,y], 3
-        )
-  
-        self.assertRaises(
-            AssertionError,
-            append_real_ensemble,
-            x1,y
-        )
+        # # Assertions commented out in production 
+        # # non-elementary influences 
+        # y = x1+ureal(0,1,3,independent=False) 
+        # self.assertRaises(
+            # AssertionError,
+            # real_ensemble,
+            # [x1,y], 3
+        # )
+        # # Assertions commented out in production 
+        # self.assertRaises(
+            # AssertionError,
+            # append_real_ensemble,
+            # x1,y
+        # )
 #============================================================================
 if(__name__== '__main__'):
 

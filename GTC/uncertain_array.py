@@ -5,22 +5,15 @@ The proper way to create an uncertain array is by calling :func:`.uarray`
 # Our need is to provide convenient containers for uncertain numbers.
 # We do not try to integrate uncertain numbers in numpy's design.
 import warnings
-
 from numbers import Number, Real, Complex
 from math import isnan, isinf
 from cmath import isnan as cisnan
 from cmath import isinf as cisinf
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    xrange = range
 
 import numpy as np
 
 from GTC import is_sequence
 from GTC.linear_algebra import matmul
-
 from GTC.core import (
     value,
     uncertainty,
@@ -48,7 +41,6 @@ from GTC.core import (
     phase,
     result,
 )
-
 from GTC.lib import (
     UncertainReal,
     UncertainComplex
@@ -210,9 +202,9 @@ class UncertainArray(np.ndarray):
         if len(inputs) == 1:
             return a, inputs[0].flat, shape
         if isinstance(inputs[0], np.ndarray):
-            return a, izip(inputs[0].flat, inputs[1].flat), shape
+            return a, zip(inputs[0].flat, inputs[1].flat), shape
         # then the inputs are already broadcasted iterators
-        return a, izip(*inputs), shape
+        return a, zip(*inputs), shape
 
     @property
     def label(self):
@@ -692,7 +684,7 @@ class UncertainArray(np.ndarray):
                 # Add index notation to the label base
                 labels = [
                     f"{labels}[{i}]"
-                    for i in xrange(self.size)
+                    for i in range(self.size)
                 ]
 
             labels = np.asarray(labels)

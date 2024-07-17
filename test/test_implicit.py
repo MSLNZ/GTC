@@ -1,13 +1,14 @@
 import unittest
 import math
 
-TOL = 1E-13
-DIGITS = 13
-
 from GTC import *
 from testing_tools import *
 
+TOL = 1E-13
+DIGITS = 13
+
 implicit = fn.implicit
+
 
 #-----------------------------------------------------
 class TestImplicit(unittest.TestCase):

@@ -2,11 +2,7 @@ import re
 import unittest
 import numbers
 import sys
-
-if sys.version_info[0] < 3:
-    from operator import div  # Python 2
-else:
-    from operator import truediv as div
+from operator import truediv as div
 
 import numpy
 

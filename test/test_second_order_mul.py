@@ -1,22 +1,6 @@
 import unittest
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    xrange = range
-
-import numpy
 
 from GTC import *
-
-from GTC.lib import (
-    UncertainReal, 
-    UncertainComplex,
-    set_correlation_real,
-    real_ensemble,
-    complex_ensemble,
-    append_real_ensemble
-)
 
 from testing_tools import *
 

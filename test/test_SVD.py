@@ -16,35 +16,6 @@ from GTC import cholesky
 
 from testing_tools import *
 
-# #----------------------------------------------------------------------------
-# # This function is used internally in this module
-# #
-# def svdvar(v,w):
-    # """
-    # Calculate the variance-covariance matrix after ``svdfit``
-    
-    # .. versionadded:: 1.4.x
-    
-    # :arg v: an ``P`` by ``P`` matrix of float
-    # :arg w: an ``P`` element sequence of float 
-    
-    # """
-    # wti = [
-        # 1.0/(w_i*w_i) if w_i != 0 else 0.0
-            # for w_i in w 
-    # ]
-    
-    # P = len(w)  
-    # cv = numpy.empty( (P,P), dtype=float )
-    # for i in range(P):
-        # for j in range(i+1):
-            # cv[i,j] = cv[j,i] = math.fsum(
-                # v[i,k]*v[j,k]*wti[k]
-                    # for k in range(P)
-            # )
-    
-    # return cv  
-
 #----------------------------------------------------------------------------
 # Note, this test suite exercises the NR SVD implementation using floats.
 # It is in this type-B testing module because these routines are only 
@@ -390,12 +361,12 @@ class TestSVDWLS(unittest.TestCase):
             # for linear fits 
             return [x_i,1]
         
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)  
+        a, res, ssr, w, v = SVD.svdfit(x,y,sig,fn)  
  
         self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
         self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
         
-        s2 = chisq/(N-M)
+        s2 = ssr/(N-M)
         cv = s2*SVD.svdvar(v,w)
         
         self.assertTrue( equivalent(math.sqrt(cv[1,1]),2.2441,tol=1E-4) )
@@ -424,7 +395,7 @@ class TestSVDOLS(unittest.TestCase):
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
+        a, res, ssr, w, v = SVD.svdfit(x,y,sig,fn)
         
         self.assertTrue( equivalent(a[1],1.5) )
         self.assertTrue( equivalent(a[0],2.0) )
@@ -486,13 +457,13 @@ class TestSVDOLS(unittest.TestCase):
             return x_i 
  
         sig = numpy.ones( (N,) )
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
+        a, res, ssr, w, v = SVD.svdfit(x,y,sig,fn)
         
         self.assertTrue( equivalent(a[2],3.939524,tol=1E-6) )
         self.assertTrue( equivalent(a[1],1.696528,tol=1E-6) )
         self.assertTrue( equivalent(a[0],28.312636,tol=1E-6) )
 
-        s2 = chisq/(N-M)
+        s2 = ssr/(N-M)
         self.assertTrue( equivalent(s2,112.3413,tol=1E-4) )
 
         cv = s2*SVD.svdvar(v,w)
@@ -602,13 +573,13 @@ class TestSVDOLS(unittest.TestCase):
             return x_i 
  
         sig = numpy.ones( (N,) )
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
+        a, res, ssr, w, v = SVD.svdfit(x,y,sig,fn)
 
         self.assertTrue( equivalent(a[0],4.6117077,tol=1E-7) )
         self.assertTrue( equivalent(a[1],-0.1184552,tol=1E-7) )
         self.assertTrue( equivalent(a[2],-1.2317419,tol=1E-7) )
                 
-        s2 = chisq/(N-M)
+        s2 = ssr/(N-M)
         cv = s2*SVD.svdvar(v,w)
 
         se = [
@@ -665,13 +636,13 @@ class TestSVDOLS(unittest.TestCase):
             return x_i 
  
         sig = numpy.ones( (M,) )
-        a, chisq, w, v = SVD.svdfit(x,y,sig,fn)
+        a, res, ssr, w, v = SVD.svdfit(x,y,sig,fn)
         
         self.assertTrue( equivalent(a[0],88.93880,tol=1E-5) )
         self.assertTrue( equivalent(a[1],0.06317,tol=1E-5) )
         self.assertTrue( equivalent(a[2],-0.40974,tol=1E-5) )
                 
-        s2 = chisq/(M-P)
+        s2 = ssr/(M-P)
         cv = s2*SVD.svdvar(v,w)
         
         se = [

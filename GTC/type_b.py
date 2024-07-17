@@ -71,6 +71,7 @@ Module contents
 """
 import sys
 import math
+from collections.abc import Iterable
 
 import numpy as np
 
@@ -78,18 +79,15 @@ import builtins
 from collections.abc import Iterable
     
 from GTC import (
-    inf ,
+    inf,
     EPSILON,
     is_sequence
 )
-
 from GTC.named_tuples import InterceptSlope
 from GTC.vector import scale_vector
-
 from GTC.lib import (
     UncertainReal,
     value,
-    value_seq
 )
 
 __all__ = (
@@ -475,7 +473,7 @@ def line_fit_wls(x,y,u_y=None):
         u = u_y     
         
     S = sum( 1.0/v_i for v_i in v)
-    S_x = sum( x_i/v_i for x_i,v_i in zip(x,v) )    
+    S_x = sum( x_i/v_i for x_i,v_i in zip(x,v) )
     S_y = sum( y_i/v_i for y_i,v_i in zip(y,v) )
 
     k = S_x / S
@@ -500,7 +498,7 @@ def line_fit_wls(x,y,u_y=None):
     
     ssr =  math.fsum( 
         f2( value(x_i), value(y_i), u_i ) 
-            for x_i,y_i,u_i in zip(x,y,u) 
+            for x_i,y_i,u_i in zip(x,y,u)
     )
 
     return LineFitWLS(a,b,ssr,len(x))
@@ -758,7 +756,7 @@ class ChiSq:
             self.u2_x = [ u_i**2 for u_i in u_x ]
             self.u2_y = [ u_i**2 for u_i in u_y ]
             self.cov = [ u_x_i*u_y_i*r_i
-                for u_x_i,u_y_i,r_i in zip(u_x,u_y,r_xy) 
+                for u_x_i,u_y_i,r_i in zip(u_x,u_y,r_xy)
             ]  
         else:    
             self.u2_x = [ x_i.v for x_i in x ]
@@ -836,13 +834,13 @@ class dChiSq_dalpha:
             self.u2_x = [ u_i**2 for u_i in u_x ]
             self.u2_y = [ u_i**2 for u_i in u_y ]
             self.cov = [ u_x_i*u_y_i*r_i
-                for u_x_i,u_y_i,r_i in zip(u_x,u_y,r_xy) 
+                for u_x_i,u_y_i,r_i in zip(u_x,u_y,r_xy)
             ]  
         else:
             self.u2_x = [ x_i.v for x_i in x ]
             self.u2_y = [ y_i.v for y_i in y ]
             self.cov = [ x_i.get_covariance(y_i)
-                for x_i,y_i in zip(x,y) 
+                for x_i,y_i in zip(x,y)
             ]      
         
     #--------------------------------------------------------------------

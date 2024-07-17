@@ -6,14 +6,10 @@ Provides LU decomposition functions for Python objects stored in 2D arrays.
 :func:`ludcmp` performs LU decomposition
 :func:`invab` 
 """
+import array
 from functools import reduce
-try:
-    xrange  # Python 2
-except NameError:
-    xrange = range
 
 import numpy as np 
-import array
 
 __all__ = (
     'solve'
@@ -58,9 +54,9 @@ def ludcmp(a):
     vv = array.array('d',[0.0] * N)   
     parity = 1
 
-    for i in xrange(N):
+    for i in range(N):
         big = 0.0
-        for j in xrange(N):
+        for j in range(N):
             temp = abs( a[i,j] )
             big = temp if temp > big else big
                 
@@ -69,19 +65,19 @@ def ludcmp(a):
         except ZeroDivisionError:
             raise RuntimeError('zero column')
             
-    for j in xrange(N):
-        for i in xrange(j):
+    for j in range(N):
+        for i in range(j):
             a[i,j] = reduce(
                 lambda sum,k: sum - (a[i,k] * a[k,j]), 
-                    xrange(i),  # for k in xrange(i)
+                    range(i),  # for k in range(i)
                     a[i,j]      # initial value
             )
 
         big = 0.0
-        for i in xrange(j,N):
+        for i in range(j,N):
             a[i,j] = reduce(
                 lambda sum,k: sum - (a[i,k] * a[k,j]), 
-                    xrange(j),  # for k in xrange(j)
+                    range(j),  # for k in range(j)
                     a[i,j]      # initial value
             )
             dum = vv[i] * abs(a[i,j])
@@ -90,7 +86,7 @@ def ludcmp(a):
                 imax = i
             
         if(j != imax):
-            for k in xrange(N):
+            for k in range(N):
                 a[imax,k], a[j,k] = a[j,k], a[imax,k]
             parity *= -1
             vv[imax] = vv[j]
@@ -101,7 +97,7 @@ def ludcmp(a):
         
         if(j != N-1):
             tmp = 1.0 / a[j,j]
-            for i in xrange(j+1,N):
+            for i in range(j+1,N):
                 a[i,j] *= tmp
 
     return (a,indx,parity)
@@ -137,20 +133,20 @@ def _lubksb(a_lu,idx,b):
     N = a_lu.shape[0]
 
     ii = -1
-    for i in xrange(N):
+    for i in range(N):
         ip = idx[i]
         sum, b[ip] = b[ip], b[i]
         if( ii != -1 ):
-            for j in xrange(ii,i):
+            for j in range(ii,i):
                 sum -= a_lu[i,j] * b[j]
         elif(sum != 0.0):
             ii = i
         b[i] = sum
 
-    for i in xrange(N-1,-1,-1):
+    for i in range(N-1,-1,-1):
         b[i] = reduce(
             lambda sum,j: sum - a_lu[i,j]*b[j],
-            xrange(i+1,N),
+            range(i+1,N),
             b[i]
         )/a_lu[i,i]
             
@@ -181,13 +177,13 @@ def invab(a,b):
     y = np.empty( (N,M), a.dtype )
 
     # For each column in matrix `b`
-    for j in xrange(M):
+    for j in range(M):
     
         # TODO: consider a slice here
-        col = _lubksb(a_lu,idx,[ b[i,j] for i in xrange(N) ])
+        col = _lubksb(a_lu,idx,[ b[i,j] for i in range(N) ])
         
         # TODO: consider a slice here
-        for i in xrange(N):
+        for i in range(N):
             y[i,j] = col[i]
             
     return y
@@ -216,7 +212,7 @@ def ludet(a_lu,p):
         
     return reduce(
         lambda p,i: p * a_lu[i,i],
-        xrange(Nx),
+        range(Nx),
         p
     )
 

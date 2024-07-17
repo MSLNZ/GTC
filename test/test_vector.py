@@ -1,12 +1,5 @@
 import unittest
 import copy
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-
-TOL = 1E-13
-DIGITS = 13
 
 from GTC.vector import (
     Vector,
@@ -18,6 +11,10 @@ from GTC.vector import (
 )
 
 from testing_tools import *
+
+TOL = 1E-13
+DIGITS = 13
+
 
 #----------------------------------------------------------------------------
 # The index of a vector is an object that must have a `uid` attribute
@@ -119,7 +116,7 @@ class TestVector(unittest.TestCase):
 
         self.assertTrue(is_ordered(v2))
 
-        for i1,i2 in izip(v1.iterkeys(),v2.iterkeys()):
+        for i1,i2 in zip(v1.iterkeys(),v2.iterkeys()):
             self.assertEqual(i1.uid,i2.uid)
 
     def test_extend(self):

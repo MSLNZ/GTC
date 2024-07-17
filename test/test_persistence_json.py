@@ -1,17 +1,10 @@
 import unittest
 import os
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
 
 from GTC import *
 from GTC.context import Context
 from GTC import context
 from GTC import persistence
-from GTC.vector import is_ordered
-
-from testing_tools import *
 
 TOL = 1E-13 
 

@@ -8,16 +8,9 @@ import cmath
 import numbers
 import warnings
 
-try:
-    from itertools import izip  # Python 2
-except ImportError:
-    izip = zip
-    long = int
-
 from GTC import nodes
 from GTC import vector 
 from GTC import context
-
 from GTC.named_tuples import (
     VarianceCovariance, 
     VarianceAndDof, 
@@ -27,7 +20,6 @@ from GTC.named_tuples import (
     CorrelationMatrix,
     CovarianceMatrix,
 )
-
 from GTC import (
     inf, 
     nan, 
@@ -2241,7 +2233,7 @@ def welch_satterthwaite(x):
         else:
             # Final calculation of WS 
             den = 0.0
-            for v_i,dof_i in izip(cpts_lst,dof_lst):
+            for v_i,dof_i in zip(cpts_lst,dof_lst):
                 if not math.isinf(dof_i):
                     u2 = v_i / var
                     den += u2 * u2 / dof_i
@@ -2293,11 +2285,11 @@ def append_real_ensemble(member,x):
     of the ensemble (not checked). 
     
     """
-    # TODO: remove assertions in release version, because 
-    # this function is only called from within GTC modules. 
-    assert x.df == member._node.df
-    assert x.is_elementary
-    assert x._node.independent == False
+    # # TODO: remove assertions in release version, because 
+    # # this function is only called from within GTC modules. 
+    # assert x.df == member._node.df
+    # assert x.is_elementary
+    # assert x._node.independent == False
     
     # All Leaf nodes refer to the same ensemble object 
     # So by adding a member here, all the other Leaf nodes 
