@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 from GTC.lib import value
-from GTC.type_a_SVD import ModelFit
+from GTC.type_a_linear_models import ModelFit
 from GTC import SVD
 from GTC import cholesky 
 
@@ -123,26 +123,4 @@ def gls(x,y,cv,fn=None,label=None):
 
     return ModelFit( coef,res,ssr,fn,M )
   
-#============================================================================
-if __name__ == '__main__': 
-
-    from GTC import *
-    
-    # import doctest    
-    # doctest.testmod( optionflags=doctest.NORMALIZE_WHITESPACE )
-
-    A = np.array(
-        [[ureal(1,.2), ureal(.5,.4)],
-        [ureal(.2,.3), ureal(-1,.5)]]
-    )
-    # A = np.array(
-        # [1, .5,.2, -1]
-    # )
-    A.shape = 2,2
-    print(A)
-    U,w,V = svd_decomp(A)
-    print()
-    # print(U)
-    # print(V)
-    print( np.matmul(A,np.matmul(V,np.matmul(np.diag(1.0/w),U.T))) )
     

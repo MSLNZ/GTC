@@ -12,19 +12,14 @@ DIGITS = 13
 
 from GTC import *
 from GTC import cholesky
-from GTC import type_a_SVD as SVD
+from GTC import type_a_linear_models as LM
 from GTC.lib import _is_constant
 
 from testing_tools import * 
 
 #----------------------------------------------------------------------------
 class TestSVDWLS(unittest.TestCase):
-
-    """
-    WLS problems
-    """    
     
-    #------------------------------------------------------------------------
     def test3lsfit(self):
         # weighted least squares
         # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
@@ -41,17 +36,14 @@ class TestSVDWLS(unittest.TestCase):
         M = 2
 
         def fn(x_i):
-            # for linear fits 
             return [x_i,1]
         
-        # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)  
-        a, cv, res, ssr = SVD.lsfit(x,y,sig,fn)  
+        a, cv, res, ssr = LM.lsfit(x,y,sig,fn)  
  
         self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
         self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
         
         s2 = ssr/(N-M)
-        # cv = s2*SVD.svdvar(v,w)
         cv = s2*cv
         
         self.assertTrue( equivalent(math.sqrt(cv[1,1]),2.2441,tol=1E-4) )
@@ -74,10 +66,9 @@ class TestSVDWLS(unittest.TestCase):
         M = 2
 
         def fn(x_i):
-            # for linear fits 
             return [x_i,1]
         
-        fit = SVD.rwls(x,y,sig,fn)  
+        fit = LM.rwls(x,y,sig,fn)  
  
         a = fit.beta
 
@@ -94,10 +85,6 @@ class TestSVDWLS(unittest.TestCase):
 #----------------------------------------------------------------------------
 class TestSVDOLS(unittest.TestCase):
 
-    """
-    OLS problems
-    """
-    
     #------------------------------------------------------------------------
     def test1(self):
         # Simple example 
@@ -111,8 +98,7 @@ class TestSVDOLS(unittest.TestCase):
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
-        # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
         
         self.assertTrue( equivalent(fit.beta[1].x,1.5) )
         self.assertTrue( equivalent(fit.beta[0].x,2.0) )
@@ -174,7 +160,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+2]) )        
          
-        fit = SVD.ols(x,y) 
+        fit = LM.ols(x,y) 
         
         a = fit.beta
         self.assertTrue( equivalent(value(a[2]),3.939524,tol=1E-6) )
@@ -250,7 +236,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+2]) )        
         
-        fit = SVD.ols(x,y)  
+        fit = LM.ols(x,y)  
  
         a = fit.beta
         
@@ -295,7 +281,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
         
         TOL = 1E-5
         self.assertTrue( equivalent( value(fit.beta[1]), 3.82963, TOL) )
@@ -396,7 +382,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+1]) )        
         
-        fit = SVD.ols(x,y)
+        fit = LM.ols(x,y)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),4.6117077,tol=1E-7) )
@@ -449,7 +435,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+7]) )        
         
-        fit = SVD.ols(x,y)
+        fit = LM.ols(x,y)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),88.93880,tol=1E-5) )
@@ -482,7 +468,7 @@ class TestSVDOLS(unittest.TestCase):
         V = numpy.array(strings, dtype=float)
         V.shape = 16,16 
         
-        fit = SVD.gls(x,y,V)
+        fit = LM.gls(x,y,V)
  
         a = fit.beta
         
@@ -532,7 +518,7 @@ class TestSVDOLS(unittest.TestCase):
         for x_i in range(1,11):
             x.append( [x_i,1] )
          
-        fit = SVD.gls(x,y,cv,lambda x: x)
+        fit = LM.gls(x,y,cv,lambda x: x)
         a = fit.beta
 
         # Values agree well with reference
@@ -544,43 +530,6 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
 
         self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) )
-
-# The following code evaluated 2.07395 for the SSR
-# import numpy as np
-# import statsmodels.api as sm
-
-# # Given data
-# x = np.arange(1, 11)
-# y = np.array([1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0])
-
-# # Design matrix for the regression
-# X = sm.add_constant(x)
-
-# # Covariance matrix
-# cv = np.diag([2] * 10)
-# for i in range(5):
-    # for j in range(i+1, 5):
-        # cv[i][j] = cv[j][i] = 1
-
-# for i in range(5, 10):
-    # cv[i][i] = 5
-
-# for i in range(5, 10):
-    # for j in range(i+1, 10):
-        # cv[i][j] = cv[j][i] = 4
-
-# # Inverse of the covariance matrix
-# inv_cv = np.linalg.inv(cv)
-
-# # Fit the GLS model
-# model_gls = sm.GLS(y, X, sigma=cv).fit()
-
-# # Calculate residuals
-# residuals = y - model_gls.predict(X)
-
-# # Calculate SSR for GLS
-# ssr_gls = residuals.T @ inv_cv @ residuals
-# ssr_gls
 
     #------------------------------------------------------------------------
     def test8wls(self):
@@ -600,7 +549,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i, 1] 
  
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),619.71,tol=1E-2) )
@@ -611,7 +560,7 @@ class TestSVDOLS(unittest.TestCase):
 
         u_y = np.array( sd, dtype=float)
 
-        fit = SVD.rwls(x,y,u_y,fn)
+        fit = LM.rwls(x,y,u_y,fn)
  
         a = fit.beta
         
@@ -626,7 +575,7 @@ class TestSVDOLS(unittest.TestCase):
         # Alternative formulation with x data in MxP array 
         X = np.array( [ fn(x_i) for x_i in x ], dtype=float)
         
-        fit = SVD.rwls(X,y,u_y,lambda x: x)
+        fit = LM.rwls(X,y,u_y,lambda x: x)
 
         a = fit.beta
         # Values agree well with reference
@@ -636,6 +585,7 @@ class TestSVDOLS(unittest.TestCase):
         # Values agree well with reference
         self.assertTrue( equivalent(uncertainty(a[0]),47.550,tol=1E-3) )
         self.assertTrue( equivalent(uncertainty(a[1]),8.079,tol=1E-3) )
+        
     #------------------------------------------------------------------------
     def test_bevington(self):
         """
@@ -659,7 +609,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
         
         TOL = 1E-5
         a = fit.beta[1]
@@ -685,7 +635,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = SVD.ols(theta,b_k,fn,M)
+        fit = LM.ols(theta,b_k,fn,M)
         
         TOL = 1E-5
         a = fit.beta[1]
@@ -702,15 +652,18 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
         self.assertTrue( equivalent(b_30.df,9,1E-13) )
 
-        # # `y_from_x` is the predicted single `y` response
-        # # which has greater variability        
-        # b_30 = fit.y_from_x(30 - 20)
-        # self.assertTrue( not b_30.is_intermediate )
-        # self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
-        # b_30 = fit.y_from_x(30 - 20,y_label='b_30')
-        # self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
-        # self.assertTrue( b_30.is_intermediate )
-
+        b_30 = fit.predict(30-20)
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
+        self.assertTrue( equivalent(b_30.df,9,1E-13) )
+        self.assertTrue( not b_30.is_intermediate )
+                
+        b_30 = fit.predict(30-20,label='b_30')
+        self.assertTrue( equivalent(b_30.x,-0.1494,1E-4) )
+        self.assertTrue( equivalent(b_30.u,0.0041,1E-4) )
+        self.assertTrue( equivalent(b_30.df,9,1E-13) )
+        self.assertTrue( b_30.is_intermediate )
+        
     #------------------------------------------------------------------------
     def test_A5(self):
         """CITAC 3rd edition
@@ -727,13 +680,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        def fn_inv(y_i,beta):
-            if abs(beta[0]) > 1E-13:
-                return (y_i - beta[1])/beta[0]
-            else:
-                return beta[1]
-
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
 
         TOL = 1E-5
         b,a = fit.beta
@@ -743,25 +690,10 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue(equivalent(uncertainty(a),0.0029,1E-4))
         self.assertTrue(equivalent(uncertainty(b),0.0050,1E-4))
 
-        # # The classical uncertainty
-        # xmean = type_a.mean(x)
-        # sxx = sum( (x_i-xmean)**2 for x_i in x )
-        # S = math.sqrt(fit.ssr/(N-2))
-
-        # c_0 = fit.x_from_y( [0.0712, 0.0716] )
-        # _x = c_0.x
-        # u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
-
-        # self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
-        # self.assertEqual(c_0.df,N-2)
-
-        # # Now in the opposite sense
-        # y_0 = fit.y_from_x(_x)
-        # u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
+        self.assertTrue(equivalent(math.sqrt(fit.ssr/(N-M)),0.005486,1E-5))
         
-        # self.assertTrue(equivalent(value(y_0),0.0714,TOL))
-        # self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
-        # self.assertEqual(y_0.df,N-2)
+        # CITAC mistakenly reports the R-squared value as the correlation coefficient
+        self.assertTrue(equivalent(get_correlation(a,b),-0.870388,1E-6))
 
 #=====================================================
 if(__name__== '__main__'):

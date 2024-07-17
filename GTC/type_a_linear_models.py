@@ -23,69 +23,6 @@ from GTC import inf
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
 
-# We mostly use numpy routines in this module because they will 
-# execute more quickly than the Numerical Recipe equivalents.
-# #----------------------------------------------------------------------------
-# # TODO solve and svbksb don't belong in the type-A module
-# # They should be available in type-B and take generic arguments
-# def svbksb(u,w,v,b):
-    # """
-    # Solve A*X = B
-    
-    # .. versionadded:: 1.4.x
-    
-    # :arg u: an ``M`` by ``P`` matrix
-    # :arg w: an ``P`` element sequence
-    # :arg v: an ``P`` by ``P`` matrix
-    # :arg b: an ``P`` element sequence 
-    
-    # Returns a list containing the solution ``X`` 
-    
-    # """
-    # # M,P = u.shape 
-    # # tmp = np.zeros( (P,), dtype=float  ) 
-    # # for j in range(P):
-        # # if w[j] != 0:
-            # # tmp[j] = math.fsum(
-                # # u[i,j]*b[i] for i in range(M)
-            # # ) / w[j]
- 
-    # # return np.matmul(v,tmp)
-
-    # return np.matmul( v,1.0/w*np.matmul(u.T,b) )
-# #------------------------------------------------
-# def solve(a,b,TOL=1E-5):
-    # """
-    # Solve a.x = b
-    
-    # .. versionadded:: 1.4.x
-
-    # """
-    # u,w,vh = np.linalg.svd(a, full_matrices=False )
-    # v = vh.T    
-
-    # wmax = max(w)
-    # thresh = TOL*wmax 
-    # # wmin = min(w)
-    # # logC = math.log10(wmax/wmin)
-    # # # The base-b logarithm of C is an estimate of how many 
-    # # # base-b digits will be lost in solving a linear system 
-    # # # with the matrix. In other words, it estimates worst-case 
-    # # # loss of precision. 
-
-    # # # C is the condition number: the ratio of the largest to smallest 
-    # # # singular value in the SVD
-    
-    # # `TOL` is used to set relatively small singular values to zero
-    # # Doing so avoids numerical precision problems, but will make the 
-    # # solution slightly less accurate. The value can be varied.
-    # w = np.array([ 
-        # w_i if w_i >= thresh else 0. 
-            # for w_i in w 
-    # ])
-    
-    # return svbksb(u,w,v,b)
-
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
     """
@@ -455,7 +392,7 @@ class ModelFit(object):
   Sum of the squared residuals: {self._ssr:G}
 '''
 
-    def predict(x_i):
+    def predict(self,x_i,label=None):
         """Predict the response to `x_i` as an uncertain number
         
         :arg x_i: a stimulus
@@ -473,10 +410,14 @@ class ModelFit(object):
         if self._fn is not None:
             x_i = self._fn(x_i)
     
-        return sum(
+        y_i = sum(
             self._beta[j]*x_i[j]
                 for j in range(self._P)
         )
+        if label is None:
+            return y_i 
+        else:
+            return result(y_i,label=label) 
 
     @property
     def residuals(self):

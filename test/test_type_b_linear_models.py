@@ -10,49 +10,15 @@ TOL = 1E-13
 DIGITS = 13
 
 from GTC import *
-from GTC import type_b_SVD as SVD
+from GTC import type_b_linear_models as LM
 
 from GTC import cholesky
 
 from testing_tools import *
 
-# #----------------------------------------------------------------------------
-# # This function is used internally in this module
-# #
-# def svdvar(v,w):
-    # """
-    # Calculate the variance-covariance matrix after ``svdfit``
-    
-    # .. versionadded:: 1.4.x
-    
-    # :arg v: an ``P`` by ``P`` matrix of float
-    # :arg w: an ``P`` element sequence of float 
-    
-    # """
-    # # Based on Numerical Recipes 'svdvar'   
-    # wti = [
-        # 1.0/(w_i*w_i) if w_i != 0 else 0.0
-            # for w_i in w 
-    # ]
-    
-    # P = len(w)  
-    # cv = numpy.empty( (P,P), dtype=float )
-    # for i in range(P):
-        # for j in range(i+1):
-            # cv[i,j] = cv[j,i] = math.fsum(
-                # v[i,k]*v[j,k]*wti[k]
-                    # for k in range(P)
-            # )
-    
-    # return cv  
-
 #----------------------------------------------------------------------------
 class TestSVDWLS(unittest.TestCase):
 
-    """
-    WLS problems
-    """
-    
     #------------------------------------------------------------------------
     # This test does not use uncertain numbers for the data
     def test3(self):
@@ -71,10 +37,9 @@ class TestSVDWLS(unittest.TestCase):
         M = 2
 
         def fn(x_i):
-            # for linear fits 
             return [x_i,1]
         
-        fit = SVD.wls(x,y,sig,fn)  
+        fit = LM.wls(x,y,sig,fn)  
         
         a = fit.beta
         self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
@@ -89,17 +54,12 @@ class TestSVDWLS(unittest.TestCase):
 #----------------------------------------------------------------------------
 class TestSVDOLS(unittest.TestCase):
 
-    """
-    OLS problems
-    """
-    
     #------------------------------------------------------------------------
     # This test does not use uncertain numbers for the data
     def test1(self):
         # Simple example 
         
         def fn(x_i):
-            # for linear fits 
             return [x_i,1]
             
         M = 2 
@@ -108,7 +68,7 @@ class TestSVDOLS(unittest.TestCase):
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
-        a = SVD.ols(x,y,fn=fn).beta
+        a = LM.ols(x,y,fn=fn).beta
         
         self.assertTrue( equivalent(a[1],1.5) )
         self.assertTrue( equivalent(a[0],2.0) )
@@ -153,11 +113,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+7]) )        
         
-        # def fn(x_i):
-            # return x_i 
- 
-        # sig = numpy.ones( (M,) )
-        a = SVD.ols(x,y).beta
+        a = LM.ols(x,y).beta
         
         self.assertTrue( equivalent(a[0],88.93880,tol=1E-5) )
         self.assertTrue( equivalent(a[1],0.06317,tol=1E-5) )
@@ -197,41 +153,8 @@ class TestSVDOLS(unittest.TestCase):
 
         cv = numpy.array(strings, dtype=float)
         cv.shape = 16,16 
-        
-        # GLS problem 
-        
-        # K = cholesky.cholesky_decomp(V)
-        # Kinv = cholesky.cholesky_inv(K)
-        
-        # X = x
-        # Y = numpy.array( y ).T
- 
-        # a = Kinv @ X 
-        # b = Kinv @ Y 
-
-        # u,w,v = SVD.svd_decomp(a)
-
-        # # Select almost singular values
-        # wmax = max(w)
-        # # wmin = min(w)
-        # # logC = math.log10(wmax/wmin)
-        # # # The base-b logarithm of C is an estimate of how many 
-        # # # base-b digits will be lost in solving a linear system 
-        # # # with the matrix. In other words, it estimates worst-case 
-        # # # loss of precision. 
-        # # # C is the condition number: the ratio of the largest to smallest 
-        # # # singular value in the SVD
-        
-        # TOL = 1E-5
-        # thresh = TOL*wmax 
-        # w = numpy.array([ 
-            # w_i if w_i >= thresh else 0. 
-                # for w_i in w 
-        # ]) 
-
-        # coef = SVD.svbksb(u,w,v,b)
-        
-        coef = SVD.gls(x,y,cv).beta
+                
+        coef = LM.gls(x,y,cv).beta
         
         # Values agree well with reference
         self.assertTrue( equivalent(coef[0],94.89887752,tol=1E-7) )
@@ -281,7 +204,7 @@ class TestSVDOLS(unittest.TestCase):
 
         # a = numpy.array( data, dtype=float )
 
-        # x = SVD.solve(a,b)
+        # x = LM.solve(a,b)
         
         # for i,j in zip(x,x_expect):
             # self.assertTrue( equivalent(i,j) )
@@ -300,7 +223,7 @@ class TestSVDOLS(unittest.TestCase):
 
         # a = numpy.array( data, dtype=float )
         
-        # x = SVD.solve(a,b)
+        # x = LM.solve(a,b)
 
         # for i,j in zip(x,x_expect):
             # self.assertTrue( equivalent(i,j) )
@@ -322,7 +245,7 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
 
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
         b,a = fit.beta
         
         equivalent( value(a) ,0.0,TOL)
@@ -349,7 +272,7 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
             else:
                 return beta[1]
                 
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
         b,a = fit.beta
         
         # x_0 = fit.x_from_y( [1.5] )
@@ -359,13 +282,13 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
         # Incorrect input sequences
         self.assertRaises(
             RuntimeError,
-            SVD.ols,
+            LM.ols,
             numpy.array([1, 2, 3]), numpy.array([]), fn
          )
 
         self.assertRaises(
             RuntimeError,
-            SVD.ols,
+            LM.ols,
             numpy.array([1, 2, 3, 4]), numpy.array([1, 2, 3]), fn
         )
 
@@ -387,7 +310,7 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
         x = numpy.array([ value(x_i) for x_i in [-1,0,1] ])
         y = numpy.array([ ureal(y_i,u,df=nu) for y_i in x ])
 
-        fit = SVD.ols(x,y,fn)
+        fit = LM.ols(x,y,fn)
         b,a = fit.beta
 
         equivalent( value(a),0.0,TOL)
