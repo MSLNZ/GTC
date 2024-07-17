@@ -25,7 +25,7 @@ class TestSVDWLS(unittest.TestCase):
     """    
     
     #------------------------------------------------------------------------
-    def test3svdfit(self):
+    def test3lsfit(self):
         # weighted least squares
         # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
         
@@ -45,7 +45,7 @@ class TestSVDWLS(unittest.TestCase):
             return [x_i,1]
         
         # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)  
-        a, cv, ssr = SVD.svdfit(x,y,sig,fn)  
+        a, cv, res, ssr = SVD.lsfit(x,y,sig,fn)  
  
         self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
         self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
@@ -103,29 +103,26 @@ class TestSVDOLS(unittest.TestCase):
         # Simple example 
         
         def fn(x_i):
-            # for linear fits 
             return [x_i,1]
             
         P = 2 
         N = 10
-        # sig = np.ones( (N,) )
         
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
         # a, ssr, w, v = SVD.svdfit(x,y,sig,fn)
-        ls = SVD.ols(x,y,fn)
+        fit = SVD.ols(x,y,fn)
         
-        self.assertTrue( equivalent(ls.beta[1].x,1.5) )
-        self.assertTrue( equivalent(ls.beta[0].x,2.0) )
+        self.assertTrue( equivalent(fit.beta[1].x,1.5) )
+        self.assertTrue( equivalent(fit.beta[0].x,2.0) )
         
-        # This is a perfect fit so we expect the coefficients
-        # to have no uncertainty
-        self.assertTrue( _is_constant(ls.beta[1]) )
-        self.assertTrue( _is_constant(ls.beta[0]) )
+        # This is a perfect fit so we expect no uncertainty
+        self.assertTrue( _is_constant(fit.beta[1]) )
+        self.assertTrue( _is_constant(fit.beta[0]) )
  
     #------------------------------------------------------------------------
-    def test2svdfit(self):
+    def test2ols(self):
         # From http://www.stat.ufl.edu/~winner/Regression_Examples.html
         # "Matrix Form of Multiple Regression - British Calorie Burning Experiment"
         #
@@ -177,28 +174,30 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+2]) )        
          
-        a, cv, ssr = SVD.svdfit(x,y)  
+        fit = SVD.ols(x,y) 
         
-        self.assertTrue( equivalent(a[2],3.939524,tol=1E-6) )
-        self.assertTrue( equivalent(a[1],1.696528,tol=1E-6) )
-        self.assertTrue( equivalent(a[0],28.312636,tol=1E-6) )
+        a = fit.beta
+        self.assertTrue( equivalent(value(a[2]),3.939524,tol=1E-6) )
+        self.assertTrue( equivalent(value(a[1]),1.696528,tol=1E-6) )
+        self.assertTrue( equivalent(value(a[0]),28.312636,tol=1E-6) )
 
-        s2 = ssr/(N-M)
+        s2 = fit.ssr/(N-M)
         self.assertTrue( equivalent(s2,112.3413,tol=1E-4) )
 
-        # cv = s2*SVD.svdvar(v,w)
-        cv = s2*cv
         r_cv = numpy.array([
             [403.2310528, -6.517061844, -0.691727735],
             [-6.5170618,  0.112537458,  0.001218182],
             [-0.6917277,  0.001218182,  0.018260902]
         ])
         
-        for i,j in zip( cv.flat, r_cv.flat):
-            self.assertTrue( equivalent(i,j,tol=1E-7) )
-
+        for i in range(M):
+            for j in range(i+1):
+                self.assertTrue( 
+                    equivalent(r_cv[i,j],get_covariance(a[i],a[j]),
+                    tol=1E-7) 
+                )
     #------------------------------------------------------------------------
-    def test2wls(self):
+    def test3ols(self):
         # From http://www.stat.ufl.edu/~winner/Regression_Examples.html
         # "Matrix Form of Multiple Regression - British Calorie Burning Experiment"
         #
@@ -251,11 +250,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+2]) )        
         
-        def fn(x_i):
-            return x_i 
- 
-        # The reference determines sigma from the residuals
-        fit = SVD.rwls(x,y,sig,fn)  
+        fit = SVD.ols(x,y)  
  
         a = fit.beta
         
@@ -268,21 +263,16 @@ class TestSVDOLS(unittest.TestCase):
             [-6.5170618,  0.112537458,  0.001218182],
             [-0.6917277,  0.001218182,  0.018260902]
         ])
- 
-        self.assertTrue( equivalent(variance(a[2]),0.018260902,tol=1E-6) )
-        self.assertTrue( equivalent(variance(a[1]),0.112537458,tol=1E-6) )
-        self.assertTrue( equivalent(variance(a[0]),403.2310528,tol=1E-6) )
- 
-        for i in range(3):
-            for j in range(i):
-                cv1 = get_covariance(a[i],a[j])
-                cv2 = r_cv[i,j]
+
+        for i in range(M):
+            for j in range(i+1):
                 self.assertTrue( 
-                    equivalent(cv1,cv2,tol=1E-7) 
+                    equivalent(r_cv[i,j],get_covariance(a[i],a[j]),
+                    tol=1E-7) 
                 )
                 
     #------------------------------------------------------------------------
-    def test3ols(self):
+    def test4ols(self):
         # Example from Walpole + Myers, but the numerical results
         # were done using R, because Walpole made an error with
         # their t-distribution 'k' factor.
@@ -310,11 +300,12 @@ class TestSVDOLS(unittest.TestCase):
         TOL = 1E-5
         self.assertTrue( equivalent( value(fit.beta[1]), 3.82963, TOL) )
         self.assertTrue( equivalent( uncertainty(fit.beta[1]), 1.768447, TOL) )
+        
         self.assertTrue( equivalent( value(fit.beta[0]), 0.90364, TOL) )
         self.assertTrue( equivalent( uncertainty(fit.beta[0]), 0.05011898, TOL) )
 
     #------------------------------------------------------------------------
-    def test4ols(self):
+    def test5ols(self):
         # From http://www.stat.ufl.edu/~winner/sta6208/reg_ex/spiritsgg.rout
         #
 
@@ -405,9 +396,6 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+1]) )        
         
-        # def fn(x_i):
-            # return x_i 
- 
         fit = SVD.ols(x,y)
 
         a = fit.beta
@@ -420,7 +408,7 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(uncertainty(a[2]),0.05024342,tol=1E-7) )
 
     #------------------------------------------------------------------------
-    def test5gls(self):
+    def test6gls(self):
         # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
         # which in turn came from Julian J. Faraway, 
         # "Practical Regression and Anova using R", 2002
@@ -461,9 +449,6 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+7]) )        
         
-        # def fn(x_i):
-            # return x_i 
- 
         fit = SVD.ols(x,y)
 
         a = fit.beta
@@ -500,24 +485,26 @@ class TestSVDOLS(unittest.TestCase):
         fit = SVD.gls(x,y,V)
  
         a = fit.beta
-        sigma = math.sqrt( fit.ssr/(N-M) )
         
         # Values agree well with reference
         self.assertTrue( equivalent(value(a[0]),94.89887752,tol=1E-7) )
         self.assertTrue( equivalent(value(a[1]),0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(value(a[2]),-0.47427391,tol=1E-7) )
         
-        # Values agree well with reference
-        # Note that the reference only assumed a covariance matrix with terms
-        # proportional to the actual values. The residuals are used to estimate
-        # sigma squared and sigma must be applied to the uncertainties to match 
-        # the published values.
+        # Values agree with reference
+        # However, the reference only assumed a covariance matrix with terms
+        # proportional to the actual values. The residuals without taking account
+        # of the covariance structure are used to estimate sigma squared.
+        # This sigma must be applied to the uncertainties to match the published values.
+        ssr = np.dot( fit.residuals.T, fit.residuals)
+        sigma = math.sqrt( ssr/(N-M) )
+        
         self.assertTrue( equivalent(sigma*uncertainty(a[0]),14.15760467,tol=1E-5) )
         self.assertTrue( equivalent(sigma*uncertainty(a[1]),0.01086675,tol=1E-5) )
         self.assertTrue( equivalent(sigma*uncertainty(a[2]),0.15572652,tol=1E-5) )
 
     #------------------------------------------------------------------------
-    def test6gls(self):
+    def test7gls(self):
         """
         Example from ISO/TS 28037:2010 "Determination and use of straight-line 
         calibration functions", Section 9: "Model for uncertainties and covariances
@@ -556,8 +543,47 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
         self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
 
+        self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) )
+
+# The following code evaluated 2.07395 for the SSR
+# import numpy as np
+# import statsmodels.api as sm
+
+# # Given data
+# x = np.arange(1, 11)
+# y = np.array([1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0])
+
+# # Design matrix for the regression
+# X = sm.add_constant(x)
+
+# # Covariance matrix
+# cv = np.diag([2] * 10)
+# for i in range(5):
+    # for j in range(i+1, 5):
+        # cv[i][j] = cv[j][i] = 1
+
+# for i in range(5, 10):
+    # cv[i][i] = 5
+
+# for i in range(5, 10):
+    # for j in range(i+1, 10):
+        # cv[i][j] = cv[j][i] = 4
+
+# # Inverse of the covariance matrix
+# inv_cv = np.linalg.inv(cv)
+
+# # Fit the GLS model
+# model_gls = sm.GLS(y, X, sigma=cv).fit()
+
+# # Calculate residuals
+# residuals = y - model_gls.predict(X)
+
+# # Calculate SSR for GLS
+# ssr_gls = residuals.T @ inv_cv @ residuals
+# ssr_gls
+
     #------------------------------------------------------------------------
-    def test7wls(self):
+    def test8wls(self):
         # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
         # which in turn came from Julian J. Faraway, 
         # "Practical Regression and Anova using R", 2002
@@ -736,49 +762,6 @@ class TestSVDOLS(unittest.TestCase):
         # self.assertTrue(equivalent(value(y_0),0.0714,TOL))
         # self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
         # self.assertEqual(y_0.df,N-2)
-        
-# #----------------------------------------------------------------------------
-# class TestSVDLinearSystems(unittest.TestCase):
-    
-    # """
-    # Using SVD to solve linear systems of equations 
-    # """
-
-    # #------------------------------------------------------------------------
-    # def test1(self):
-        # # Simple example
-        # data = ([
-            # [2, -3],
-            # [4, 1]
-        # ])
-        # b = [-2,24]
-        # x_expect =[ 5, 4 ]
-
-        # a = numpy.array( data, dtype=float )
-        
-        # x = SVD.solve(a,b)
-
-        # for i,j in zip(x,x_expect):
-            # self.assertTrue( equivalent(i,j) )
- 
-    # #------------------------------------------------------------------------
-    # def test2(self):
-        # # Simple example
-        # data = ([
-            # [2, 1, 3],
-            # [2, 6, 8],
-            # [6, 8, 18]
-        # ])
-        # b = [1,3,5]
-        # x_expect = [ 3./10., 4./10., 0.] 
-
-
-        # a = numpy.array( data, dtype=float )
-
-        # x = SVD.solve(a,b)
-
-        # for i,j in zip(x,x_expect):
-            # self.assertTrue( equivalent(i,j) )     
 
 #=====================================================
 if(__name__== '__main__'):

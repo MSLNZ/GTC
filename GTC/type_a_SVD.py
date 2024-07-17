@@ -87,7 +87,7 @@ _const = UncertainReal._constant
     # return svbksb(u,w,v,b)
 
 #----------------------------------------------------------------------------
-def svdfit(x,y,sig=None,fn=None):
+def lsfit(x,y,sig=None,fn=None):
     """
     Solve `x @ beta = y` for `beta` 
 
@@ -110,12 +110,15 @@ def svdfit(x,y,sig=None,fn=None):
     # M - number of data points 
     # P - number of parameters to fit 
     M = len(x) 
-    if sig is None: sig = np.ones( (len(x),) )
+    if sig is None: 
+        sig = np.ones( (len(x),) )
+    else:
+        sig = np.array( sig )
         
     # Allow uncertain-number inputs:
     # construct arrays `a` and `b` from values 
     if fn is None:
-        P = len( x[0]  )   
+        P = len( x[0] )   
         def row(row_i,s_i):
             return [ value(x_i/s_i) for x_i in row_i ]
             
@@ -179,60 +182,12 @@ def svdfit(x,y,sig=None,fn=None):
     ]
     cv_coef = v @ np.diag(wti) @ vh
 
-    # sum of squared residuals
-    # `y` values may be uncertain numbers
-    # so we take the value only
-    ssr = 0.0 
-    if fn is None:
-        for i,row_i in enumerate(x):
-            f_i = math.fsum(
-                coef[j]*value(row_i[j])
-                    for j in range(P)
-            )
-            tmp = (value(y[i]) - f_i)/sig[i]
-            ssr += tmp*tmp            
-    else:
-        for i in range(M):
-            afunc_i = fn(x[i])
-            f_i = math.fsum(
-                    coef[j]*afunc_i[j]
-                        for j in range(P)
-                )
-            tmp = (value(y[i]) - f_i)/sig[i] 
-            ssr += tmp*tmp 
+    # Residuals and sum of squared residuals
+    res = b - np.dot(a, coef) 
+    ssr = np.dot(res.T, res)
           
-    return coef, cv_coef, ssr 
- 
-# #----------------------------------------------------------------------------
-# # This function is used internally in this module, and called by some 
-# # unit tests in both test_type_a_SVD.py and test_type_b_SVD.py modules.
-# def svdvar(v,w):
-    # """
-    # Calculate the variance-covariance matrix after ``svdfit``
-    
-    # .. versionadded:: 1.4.x
-    
-    # :arg v: an ``P`` by ``P`` matrix of float
-    # :arg w: an ``P`` element sequence of float 
-    
-    # """
-    # # Based on Numerical Recipes 'svdvar'   
-    # wti = [
-        # 1.0/(w_i*w_i) if w_i != 0 else 0.0
-            # for w_i in w 
-    # ]
-    
-    # P = len(w)  
-    # cv = np.empty( (P,P), dtype=float )
-    # for i in range(P):
-        # for j in range(i+1):
-            # cv[i,j] = cv[j,i] = math.fsum(
-                # v[i,k]*v[j,k]*wti[k]
-                    # for k in range(P)
-            # )
-    
-    # return cv  
- 
+    return coef, cv_coef, res, ssr 
+  
 #----------------------------------------------------------------------------
 def _coef_as_uncertain_numbers(coef,cv,df=inf,label='beta'):
     """
@@ -292,7 +247,6 @@ def ols(x,y,fn=None,label='beta'):
     values are used in calculations.
 
     """
-    # x can be MxP, alternatively x can be 1-D and `fn` expands the basis functions
     M = len(y)
     
     if M != len(x):
@@ -300,14 +254,14 @@ def ols(x,y,fn=None,label='beta'):
             "len(x) {} != len(y) {}".format(len(x),M)
         )
             
-    coef, cv, ssr = svdfit(x,y,fn=fn)
+    coef, cv, res, ssr = lsfit(x,y,fn=fn)
 
     df = M - len(coef)
     cv = ssr/df * cv
 
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
 
-    return OLSFit( coef,ssr,M,fn )  
+    return ModelFit( coef,res,ssr,M,fn )  
     
 #----------------------------------------------------------------------------
 def wls(x,y,u_y,fn=None,dof=None,label='beta'):
@@ -332,7 +286,7 @@ def wls(x,y,u_y,fn=None,dof=None,label='beta'):
     if M != len(u_y):
         raise RuntimeError( "len(x) != len(u_y)")
         
-    coef, cv, ssr = svdfit(x,y,u_y,fn)   
+    coef, cv, res, ssr = lsfit(x,y,u_y,fn)   
     
     if dof is None:
         df = inf
@@ -342,7 +296,7 @@ def wls(x,y,u_y,fn=None,dof=None,label='beta'):
         
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
 
-    return WLSFit( coef,ssr,M,fn )  
+    return ModelFit( coef,res,ssr,M,fn )  
 
 #----------------------------------------------------------------------------
 def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
@@ -367,14 +321,14 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
     if M != len(s_y):
         raise RuntimeError( "len(x) != len(s_y)")
         
-    coef, cv, ssr = svdfit(x,y,s_y,fn)   
+    coef, cv, res, ssr = lsfit(x,y,s_y,fn)   
     
     df = M - len(coef) if dof is None else dof        
     cv = ssr/df * cv
         
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
     
-    return RWLSFit( coef,ssr,M,fn )  
+    return ModelFit( coef,res,ssr,M,fn )  
 
 #----------------------------------------------------------------------------
 def gls(x,y,cv,fn=None,label='beta'):
@@ -447,8 +401,7 @@ def gls(x,y,cv,fn=None,label='beta'):
             for w_i in w 
     ]) 
    
-    # coef = svbksb(u,w,v,b)
-    
+    # coef = svbksb(u,w,v,b)    
     w_inv = np.diag(1 / w)
     coef = v @ w_inv @ u.T @ b
     
@@ -459,65 +412,17 @@ def gls(x,y,cv,fn=None,label='beta'):
     ]
     cv_coef = v @ np.diag(wti) @ vh
 
-    ssr = 0.0 
-    for i in range(M):
-        afunc_i = X[i] if fn is None else fn(X[i]) 
-        s = math.fsum(
-                coef[j]*afunc_i[j]
-                    for j in range(P)
-            )
-        tmp = value( Y[i] - s )
-        ssr += tmp*tmp 
-        
+    res = Y - np.dot(X, coef) 
+    tmp = np.dot(Kinv, res)
+    ssr = np.dot(tmp.T, tmp)
+    
     df = inf   
     coef = _coef_as_uncertain_numbers(coef,cv_coef,df,label=label)    
 
-    return GLSFit( coef,ssr,M,fn )
-# #----------------------------------------------------------------------------
-# def _gls(x,y,cv,fn,fn_inv=None,label=None):
-    # """Generalised least squares fit of ``y`` to ``x``
-    
-    # :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    # :arg y: a sequence of ``M`` responses (dependent-variable)  
-    # :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
-    # :arg fn: a user-defined function relating ``x`` the response
-    # :arg fn_inv: a user-defined function relating the response to the stimulus 
-    # :returns:   an object containing regression results
-    # :rtype:     :class:`GLSFit``
-    
-    # """
-    # M = len(x) 
-
-    # # P - number of parameters to fit 
-    # afunc_i = fn(x[0])  
-    # P = len( afunc_i )   
-
-    # if cv.shape != (M,M):
-        # raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
-    
-    # K = cholesky.cholesky_decomp(cv)
-    # Kinv = cholesky.cholesky_inv(K)
-    
-    # X = np.array( x, dtype=object )
-    # Y = np.array( y, dtype=object ).T
-    
-    # Q = np.matmul(Kinv,X) 
-    # Z = np.matmul(Kinv,Y) 
-   
-    # x = []
-    # y = []
-    # for i in range(M):
-        # x.append( [ Q[i,j] for j in range(P) ] )    # x is M by P 
-        # y.append( Z[i] )
-         
-    # coef, chisq, w, v = svdfit(x,y,np.ones( (M,) ),fn)
-    # coef = _coef_as_uncertain_numbers(coef,chisq,w,v,M,label=label)
-    
-    # return GLSFit( coef,chisq,fn,fn_inv,M )
-    
+    return ModelFit( coef,res,ssr,M,fn )
 
 #-----------------------------------------------------------------------------------------
-class LSFit(object):
+class ModelFit(object):
  
     """
     Base class for regression results
@@ -525,109 +430,65 @@ class LSFit(object):
     .. versionadded:: 2.0
     """
 
-    def __init__(self,beta,ssr,N,fn):
+    def __init__(self,beta,res,ssr,M,fn):
         self._beta = beta
+        self._res = res
         self._ssr = ssr
-        self._N = N
+        self._M = M
         self._fn = fn
         self._P = len(beta)
         
     def __repr__(self):
         return f"""{self.__class__.__name__}(
   beta={self._beta!r},
+  residuals={self._res}
   ssr={self._ssr},
-  N={self._N:G},
+  M={self._M:G},
   P={self._P}
 )"""
 
     def __str__(self):
         return f'''
-  Number of observations: {self._N}
+  Number of observations: {self._M}
   Number of parameters: {self._P}
   Parameters: {self._beta!r}
   Sum of the squared residuals: {self._ssr:G}
 '''
 
-    # #------------------------------------------------------------------------
-    # def y_from_x(self,x,s_label=None,y_label=None):
-        # """
-        # Return an uncertain number ``y`` that predicts the response to ``x``
+    def predict(x_i):
+        """Predict the response to `x_i` as an uncertain number
         
-        # :arg x: a real number array, or an uncertain real number array
-        # :arg s_label: a label for an elementary uncertain number associated with observation variability  
-        # :arg y_label: a label for the return uncertain number `y` 
+        :arg x_i: a stimulus
+        
+        The stimulus `x_i` should match the format used for fitting. So,
+        if an M x P matrix of stimuli was used in the regression, then 
+        `x_i` should be a P-element sequence. Alternatively, if an M x 1
+        matrix of stimuli was used then `x_i` should be a single argument.
 
-        # This is a prediction of a single future response ``y`` to a stimulus ``x``
+        The calculation uses the uncertain-number coefficients obtained 
+        by the fit. The argument `x_i` may also be an uncertain number,
+        or sequence of uncertain numbers.
         
-        # The variability in observations is based on residuals obtained during regression.
-        
-        # If an uncertain real number is used for ``x``, 
-        # the uncertainty associated with ``x`` will be propagated into ``y``.
-
-        # .. note::
-            # When ``y_label`` is defined, the uncertain number returned will be 
-            # declared an intermediate result (using :func:`~.result`)
-        
-        # """    
-        # # The elements of `beta` form an ensemble of uncertain numbers
-        # df = self.beta[0].df
-        # noise = _ureal(
-            # 0,
-            # math.sqrt( self._ssr/df ),
-            # df,
-            # label=s_label,
-            # independent=False
-        # )
-        # append_real_ensemble(self.beta[0],noise)
-        
-        # # `_y` estimates the mean response to `x`.
-        # _y = np.dot( self.beta,np.array( self._fn(x) ) ) + noise
-        
-        # if y_label is not None: _y = result(_y,y_label)
-            
-        # return _y
-
-    # #------------------------------------------------------------------------
-    # def x_from_y(self,yseq,x_label=None,y_label=None):
-        # """Estimate the stimulus ``x`` corresponding to the responses in ``yseq``
-        
-        # :arg yseq: a sequence of ``y`` observations 
-        # :arg x_label: a label for the return uncertain number ``x`` 
-        # :arg y_label: a label for the estimate of `y` based on ``yseq`` 
-         
-        # .. note::
-            # When ``x_label`` is defined, the uncertain number returned will be 
-            # declared an intermediate result (using :func:`~.result`)
-
-        # """
-        # # The function must be supplied by the client
-        # if self._fn_inv is None:
-            # raise RuntimeError( "An inverse function has not been defined" )
-          
-        # df = self.beta[0].df    # All beta are the same 
-        
-        # p = len(yseq)
-        # y = math.fsum( yseq ) / p
-
-        # _y = _ureal(
-            # y,
-            # math.sqrt( self._ssr/df/p ),
-            # df,
-            # label = x_label,
-            # independent = False
-        # )
-
-        # append_real_ensemble(self.beta[0],_y)
-
-        # _x = self._fn_inv(_y,self.beta)  
-        
-        # if y_label is not None: _x = result(_x,y_label)
-        
-        # return _x 
+        """
+        if self._fn is not None:
+            x_i = self._fn(x_i)
+    
+        return sum(
+            self._beta[j]*x_i[j]
+                for j in range(self._P)
+        )
 
     @property
+    def residuals(self):
+        """An array of differences between the actual data 
+        and predicted values.
+        
+        """
+        return self._res 
+        
+    @property
     def ssr(self):
-        """Sum of the squared residuals
+        """Sum of squared residuals
         
         The sum of the squared deviations between  
         predicted values and the actual data.
@@ -644,75 +505,11 @@ class LSFit(object):
         return self._beta 
 
     @property
-    def N(self):
+    def M(self):
         """Number of observations in the sample"""
-        return self._N
+        return self._M
 
     @property
     def P(self):
         """Number of parameters"""
         return self._P
-
-#----------------------------------------------------------------------------
-class OLSFit(LSFit):
-
-    """
-    Results of an ordinary least squares regression
-    """
-
-    def __init__(self,beta,ssr,N,fn):
-        LSFit.__init__(self,beta,ssr,N,fn)
- 
-    def __str__(self):
-        header = '''
-Ordinary Least-Squares Results:
-'''
-        return header + str(LSFit)
-        
-#----------------------------------------------------------------------------
-class WLSFit(LSFit):
-
-    """
-    Results of a weighted least squares regression
-    """
-
-    def __init__(self,beta,ssr,N,fn):
-        LSFit.__init__(self,beta,ssr,N,fn)
- 
-    def __str__(self):
-        header = '''
-Weighted Least-Squares Results:
-'''
-        return header + str(LSFit)
- 
-#----------------------------------------------------------------------------
-class RWLSFit(LSFit):
-
-    """
-    Results of a weighted least squares regression
-    """
-
-    def __init__(self,beta,ssr,N,fn):
-        LSFit.__init__(self,beta,ssr,N,fn)
- 
-    def __str__(self):
-        header = '''
-Relative weighted Least-Squares Results:
-'''
-        return header + str(LSFit)
- 
-#----------------------------------------------------------------------------
-class GLSFit(LSFit):
-
-    """
-    Results of a general least squares regression
-    """
-
-    def __init__(self,beta,ssr,N,fn):
-        LSFit.__init__(self,beta,ssr,N,fn)
- 
-    def __str__(self):
-        header = '''
-General Least-Squares Results:
-'''
-        return header + str(LSFit)
