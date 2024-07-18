@@ -1028,22 +1028,31 @@ class TestLineFit(unittest.TestCase):
         self.assertTrue(equivalent(uncertainty(a),0.0029,1E-4))
         self.assertTrue(equivalent(uncertainty(b),0.0050,1E-4))
 
-        # The classical uncertainty
+        # Sample statistics (see Walpole, et al, Ch 11)
         N = len(x_data)
         xmean = type_a.mean(x_data)
-        sxx = sum( (x_i-xmean)**2 for x_i in x_data )
+        Sxx = sum( (x_i-xmean)**2 for x_i in x_data )
         S = math.sqrt(fit.ssr/(N-2))
 
         c_0 = fit.x_from_y( [0.0712, 0.0716] )
         _x = c_0.x
-        u_c_0 = S*math.sqrt(1.0/2 + 1.0/N + (_x-xmean)**2 / sxx)/b.x
+        # Standard uncertainty for prediction of a
+        # stimulus given the mean of 2 responses 
+        u_c_0 = S*math.sqrt(
+            1.0/2 + 1.0/N + (c_0.x-xmean)**2 / Sxx
+        )/b.x
 
         self.assertTrue(equivalent(u_c_0,c_0.u,TOL))
         self.assertEqual(c_0.df,N-2)
 
-        # Now in the opposite sense
-        y_0 = fit.y_from_x(_x)
-        u_y_0 = S*math.sqrt(1.0 + 1.0/N + (_x-xmean)**2/sxx)
+        # Predict y given x 
+        y_0 = fit.y_from_x(c_0.x)
+        
+        # Standard uncertainty for prediction of a 
+        # single (future) response given the stimulus
+        u_y_0 = S*math.sqrt(
+            1.0 + 1.0/N + (c_0.x-xmean)**2/Sxx
+        )
         
         self.assertTrue(equivalent(value(y_0),0.0714,TOL))
         self.assertTrue(equivalent(u_y_0,y_0.u,TOL))
