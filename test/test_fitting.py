@@ -107,12 +107,9 @@ class TestLineFitScaledWeighted(unittest.TestCase):
             
         """
         x = [1,2,3,4,5,6]
-        y = [ 
-            ureal(y_i,u_i) for y_i,u_i in zip(
-                [3.014,5.225,7.004,9.061,11.201,12.762],
-                [0.2,0.2,0.2,0.4,0.4,0.4]
-            ) 
-        ]
+        y_data = [3.014,5.225,7.004,9.061,11.201,12.762]
+        u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
+        y = [ ureal(y_i,u_i) for y_i,u_i in zip( y_data,u_y ) ]
         fit = tb.line_fit_wls(x,y)
         a, b = fit.a_b
 
@@ -122,15 +119,9 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( equivalent(b.u,0.07115681,1E-8))
         self.assertTrue( equivalent(get_covariance(a,b),-0.01316456,1E-7))
  
-        # The same result should be obtained if we give the uncertainties explicitly
-        #(but we must still use them in the uncertain number definition of y_i)
-        u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
-        y = [ 
-            ureal(y_i,u_i) for y_i,u_i in zip(
-                [3.014,5.225,7.004,9.061,11.201,12.762],
-                u_y
-            ) 
-        ]
+        # The same result should be obtained if we provide the uncertainties as weights
+        #(but we need them still in the uncertain number definition of y_i)
+        y = [ ureal(y_i,u_i) for y_i,u_i in zip(y_data, u_y ) ]
         fit = tb.line_fit_wls(x,y,u_y)
         a, b = fit.a_b
 
@@ -140,11 +131,9 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( equivalent(b.u,0.07115681,1E-8))
         self.assertTrue( equivalent(get_covariance(a,b),-0.01316456,1E-7))
 
-        # If we change the y_i uncertainties, we expect the estimates to
-        # remain the same, but the uncertainties to change.
-        y = [ 
-            ureal(y_i,1.0) for y_i in [3.014,5.225,7.004,9.061,11.201,12.762] 
-            ]
+        # If we change the y_i weights, we expect the estimates to
+        # remain the same, but the associated uncertainties to change.
+        y = [ ureal(y_i,1.0) for y_i in y_data ]
         fit = tb.line_fit_wls(x,y,u_y)
         a, b = fit.a_b
 
