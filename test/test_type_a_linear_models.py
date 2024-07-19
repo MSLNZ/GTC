@@ -12,7 +12,6 @@ DIGITS = 13
 
 from GTC import *
 from GTC import cholesky
-from GTC import type_a_linear_models as LM
 from GTC.lib import _is_constant
 
 from testing_tools import * 
@@ -40,7 +39,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.wls(x,y,u_y,fn)  
+        fit = lma.wls(x,y,u_y,fn)  
         b, a = fit.beta 
         
         TOL = 1E-6
@@ -78,7 +77,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.wls(x,y,u_y,fn)  
+        fit = lma.wls(x,y,u_y,fn)  
         b, a = fit.beta 
         
         TOL = 1E-4
@@ -112,7 +111,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.rwls(x,y,u_y,fn)  
+        fit = lma.rwls(x,y,u_y,fn)  
         b, a = fit.beta 
         
         self.assertTrue( equivalent(a.x,1.13754,1E-5))
@@ -142,7 +141,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        a, cv, res, ssr = LM.lsfit(x,y,sig,fn)  
+        a, cv, res, ssr = lma.lsfit(x,y,sig,fn)  
  
         self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
         self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
@@ -172,7 +171,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.rwls(x,y,sig,fn)  
+        fit = lma.rwls(x,y,sig,fn)  
  
         a = fit.beta
 
@@ -202,7 +201,7 @@ class TestSVDOLS(unittest.TestCase):
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
-        fit = LM.ols(x,y,fn)
+        fit = lma.ols(x,y,fn)
         
         self.assertTrue( equivalent(fit.beta[1].x,1.5) )
         self.assertTrue( equivalent(fit.beta[0].x,2.0) )
@@ -264,7 +263,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+2]) )        
          
-        fit = LM.ols(x,y) 
+        fit = lma.ols(x,y) 
         
         a = fit.beta
         self.assertTrue( equivalent(value(a[2]),3.939524,tol=1E-6) )
@@ -340,7 +339,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+2]) )        
         
-        fit = LM.ols(x,y)  
+        fit = lma.ols(x,y)  
  
         a = fit.beta
         
@@ -385,7 +384,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = LM.ols(x,y,fn)
+        fit = lma.ols(x,y,fn)
         
         TOL = 1E-5
         self.assertTrue( equivalent( value(fit.beta[1]), 3.82963, TOL) )
@@ -486,7 +485,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+1]) )        
         
-        fit = LM.ols(x,y)
+        fit = lma.ols(x,y)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),4.6117077,tol=1E-7) )
@@ -539,7 +538,7 @@ class TestSVDOLS(unittest.TestCase):
             ])
             y.append( float(s[i*step+7]) )        
         
-        fit = LM.ols(x,y)
+        fit = lma.ols(x,y)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),88.93880,tol=1E-5) )
@@ -572,7 +571,7 @@ class TestSVDOLS(unittest.TestCase):
         V = numpy.array(strings, dtype=float)
         V.shape = 16,16 
         
-        fit = LM.gls(x,y,V)
+        fit = lma.gls(x,y,V)
  
         a = fit.beta
         
@@ -622,7 +621,7 @@ class TestSVDOLS(unittest.TestCase):
         for x_i in range(1,11):
             x.append( [x_i,1] )
          
-        fit = LM.gls(x,y,cv,lambda x: x)
+        fit = lma.gls(x,y,cv,lambda x: x)
         a = fit.beta
 
         # Values agree well with reference
@@ -653,7 +652,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i, 1] 
  
-        fit = LM.ols(x,y,fn)
+        fit = lma.ols(x,y,fn)
 
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),619.71,tol=1E-2) )
@@ -664,7 +663,7 @@ class TestSVDOLS(unittest.TestCase):
 
         u_y = np.array( sd, dtype=float)
 
-        fit = LM.rwls(x,y,u_y,fn)
+        fit = lma.rwls(x,y,u_y,fn)
  
         a = fit.beta
         
@@ -679,7 +678,7 @@ class TestSVDOLS(unittest.TestCase):
         # Alternative formulation with x data in MxP array 
         X = np.array( [ fn(x_i) for x_i in x ], dtype=float)
         
-        fit = LM.rwls(X,y,u_y,lambda x: x)
+        fit = lma.rwls(X,y,u_y,lambda x: x)
 
         a = fit.beta
         # Values agree well with reference
@@ -713,7 +712,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = LM.ols(x,y,fn)
+        fit = lma.ols(x,y,fn)
         
         TOL = 1E-5
         a = fit.beta[1]
@@ -739,7 +738,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = LM.ols(theta,b_k,fn,M)
+        fit = lma.ols(theta,b_k,fn,M)
         
         TOL = 1E-5
         a = fit.beta[1]
@@ -784,7 +783,7 @@ class TestSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
  
-        fit = LM.ols(x,y,fn)
+        fit = lma.ols(x,y,fn)
 
         TOL = 1E-5
         b,a = fit.beta
