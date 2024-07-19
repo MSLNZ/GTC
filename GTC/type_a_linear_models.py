@@ -222,11 +222,7 @@ def wls(x,y,u_y,fn=None,dof=None,label='beta'):
         
     coef, cv, res, ssr = lsfit(x,y,u_y,fn)   
     
-    if dof is None:
-        df = inf
-    else:
-        df = M - len(coef)
-        cv = ssr/df * cv
+    df = inf if dof is None else dof
         
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
 
@@ -257,8 +253,10 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
         
     coef, cv, res, ssr = lsfit(x,y,s_y,fn)   
     
+    cv = ssr/(M - len(coef)) * cv
+    
+    # It is possible to assign different degrees of freedom
     df = M - len(coef) if dof is None else dof        
-    cv = ssr/df * cv
         
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
     
