@@ -20,9 +20,10 @@ from collections.abc import Iterable
 
 import numpy as np
 
+from GTC.misc import is_sequence
+
 from GTC.type_b import mean
 from GTC import (
-    is_sequence,
     inf,
     EPSILON
 )
