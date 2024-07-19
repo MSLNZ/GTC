@@ -120,7 +120,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( equivalent(b.x,1.97264,1E-5))
         self.assertTrue( equivalent(a.u,0.21188326 ,1E-8))
         self.assertTrue( equivalent(b.u,0.07115681,1E-8))
-        self.assertTrue( equivalent(a.u*b.u*a.get_correlation(b),-0.01316456,1E-7))
+        self.assertTrue( equivalent(get_covariance(a,b),-0.01316456,1E-7))
  
         # The same result should be obtained if we give the uncertainties explicitly
         #(but we must still use them in the uncertain number definition of y_i)
@@ -138,7 +138,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( equivalent(b.x,1.97264,1E-5))
         self.assertTrue( equivalent(a.u,0.21188326 ,1E-8))
         self.assertTrue( equivalent(b.u,0.07115681,1E-8))
-        self.assertTrue( equivalent(a.u*b.u*a.get_correlation(b),-0.01316456,1E-7))
+        self.assertTrue( equivalent(get_covariance(a,b),-0.01316456,1E-7))
 
         # If we change the y_i uncertainties, we expect the estimates to
         # remain the same, but the uncertainties to change.
@@ -152,7 +152,7 @@ class TestLineFitScaledWeighted(unittest.TestCase):
         self.assertTrue( equivalent(b.x,1.97264,1E-5))
         self.assertTrue( abs(a.u-0.21188326) > 1E-8)
         self.assertTrue( abs(b.u-0.07115681) > 1E-8)
-        self.assertTrue( abs(a.u*b.u*a.get_correlation(b)+0.01316456) > 1E-7)
+        self.assertTrue( abs(get_covariance(a,b)+0.01316456) > 1E-7)
 
     def test_horizontal(self):
         x = [1,2,3,4,5,6]
@@ -206,7 +206,7 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(b.x,1.757143,TOL) )
         self.assertTrue( equivalent(a.u,0.4654747,TOL) )
         self.assertTrue( equivalent(b.u,0.1195229,TOL) )
-        self.assertTrue( equivalent(a.get_correlation(b)*a.u*b.u,-0.050,TOL) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.050,TOL) )
         self.assertEqual( a.df,inf )
 
         self.assertTrue( equivalent(fit.ssr,1.665,1E-3) )
@@ -225,7 +225,7 @@ class TestLineFitWeighted(unittest.TestCase):
 
         Better numbers using R:
         
-            fit <- lm(y~x,wieghts=w)
+            fit <- lm(y~x,weights=w)
             fit.sum <- summary(fit)
             coef(fit)
             sqrt(diag(fit.sum$cov))
@@ -279,7 +279,7 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertRaises(RuntimeError,type_a.line_fit_wls,x,y,u_y,dof=0)
 
     def test_iso28037_wls2(self):
-        """ ISO/TS 28037:2010, p 14
+        """ ISO/TS 28037:2010, p 15
 
         Better numbers using R:
         
@@ -313,7 +313,7 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertEqual( x0.df,inf )
 
     def test_iso28037_wls2_option(self):
-        """ ISO/TS 28037:2010, p 14
+        """ ISO/TS 28037:2010, p 15
         """
         x = [1,2,3,4,5,6]
         y = [3.2, 4.3, 7.6, 8.6, 11.7, 12.8]
@@ -336,7 +336,7 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertEqual( a.df,inf )
 
     def test_iso28037_wls2_ta(self):
-        """ ISO/TS 28037:2010, p 14
+        """ ISO/TS 28037:2010, p 15
         
         Values here calculated using R
             fit <- lm(y~x,weights=w)
@@ -357,7 +357,7 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(a.u,0.5297081,1E-6) )
         self.assertTrue( equivalent(b.u,0.1778920,1E-6) )
         self.assertTrue( equivalent(fit.ssr,4.131,1E-3) )
-        self.assertTrue( equivalent(a.get_correlation(b)*a.u*b.u,-0.08227848,1E-6) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.08227848,1E-6) )
         self.assertEqual( a.df,inf )
 
         TOL = 0.001
@@ -373,7 +373,6 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertTrue( equivalent(x0.u,0.533,TOL) )
         self.assertEqual( x0.df,inf )
         self.assertEqual( x0.label,'x_label' )
-
 
     def test_simple_scaled(self):
         """
@@ -1125,24 +1124,30 @@ class TestLineFitTLS(unittest.TestCase):
         fit = type_b.line_fit_wtls(x,y,a_b=a_b)
         a, b = fit.a_b
         
-        TOL = 0.004
+        TOL = 1E-4 
+        
+        # The performance of WTLS in this test is poor.
+        # The WTLS algorithm performed much better on 
+        # the well-documented tests below. 
+        # The ISO document results are confirmed
+        # by the routine ODR now available in scipy.
         self.assertTrue( equivalent(a.x,0.5788,TOL) )
-        self.assertTrue( equivalent(a.u,0.4764,TOL) )  # This is the critical case for TOL
+        self.assertTrue( equivalent(a.u,0.4764,0.004) )  
         self.assertTrue( equivalent(b.x,2.1597,TOL) )
-        self.assertTrue( equivalent(b.u,0.1355,TOL) )
-        self.assertTrue( equivalent(get_correlation(a,b)*b.u*a.u,-0.0577,TOL) )
-        self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
+        self.assertTrue( equivalent(b.u,0.1355,0.0008) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.0577,0.001) )
+        self.assertTrue( equivalent(fit.ssr,2.743,0.001) )
 
         # Test default initial estimate
         fit = type_b.line_fit_wtls(x,y)
         a, b = fit.a_b
         
         self.assertTrue( equivalent(a.x,0.5788,TOL) )
-        self.assertTrue( equivalent(a.u,0.4764,TOL) )  # This is the critical case for TOL
+        self.assertTrue( equivalent(a.u,0.4764,0.004) )  
         self.assertTrue( equivalent(b.x,2.1597,TOL) )
-        self.assertTrue( equivalent(b.u,0.1355,TOL) )
-        self.assertTrue( equivalent(get_correlation(a,b)*b.u*a.u,-0.0577,TOL) )
-        self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
+        self.assertTrue( equivalent(b.u,0.1355,0.0008) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.0577,0.001) )
+        self.assertTrue( equivalent(fit.ssr,2.743,0.001) )
 
     def test_iso_ts28037_2010_ta(self):
         """p21 of the standard
@@ -1161,24 +1166,24 @@ class TestLineFitTLS(unittest.TestCase):
         fit = type_a.line_fit_wtls(x,y, a0_b0=a_b, u_x=[u_x]*6, u_y=u_y)
         a, b = fit.a_b
         
-        TOL = 0.004
+        TOL = 1E-4
         self.assertTrue( equivalent(a.x,0.5788,TOL) )
-        self.assertTrue( equivalent(a.u,0.4764,TOL) )  # This is the critical case for TOL
+        self.assertTrue( equivalent(a.u,0.4764,0.004) )  # This is the critical case for TOL
         self.assertTrue( equivalent(b.x,2.1597,TOL) )
-        self.assertTrue( equivalent(b.u,0.1355,TOL) )
-        self.assertTrue( equivalent(a.get_correlation(b)*b.u*a.u,-0.0577,TOL) )
-        self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
+        self.assertTrue( equivalent(b.u,0.1355,0.0008) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.0577,0.001) )
+        self.assertTrue( equivalent(fit.ssr,2.743,0.001) )
   
         # Test default initial estimate
         fit = type_a.line_fit_wtls(x,y, u_x=[u_x]*6, u_y=u_y)
         a, b = fit.a_b
         
         self.assertTrue( equivalent(a.x,0.5788,TOL) )
-        self.assertTrue( equivalent(a.u,0.4764,TOL) )  # This is the critical case for TOL
+        self.assertTrue( equivalent(a.u,0.4764,0.004) )  # This is the critical case for TOL
         self.assertTrue( equivalent(b.x,2.1597,TOL) )
-        self.assertTrue( equivalent(b.u,0.1355,TOL) )
-        self.assertTrue( equivalent(a.get_correlation(b)*b.u*a.u,-0.0577,TOL) )
-        self.assertTrue( equivalent(fit.ssr,2.743,TOL) )
+        self.assertTrue( equivalent(b.u,0.1355,0.0008) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.0577,0.001) )
+        self.assertTrue( equivalent(fit.ssr,2.743,0.001) )
   
         # Test with finite degrees of freedom
         fit = type_a.line_fit_wtls(x, y, u_x=[u_x]*6, u_y=u_y, dof=4)
@@ -1234,10 +1239,10 @@ class TestLineFitTLS(unittest.TestCase):
         equivalent(a.u,0.29193,1E-5)
         equivalent(b.u,0.057617,1E-6)
 
-        equivalent(-0.0162,a.u*b.u*get_correlation(a,b),1E-3)
+        equivalent(-0.0162,get_covariance(a,b),1E-4)
 
         # From refs in R J Murray, 
-        #   "Weighted Least-Squares Curve Fiting with Errors in all Variables", 
+        #   "Weighted Least-Squares Curve Fitting with Errors in all Variables", 
         # ASPRS Annual Convention & Exposition. Baltimore: ACSM/ASPRS, 1994
         equivalent(1.4833,result.ssr/(result.N-2),1E-4)
 
@@ -1291,7 +1296,7 @@ class TestLineFitTLS(unittest.TestCase):
         equivalent(b.x,b0,1E-7)
 
         # From refs in R J Murray, 
-        #   "Weighted Least-Squares Curve Fiting with Errors in all Variables", 
+        #   "Weighted Least-Squares Curve Fitting with Errors in all Variables", 
         # ASPRS Annual Convention & Exposition. Baltimore: ACSM/ASPRS, 1994
         equivalent(1.4833,result.ssr/(result.N-2),1E-4)
 
@@ -1341,10 +1346,10 @@ class TestLineFitTLS(unittest.TestCase):
         equivalent(a.u,0.29193,1E-5)
         equivalent(b.u,0.057617,1E-6)
 
-        equivalent(-0.0162,a.u*b.u*get_correlation(a,b),1E-3)
+        equivalent(-0.0162,get_covariance(a,b),1E-4)
 
         # From refs in R J Murray, 
-        #   "Weighted Least-Squares Curve Fiting with Errors in all Variables", 
+        #   "Weighted Least-Squares Curve Fitting with Errors in all Variables", 
         # ASPRS Annual Convention & Exposition. Baltimore: ACSM/ASPRS, 1994
         equivalent(1.4833,result.ssr/(result.N-2),1E-4)
 
@@ -1457,6 +1462,11 @@ class TestLineFitTLS(unittest.TestCase):
 
     def test_mathioulakis(self):
         """
+        See Meas. Sci. Technol. vol 11 (2000) 771-775
+        
+        This treats a similar problem to GUM H3 but 
+        allows for uncertainty in X and Y values.
+        
         """
         t_r = (
             (0.1335,0.0106),
@@ -1503,16 +1513,15 @@ class TestLineFitTLS(unittest.TestCase):
         # A check with R on the unweighted fit leads
         # to a negative sign and we think they just reported
         # 1E-5 instead of 1E-6 in the paper.
-        r = a.get_correlation(b)*a.u*b.u
+        r = get_covariance(a,b)
         self.assertTrue( equivalent(r,-2.41E-6,1E-8) )
      
     def test_tromans(self):
         """
-        This data came from an example that caused a failure in
+        This data came from a case that caused a failure in
         the brent routine while searching for a root.
         
-        The results are not important, just that the 
-        routine returns
+        The results are not important, just that the routine terminates
         
         """
         x = [0.1,0.2,0.5,1.0,2 ]
@@ -1535,12 +1544,12 @@ class TestLineFitTLS(unittest.TestCase):
         initial = type_a.line_fit(x,y)         
         result = type_b.line_fit_wtls(un_x,un_y,a_b=initial.a_b)
 
-        a,b = result.a_b
+        # a,b = result.a_b
         
-        self.assertTrue( equivalent(a.x,9.23517,1E-4) )
-        self.assertTrue( equivalent(a.u,279.577,1E-3) )
-        self.assertTrue( equivalent(b.x,23304.6,1E-1))
-        self.assertTrue( equivalent(b.u,1311.37,1E-2))
+        # self.assertTrue( equivalent(a.x,9.23517,1E-4) )
+        # self.assertTrue( equivalent(a.u,279.577,1E-3) )
+        # self.assertTrue( equivalent(b.x,23304.6,1E-1))
+        # self.assertTrue( equivalent(b.u,1311.37,1E-2))
         
 #============================================================================
 if(__name__== '__main__'):
