@@ -4,12 +4,27 @@ import math
 import cmath 
 import numpy as np
 
-from GTC import la 
-from GTC.linear_algebra import _dtype_float
+# from GTC import la 
+# from GTC.linear_algebra import _dtype_float
 
 __all__ = ('cholesky_decomp',)
 
-        
+#----------------------------------------------------------------------------
+def _dtype_float(a):
+    """Promote integer arrays to float 
+    
+    Use this to avoid creating an array that might truncate values when 
+    you do not know the dtype.
+    
+    """
+    try:
+        if np.issubdtype(a.dtype, np.integer):
+            return np.float64
+        else:
+            return a.dtype
+    except AttributeError:  
+            return np.float64     
+            
 #----------------------------------------------------------------------------
 def cholesky_decomp(a):
     """
