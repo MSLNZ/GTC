@@ -748,6 +748,8 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
     
     a_,b_,siga,sigb,r_ab,ssr,N = _line_fit_wls(x,y,s_y)
 
+    # The sample estimate of sigma is incorporated in the
+    # standard uncertainties of the fitted parameters
     sigma_hat = math.sqrt(ssr/df)
     siga *= sigma_hat
     sigb *= sigma_hat
