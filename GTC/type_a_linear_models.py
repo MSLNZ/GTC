@@ -7,7 +7,6 @@ Module contents
 """
 import math
 import numpy as np
-from GTC.linear_algebra import _dtype_float
 
 from GTC.lib import (
     UncertainReal,
@@ -23,6 +22,22 @@ from GTC import inf
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
 
+#----------------------------------------------------------------------------
+def _dtype_float(a):
+    """Promote integer arrays to float 
+    
+    Use this to avoid creating an array that might truncate values when 
+    you do not know the dtype.
+    
+    """
+    try:
+        if np.issubdtype(a.dtype, np.integer):
+            return np.float64
+        else:
+            return a.dtype
+    except AttributeError:  
+            return np.float64
+            
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
     """
@@ -198,7 +213,7 @@ def ols(x,y,fn=None,label='beta'):
 
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
 
-    return ModelFit( coef,res,ssr,M,fn )  
+    return OLSModel( coef,res,ssr,M,fn )  
     
 #----------------------------------------------------------------------------
 def wls(x,y,u_y,fn=None,dof=None,label='beta'):
@@ -233,7 +248,7 @@ def wls(x,y,u_y,fn=None,dof=None,label='beta'):
         
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
 
-    return ModelFit( coef,res,ssr,M,fn )  
+    return WLSModel( coef,res,ssr,M,fn )  
 
 #----------------------------------------------------------------------------
 def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
@@ -265,7 +280,7 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
         
     coef = _coef_as_uncertain_numbers(coef,cv,df,label=label)
     
-    return ModelFit( coef,res,ssr,M,fn )  
+    return RWLSModel( coef,res,ssr,M,fn )  
 
 #----------------------------------------------------------------------------
 def gls(x,y,cv,fn=None,label='beta'):
@@ -312,7 +327,7 @@ def gls(x,y,cv,fn=None,label='beta'):
     Y = np.array( [ value(y_i) for y_i in y ], 
         dtype=_dtype_float(x) 
     ).T   
-    
+ 
     # The GLS is solved by transforming the input data 
     a = Kinv @ X 
     b = Kinv @ Y  
@@ -356,7 +371,7 @@ def gls(x,y,cv,fn=None,label='beta'):
     df = inf   
     coef = _coef_as_uncertain_numbers(coef,cv_coef,df,label=label)    
 
-    return ModelFit( coef,res,ssr,M,fn )
+    return GLSModel( coef,res,ssr,M,fn )
 
 #-----------------------------------------------------------------------------------------
 class ModelFit(object):
@@ -377,19 +392,21 @@ class ModelFit(object):
         
     def __repr__(self):
         return f"""{self.__class__.__name__}(
-  beta={self._beta!r},
+  beta={self._beta},
   residuals={self._res}
   ssr={self._ssr},
-  M={self._M:G},
+  M={self._M},
   P={self._P}
 )"""
 
     def __str__(self):
+        # Format coefficients in str display mode 
+        beta = "["+", ".join(f'{b_i!s}' for b_i in self._beta)+" ]"
         return f'''
+  Parameters: {beta}
   Number of observations: {self._M}
   Number of parameters: {self._P}
-  Parameters: {self._beta!r}
-  Sum of the squared residuals: {self._ssr:G}
+  Sum of the squared residuals: {self._ssr}
 '''
 
     def predict(self,x_i,label=None):
@@ -454,3 +471,43 @@ class ModelFit(object):
     def P(self):
         """Number of parameters"""
         return self._P
+
+class OLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-A Ordinary Least-Squares:
+'''
+        return header + ModelFit.__str__(self)
+ 
+class WLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-A Weighted Least-Squares:
+'''
+        return header + ModelFit.__str__(self)
+        
+class RWLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-A Relative Weighted Least-Squares:
+'''
+        return header + ModelFit.__str__(self)
+        
+class GLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-A Generalised Least-Squares:
+'''
+        return header + ModelFit.__str__(self)
