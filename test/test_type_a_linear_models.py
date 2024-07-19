@@ -19,7 +19,111 @@ from testing_tools import *
 
 #----------------------------------------------------------------------------
 class TestSVDWLS(unittest.TestCase):
+  
+    def test1wls(self):
+        """ISO/TS 28037:2010, p 13"""
+        
+        # Better numbers using R:
     
+        # fit <- lm(y~x,weights=w)
+        # fit.sum <- summary(fit)
+        # coef(fit)
+        # sqrt(diag(fit.sum$cov))
+
+        x = [1,2,3,4,5,6]
+        y = (3.3,5.6,7.1,9.3,10.7,12.1) 
+        N = len(y) 
+        M = 2
+                
+        u_y = [ 0.5 ]*N       
+
+        def fn(x_i):
+            return [x_i,1]
+        
+        fit = LM.wls(x,y,u_y,fn)  
+        b, a = fit.beta 
+        
+        TOL = 1E-6
+        self.assertTrue( equivalent(value(a),1.866667,TOL) )
+        self.assertTrue( equivalent(value(b),1.757143,TOL) )
+        self.assertTrue( equivalent(a.u,0.4654747,TOL) )
+        self.assertTrue( equivalent(b.u,0.1195229,TOL) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.050,TOL) )
+        
+        self.assertEqual( a.df,inf )
+
+        self.assertTrue( equivalent(fit.ssr,1.665,1E-3) )
+
+        TOL = 0.001
+        y0 = ureal(10.5,0.5)
+        x0 = (y0 - a)/b
+        self.assertTrue( equivalent(x0.x,4.913,TOL) )
+        self.assertTrue( equivalent(x0.u,0.322,TOL) )
+        self.assertEqual( x0.df,inf )
+ 
+    def test2wls(self):
+        """ISO/TS 28037:2010, p 15"""
+        
+        # Better numbers using R:
+    
+        # fit <- lm(y~x,weights=w)
+        # fit.sum <- summary(fit)
+        # coef(fit)
+        # sqrt(diag(fit.sum$cov))
+
+        x = [1,2,3,4,5,6]
+        y = (3.2, 4.3, 7.6, 8.6, 11.7, 12.8) 
+        u_y = [0.5,0.5,0.5,1.0,1.0,1.0]
+                
+        def fn(x_i):
+            return [x_i,1]
+        
+        fit = LM.wls(x,y,u_y,fn)  
+        b, a = fit.beta 
+        
+        TOL = 1E-4
+        self.assertTrue( equivalent(value(a),0.8852,TOL) )
+        self.assertTrue( equivalent(value(b),2.0570,TOL) )
+        self.assertTrue( equivalent(a.u,0.5297081,1E-6) )
+        self.assertTrue( equivalent(b.u,0.1778920,1E-6) )
+        self.assertTrue( equivalent(fit.ssr,4.131,1E-3) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.08227848,1E-6) )
+        self.assertEqual( a.df,inf )
+
+        TOL = 0.001
+        y0 = ureal(10.5,1.0)
+        x0 = (y0 - a)/b
+        self.assertTrue( equivalent(x0.x,4.674,TOL) )
+        self.assertTrue( equivalent(x0.u,0.533,TOL) )
+        self.assertEqual( x0.df,inf )
+
+    def test2rwls(self):
+        """        
+            Results compared with R, using
+        
+            fit <- lm(y~x,weights=1/u^2)
+            summary(fit)
+            vcov(fit)
+        """
+        x = [1,2,3,4,5,6]
+        y = [3.014,5.225,7.004,9.061,11.201,12.762]
+        u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
+                
+        def fn(x_i):
+            return [x_i,1]
+        
+        fit = LM.rwls(x,y,u_y,fn)  
+        b, a = fit.beta 
+        
+        self.assertTrue( equivalent(a.x,1.13754,1E-5))
+        self.assertTrue( equivalent(b.x,1.97264,1E-5))
+        self.assertTrue( equivalent(a.u,0.12261,1E-5))
+        self.assertTrue( equivalent(b.u,0.04118,1E-5))
+        self.assertTrue( equivalent(get_covariance(a,b),-0.004408553,1E-5))
+        self.assertTrue( equivalent(fit.ssr,1.3395218,1E-5))
+        self.assertEqual(a.df,len(x)-2)
+        self.assertEqual(b.df,len(x)-2)
+        
     def test3lsfit(self):
         # weighted least squares
         # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
