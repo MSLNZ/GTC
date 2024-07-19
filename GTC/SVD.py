@@ -40,9 +40,10 @@ def svd_decomp(a):
     The decomposition of ``a = U * W * V.T``
         
     """
-    u = a.copy()    # a copy avoids side effects
-    M,P = u.shape
-    
+    # avoid side effects to input array
+    u = a.copy()    
+
+    M,P = u.shape    
     w = np.empty( (P,), dtype=object ) 
     v = np.empty( (P,P), dtype=object )
     rv1 = np.empty( (P,), dtype=object )
@@ -57,7 +58,7 @@ def svd_decomp(a):
         
         g = s = scale = 0.0        
         if i < M:
-            scale += sum(
+            scale = sum(
                 abs( u[k,i] ) for k in range(i,M)
             )
             if scale != 0.0:
@@ -376,7 +377,7 @@ def svdfit(x,y,sig=None,fn=None):
                 a[i,j] = afunc_i[j]/sig[i]
                 
             b[i] = y[i]/sig[i]
-                                 
+
     u,w,v = svd_decomp(a)
     
     # `TOL` is used to set relatively small singular values to zero
@@ -407,8 +408,8 @@ def svdfit(x,y,sig=None,fn=None):
 
     # Residuals and sum of squared residuals
     res = b - np.dot(a, coef) 
-    ssr = np.dot(res.T, res)
-
+    ssr = math.fsum( value(res_i)**2 for res_i in res )
+    
     return coef, res, ssr, w, v  
 
 #----------------------------------------------------------------------------
