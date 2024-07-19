@@ -9,7 +9,6 @@ in the 'Guide to the Expression of Uncertainty in Measurement' - the GUM.
 import math
 import cmath
 import sys
-from collections.abc import Sequence
 
 #----------------------------------------------------------------------------
 # Global constants, etc
@@ -21,15 +20,6 @@ inf = float('inf')
 nan = float('nan')
 
 EPSILON = sys.float_info.epsilon 
-
-# Do not consider strings as sequences
-# Note numpy arrays are not detected as sequences
-# by this function.
-def is_sequence(obj):
-    if isinstance(obj, (str, bytes)):
-        return False
-    else:
-        return isinstance(obj, Sequence)
 
 #----------------------------------------------------------------------------
 
@@ -80,6 +70,8 @@ __all__ = (
     ,   'function',     'fn'
     ,   'type_b',       'tb'
     ,   'type_a',       'ta'
+    ,   'type_b_linear_models', 'lmb'
+    ,   'type_a_linear_models', 'lma'
     ,   'persistence',  'pr'
     ,   'linear_algebra', 'la'
     ,   'math'
