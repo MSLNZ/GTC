@@ -4,26 +4,13 @@ import math
 import cmath 
 import numpy as np
 
-# from GTC import la 
-# from GTC.linear_algebra import _dtype_float
+from GTC.misc import (
+    is_numeric_non_complex, 
+    is_numeric_complex,
+    _dtype_float
+)
 
 __all__ = ('cholesky_decomp',)
-
-#----------------------------------------------------------------------------
-def _dtype_float(a):
-    """Promote integer arrays to float 
-    
-    Use this to avoid creating an array that might truncate values when 
-    you do not know the dtype.
-    
-    """
-    try:
-        if np.issubdtype(a.dtype, np.integer):
-            return np.float64
-        else:
-            return a.dtype
-    except AttributeError:  
-            return np.float64     
             
 #----------------------------------------------------------------------------
 def cholesky_decomp(a):
@@ -62,7 +49,7 @@ def cholesky_decomp(a):
             )
                         
             if i == j: 
-                if isinstance(s,(int,float)) or np.issubdtype(type(s), np.generic): 
+                if is_numeric_non_complex(s): 
                     if abs(s)>0:
                         p_i = math.sqrt( s )
                     else:
@@ -70,7 +57,7 @@ def cholesky_decomp(a):
                             "cholesky_decomp: matrix `a` "
                             "is not positive definite"
                         )
-                elif isinstance(s, complex):
+                elif is_numeric_complex(s):
                     if abs(s.imag) > 1E-13:
                         raise RuntimeError(
                             "cholesky_decomp: matrix `a` "
