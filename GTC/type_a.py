@@ -125,7 +125,7 @@ class LineFitOLS(LineFit):
 
     def __str__(self):
         header = '''
-Ordinary Least-Squares Results:
+Type-A Ordinary Least-Squares Straight-Line:
 '''
         return header + LineFit.__str__(self)
 
@@ -289,7 +289,7 @@ class LineFitRWLS(LineFit):
 
     def __str__(self):
         header = '''
-Relative Weighted Least-Squares Results:
+Type-A Relative Weighted Least-Squares Straight-Line:
 '''
         return header + LineFit.__str__(self)
 
@@ -400,7 +400,7 @@ class LineFitWLS(LineFit):
 
     def __str__(self):
         header = '''
-Weighted Least-Squares Results:
+Type-A Weighted Least-Squares Straight-Line:
 '''
         return header + LineFit.__str__(self)
 
@@ -714,7 +714,7 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
         >>>
         >>> print(fit)
         <BLANKLINE>
-        Relative Weighted Least-Squares Results:
+        Relative Weighted Least-Squares Straight-Line:
         <BLANKLINE>
           Intercept: 1.14(12)
           Slope: 1.973(41)
