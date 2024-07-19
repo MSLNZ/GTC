@@ -51,13 +51,14 @@ from functools import reduce
 
 from scipy import special, optimize
 
+from GTC.misc import is_sequence
+
 from GTC.named_tuples import (
     Influence,
     Component                   
 )
 from GTC.vector import extend_vector
 from GTC import (
-    is_sequence,
     inf,
     inf_dof,
 )
