@@ -172,8 +172,16 @@ class LineFit:
         
     def __repr__(self):
         return f"""{self.__class__.__name__}(
-  a={self._a_b[0]!r},
-  b={self._a_b[1]!r},
+  Intercept = {self._a_b[0]!r},
+  Slope = {self._a_b[1]!r},
+  ssr={self._ssr},
+  N={self._N}
+)"""
+
+    def __str__(self):
+        return f"""{self.__class__.__name__}(
+  Intercept = {self._a_b[0]},
+  Slope = {self._a_b[1]},
   ssr={self._ssr},
   N={self._N}
 )"""
@@ -238,7 +246,7 @@ class LineFitOLS(LineFit):
 
     def __str__(self):
         header = '''
-Ordinary Least-Squares Results:
+Type-B Ordinary Least-Squares Straight-Line:
 '''
         return header + LineFit.__str__(self)
         
@@ -306,7 +314,7 @@ class LineFitWLS(LineFitOLS):
 
     def __str__(self):
         header = '''
-Weighted Least-Squares Results:
+Type-B Weighted Least-Squares Straight-Line:
 '''
         return header + LineFit.__str__(self)
         
@@ -325,7 +333,7 @@ class LineFitWTLS(LineFit):
 
     def __str__(self):
         header = '''
-Weighted Total Least-Squares Results:
+Type-B Weighted Total Least-Squares Straight-Line:
 '''
         return header + LineFit.__str__(self)
 
@@ -515,8 +523,6 @@ def _dbrent(ax,bx,cx,fn,tol=math.sqrt(EPSILON)):
     `ax`, `bx` and `cx` must be floats. `bx` must be between `ax` and `cx`
     and fn(bx) must be less than both fn(ax) and fn(cx).
 
-    `context` - a GTC context
-    
     `tol` - the fractional precision
 
     See also Numerical Recipes in C, 2nd ed, Section 10.3
@@ -524,9 +530,9 @@ def _dbrent(ax,bx,cx,fn,tol=math.sqrt(EPSILON)):
     """
     ITMAX = 100
 
-    deriv = lambda y,x: y.sensitivity(x)
-    ureal = lambda x,u: UncertainReal._elementary(
-            x,u,inf,None,True
+    # Use automatic differentiation to find derivatives
+    ureal = lambda x: UncertainReal._elementary(
+            x,1,inf,None,True
     )    
     e = 0.0 # The distance moved on the step before last
     
@@ -535,16 +541,13 @@ def _dbrent(ax,bx,cx,fn,tol=math.sqrt(EPSILON)):
     
     assert a <= bx and bx <= b, "Invalid initial values in _dbrent"
         
-    # if fn( ureal(bx,1)) > fn( ureal(a,1)) or fn(ureal(bx,1)) > fn(ureal(b,1)):
-        # assert False
-
     x = w = v = bx
 
-    _u_ = ureal(x,1.0)    
+    _u_ = ureal(x)    
     fn_u = fn( _u_ )
     
     fw = fv = fx = value(fn_u)
-    dw = dv = dx = deriv(fn_u,_u_)
+    dw = dv = dx = fn_u.sensitivity(_u_)
 
     # The routine keeps track of `a` and `b`, which bracket the minimum,
     # `x` is the point with the least function value found so far,
@@ -607,21 +610,21 @@ def _dbrent(ax,bx,cx,fn,tol=math.sqrt(EPSILON)):
         if abs(d) >= tol1:
             u = x + d
             
-            _u_ = ureal(u,1.0)
+            _u_ = ureal(u)
             fn_u = fn(_u_)
             
             fu = value(fn_u)
-            du = deriv(fn_u,_u_)
+            du = fn_u.sensitivity(_u_)
             
         else:
             # Smallest step possible 
             u = x + math.copysign(tol1,d)
             
-            _u_ = ureal(u,1.0)
+            _u_ = ureal(u)
             fn_u = fn(_u_)
             
             fu = value(fn_u)
-            du = deriv(fn_u,_u_)
+            du = fn_u.sensitivity(_u_)
             
             # If the minimum sized step downhill 
             # goes up, then we are done!
