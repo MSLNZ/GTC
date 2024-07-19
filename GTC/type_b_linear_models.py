@@ -23,7 +23,6 @@ def lsfit(x,y,sig=None,fn=None):
     :returns: `coef`, `res`, `ssr`
     
     """    
-  
     coef, res, ssr, _, _ = SVD.svdfit(x,y,sig,fn)
     
     return coef, res, ssr  
@@ -50,10 +49,10 @@ def ols(x,y,fn=None):
     sig = np.ones( (M,) )
     coef, res, ssr = lsfit(x,y,sig,fn)
    
-    return ModelFit( coef,res,ssr,fn,M )
+    return OLSModel( coef,res,ssr,M,fn )
 
 #----------------------------------------------------------------------------
-def wls(x,y,u_y,fn=None):    
+def wls(x,y,u_y=None,fn=None):    
     """Weighted least squares fit of ``y`` to ``x``
     
     :arg x: a sequence of ``M`` stimulus values (independent-variables)
@@ -68,12 +67,15 @@ def wls(x,y,u_y,fn=None):
     
     if M != len(x):
         raise RuntimeError( f"len(x) != len(y)" )
-    if M != len(u_y):
+ 
+    if u_y is None:
+        u_y = [ y_i.u for y_i in y ]
+    elif M != len(u_y):
         raise RuntimeError( "len(x) != len(u_y)")
-    
+        
     coef, res, ssr = lsfit(x,y,u_y,fn)
     
-    return ModelFit( coef,res,ssr,fn,M )
+    return WLSModel( coef,res,ssr,M,fn )
     
 #----------------------------------------------------------------------------
 def gls(x,y,cv,fn=None,label=None):
@@ -112,7 +114,7 @@ def gls(x,y,cv,fn=None,label=None):
     a = Kinv @ X 
     b = Kinv @ Y 
          
-    coef = ols(a,b,fn=fn).beta
+    coef = ols(a,b).beta
 
     res = np.array([ value(Y[i] - np.dot(coef,X[i])) for i in range(M) ]
     , dtype=float
@@ -121,6 +123,35 @@ def gls(x,y,cv,fn=None,label=None):
     tmp = np.dot(Kinv, res)
     ssr = np.dot(tmp.T, tmp)
 
-    return ModelFit( coef,res,ssr,fn,M )
+    return GLSModel( coef,res,ssr,M,fn )
   
-    
+#----------------------------------------------------------------------------
+class OLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-B Ordinary Least-Squares:
+'''
+        return header + ModelFit.__str__(self)
+ 
+class WLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-B Weighted Least-Squares:
+'''
+        return header + ModelFit.__str__(self)
+        
+class GLSModel(ModelFit):
+    def __init__(self,beta,res,ssr,M,fn):
+        ModelFit.__init__(self,beta,res,ssr,M,fn)
+ 
+    def __str__(self):
+        header = '''
+Type-B Generalised Least-Squares:
+'''
+        return header + ModelFit.__str__(self)   
