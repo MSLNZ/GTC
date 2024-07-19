@@ -79,7 +79,7 @@ import numpy as np
 
 from GTC import (
     LU,
-    is_sequence,
+    # is_sequence,
 )
 
 __all__ = (
@@ -92,22 +92,6 @@ __all__ = (
     'identity','zeros','ones','empty','full',
     'transpose'
 )
-
-#----------------------------------------------------------------------------
-def _dtype_float(a):
-    """Promote integer arrays to float 
-    
-    Use this to avoid creating an array that might truncate values when 
-    you do not know the dtype.
-    
-    """
-    try:
-        if np.issubdtype(a.dtype, np.integer):
-            return np.float64
-        else:
-            return a.dtype
-    except AttributeError:  
-            return np.float64
 
 def uarray(array, label=None, names=None):
     """Create an array of uncertain numbers.
@@ -156,6 +140,7 @@ def uarray(array, label=None, names=None):
                 ureal(18.52941176470588,5.883187720636909,inf)])
 
     """
+    from GTC import is_sequence
     if np.__version__ < '1.13.0':
         # the __array_ufunc__ method was not introduced until version 1.13.0
         raise ValueError('creating an UncertainArray requires numpy >= 1.13.0')
