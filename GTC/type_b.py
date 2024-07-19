@@ -468,18 +468,17 @@ def line_fit_wls(x,y,u_y=None):
         
     """
     if len(x)!= len(y):
-        raise RuntimeError(
-            f"Different sequence lengths: len({x!r}) != len({y!r})"
-        )
+        raise RuntimeError( f"Different sequence lengths: {x!r}, {y!r}" )
 
     if u_y is None:
         v = [ y_i.v for y_i in y ]
-        u = [ math.sqrt(v_i) for v_i in v ]
+        u = [ y_i.u for y_i in y ]
     else:
         v = [ u_y_i**2 for u_y_i in u_y ]
         u = u_y     
         
     S = sum( 1.0/v_i for v_i in v)
+    
     S_x = sum( x_i/v_i for x_i,v_i in zip(x,v) )
     S_y = sum( y_i/v_i for y_i,v_i in zip(y,v) )
 
@@ -495,16 +494,15 @@ def line_fit_wls(x,y,u_y=None):
         raise ValueError('"y" must be a sequence of uncertain real numbers. '
                          'You may want to use type_a.line_fit_wls instead.')
 
-    # The sum of squared residuals is now calculated but not used
+    # The sum of squared residuals 
     float_a = value(a)
     float_b = value(b)
-    
-    f2 = lambda x_i,y_i,u_i: (
-        (y_i - float_a - float_b*x_i)/u_i
+    f_res = lambda x_i,y_i,u_i: (
+        (value(y_i) - float_a - float_b*value(x_i))/u_i
     )**2 
     
     ssr =  math.fsum( 
-        f2( value(x_i), value(y_i), u_i ) 
+        f_res( x_i, y_i, u_i ) 
             for x_i,y_i,u_i in zip(x,y,u)
     )
 
