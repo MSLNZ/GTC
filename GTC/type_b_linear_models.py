@@ -1,5 +1,8 @@
 """
-               
+  
+Module contents
+---------------
+  
 """
 import math
 import numpy as np
