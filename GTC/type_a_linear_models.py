@@ -1,6 +1,5 @@
 """
 
-
 Module contents
 ---------------
 
@@ -8,35 +7,18 @@ Module contents
 import math
 import numpy as np
 
+from GTC import inf
+
 from GTC.lib import (
     UncertainReal,
     real_ensemble,
-    append_real_ensemble,
     value,
 )
-from GTC import cholesky 
-from GTC import magnitude, sqrt     # Polymorphic functions
-from GTC import result              
-from GTC import inf
+
+from GTC.misc import _dtype_float
 
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
-
-#----------------------------------------------------------------------------
-def _dtype_float(a):
-    """Promote integer arrays to float 
-    
-    Use this to avoid creating an array that might truncate values when 
-    you do not know the dtype.
-    
-    """
-    try:
-        if np.issubdtype(a.dtype, np.integer):
-            return np.float64
-        else:
-            return a.dtype
-    except AttributeError:  
-            return np.float64
             
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
@@ -297,6 +279,8 @@ def gls(x,y,cv,fn=None,label='beta'):
     values are used in calculations.
 
     """
+    from GTC import cholesky 
+
     M = len(x) 
     if fn is None:
         P = len(x[0])
@@ -424,6 +408,8 @@ class ModelFit(object):
         or sequence of uncertain numbers.
         
         """
+        from GTC import result 
+        
         if self._fn is not None:
             x_i = self._fn(x_i)
     
