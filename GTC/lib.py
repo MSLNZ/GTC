@@ -8,6 +8,8 @@ import cmath
 import numbers
 import warnings
 
+from GTC.misc import is_sequence
+
 from GTC import nodes
 from GTC import vector 
 from GTC import context
@@ -24,7 +26,6 @@ from GTC import (
     inf, 
     nan, 
     inf_dof, 
-    is_sequence,
 )
 from GTC.formatting import (
     create_format,
