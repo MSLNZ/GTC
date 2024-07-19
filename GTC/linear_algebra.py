@@ -77,10 +77,9 @@ Module contents
 """
 import numpy as np
 
-from GTC import (
-    LU,
-    # is_sequence,
-)
+from GTC.misc import is_sequence
+
+from GTC import LU
 
 __all__ = (
     'uarray',
@@ -140,7 +139,6 @@ def uarray(array, label=None, names=None):
                 ureal(18.52941176470588,5.883187720636909,inf)])
 
     """
-    from GTC import is_sequence
     if np.__version__ < '1.13.0':
         # the __array_ufunc__ method was not introduced until version 1.13.0
         raise ValueError('creating an UncertainArray requires numpy >= 1.13.0')
