@@ -12,8 +12,10 @@ from cmath import isinf as cisinf
 
 import numpy as np
 
-from GTC import is_sequence
+from GTC.misc import is_sequence
+
 from GTC.linear_algebra import matmul
+
 from GTC.core import (
     value,
     uncertainty,
