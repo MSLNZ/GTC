@@ -3,16 +3,20 @@ import cmath
 import numbers
 import warnings
 
+from GTC.misc import is_sequence
+
 from GTC import lib
 from GTC import reporting
 from GTC import type_b
 from GTC import type_a
+from GTC import type_b_linear_models
+from GTC import type_a_linear_models
 from GTC import persistence
 from GTC import function
+
 from GTC import (
     inf,
     nan,
-    is_sequence,
     copyright,
     version
 )
@@ -23,6 +27,8 @@ tb = type_b
 ta = type_a
 fn = function
 pr = persistence
+lmb = type_b_linear_models
+lma = type_a_linear_models
 
 value = lib.value
 
@@ -78,6 +84,8 @@ __all__ = (
     ,   'type_a',       'ta'
     ,   'persistence',  'pr'
     ,   'linear_algebra', 'la'
+    ,   'type_b_linear_models', 'lmb'
+    ,   'type_a_linear_models', 'lma'
     ,   'math'
     ,   'cmath'
 )
@@ -461,7 +469,6 @@ def result(un,label=None):
             f"undefined for {un!r}"
         )
           
-
 #----------------------------------------------------------------------------
 def ucomplex(z,u,df=inf,label=None,independent=True):
     """
