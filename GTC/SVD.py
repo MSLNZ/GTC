@@ -3,17 +3,22 @@
 import math
 import numpy as np
 
-from GTC import value
-from GTC import magnitude, sqrt    # Polymorphic functions
+from GTC.lib import value
 
 #----------------------------------------------------------------------------
 def _pythag(a,b):
     """
     Return sqrt(a*a + b*b) 
-    
-    Avoids numerical problems
-    
+        
+    This function avoids numerical problems with direct 
+    evaluation and handles different argument types
+    (`a` and `b` can be uncertain numbers)
+
     """
+    # imports here to avoid circular reference problems
+    from GTC.core import magnitude      # Polymorphic
+    from GTC.core import sqrt           # Polymorphic
+
     ab_a = magnitude(a)
     ab_b = magnitude(b)
     if ab_a > ab_b:
@@ -40,6 +45,9 @@ def svd_decomp(a):
     The decomposition of ``a = U * W * V.T``
         
     """
+    # import here to avoid circular reference problems
+    from GTC.core import sqrt           # Polymorphic
+
     # avoid side effects to input array
     u = a.copy()    
 
