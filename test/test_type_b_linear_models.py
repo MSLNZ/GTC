@@ -10,7 +10,6 @@ TOL = 1E-13
 DIGITS = 13
 
 from GTC import *
-from GTC import type_b_linear_models as LM
 
 from GTC import cholesky
 
@@ -35,7 +34,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.wls(x,y,fn=fn)  
+        fit = lmb.wls(x,y,fn=fn)  
         b, a = fit.beta 
         
         TOL = 1E-6
@@ -74,7 +73,7 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.wls(x,y,fn=fn)  
+        fit = lmb.wls(x,y,fn=fn)  
         b, a = fit.beta 
         
         TOL = 1E-4
@@ -103,15 +102,15 @@ class TestSVDWLS(unittest.TestCase):
         """
         x = [1,2,3,4,5,6]
         u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
-        y = [ ureal(y_i, u_i) for y_i, u_i in zip(
-                [3.014,5.225,7.004,9.061,11.201,12.762], u_y)
-            ]
+        y_data = [3.014,5.225,7.004,9.061,11.201,12.762]
+        y = [ ureal(y_i, u_i) for y_i, u_i in zip(y_data, u_y) ]
                 
         def fn(x_i):
             return [x_i,1]
         
         # This is a RWLS problem
-        fit = LM.wls(x,y,u_y,fn=fn)  
+        # fit = lmb.wls(x,y,fn=fn)  
+        fit = lmb.wls(x,y,u_y,fn=fn)  
         b, a = fit.beta 
         
         s2 = fit.ssr
@@ -124,18 +123,18 @@ class TestSVDWLS(unittest.TestCase):
         self.assertTrue( equivalent(sigma*sigma*get_covariance(a,b),-0.004408553,1E-5))
 
     #------------------------------------------------------------------------
-    # This test does not use uncertain numbers for the data
     def test3(self):
         # weighted least squares
         # from http://www.stat.ufl.edu/~winner/sta6208/reg_ex/cholest.r 
         
         # dLDL ~ lnDOSE, weights=r
-        y = (-35.8,-45.0,-52.7,-49.7,-58.2,-66.0)   # dLDL
         DOSE = (1,2.5,5,10,20,40)    
         x = [ math.log(x_i) for x_i in DOSE ]
         
         w = (15,17,12,14,18,13) 
         sig = [ 1.0/math.sqrt(w_i) for w_i in w ]
+        y_data = (-35.8,-45.0,-52.7,-49.7,-58.2,-66.0)   # dLDL
+        y = [ ureal(y_i,u_i) for y_i, u_i in zip(y_data,sig) ]
         
         N = len(y) 
         M = 2
@@ -143,25 +142,24 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = LM.wls(x,y,sig,fn)  
+        fit = lmb.wls(x,y,sig,fn)  
         
         a = fit.beta
-        self.assertTrue( equivalent(a[0],-7.3753,tol=1E-4) )
-        self.assertTrue( equivalent(a[1],-36.9588,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[0]),-7.3753,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[1]),-36.9588,tol=1E-4) )
         
-        # s2 = fit.ssr/(N-M)
-        # cv = s2*svdvar(v,w)
+        # This is a RWLS problem
+        sigma = math.sqrt(fit.ssr/(N-M))
         
-        # self.assertTrue( equivalent(math.sqrt(cv[1,1]),2.2441,tol=1E-4) )
-        # self.assertTrue( equivalent(math.sqrt(cv[0,0]),0.9892,tol=1E-4) )
+        self.assertTrue( equivalent(sigma*uncertainty(a[0]),0.9892,tol=1E-4) )
+        self.assertTrue( equivalent(sigma*uncertainty(a[1]),2.2441,tol=1E-4) )
 
 #----------------------------------------------------------------------------
 class TestSVDOLS(unittest.TestCase):
 
     #------------------------------------------------------------------------
-    # This test does not use uncertain numbers for the data
     def test1(self):
-        # Simple example 
+        # This test does not use uncertain numbers for the data
         
         def fn(x_i):
             return [x_i,1]
@@ -172,13 +170,38 @@ class TestSVDOLS(unittest.TestCase):
         x = [ float(x_i) for x_i in range(N) ]
         y = [ 2*x_i + 1.5 for x_i in x ]
     
-        a = LM.ols(x,y,fn=fn).beta
+        # The type-B evaluation takes generic arguments
+        # Here we provide floating point data so that is 
+        # what it returns for coefficients
+        fit = lmb.ols(x,y,fn=fn)
         
+        # The fit should be exact
+        a = fit.beta        
         self.assertTrue( equivalent(a[1],1.5) )
         self.assertTrue( equivalent(a[0],2.0) )
-   
+        self.assertTrue( fit.ssr < 1E-13 )
+        
+    def test1UN(self):
+        
+        def fn(x_i):
+            return [x_i,1]
+            
+        M = 2 
+        N = 10
+        
+        x = [ float(x_i) for x_i in range(N) ]
+        y_data = [ 2*x_i + 1.5 for x_i in x ]
+        u_y = [ 1.0 ] * len(x)
+        y = [ ureal(y_i,u_i) for y_i, u_i in zip(y_data,u_y) ]
+    
+        a = lmb.ols(x,y,fn=fn).beta
+        
+        self.assertTrue( equivalent(value(a[1]),1.5) )
+        self.assertTrue( equivalent(value(a[0]),2.0) )
+
+        # self.assertTrue( abs(uncertainty(a[1])) < 1E-13 )
+        
     #------------------------------------------------------------------------
-    # This test does not use uncertain numbers for the data
     def test5(self):
         # From halweb.uc3m.es/esp/Personal/personas/durban/esp/web/notes/gls.pdf
         #
@@ -215,26 +238,20 @@ class TestSVDOLS(unittest.TestCase):
                 float(s[i*step+2]),
                 float(s[i*step+5])
             ])
-            y.append( float(s[i*step+7]) )        
+            y.append( ureal( float(s[i*step+7]), 1.0) )        
         
-        a = LM.ols(x,y).beta
+        fit = lmb.ols(x,y)
+        a = fit.beta
         
-        self.assertTrue( equivalent(a[0],88.93880,tol=1E-5) )
-        self.assertTrue( equivalent(a[1],0.06317,tol=1E-5) )
-        self.assertTrue( equivalent(a[2],-0.40974,tol=1E-5) )
+        self.assertTrue( equivalent(value(a[0]),88.93880,tol=1E-5) )
+        self.assertTrue( equivalent(value(a[1]),0.06317,tol=1E-5) )
+        self.assertTrue( equivalent(value(a[2]),-0.40974,tol=1E-5) )
                 
-        # s2 = chisq/(M-P)
-        # cv = s2*svdvar(v,w)
-        
-        # se = [
-            # math.sqrt(cv[0,0]),
-            # math.sqrt(cv[1,1]),
-            # math.sqrt(cv[2,2])
-        # ]
-                  
-        # self.assertTrue( equivalent(se[0],13.78503,tol=1E-5) )
-        # self.assertTrue( equivalent(se[1],0.01065,tol=1E-5) )
-        # self.assertTrue( equivalent(se[2],0.15214,tol=1E-5) )
+        # This is a RWLS problem
+        sigma = math.sqrt(fit.ssr/(M-P))          
+        self.assertTrue( equivalent(sigma*uncertainty(a[0]),13.78503,tol=1E-5) )
+        self.assertTrue( equivalent(sigma*uncertainty(a[1]),0.01065,tol=1E-5) )
+        self.assertTrue( equivalent(sigma*uncertainty(a[2]),0.15214,tol=1E-5) )
         
         # Output from R calculation for covariance matrix (see reference)      
         strings="""
@@ -258,13 +275,20 @@ class TestSVDOLS(unittest.TestCase):
         cv = numpy.array(strings, dtype=float)
         cv.shape = 16,16 
                 
-        coef = LM.gls(x,y,cv).beta
+        fit = lmb.gls(x,y,cv)
+        coef = fit.beta
         
         # Values agree well with reference
-        self.assertTrue( equivalent(coef[0],94.89887752,tol=1E-7) )
-        self.assertTrue( equivalent(coef[1],0.06738948,tol=1E-7) )
-        self.assertTrue( equivalent(coef[2],-0.47427391,tol=1E-7) )
+        self.assertTrue( equivalent(value(coef[0]),94.89887752,tol=1E-7) )
+        self.assertTrue( equivalent(value(coef[1]),0.06738948,tol=1E-7) )
+        self.assertTrue( equivalent(value(coef[2]),-0.47427391,tol=1E-7) )
 
+        # # This is a RWLS problem
+        # # sigma = math.sqrt(fit.ssr/(M-P))          
+        # self.assertTrue( equivalent(sigma*uncertainty(a[0]),14.15760467,tol=1E-5) )
+        # self.assertTrue( equivalent(sigma*uncertainty(a[1]),0.01086675,tol=1E-5) )
+        # self.assertTrue( equivalent(sigma*uncertainty(a[2]),0.15572652,tol=1E-5) )
+        
 #----------------------------------------------------------------------------
 class TestUncertainNumberSVDOLS(unittest.TestCase):
 
@@ -281,7 +305,7 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
 
-        fit = LM.ols(x,y,fn)
+        fit = lmb.ols(x,y,fn)
         b,a = fit.beta
         
         equivalent( value(a) ,0.0,TOL)
@@ -308,19 +332,19 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
             else:
                 return beta[1]
                 
-        fit = LM.ols(x,y,fn)
+        fit = lmb.ols(x,y,fn)
         b,a = fit.beta
         
         # Incorrect input sequences
         self.assertRaises(
             RuntimeError,
-            LM.ols,
+            lmb.ols,
             numpy.array([1, 2, 3]), numpy.array([]), fn
          )
 
         self.assertRaises(
             RuntimeError,
-            LM.ols,
+            lmb.ols,
             numpy.array([1, 2, 3, 4]), numpy.array([1, 2, 3]), fn
         )
 
@@ -342,7 +366,7 @@ class TestUncertainNumberSVDOLS(unittest.TestCase):
         x = numpy.array([ value(x_i) for x_i in [-1,0,1] ])
         y = numpy.array([ ureal(y_i,u,df=nu) for y_i in x ])
 
-        fit = LM.ols(x,y,fn)
+        fit = lmb.ols(x,y,fn)
         b,a = fit.beta
 
         equivalent( value(a),0.0,TOL)
