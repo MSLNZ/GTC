@@ -71,12 +71,10 @@ Module contents
 """
 import sys
 import math
+import builtins
 from collections.abc import Iterable
 
 import numpy as np
-
-import builtins
-from collections.abc import Iterable
     
 from GTC import (
     inf,
