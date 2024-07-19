@@ -75,11 +75,12 @@ import builtins
 from collections.abc import Iterable
 
 import numpy as np
-    
+
+from GTC.misc import is_sequence
+
 from GTC import (
     inf,
     EPSILON,
-    is_sequence
 )
 from GTC.named_tuples import InterceptSlope
 from GTC.vector import scale_vector
