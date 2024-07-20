@@ -9,9 +9,29 @@ import numpy as np
 
 from GTC.lib import value
 from GTC.type_a_linear_models import ModelFit
-from GTC import SVD
-from GTC import cholesky 
+# from GTC import SVD
+# from GTC import cholesky 
 
+from GTC.misc import _dtype_float
+
+# #----------------------------------------------------------------------------
+# def lsfit(x,y,sig=None,fn=None):
+    # """
+    # Solve `x @ beta = y` for `beta` 
+
+    # .. versionadded:: 1.4.x
+    
+    # :arg x: an array of stimulus data
+    # :arg y: a 1-D array of response data
+    # :arg sig: a 1-D array of standard deviations associated with response data
+    # :arg fn: evaluate a sequence of basis function values at a stimulus value
+    # :returns: `coef`, `res`, `ssr`
+    
+    # """    
+    # coef, res, ssr, _, _ = SVD.svdfit(x,y,sig,fn)
+    
+    # return coef, res, ssr  
+  
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
     """
@@ -26,10 +46,88 @@ def lsfit(x,y,sig=None,fn=None):
     :returns: `coef`, `res`, `ssr`
     
     """    
-    coef, res, ssr, _, _ = SVD.svdfit(x,y,sig,fn)
+    # M - number of data points 
+    # P - number of parameters to fit 
+    M = len(x) 
+    if sig is None: 
+        sig = np.ones( (len(x),) )
+    else:
+        sig = np.array( sig, dtype=np.float64 )
+        
+    # Allow uncertain-number inputs:
+    # construct arrays `a` and `b` from values 
+    if fn is None:
+        P = len( x[0] )   
+        def row(row_i,s_i):
+            return [ value(x_i/s_i) for x_i in row_i ]
+            
+        a = np.array( [ row(row_i,s_i) for row_i,s_i in zip(x,sig) ],
+            dtype=np.float64 
+        )
+        b = np.array( [ y_i/s_i for y_i,s_i in zip(y,sig) ], 
+            dtype=object 
+        ) 
+    else:       
+        # fn(x_i) returns an P-sized array of values for
+        # each basis function at the stimulus point `x_i`
+        P = len( fn(x[0])  )   
+
+        a = np.empty( (M,P), dtype=_dtype_float(x) )
+        b = np.empty( (M,), dtype=object )    
+        
+        for i in range(M):
+            afunc_i = fn(x[i])
+            tmp = 1.0/sig[i]
+            for j in range(P):
+                a[i,j] = tmp*afunc_i[j]
+                
+            b[i] = tmp*y[i] 
+            
+    if M <= P:
+        raise RuntimeError( f"M = {M} but should be > {P}" )     
+              
+    u,w,vh = np.linalg.svd(a, full_matrices=False )
+    v = vh.T    
     
+    # `TOL` is used to set relatively small singular values to zero
+    # Doing so avoids numerical precision problems, but will make the 
+    # solution slightly less accurate. The value can be varied.
+    TOL = 1E-5
+    # Select almost singular values
+    wmax = max(w)
+    # wmin = min(w)
+    # logC = math.log10(wmax/wmin)
+    # # The base-b logarithm of C is an estimate of how many 
+    # # base-b digits will be lost in solving a linear system 
+    # # with the matrix. In other words, it estimates worst-case 
+    # # loss of precision. 
+    # # C is the condition number: the ratio of the largest to smallest 
+    # # singular value in the SVD
+    
+    thresh = TOL*wmax 
+    w = np.array([ 
+        w_i if w_i >= thresh else 0. 
+            for w_i in w 
+    ])
+    
+    # coef = svbksb(u,w,v,b)
+    coef = v @ np.diag(1 / w) @ u.T @ b
+    
+    # cv_coef = svdvar(v,w) 
+    # wti = [
+        # 1.0/(w_i*w_i) if w_i != 0 else 0.0
+            # for w_i in w 
+    # ]
+    # cv_coef = v @ np.diag(wti) @ vh
+    # print(cv_coef)
+    # print([c.v for c in coef])
+
+# Residuals and sum of squared residuals
+    res = b - np.dot(a, coef) 
+    ssr = math.fsum( value(res_i)**2 for res_i in res )
+          
     return coef, res, ssr  
-    
+  
 #----------------------------------------------------------------------------
 def ols(x,y,fn=None):
     """Ordinary least squares fit of ``y`` to ``x``
@@ -101,8 +199,10 @@ def gls(x,y,cv,fn=None,label=None):
     if cv.shape != (M,M):
         raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
     
-    K = cholesky.cholesky_decomp(cv)
-    Kinv = cholesky.cholesky_inv(K)
+    # K = cholesky.cholesky_decomp(cv)
+    # Kinv = cholesky.cholesky_inv(K)
+    K = np.linalg.cholesky(cv)
+    Kinv = np.linalg.inv(K)
         
     if fn is None:
         X = np.array( x,dtype=object )
@@ -116,7 +216,7 @@ def gls(x,y,cv,fn=None,label=None):
 
     a = Kinv @ X 
     b = Kinv @ Y 
-         
+   
     coef = ols(a,b).beta
 
     res = np.array([ value(Y[i] - np.dot(coef,X[i])) for i in range(M) ]
