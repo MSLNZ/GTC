@@ -412,12 +412,19 @@ def svdfit(x,y,sig=None,fn=None):
             for w_i in w 
     ])
  
-    coef = svbksb(u,w,v,b)
+    # coef = svbksb(u,w,v,b)
+    coef = v @ np.diag(1 / w) @ u.T @ b
 
     # Residuals and sum of squared residuals
     res = b - np.dot(a, coef) 
     ssr = math.fsum( value(res_i)**2 for res_i in res )
-    
+ 
+    wti = [
+        1.0/(w_i*w_i) if w_i != 0 else 0.0
+            for w_i in w 
+    ]
+    cv_coef = v @ np.diag(wti) @ v.T
+ 
     return coef, res, ssr, w, v  
 
 #----------------------------------------------------------------------------
