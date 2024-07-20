@@ -549,7 +549,7 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(uncertainty(a[1]),0.01065,tol=1E-5) )
         self.assertTrue( equivalent(uncertainty(a[2]),0.15214,tol=1E-5) )
         
-        # Output from R calculation for covariance matrix (see reference)      
+        # Output from R calculation for covariance matrix (see reference) -- it's actually normalised because the diagonal elements are unity    
         strings="""
                 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06 8.002303e-07 2.483989e-07 7.710529e-08 2.393419e-08
                 3.104092e-01 1.000000e+00 3.104092e-01 9.635387e-02 2.990913e-02 9.284069e-03 2.881860e-03 8.945559e-04 2.776784e-04 8.619393e-05 2.675539e-05 8.305119e-06 2.577985e-06 8.002303e-07 2.483989e-07 7.710529e-08
@@ -579,10 +579,9 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(value(a[0]),94.89887752,tol=1E-7) )
         self.assertTrue( equivalent(value(a[1]),0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(value(a[2]),-0.47427391,tol=1E-7) )
-        
-        # Values agree with reference
-        # However, the reference only assumed a covariance matrix with terms
-        # proportional to the actual values. The residuals without taking account
+
+        # The reference only assumed a covariance matrix with terms proportional to
+        # the actual values (diagonals are unity). The residuals without taking account
         # of the covariance structure are used to estimate sigma squared.
         # This sigma must be applied to the uncertainties to match the published values.
         ssr = np.dot( fit.residuals.T, fit.residuals)
@@ -603,7 +602,7 @@ class TestSVDOLS(unittest.TestCase):
         M = 10
         P = 2
         x = range(1,11)
-        y = (1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0)
+        y_data = (1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0)
         
         cv = np.diag([2] * 10)
         for i in range(5):
@@ -621,17 +620,30 @@ class TestSVDOLS(unittest.TestCase):
         for x_i in range(1,11):
             x.append( [x_i,1] )
          
-        fit = lma.gls(x,y,cv,lambda x: x)
+        fit = lma.gls(x,y_data,cv)
+
         a = fit.beta
 
         # Values agree well with reference
         self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
         self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
-
-        # Values agree well with reference
         self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
         self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
+        self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
+        self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) )
 
+        # Should take uncertain-number arguments        
+        u_y = [ math.sqrt(cv[i,i]) for i in range(len(x)) ]
+        y = [ ureal(y_i,u_i) for y_i,u_i in zip(y_data,u_y) ]
+
+        fit = lma.gls(x,y,cv)
+
+        a = fit.beta
+        self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
+        self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
         self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) )
 
     #------------------------------------------------------------------------
