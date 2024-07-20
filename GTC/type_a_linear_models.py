@@ -162,7 +162,8 @@ def _coef_as_uncertain_numbers(coef,cv,df=inf,label='beta'):
         for j,b_j in enumerate(beta[:i]):
             if b_j.u == 0.0: continue                
             if abs(cv[i,j]) > 1E-13:
-                b_i.set_correlation(cv[i,j]/(b_i.u*b_j.u),b_j)
+                r_ij = cv[i,j]/(b_i.u*b_j.u)
+                b_i.set_correlation(r_ij,b_j)
             
     return beta
      
@@ -313,11 +314,11 @@ def gls(x,y,cv,fn=None,label='beta'):
     # The GLS is solved by transforming the input data 
     a = Kinv @ X 
     b = Kinv @ Y  
-   
+
     u,w,vh = np.linalg.svd(a, full_matrices=False )
     v = vh.T    
 
-    # Select almost singular values
+    # Identify almost singular values
     wmax = max(w)
     # wmin = min(w)
     # logC = math.log10(wmax/wmin)
@@ -336,8 +337,7 @@ def gls(x,y,cv,fn=None,label='beta'):
     ]) 
    
     # coef = svbksb(u,w,v,b)    
-    w_inv = np.diag(1 / w)
-    coef = v @ w_inv @ u.T @ b
+    coef = v @ np.diag(1 / w) @ u.T @ b
     
     # cv_coef = svdvar(v,w) 
     wti = [
@@ -347,14 +347,14 @@ def gls(x,y,cv,fn=None,label='beta'):
     cv_coef = v @ np.diag(wti) @ vh
 
     res = Y - np.dot(X, coef) 
+
     tmp = np.dot(Kinv, res)
     ssr = np.dot(tmp.T, tmp)
     
-    df = inf   
-    coef = _coef_as_uncertain_numbers(coef,cv_coef,df,label=label)    
+    coef = _coef_as_uncertain_numbers(coef,cv_coef,df=inf,label=label)    
 
     return GLSModel( coef,res,ssr,M,fn )
-
+    
 #-----------------------------------------------------------------------------------------
 class ModelFit(object):
  
