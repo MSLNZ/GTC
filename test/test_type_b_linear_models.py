@@ -6,6 +6,8 @@ import numpy
 import operator
 import collections
 
+import numpy as np
+
 TOL = 1E-13
 DIGITS = 13
 
@@ -29,7 +31,8 @@ class TestSVDWLS(unittest.TestCase):
         # sqrt(diag(fit.sum$cov))
 
         x = [1,2,3,4,5,6]
-        y = [ ureal(y_i,0.5) for y_i in (3.3,5.6,7.1,9.3,10.7,12.1) ]
+        y_data = (3.3,5.6,7.1,9.3,10.7,12.1)
+        y = [ ureal(y_i,0.5) for y_i in y_data ]
                 
         def fn(x_i):
             return [x_i,1]
@@ -55,6 +58,17 @@ class TestSVDWLS(unittest.TestCase):
         self.assertTrue( equivalent(x0.u,0.322,TOL) )
         self.assertEqual( x0.df,inf )
         
+        # The type-A evaluation should be equivalent
+        u_y = [0.5]*len(x)
+        fit = lma.wls(x,y,u_y,fn=fn)
+        TOL = 1E-6
+        self.assertTrue( equivalent(value(a),1.866667,TOL) )
+        self.assertTrue( equivalent(value(b),1.757143,TOL) )
+        self.assertTrue( equivalent(a.u,0.4654747,TOL) )
+        self.assertTrue( equivalent(b.u,0.1195229,TOL) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.050,TOL) )
+        
+        
     def test2wls(self):
         """ISO/TS 28037:2010, p 15"""
         
@@ -66,10 +80,10 @@ class TestSVDWLS(unittest.TestCase):
         # sqrt(diag(fit.sum$cov))
 
         x = [1,2,3,4,5,6]
-        y = [ ureal(y_i, u_i) for y_i, u_i in zip(
-                (3.2, 4.3, 7.6, 8.6, 11.7, 12.8),
-                [0.5,0.5,0.5,1.0,1.0,1.0]) ]
-                
+        u_y = [0.5,0.5,0.5,1.0,1.0,1.0]
+        y_data = (3.2, 4.3, 7.6, 8.6, 11.7, 12.8)
+        y = [ ureal(y_i, u_i) for y_i, u_i in zip(y_data,u_y)]
+
         def fn(x_i):
             return [x_i,1]
         
@@ -91,6 +105,49 @@ class TestSVDWLS(unittest.TestCase):
         self.assertTrue( equivalent(x0.x,4.674,TOL) )
         self.assertTrue( equivalent(x0.u,0.533,TOL) )
         self.assertEqual( x0.df,inf )
+
+        # Cross check with straight-line fits
+        fit = type_a.line_fit_wls(x,y,u_y)
+        a, b = fit.a_b 
+        self.assertTrue( equivalent(value(a),0.8852,TOL) )
+        self.assertTrue( equivalent(value(b),2.0570,TOL) )
+        self.assertTrue( equivalent(a.u,0.5297081,1E-6) )
+        self.assertTrue( equivalent(b.u,0.1778920,1E-6) )
+        self.assertTrue( equivalent(fit.ssr,4.131,1E-3) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.08227848,1E-6) )
+        self.assertEqual( a.df,inf )       
+
+        # The type-A evaluation should be equivalent
+        fit = lmb.wls(x,y,u_y,fn=fn)  
+        b, a = fit.beta 
+        self.assertTrue( equivalent(value(a),0.8852,TOL) )
+        self.assertTrue( equivalent(value(b),2.0570,TOL) )
+        self.assertTrue( equivalent(a.u,0.5297081,1E-6) )
+        self.assertTrue( equivalent(b.u,0.1778920,1E-6) )
+        self.assertTrue( equivalent(fit.ssr,4.131,1E-3) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.08227848,1E-6) )
+
+        # The gls evaluation should be equivalent
+        cv = np.diag([ u_i**2 for u_i in u_y ])
+        fit = lma.gls(x,y,cv,fn=fn)
+
+        b, a = fit.beta   
+        self.assertTrue( equivalent(value(a),0.8852,TOL) )
+        self.assertTrue( equivalent(value(b),2.0570,TOL) )
+        self.assertTrue( equivalent(a.u,0.5297081,1E-6) )
+        self.assertTrue( equivalent(b.u,0.1778920,1E-6) )
+        self.assertTrue( equivalent(fit.ssr,4.131,1E-3) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.08227848,1E-6) )
+
+        fit = lmb.gls(x,y,cv,fn=fn)
+
+        b, a = fit.beta   
+        self.assertTrue( equivalent(value(a),0.8852,TOL) )
+        self.assertTrue( equivalent(value(b),2.0570,TOL) )
+        self.assertTrue( equivalent(a.u,0.5297081,1E-6) )
+        self.assertTrue( equivalent(b.u,0.1778920,1E-6) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.08227848,1E-6) )
+        self.assertTrue( equivalent(fit.ssr,4.131,1E-3) )
 
     def test3wls(self):
         """        
@@ -131,10 +188,14 @@ class TestSVDWLS(unittest.TestCase):
         DOSE = (1,2.5,5,10,20,40)    
         x = [ math.log(x_i) for x_i in DOSE ]
         
+        # This is really a RWLS problem, so we adjust the weights
+        # knowing the sample estimate of sigma. This simulates a
+        # WLS problem for testing
         w = (15,17,12,14,18,13) 
-        sig = [ 1.0/math.sqrt(w_i) for w_i in w ]
+        sigma = 11.58269171402602
+        u_y = [ sigma/(math.sqrt(w_i)) for w_i in w ]
         y_data = (-35.8,-45.0,-52.7,-49.7,-58.2,-66.0)   # dLDL
-        y = [ ureal(y_i,u_i) for y_i, u_i in zip(y_data,sig) ]
+        y = [ ureal(y_i,u_i) for y_i, u_i in zip(y_data,u_y) ]
         
         N = len(y) 
         M = 2
@@ -142,17 +203,23 @@ class TestSVDWLS(unittest.TestCase):
         def fn(x_i):
             return [x_i,1]
         
-        fit = lmb.wls(x,y,sig,fn)  
+        fit = lmb.wls(x,y,u_y,fn)  
         
         a = fit.beta
         self.assertTrue( equivalent(value(a[0]),-7.3753,tol=1E-4) )
         self.assertTrue( equivalent(value(a[1]),-36.9588,tol=1E-4) )
         
-        # This is a RWLS problem
-        sigma = math.sqrt(fit.ssr/(N-M))
-        
-        self.assertTrue( equivalent(sigma*uncertainty(a[0]),0.9892,tol=1E-4) )
-        self.assertTrue( equivalent(sigma*uncertainty(a[1]),2.2441,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[0]),0.9892,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[1]),2.2441,tol=1E-4) )
+
+        # The type-A evaluation should be equivalent
+        fit = lma.wls(x,y,u_y,fn)  
+        a = fit.beta
+        self.assertTrue( equivalent(value(a[0]),-7.3753,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[1]),-36.9588,tol=1E-4) )
+
+        self.assertTrue( equivalent(uncertainty(a[0]),0.9892,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[1]),2.2441,tol=1E-4) )
 
 #----------------------------------------------------------------------------
 class TestSVDOLS(unittest.TestCase):
@@ -180,7 +247,17 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(a[1],1.5) )
         self.assertTrue( equivalent(a[0],2.0) )
         self.assertTrue( fit.ssr < 1E-13 )
-        
+
+        # The type-A evaluation should be equivalent
+        fit = lma.ols(x,y,fn=fn)
+
+        a = fit.beta        
+        self.assertTrue( equivalent(value(a[1]),1.5) )
+        self.assertTrue( equivalent(value(a[0]),2.0) )
+        self.assertTrue( fit.ssr < 1E-13 )
+        self.assertTrue( equivalent(uncertainty(a[1]),0) )
+        self.assertTrue( equivalent(uncertainty(a[0]),0) )
+
     def test1UN(self):
         
         def fn(x_i):
@@ -232,13 +309,18 @@ class TestSVDOLS(unittest.TestCase):
         
         x = []
         y = []
+        
+        # This is a problem where sigma is estimated from the sample. 
+        # To simulate the type-B case we take the known sample estimate. 
+        u_y = 0.5459192295102885
+        
         for i in range(M):
             x.append([
                 1.0,
                 float(s[i*step+2]),
                 float(s[i*step+5])
             ])
-            y.append( ureal( float(s[i*step+7]), 1.0) )        
+            y.append( ureal( float(s[i*step+7]), u_y) )        
         
         fit = lmb.ols(x,y)
         a = fit.beta
@@ -247,11 +329,9 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(value(a[1]),0.06317,tol=1E-5) )
         self.assertTrue( equivalent(value(a[2]),-0.40974,tol=1E-5) )
                 
-        # This is a RWLS problem
-        sigma = math.sqrt(fit.ssr/(M-P))          
-        self.assertTrue( equivalent(sigma*uncertainty(a[0]),13.78503,tol=1E-5) )
-        self.assertTrue( equivalent(sigma*uncertainty(a[1]),0.01065,tol=1E-5) )
-        self.assertTrue( equivalent(sigma*uncertainty(a[2]),0.15214,tol=1E-5) )
+        self.assertTrue( equivalent(uncertainty(a[0]),13.78503,tol=1E-5) )
+        self.assertTrue( equivalent(uncertainty(a[1]),0.01065,tol=1E-5) )
+        self.assertTrue( equivalent(uncertainty(a[2]),0.15214,tol=1E-5) )
         
         # Output from R calculation for covariance matrix (see reference)      
         strings="""
@@ -274,20 +354,79 @@ class TestSVDOLS(unittest.TestCase):
 
         cv = numpy.array(strings, dtype=float)
         cv.shape = 16,16 
-                
-        fit = lmb.gls(x,y,cv)
-        coef = fit.beta
         
+        # # The cv matrix can be rescaled without affecting the outcome
+        # # But the uncertain numbers need appropriate uncertainties    
+        # sigma = .5150725 # 0.5507220949272323 
+        # cv = sigma**2 * cv
+        # # sigma = 0.5424430452827115 # residuals with cv 
+        # # y = [ ureal(y_i.x,math.sqrt(cv[i,i])) for i, y_i in enumerate(y)  ]      
+        # y = [ ureal(y_i.x,sigma) for i, y_i in enumerate(y)  ]      
+        fit = lmb.gls(x,y,cv)
+        
+        coef = fit.beta
         # Values agree well with reference
         self.assertTrue( equivalent(value(coef[0]),94.89887752,tol=1E-7) )
         self.assertTrue( equivalent(value(coef[1]),0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(value(coef[2]),-0.47427391,tol=1E-7) )
 
-        # # This is a RWLS problem
-        # # sigma = math.sqrt(fit.ssr/(M-P))          
-        # self.assertTrue( equivalent(sigma*uncertainty(a[0]),14.15760467,tol=1E-5) )
-        # self.assertTrue( equivalent(sigma*uncertainty(a[1]),0.01086675,tol=1E-5) )
-        # self.assertTrue( equivalent(sigma*uncertainty(a[2]),0.15572652,tol=1E-5) )
+        type_a_ssr = 3.825178 # Known from type-A testing
+        self.assertTrue( equivalent(fit.ssr,type_a_ssr,tol=1E-5) ) 
+        
+        # # math.sqrt( fit.ssr/(M-P) )
+        # print(uncertainty(coef[0]))
+        # print(uncertainty(coef[1]))
+        # print(uncertainty(coef[2]))
+        # # The reference only assumed a covariance matrix with terms
+        # # proportional to the actual values and also took the residuals without accounting
+        # # for the covariance structure.
+        # # This sigma must be applied to the uncertainties to match the published values.
+        # self.assertTrue( equivalent(uncertainty(coef[0]),13.94477,tol=1E-5) )
+        # self.assertTrue( equivalent(uncertainty(coef[1]),0.010703,tol=1E-5) )
+        # self.assertTrue( equivalent(uncertainty(coef[2]),0.153385,tol=1E-5) )
+ 
+    #------------------------------------------------------------------------
+    def test7gls(self):
+        """
+        Example from ISO/TS 28037:2010 "Determination and use of straight-line 
+        calibration functions", Section 9: "Model for uncertainties and covariances
+        associated with the y_i"
+        
+        """
+        M = 10
+        P = 2
+        x = range(1,11)
+        y_data = (1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0)
+        
+        cv = np.diag([2] * 10)
+        for i in range(5):
+            for j in range(i+1,5):
+                cv[i][j] = cv[j][i] = 1
+        for i in range(5,10):
+            cv[i][i] = 5
+        for i in range(5,10):
+            for j in range(i+1,10):
+                cv[i][j] = cv[j][i] = 4
+        
+        x = []
+        for x_i in range(1,11):
+            x.append( [x_i,1] )
+        y = [ ureal(y_i,math.sqrt(cv[i,i])) for i, y_i in enumerate(y_data) ]
+         
+        fit = lmb.gls(x,y,cv)
+        fit = lmb.ols(x,y)
+        
+        a = fit.beta
+
+        # Values agree well with reference
+        # self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
+        # self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
+        # self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) ) 
+
+        # self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
+        # self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
+        # self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
+        
         
 #----------------------------------------------------------------------------
 class TestUncertainNumberSVDOLS(unittest.TestCase):
