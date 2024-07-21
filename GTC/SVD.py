@@ -447,7 +447,7 @@ def svdvar(v,w):
             for w_i in w 
     ]
     
-    cv = np.empty( (P,P), dtype=float )
+    cv = np.empty( (P,P), dtype=np.float64 )
     for i in range(P):
         for j in range(i+1):
             cv[i,j] = cv[j,i] = math.fsum(
