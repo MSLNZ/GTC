@@ -363,7 +363,7 @@ def gls(x,y,cv,fn=None,dof=None,label='beta'):
         ...    for j in range(i+1,10):
         ...     cv[i][j] = cv[j][i] = 4
         ...
-        >>> fit = lma.gls(x,y,cv).beta
+        >>> fit = lma.gls(x,y,cv)
         >>> print(fit)
         <BLANKLINE>
         Type-A Generalised Least-Squares:

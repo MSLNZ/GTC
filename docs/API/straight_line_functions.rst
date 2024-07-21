@@ -27,7 +27,7 @@ We apply weighted least-squares regression to the data, which assumes that the v
     >>> fit = type_a.line_fit_wls(x,y,u_y)
     >>> print(fit)
     <BLANKLINE>
-    Type-A Weighted Least-Squares Results:
+    Type-A Weighted Least-Squares Straight-Line:
     <BLANKLINE>
       Intercept:  1.87(47)
       Slope:  1.76(12)
@@ -98,7 +98,7 @@ Again, a weighted least-squares regression can be used, which assumes that the u
     >>> fit = type_a.line_fit_wls(x,y,u_y)
     >>> print( fit )
     <BLANKLINE>
-    Weighted Least-Squares Results:
+    Weighted Least-Squares Straight-Line:
     <BLANKLINE>
       Intercept:  0.89(53)
       Slope:  2.06(18)
@@ -147,7 +147,7 @@ We use total least-squares regression in this case, because there is uncertainty
     >>> fit = type_a.line_fit_wtls(x,y,u_x,u_y,fit.a_b)
     >>> print( fit )
     <BLANKLINE>
-    Type-A Weighted Total Least-Squares Results:
+    Type-A Weighted Total Least-Squares Straight-Line:
     <BLANKLINE>
       Intercept:  0.58(48)
       Slope:  2.16(14)
@@ -182,7 +182,7 @@ We proceed as above ::
     >>> fit = type_a.line_fit_rwls(x,y,u_y)
     >>> print( fit )
     <BLANKLINE>
-    Type-A Relative Weighted Least-Squares Results:
+    Type-A Relative Weighted Least-Squares Straight-Line:
     <BLANKLINE>
       Intercept:  1.17(16)
       Slope:  1.964(41)
@@ -218,7 +218,7 @@ We proceed as follows. The data sequences are defined and the ordinary least-squ
     >>> fit = type_a.line_fit(x,y)
     >>> print( fit )
     <BLANKLINE>
-    Type-A Ordinary Least-Squares Results:
+    Type-A Ordinary Least-Squares Straight-Line:
     <BLANKLINE>
       Intercept:  1.17(16)
       Slope:  1.964(41)
