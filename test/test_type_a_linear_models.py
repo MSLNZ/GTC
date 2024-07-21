@@ -571,6 +571,13 @@ class TestSVDOLS(unittest.TestCase):
         V = numpy.array(strings, dtype=float)
         V.shape = 16,16 
         
+        # The reference used a covariance matrix with terms proportional to
+        # the actual values (diagonals are unity). The residuals without taking account
+        # of the covariance structure were used to estimate the sample variance.
+        # In order to use this data for testing here we do not adjust the CV matrix.
+        # Instead, the sample standard deviation is applied to the uncertainties to match the published values.
+        # In the type-B testing, we take the other possibility and rescale the CV matrix. 
+        
         fit = lma.gls(x,y,V)
  
         a = fit.beta
@@ -580,11 +587,7 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(value(a[1]),0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(value(a[2]),-0.47427391,tol=1E-7) )
 
-        # The reference only assumed a covariance matrix with terms proportional to
-        # the actual values (diagonals are unity). The residuals without taking account
-        # of the covariance structure are used to estimate sigma squared.
-        # This sigma must be applied to the uncertainties to match the published values.
-        ssr = np.dot( fit.residuals.T, fit.residuals)
+        ssr = np.dot( fit.residuals.T, fit.residuals)   # 3.9428327 rather than 3.825178
         sigma = math.sqrt( ssr/(N-M) )
         
         self.assertTrue( equivalent(sigma*uncertainty(a[0]),14.15760467,tol=1E-5) )
@@ -632,7 +635,7 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
         self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) )
 
-        # Should take uncertain-number arguments        
+        # The routine should accept uncertain-number arguments but work with values    
         u_y = [ math.sqrt(cv[i,i]) for i in range(len(x)) ]
         y = [ ureal(y_i,u_i) for y_i,u_i in zip(y_data,u_y) ]
 
