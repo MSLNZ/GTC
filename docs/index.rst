@@ -27,6 +27,8 @@ GTC Modules
     Storage <API/persistence>
     Named tuples <API/named_tuples>
     Linear algebra <API/linear_algebra.rst>
+    Linear models -- type-A <API/type_a_linear_models.rst>
+    Linear models -- type-B <API/type_b_linear_models.rst>
     Formatting uncertain numbers <API/formatting.rst>
 
 Examples
