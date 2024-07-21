@@ -6,8 +6,7 @@ import numpy as np
 
 from GTC.misc import (
     is_numeric_non_complex, 
-    is_numeric_complex,
-    _dtype_float
+    is_numeric_complex
 )
 
 __all__ = ('cholesky_decomp',)
@@ -37,7 +36,7 @@ def cholesky_decomp(a):
     # Don't want `a` to change, but the algorithm is  
     # iterative and so matrix entries are modified.
     # Results will have an upper triangle of zeros 
-    L = np.zeros( (N,M), dtype=_dtype_float(a) ) 
+    L = np.zeros( (N,M), dtype=np.float64 ) 
 
     for i in range(N):
         for j in range(i,N):
