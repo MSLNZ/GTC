@@ -3,6 +3,8 @@
 Module contents
 ---------------
 
+.. versionadded:: 2.0
+
 """
 import math
 import numpy as np
@@ -15,30 +17,41 @@ from GTC.lib import (
     value,
 )
 
-from GTC.misc import _dtype_float
-
 _ureal = UncertainReal._elementary
 _const = UncertainReal._constant
-            
+
+__all__ = (
+    'ols',
+    'rwls',
+    'wls',
+    'gls'
+)
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
     """
     Solve `x @ beta = y` for `beta` 
-
-    .. versionadded:: 1.4.x
     
     :arg x: an array of stimulus data
     :arg y: a 1-D array of response data
     :arg sig: a 1-D array of standard deviations associated with response data
-    :arg fn: evaluate a sequence of basis function values at a stimulus value
-    :returns: `coef`, `cv_coef`, `ssr`
+    :arg fn: returns a sequence of basis function values at a stimulus value
+    :returns: `coef`, `cv_coef`, `res`, and `ssr`
  
-    The returned `coef` is a real-valued sequence of parameter estimates for `beta`.
-    `cv_coef` is a real-valued covariance matrix associated with the estimates.
-    `ssr` is the squared sum of residuals of the fit to the `y` values.
+    A Singular Value Decomposition (SVD) algorithm is used to obtain the solution.
     
-    If the arguments `x` and `y` are arrays of uncertain numbers, only the
-    values are used in calculations.
+    The returned `coef` is a real-valued sequence of parameter estimates for `beta`.
+    
+    The returned `cv_coef` is a real-valued covariance matrix for the parameter estimates.
+    
+    The returned `ssr` is the squared sum of residuals of predicted values to the `y` data.
+    
+    If `x` or `y` are arrays of uncertain numbers, only the values are used in calculations.
+
+    When `sig` is not provided, the standard deviations are taken as unity
+    
+    When `fn` is provided, the routine will apply `fn` to each element 
+    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
+    When `fn` is `None`, `x` is taken as the objective matrix.
     
     """
     # M - number of data points 
@@ -57,18 +70,18 @@ def lsfit(x,y,sig=None,fn=None):
             return [ value(x_i/s_i) for x_i in row_i ]
             
         a = np.array( [ row(row_i,s_i) for row_i,s_i in zip(x,sig) ],
-            dtype=_dtype_float(x) 
+            dtype=np.float64 
         )
         b = np.array( [ value(y_i/s_i) for y_i,s_i in zip(y,sig) ], 
-            dtype=_dtype_float(x) 
+            dtype=np.float64 
         )   
     else:       
         # fn(x_i) returns an P-sized array of values for
         # each basis function at the stimulus point `x_i`
         P = len( fn(x[0])  )   
 
-        a = np.empty( (M,P), dtype=_dtype_float(x) )
-        b = np.empty( (M,), dtype=_dtype_float(x) )    
+        a = np.empty( (M,P), dtype=np.float64 )
+        b = np.empty( (M,), dtype=np.float64 )    
         
         for i in range(M):
             afunc_i = fn(x[i])
@@ -84,10 +97,11 @@ def lsfit(x,y,sig=None,fn=None):
     u,w,vh = np.linalg.svd(a, full_matrices=False )
     v = vh.T    
     
-    # `TOL` is used to set relatively small singular values to zero
-    # Doing so avoids numerical precision problems, but will make the 
-    # solution slightly less accurate. The value can be varied.
+    # `TOL` is used to adjust the small singular values set to zero
+    # This avoids numerical precision problems, but will make the 
+    # solution slightly less accurate. 
     TOL = 1E-5
+    
     # Select almost singular values
     wmax = max(w)
     # wmin = min(w)
@@ -105,11 +119,8 @@ def lsfit(x,y,sig=None,fn=None):
             for w_i in w 
     ])
     
-    # coef = svbksb(u,w,v,b)
-    w_inv = np.diag(1 / w)
-    coef = v @ w_inv @ u.T @ b
+    coef = v @ np.diag(1 / w) @ u.T @ b
     
-    # cv_coef = svdvar(v,w) 
     wti = [
         1.0/(w_i*w_i) if w_i != 0 else 0.0
             for w_i in w 
@@ -125,10 +136,10 @@ def lsfit(x,y,sig=None,fn=None):
 #----------------------------------------------------------------------------
 def _coef_as_uncertain_numbers(coef,cv,df=inf,label='beta'):
     """
-    Return a sequence of uncertain numbers representing parameter estimates 
+    Return a sequence of uncertain numbers for parameter estimates 
 
     When the degrees of freedom are finite, the uncertain-number parameters  
-    are added to an ensemble, so that effective degrees of freedom calculations
+    form an ensemble, allowing effective degrees of freedom calculations
     can be performed downstream.
     
     """
@@ -171,16 +182,31 @@ def _coef_as_uncertain_numbers(coef,cv,df=inf,label='beta'):
 def ols(x,y,fn=None,label='beta'):
     """Ordinary least squares fit of response data to stimulus values
     
-    :arg x: sequence of stimulus values (independent-variable)
-    :arg y: sequence of response data (dependent-variable)   
-    :arg fn: evaluates a sequence of basis function values at the stimulus
+    :arg x: an array of stimulus data (independent-variable)
+    :arg y: a 1-D array of response data (dependent-variable)
+    :arg fn: returns a sequence of basis function values at a stimulus value
     :arg label: suffix to label the fitted parameters
     :returns:   an object containing regression results
-    :rtype:     :class:`OLSFit``
+    :rtype:     :class:`OLSModel`
 
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
 
+    When `fn` is provided, the routine will apply `fn` to each element 
+    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
+    When `fn` is `None`, `x` is taken as the objective matrix.
+
+    **Example**::
+    
+        >>> x = [4.,8.,12.5,16.,20.,25.,31.,36.,40.,40.]
+        >>> y = [3.7,7.8,12.1,15.6,19.8,24.5,30.7,35.5,39.4,39.5]
+        >>> def fn(x_i): return [x_i,1]
+        >>> b, a = lma.ols(x,y,fn).beta
+        >>> print("Slope:",b)
+        Slope:  0.9928(26)
+        >>> print("Intercept:",a)
+        Intercept: -0.222(70)
+        
     """
     M = len(y)
     
@@ -202,17 +228,36 @@ def ols(x,y,fn=None,label='beta'):
 def wls(x,y,u_y,fn=None,dof=None,label='beta'):
     """Weighted least squares fit of response data to stimulus values
     
-    :arg x: sequence of stimulus values (independent-variable)
-    :arg y: sequence of response data (dependent-variable)   
+    :arg x: an array of stimulus data (independent-variable)
+    :arg y: a 1-D array of response data (dependent-variable)
     :arg u_y: sequence of standard uncertainties for response data    
-    :arg fn: evaluates a sequence of basis function values at the stimulus
+    :arg fn: returns a sequence of basis function values at a stimulus value
     :arg dof: degrees of freedom    
     :arg label: suffix to label the fitted parameters
     :returns:   an object containing regression results
-    :rtype:     :class:`WLSFit``
+    :rtype:     :class:`WLSModel`
 
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
+
+    By default the degrees of freedom in the parameter estimates are set 
+    to infinity, because the standard uncertainties in `u_y` are known.
+    The optional argument `dof` may be used to assign finite degrees of freedom.
+    
+    When `fn` is provided, the routine will apply `fn` to each element 
+    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
+    When `fn` is `None`, `x` is taken as the objective matrix.
+
+    **Example**::
+
+        >>> x = [1,2,3,4,5,6]
+        >>> y = [3.3,5.6,7.1,9.3,10.7,12.1] 
+        >>> u_y = [ 0.5 ]*len(x)       
+        >>> b, a = lma.wls(x,y,u_y,lambda x_i: [x_i, 1] ).beta  
+        >>> print("Slope:",b)
+        Slope:  1.76(12)
+        >>> print("Intercept:",a)
+        Intercept: 1.87(47)
 
     """
     M = len(y)   
@@ -233,9 +278,9 @@ def wls(x,y,u_y,fn=None,dof=None,label='beta'):
 def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
     """Relative least squares fit of response data to stimulus values
     
-    :arg x: sequence of stimulus values (independent-variable)
-    :arg y: sequence of response data (dependent-variable)   
-    :arg s_y: sequence of scale factors for response data    
+    :arg x: an array of stimulus data (independent-variable)
+    :arg y: a 1-D array of response data (dependent-variable)
+    :arg s_y: sequence of relative scale factors for response data    
     :arg dof: degrees of freedom    
     :arg fn: evaluates a sequence of basis function values at the stimulus
     :arg label: suffix to label the fitted parameters
@@ -244,6 +289,25 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
 
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
+
+    By default the degrees of freedom in the parameter estimates is set 
+    to the number of response data points minus 2. However, the optional 
+    argument `dof` may be used to assign a different number of degrees of freedom.
+    
+    When `fn` is provided, the routine will apply `fn` to each element 
+    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
+    When `fn` is `None`, `x` is taken as the objective matrix.
+
+    **Example**::
+
+        >>> x = [1,2,3,4,5,6]
+        >>> y = [3.014,5.225,7.004,9.061,11.201,12.762] 
+        >>> u_y = [0.2,0.2,0.2,0.4,0.4,0.4]       
+        >>> b,a = lma.rwls(x,y,u_y,lambda x_i: [x_i, 1] ).beta   
+        >>> b
+        ureal(1.9726392405063287,0.041177629970438834,4, label='beta_0')
+        >>> a
+        ureal(1.1375379746835454,0.12261441702281092,4, label='beta_1')
 
     """
     M = len(y)   
@@ -264,12 +328,12 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
     return RWLSModel( coef,res,ssr,M,fn )  
 
 #----------------------------------------------------------------------------
-def gls(x,y,cv,fn=None,label='beta'):
+def gls(x,y,cv,fn=None,dof=None,label='beta'):
     """Generalised least squares fit of ``y`` to ``x``
     
-    :arg x: a sequence of ``M`` stimulus values (independent-variables)
-    :arg y: a sequence of ``M`` responses (dependent-variable)  
-    :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
+    :arg x: an array of stimulus data (independent-variable)
+    :arg y: a 1-D array of response data (dependent-variable)
+    :arg cv: an ``M`` by ``M`` real-valued covariance matrix for response data
     :arg fn: evaluates a sequence of basis function values at the stimulus
     :returns:   an object containing regression results
     :rtype:     :class:`GLSFit``
@@ -277,9 +341,37 @@ def gls(x,y,cv,fn=None,label='beta'):
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
 
-    """
-    from GTC import cholesky 
+    By default the degrees of freedom in the parameter estimates is set 
+    to infinity, because the covariance matrix values are known.
+    The optional argument `dof` may be used to assign finite degrees of freedom.
+    
+    When `fn` is provided, the routine will apply `fn` to each element 
+    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
+    When `fn` is `None`, `x` is taken as the objective matrix.
 
+    **Example**::
+        >>> x = [ [x_i,1] for x_i in range(1,11) ]
+        >>> y = [1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0]
+        >>> cv = numpy.diag([2, 2, 2, 2, 2, 5, 5, 5, 5, 5])
+        >>> for i in range(5):
+        ...     for j in range(i+1,5):
+        ...         cv[i][j] = cv[j][i] = 1
+        ...
+        >>> for i in range(5,10):
+        ...    for j in range(i+1,10):
+        ...     cv[i][j] = cv[j][i] = 4
+        ...
+        >>> fit = lma.gls(x,y,cv).beta
+        >>> print(fit)
+        
+        Type-A Generalised Least-Squares:
+
+          Parameters: [ 2.20(20), -0.6(1.3) ]
+          Number of observations: 10
+          Number of parameters: 2
+          Sum of the squared residuals: 2.07395...
+          
+    """
     M = len(x) 
     if fn is None:
         P = len(x[0])
@@ -289,9 +381,6 @@ def gls(x,y,cv,fn=None,label='beta'):
     if cv.shape != (M,M):
         raise RuntimeError( f"{cv.shape} should be {({M},{M})}" )     
     
-    K = np.linalg.cholesky(cv)
-    Kinv = np.linalg.inv(K)
-
     # We may have uncertain-number input data
     # So create X and Y using the values 
     def row_values(row_i): 
@@ -299,19 +388,22 @@ def gls(x,y,cv,fn=None,label='beta'):
         
     if fn is None:
         X = np.array( [ row_values(row_i) for row_i in x ],
-            dtype=_dtype_float(x) 
+            dtype=np.float64 
         )
     else:
         # fn expands the P basis function values at x_i
         X = np.array( [ row_values(fn(x_i)) for x_i in x ],
-            dtype=_dtype_float(x)
+            dtype=np.float64
         )  
         
     Y = np.array( [ value(y_i) for y_i in y ], 
-        dtype=_dtype_float(x) 
+        dtype=np.float64 
     ).T   
  
-    # The GLS is solved by transforming the input data 
+    # Transform the input data 
+    K = np.linalg.cholesky(cv)
+    Kinv = np.linalg.inv(K)
+
     a = Kinv @ X 
     b = Kinv @ Y  
 
@@ -336,10 +428,8 @@ def gls(x,y,cv,fn=None,label='beta'):
             for w_i in w 
     ]) 
    
-    # coef = svbksb(u,w,v,b)    
     coef = v @ np.diag(1 / w) @ u.T @ b
     
-    # cv_coef = svdvar(v,w) 
     wti = [
         1.0/(w_i*w_i) if w_i != 0 else 0.0
             for w_i in w 
@@ -351,6 +441,7 @@ def gls(x,y,cv,fn=None,label='beta'):
     tmp = np.dot(Kinv, res)
     ssr = np.dot(tmp.T, tmp)
     
+    df = inf if dof is None else dof
     coef = _coef_as_uncertain_numbers(coef,cv_coef,df=inf,label=label)    
 
     return GLSModel( coef,res,ssr,M,fn )
@@ -361,7 +452,6 @@ class ModelFit(object):
     """
     Base class for regression results
     
-    .. versionadded:: 2.0
     """
 
     def __init__(self,beta,res,ssr,M,fn):
@@ -392,18 +482,20 @@ class ModelFit(object):
 '''
 
     def predict(self,x_i,label=None):
-        """Predict the response to `x_i` as an uncertain number
+        """Predict the uncertain-number response to `x_i` 
         
         :arg x_i: a stimulus
         
-        The stimulus `x_i` should match the format used for fitting. So,
-        if an M x P matrix of stimuli was used in the regression, then 
-        `x_i` should be a P-element sequence. Alternatively, if an M x 1
-        matrix of stimuli was used then `x_i` should be a single argument.
+        The stimulus `x_i` must be in the same format as one row of `x`, 
+        the argument supplied for fitting. So, if an M x P matrix of stimuli 
+        was used in the regression, then `x_i` should be a P-element sequence. 
+        Alternatively, if an M x 1 matrix of stimuli was used, then `x_i` 
+        should be a single argument.
 
-        The calculation uses the uncertain-number coefficients obtained 
-        by the fit. The argument `x_i` may also be an uncertain number,
-        or sequence of uncertain numbers.
+        The calculation uses the uncertain-number coefficients from 
+        the fit. The stimulus supplied for `x_i` may be pure numbers
+        or uncertain numbers. If uncertain numbers are used, the predicted
+        response will include uncertainty associated with `x_i`.
         
         """
         from GTC import result 
