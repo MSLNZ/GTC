@@ -607,13 +607,10 @@ class TestSVDOLS(unittest.TestCase):
         x = range(1,11)
         y_data = (1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0)
         
-        cv = np.diag([2] * 10)
+        cv = np.diag([2, 2, 2, 2, 2, 5, 5, 5, 5, 5])
         for i in range(5):
             for j in range(i+1,5):
                 cv[i][j] = cv[j][i] = 1
-
-        for i in range(5,10):
-            cv[i][i] = 5
 
         for i in range(5,10):
             for j in range(i+1,10):
