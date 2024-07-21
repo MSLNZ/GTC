@@ -714,7 +714,7 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
         >>>
         >>> print(fit)
         <BLANKLINE>
-        Relative Weighted Least-Squares Straight-Line:
+        Type-A Relative Weighted Least-Squares Straight-Line:
         <BLANKLINE>
           Intercept: 1.14(12)
           Slope: 1.973(41)

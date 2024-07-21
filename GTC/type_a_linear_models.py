@@ -305,9 +305,9 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
         >>> u_y = [0.2,0.2,0.2,0.4,0.4,0.4]       
         >>> b,a = lma.rwls(x,y,u_y,lambda x_i: [x_i, 1] ).beta   
         >>> b
-        ureal(1.9726392405063287,0.041177629970438834,4, label='beta_0')
+        ureal(1.972639...,0.0411776...,4, label='beta_0')
         >>> a
-        ureal(1.1375379746835454,0.12261441702281092,4, label='beta_1')
+        ureal(1.137538...,0.1226144...,4, label='beta_1')
 
     """
     M = len(y)   
@@ -350,6 +350,8 @@ def gls(x,y,cv,fn=None,dof=None,label='beta'):
     When `fn` is `None`, `x` is taken as the objective matrix.
 
     **Example**::
+    
+        >>> import numpy
         >>> x = [ [x_i,1] for x_i in range(1,11) ]
         >>> y = [1.3, 4.1, 6.9, 7.5, 10.2, 12.0, 14.5, 17.1, 19.5, 21.0]
         >>> cv = numpy.diag([2, 2, 2, 2, 2, 5, 5, 5, 5, 5])
@@ -363,14 +365,15 @@ def gls(x,y,cv,fn=None,dof=None,label='beta'):
         ...
         >>> fit = lma.gls(x,y,cv).beta
         >>> print(fit)
-        
+        <BLANKLINE>
         Type-A Generalised Least-Squares:
-
+        <BLANKLINE>
           Parameters: [ 2.20(20), -0.6(1.3) ]
           Number of observations: 10
           Number of parameters: 2
           Sum of the squared residuals: 2.07395...
-          
+        <BLANKLINE>
+        
     """
     M = len(x) 
     if fn is None:
