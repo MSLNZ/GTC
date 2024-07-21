@@ -18,8 +18,6 @@ from testing_tools import *
 
 #----------------------------------------------------------------------------
 # Note, this test suite exercises the NR SVD implementation using floats.
-# It is in this type-B testing module because these routines are only 
-# used from type_b_SVD.py (type_a_SVD.py uses Numpy routines)
 #
 class TestSVD(unittest.TestCase):
 
@@ -715,7 +713,10 @@ class TestSVDOLS(unittest.TestCase):
         self.assertTrue( equivalent(coef[1],0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(coef[2],-0.47427391,tol=1E-7) )
         
-        chisq = 0.0 
+        # Note this calculation of SSR ignores the covariance matrix,
+        # which is strictly incorrect. However, the reference 
+        # took this approach and we compare with those published values.
+        ssr = 0.0 
         for i in range(M):
             afunc_i = fn(x[i])
             s = math.fsum(
@@ -723,9 +724,9 @@ class TestSVDOLS(unittest.TestCase):
                         for j in range(P)
                 )
             tmp = value( y[i] - s )
-            chisq += tmp*tmp 
+            ssr += tmp*tmp 
             
-        s2 = chisq/(M-P)
+        s2 = ssr/(M-P)
         cv = s2*SVD.svdvar(v,w)
         
         se = [
@@ -773,7 +774,6 @@ class TestSVDLinearSystems(unittest.TestCase):
         ])
         b = [1,3,5]
         x_expect = [ 3./10., 4./10., 0.] 
-
 
         a = numpy.array( data, dtype=float )
         
