@@ -98,7 +98,7 @@ Again, a weighted least-squares regression can be used, which assumes that the u
     >>> fit = type_a.line_fit_wls(x,y,u_y)
     >>> print( fit )
     <BLANKLINE>
-    Weighted Least-Squares Straight-Line:
+    Type-A Weighted Least-Squares Straight-Line:
     <BLANKLINE>
       Intercept:  0.89(53)
       Slope:  2.06(18)

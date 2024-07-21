@@ -307,7 +307,7 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
         >>> b
         ureal(1.972639...,0.0411776...,4, label='beta_0')
         >>> a
-        ureal(1.137538...,0.1226144...,4, label='beta_1')
+        ureal(1.137537...,0.1226144...,4, label='beta_1')
 
     """
     M = len(y)   
