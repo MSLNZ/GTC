@@ -13,8 +13,6 @@ DIGITS = 13
 
 from GTC import *
 
-from GTC import cholesky
-
 from testing_tools import *
 
 #----------------------------------------------------------------------------
@@ -157,27 +155,35 @@ class TestSVDWLS(unittest.TestCase):
             summary(fit)
             vcov(fit)
         """
-        x = [1,2,3,4,5,6]
-        u_y = [0.2,0.2,0.2,0.4,0.4,0.4]
+        # This is a RWLS problem but we convert it here into a WLS one
+        sigma = 0.5786885595650926 # From type-A tests
+        u_y = [ sigma*u_y_i for u_y_i in (0.2,0.2,0.2,0.4,0.4,0.4) ]
+        
         y_data = [3.014,5.225,7.004,9.061,11.201,12.762]
         y = [ ureal(y_i, u_i) for y_i, u_i in zip(y_data, u_y) ]
+        x = [1,2,3,4,5,6]
                 
         def fn(x_i):
             return [x_i,1]
         
-        # This is a RWLS problem
-        # fit = lmb.wls(x,y,fn=fn)  
-        fit = lmb.wls(x,y,u_y,fn=fn)  
+        fit = lmb.wls(x,y,fn=fn)  
         b, a = fit.beta 
-        
-        s2 = fit.ssr
-        sigma = math.sqrt(s2/(len(x)-2))
-        
+                
         self.assertTrue( equivalent(a.x,1.13754,1E-5))
         self.assertTrue( equivalent(b.x,1.97264,1E-5))
-        self.assertTrue( equivalent(sigma*a.u,0.12261,1E-5))
-        self.assertTrue( equivalent(sigma*b.u,0.04118,1E-5))
-        self.assertTrue( equivalent(sigma*sigma*get_covariance(a,b),-0.004408553,1E-5))
+        self.assertTrue( equivalent(a.u,0.12261,1E-5))
+        self.assertTrue( equivalent(b.u,0.04118,1E-5))
+        self.assertTrue( equivalent(get_covariance(a,b),-0.004408553,1E-5))
+
+        # Weighting is taken from the `u_y` data not the uncertain `y` values 
+        fit = lmb.wls(x,y,u_y,fn=fn)  
+        b, a = fit.beta 
+                
+        self.assertTrue( equivalent(a.x,1.13754,1E-5))
+        self.assertTrue( equivalent(b.x,1.97264,1E-5))
+        self.assertTrue( equivalent(a.u,0.12261,1E-5))
+        self.assertTrue( equivalent(b.u,0.04118,1E-5))
+        self.assertTrue( equivalent(get_covariance(a,b),-0.004408553,1E-5))
 
     #------------------------------------------------------------------------
     def test3(self):
@@ -194,6 +200,7 @@ class TestSVDWLS(unittest.TestCase):
         w = (15,17,12,14,18,13) 
         sigma = 11.58269171402602
         u_y = [ sigma/(math.sqrt(w_i)) for w_i in w ]
+        
         y_data = (-35.8,-45.0,-52.7,-49.7,-58.2,-66.0)   # dLDL
         y = [ ureal(y_i,u_i) for y_i, u_i in zip(y_data,u_y) ]
         
@@ -307,12 +314,13 @@ class TestSVDOLS(unittest.TestCase):
         M = int( len(s)/step )
         P = 3
         
-        x = []
-        y = []
-        
         # This is a problem where sigma is estimated from the sample. 
-        # To simulate the type-B case we take the known sample estimate. 
+        # To simulate the type-B case we take the sample estimate
+        # found during the type-A analysis (see other test suite module). 
         u_y = 0.5459192295102885
+        
+        x = []
+        y_data = []
         
         for i in range(M):
             x.append([
@@ -320,8 +328,9 @@ class TestSVDOLS(unittest.TestCase):
                 float(s[i*step+2]),
                 float(s[i*step+5])
             ])
-            y.append( ureal( float(s[i*step+7]), u_y) )        
-        
+            y_data.append( float(s[i*step+7]) )      
+            
+        y = [ ureal( y_i, u_y) for y_i in y_data ]
         fit = lmb.ols(x,y)
         a = fit.beta
         
@@ -355,35 +364,34 @@ class TestSVDOLS(unittest.TestCase):
         cv = numpy.array(strings, dtype=float)
         cv.shape = 16,16 
         
-        # # The cv matrix can be rescaled without affecting the outcome
-        # # But the uncertain numbers need appropriate uncertainties    
-        # sigma = .5150725 # 0.5507220949272323 
-        # cv = sigma**2 * cv
-        # # sigma = 0.5424430452827115 # residuals with cv 
-        # # y = [ ureal(y_i.x,math.sqrt(cv[i,i])) for i, y_i in enumerate(y)  ]      
-        # y = [ ureal(y_i.x,sigma) for i, y_i in enumerate(y)  ]      
-        fit = lmb.gls(x,y,cv)
+        # A value of sigma is used scale the reference data.
+        # This creates a "known" CV matrix for testing.
+        # Sigma here is based on an SSR value found in the reference without considering correlations
+        # If correlations were considered the value becomes 3.825178, 
+        # which would alter the coefficient uncertainties.
+        sigma2 = 3.9428327/(M-P)
+        cv = sigma2 * cv
+
+        y = construct_y(y_data,cv)
+
+        fit = lmb.gls(x,y)
         
         coef = fit.beta
+
         # Values agree well with reference
         self.assertTrue( equivalent(value(coef[0]),94.89887752,tol=1E-7) )
         self.assertTrue( equivalent(value(coef[1]),0.06738948,tol=1E-7) )
         self.assertTrue( equivalent(value(coef[2]),-0.47427391,tol=1E-7) )
 
-        type_a_ssr = 3.825178 # Known from type-A testing
+        # The SSR for fitting using the unscaled CV matrix is from type-A testing.
+        # In this test, we rescaled the CV matrix so the residuals must be scaled too.
+        type_a_ssr =  3.825178 / sigma2 
         self.assertTrue( equivalent(fit.ssr,type_a_ssr,tol=1E-5) ) 
         
-        # # math.sqrt( fit.ssr/(M-P) )
-        # print(uncertainty(coef[0]))
-        # print(uncertainty(coef[1]))
-        # print(uncertainty(coef[2]))
-        # # The reference only assumed a covariance matrix with terms
-        # # proportional to the actual values and also took the residuals without accounting
-        # # for the covariance structure.
-        # # This sigma must be applied to the uncertainties to match the published values.
-        # self.assertTrue( equivalent(uncertainty(coef[0]),13.94477,tol=1E-5) )
-        # self.assertTrue( equivalent(uncertainty(coef[1]),0.010703,tol=1E-5) )
-        # self.assertTrue( equivalent(uncertainty(coef[2]),0.153385,tol=1E-5) )
+        # Values agree well with reference
+        self.assertTrue( equivalent(uncertainty(coef[0]),14.15760467,tol=1E-5) )
+        self.assertTrue( equivalent(uncertainty(coef[1]),0.01086675,tol=1E-5) )
+        self.assertTrue( equivalent(uncertainty(coef[2]),0.15572652,tol=1E-5) )
  
     #------------------------------------------------------------------------
     def test7gls(self):
@@ -411,29 +419,62 @@ class TestSVDOLS(unittest.TestCase):
         x = []
         for x_i in range(1,11):
             x.append( [x_i,1] )
-        y = [ ureal(y_i,math.sqrt(cv[i,i])) for i, y_i in enumerate(y_data) ]
+            
+        y = construct_y(y_data,cv)
          
-        fit = lmb.gls(x,y,cv)
-        fit = lmb.ols(x,y)
+        fit = lmb.gls(x,y)
         
         a = fit.beta
 
         # Values agree well with reference
-        # self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
-        # self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
-        # self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) ) 
+        self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
+        self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) ) 
 
-        # self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
-        # self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
-        # self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
+        self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
+
+        # Alternatively, we may specify the CV matrix, in which case the GLS 
+        # routine will not extract correlation data from the y values.
+        # The results should be the same in this case, because the y data 
+        # were constructed from the covariance.
+        fit = lmb.gls(x,y,cv)
         
+        a = fit.beta
+
+        # Values agree well with reference
+        self.assertTrue( equivalent(value(a[0]),2.2014,tol=1E-4) )
+        self.assertTrue( equivalent(value(a[1]),-0.6456,tol=1E-4) )
+        self.assertTrue( equivalent(fit.ssr,2.07395,tol=1E-5) ) 
+
+        self.assertTrue( equivalent(uncertainty(a[0]),0.2015,tol=1E-4) )
+        self.assertTrue( equivalent(uncertainty(a[1]),1.2726,tol=1E-4) )
+        self.assertTrue( equivalent(get_covariance(a[0],a[1]),-0.1669,tol=1E-4) )
+
+def construct_y(y_data,cv):
+    """
+    Construct a set of correlated uncertain numbers.
+    
+    """
+    D = np.diag(np.sqrt(np.diag(cv)))
+    D_inv = np.linalg.inv(D)
+    R = D_inv @ cv @ D_inv
+
+    M = len(y_data)
+    
+    y = [ ureal(y_i,math.sqrt(v_i), independent=False ) for y_i, v_i in zip(y_data,np.diag(cv)) ]
+    for i in range(M):
+        for j in range(i+1,M):
+            set_correlation(R[i,j],y[i],y[j]) 
+    return y
         
 #----------------------------------------------------------------------------
 class TestUncertainNumberSVDOLS(unittest.TestCase):
 
     #------------------------------------------------------------------------
     def test_simple(self):
-        """Trivial straight line
+        """Perfect straight line
         
         uncertain numbers in y only with uncertainty of unity
 
