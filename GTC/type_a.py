@@ -79,10 +79,8 @@ from GTC.lib import (
     value,
     value_seq
 )
-from GTC.type_b import (
-    LineFit,
-    LineFitWTLS,
-)
+from GTC.type_b import LineFit
+
 from GTC.named_tuples import (
     VarianceCovariance,
     StandardUncertainty,
@@ -486,7 +484,25 @@ Type-A Weighted Least-Squares Straight-Line:
             y = result( a + b*x + noise, label=y_label )
         
         return y
-        
+ 
+#-----------------------------------------------------------------------------------------
+class LineFitWTLS(LineFit):
+    
+    """
+    This object holds results from a TLS linear regression to data.
+    
+    .. versionadded:: 1.2
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        LineFit.__init__(self,a,b,ssr,N)
+
+    def __str__(self):
+        header = '''
+Type-A Weighted Total Least-Squares Straight-Line:
+'''
+        return header + LineFit.__str__(self)
+ 
 #-----------------------------------------------------------------------------------------
 def line_fit(x,y,label=None):
     """Least-squares straight-line fit
