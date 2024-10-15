@@ -50,9 +50,10 @@ def lsfit(x,y,sig=None,fn=None):
 
     When `sig` is not provided, the standard deviations are taken as unity
     
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be a 1-D array. The routine will apply 
+    `fn` to the elements in `x` to obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
     
     """
     # M - number of data points 
@@ -184,7 +185,7 @@ def ols(x,y,fn=None,label='beta'):
     """Ordinary least squares fit of response data to stimulus values
     
     :arg x: an array of stimulus data (independent-variable)
-    :arg y: a 1-D array of response data (dependent-variable)
+    :arg y: a 1-Darray of response data (dependent-variable)
     :arg fn: returns a sequence of basis function values at a stimulus value
     :arg label: suffix to label the fitted parameters
     :returns:   an object containing regression results
@@ -193,9 +194,11 @@ def ols(x,y,fn=None,label='beta'):
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
 
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
 
     **Example**::
     
@@ -245,9 +248,11 @@ def wls(x,y,u_y,fn=None,dof=None,label='beta'):
     to infinity, because the standard uncertainties in `u_y` are known.
     The optional argument `dof` may be used to assign finite degrees of freedom.
     
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
 
     **Example**::
 
@@ -295,9 +300,11 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
     to the number of response data points minus 2. However, the optional 
     argument `dof` may be used to assign a different number of degrees of freedom.
     
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
 
     **Example**::
 
@@ -346,9 +353,11 @@ def gls(x,y,cv,fn=None,dof=None,label='beta'):
     to infinity, because the covariance matrix values are known.
     The optional argument `dof` may be used to assign finite degrees of freedom.
     
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
 
     **Example**::
     
@@ -486,20 +495,21 @@ class ModelFit(object):
 '''
 
     def predict(self,x_i,label=None):
-        """Predict the uncertain-number response to `x_i` 
+        """Predict an uncertain-number response to `x_i` 
         
         :arg x_i: a stimulus
         
         The stimulus `x_i` must be in the same format as one row of `x`, 
-        the argument supplied for fitting. So, if an M x P matrix of stimuli 
-        was used in the regression, then `x_i` should be a P-element sequence. 
-        Alternatively, if an M x 1 matrix of stimuli was used, then `x_i` 
-        should be a single argument.
+        the argument supplied for fitting. So, if the regression
+        used an M x P matrix, then `x_i`
+        should be a P-element sequence. 
+        Alternatively, if regression used an M x 1 matrix, then `x_i` 
+        here should be a single argument.
 
-        The calculation uses the uncertain-number coefficients from 
-        the fit. The stimulus supplied for `x_i` may be pure numbers
-        or uncertain numbers. If uncertain numbers are used, the predicted
-        response will include uncertainty associated with `x_i`.
+        The calculation uses the uncertain-number coefficients resulting from 
+        the fit. The argument type in `x_i` may be pure or uncertain numbers.
+        If there are uncertain numbers in `x_i`, the predicted
+        response will include uncertainty associated with these elements.
         
         """
         from GTC import result 
@@ -518,7 +528,7 @@ class ModelFit(object):
 
     @property
     def residuals(self):
-        """An array of differences between the actual data 
+        """An array of differences between the data 
         and predicted values.
         
         """
@@ -529,7 +539,7 @@ class ModelFit(object):
         """Sum of squared residuals
         
         The sum of the squared deviations between  
-        predicted values and the actual data.
+        predicted values and data.
         
         If weights are used during the fit, the squares of 
         weighted deviations are summed.
@@ -544,7 +554,7 @@ class ModelFit(object):
 
     @property
     def M(self):
-        """Number of observations in the sample"""
+        """Number of observations"""
         return self._M
 
     @property

@@ -22,27 +22,26 @@ __all__ = (
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
     """
-    Solve `x @ beta = y` for `beta` 
+    Solve `x @ beta = y` for `beta` using singular value decomposition (SVD)
     
     :arg x: an array of stimulus data
-    :arg y: a 1-D array of response data
+    :arg y: a 1-D array of uncertain-number response data
     :arg sig: a 1-D array of standard deviations associated with response data
     :arg fn: returns a sequence of basis function values at a stimulus value
     :returns: `coef`, `res`, `ssr`
  
-    A Singular Value Decomposition (SVD) algorithm is used to obtain the solution.
-    
     The returned `coef` is an uncertain-number sequence of parameter estimates for `beta`.
         
-    The returned `ssr` is the squared sum of residuals of predicted values to the `y` data.
+    The returned `ssr` is the squared sum of residuals of the predicted values to the `y` data.
     
-    If `x` or `y` are arrays of uncertain numbers, only the values are used in calculations.
+    If `x` contains uncertain numbers, only the values are used.
 
-    When `sig` is not provided, the standard deviations are taken as unity
+    When `sig` is not provided, the standard deviations are all set to unity.
     
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be a 1-D array. The routine will apply 
+    `fn` to the elements in `x` to obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
  
     """    
     # M - number of data points 
@@ -123,19 +122,22 @@ def ols(x,y,fn=None):
     """Ordinary least squares fit of ``y`` to ``x``
     
     :arg x: an array of stimulus data (independent-variable)
-    :arg y: a 1-D array of response data (dependent-variable)
+    :arg y: a 1-D array of uncertain-number response data (dependent-variable)
     :arg fn: returns a sequence of basis function values at a stimulus value
     :arg label: suffix to label the fitted parameters
     :returns:   an object containing regression results
     :rtype:     :class:`OLSModel`
 
     The argument `x` may be an array of numbers or uncertain numbers. 
+    If `x` contains uncertain numbers, only the values are used.
     
     The argument `y` must be an array of uncertain numbers.
 
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
 
     """
     M = len(y)
@@ -155,22 +157,25 @@ def wls(x,y,u_y=None,fn=None):
     """Weighted least squares fit of ``y`` to ``x``
     
     :arg x: an array of stimulus data (independent-variable)
-    :arg y: a 1-D array of response data (dependent-variable)
+    :arg y: a 1-D array of uncertain-number response data (dependent-variable)
     :arg u_y: sequence of standard uncertainties for response data    
     :arg fn: returns a sequence of basis function values at a stimulus value
     :returns:   an object containing regression results
     :rtype:     :class:`WLSModel`
  
     The argument `x` may be an array of numbers or uncertain numbers. 
+    If `x` contains uncertain numbers, only the values are used.
     
     The argument `y` must be an array of uncertain numbers.
 
     When the optional argument `u_y` is not given, the uncertainties of the
     `y` elements are used for provide weights for the calculation.
     
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
  
     """
     M = len(y)
@@ -192,22 +197,25 @@ def gls(x,y,cv=None,fn=None,label=None):
     """Generalised least squares fit of ``y`` to ``x``
     
     :arg x: an array of stimulus data (independent-variable)
-    :arg y: a 1-D array of response data (dependent-variable)
+    :arg y: a 1-D array of uncertain-number response data (dependent-variable)
     :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
     :arg fn: a user-defined function relating ``x`` the response
     :returns:   an object containing regression results
     :rtype:     :class:`GLSModel`
  
     The argument `x` may be an array of numbers or uncertain numbers. 
+    If `x` contains uncertain numbers, only the values are used.
     
     The argument `y` must be an array of uncertain numbers.
 
     When the optional argument `cv` is not given, a variance-covariance 
     matrix is obtained from the `y` elements.
 
-    When `fn` is provided, the routine will apply `fn` to each element 
-    in `x`, which must be a 1-D array, to obtain the rows of the objective matrix. 
-    When `fn` is `None`, `x` is taken as the objective matrix.
+    When `fn` is provided, `x` must be an M-element array. 
+    The routine will apply `fn` to the elements in `x` to 
+    obtain the rows of the objective matrix.
+    
+    If `fn` is `None`, `x` is taken as the objective matrix (an M x P matrix).
  
     """
     M = len(y)        
@@ -288,7 +296,7 @@ Type-B Weighted Least-Squares:
         
 class GLSModel(ModelFit):
     """
-    Type-B General Least-Squares
+    Type-B Generalised Least-Squares
     """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
