@@ -15,7 +15,9 @@ from GTC.type_a_linear_models import ModelFit
 __all__ = (
     'ols',
     'wls',
-    'gls'
+    'gls',
+    'ModelFit', 'OLSModel', 'WLSModel', 'GLSModel'
+
 )
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
@@ -194,7 +196,7 @@ def gls(x,y,cv=None,fn=None,label=None):
     :arg cv: an ``M`` by ``M`` real-valued covariance matrix for the responses
     :arg fn: a user-defined function relating ``x`` the response
     :returns:   an object containing regression results
-    :rtype:     :class:`GLSModel``
+    :rtype:     :class:`GLSModel`
  
     The argument `x` may be an array of numbers or uncertain numbers. 
     
@@ -259,6 +261,9 @@ def gls(x,y,cv=None,fn=None,label=None):
   
 #----------------------------------------------------------------------------
 class OLSModel(ModelFit):
+    """
+    Type-B Ordinary Least-Squares
+    """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
  
@@ -269,6 +274,9 @@ Type-B Ordinary Least-Squares:
         return header + ModelFit.__str__(self)
  
 class WLSModel(ModelFit):
+    """
+    Type-B Weighted Least-Squares
+    """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
  
@@ -279,6 +287,9 @@ Type-B Weighted Least-Squares:
         return header + ModelFit.__str__(self)
         
 class GLSModel(ModelFit):
+    """
+    Type-B General Least-Squares
+    """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
  

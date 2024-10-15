@@ -24,7 +24,8 @@ __all__ = (
     'ols',
     'rwls',
     'wls',
-    'gls'
+    'gls',
+    'ModelFit', 'OLSModel', 'WLSModel', 'GLSModel', 'RWLSModel'
 )
 #----------------------------------------------------------------------------
 def lsfit(x,y,sig=None,fn=None):
@@ -285,7 +286,7 @@ def rwls(x,y,s_y,fn=None,dof=None,label='beta'):
     :arg fn: evaluates a sequence of basis function values at the stimulus
     :arg label: suffix to label the fitted parameters
     :returns:   an object containing regression results
-    :rtype:     :class:`WLSFit``
+    :rtype:     :class:`RWLSModel`
 
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
@@ -336,7 +337,7 @@ def gls(x,y,cv,fn=None,dof=None,label='beta'):
     :arg cv: an ``M`` by ``M`` real-valued covariance matrix for response data
     :arg fn: evaluates a sequence of basis function values at the stimulus
     :returns:   an object containing regression results
-    :rtype:     :class:`GLSFit``
+    :rtype:     :class:`GLSModel`
 
     If the arguments `x` and `y` are arrays of uncertain numbers, only the
     values are used in calculations.
@@ -552,6 +553,9 @@ class ModelFit(object):
         return self._P
 
 class OLSModel(ModelFit):
+    """
+    Type-A Ordinary Least-Squares
+    """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
  
@@ -562,6 +566,9 @@ Type-A Ordinary Least-Squares:
         return header + ModelFit.__str__(self)
  
 class WLSModel(ModelFit):
+    """
+    Type-A Weighted Least-Squares
+    """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
  
@@ -572,6 +579,9 @@ Type-A Weighted Least-Squares:
         return header + ModelFit.__str__(self)
         
 class RWLSModel(ModelFit):
+    """
+    Type-A Relative Weighted Least-Squares
+    """
     def __init__(self,beta,res,ssr,M,fn):
         ModelFit.__init__(self,beta,res,ssr,M,fn)
  
