@@ -34,7 +34,12 @@ Least squares regression
     
     These objects have attributes to access the results and define a few methods 
     that use regression results. 
-    
+
+Orthogonal distance regression
+------------------------------
+    *   :func:`line_fit_odr` performs an orthogonal distance regression straight 
+        line fit to a sample of data. Results are returned in an :class:`LineFitODR` object.
+        
 Merging uncertain components
 ----------------------------
     *   :func:`merge` combines the uncertain-number results from a type-A and type-B 
@@ -63,6 +68,13 @@ Module contents
 import sys
 import math
 import numbers
+
+import numpy as np
+
+from scipy.odr import ODR as spODR
+from scipy.odr import Model as spModel
+from scipy.odr import RealData as spRealData
+
 from functools import reduce
 
 from GTC import (
@@ -95,10 +107,10 @@ EPSILON = sys.float_info.epsilon
 HALF_PI = math.pi/2.0
 
 __all__ = (
-    'LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS',
+    'LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS', 'LineFitODR',
     'estimate',
     'estimate_digitized',
-    'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls',
+    'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls', 'line_fit_odr',
     'mean',
     'merge',
     'multi_estimate_real',
@@ -504,6 +516,24 @@ Type-A Weighted Total Least-Squares Straight-Line:
         return header + LineFit.__str__(self)
  
 #-----------------------------------------------------------------------------------------
+class LineFitODR(LineFit):
+    
+    """
+    This object holds results from orthogonal distance regression to data.
+    
+    .. versionadded:: 2.0
+    """
+    
+    def __init__(self,a,b,ssr,N):
+        LineFit.__init__(self,a,b,ssr,N)
+
+    def __str__(self):
+        header = '''
+Type-A Orthogonal Distance Regression to a Straight-Line:
+'''
+        return header + LineFit.__str__(self)
+
+#-----------------------------------------------------------------------------------------
 def line_fit(x,y,label=None):
     """Least-squares straight-line fit
      
@@ -900,6 +930,120 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
     a.set_correlation(r_ab,b)
 
     return LineFitWTLS(a,b,ssr,N)
+ 
+#--------------------------------------------------------------------
+#
+def _ols(x,y):
+    """
+    A utility function
+    """
+    S_x = sum( x ) 
+    S_y = sum( y )
+
+    k = S_x / N
+    t = [ x_i - k for x_i in x ]
+
+    S_tt = sum( t_i*t_i for t_i in t )
+    
+    b = sum( t_i*y_i/S_tt for t_i,y_i in zip(t,y) )
+    a = (S_y - b*S_x)/N
+    
+    return a,b
+
+def line_fit_odr(x,y,u_x,u_y,a0_b0=[0.,1.],dof=None,label=None):
+    """Return an orthogonal distance regression straight-line fit 
+    
+    :arg x:     sequence of stimulus data (independent-variable)
+    :arg y:     sequence of response data (dependent-variable) 
+    :arg u_x:   sequence of uncertainties in stimulus data
+    :arg u_y:   sequence of uncertainties in response data
+    :arg a0_b0: initial estimates for intercept and slope
+    :arg dof:   degrees of freedom
+    :arg label: label suffix for intercept and slope
+
+    :rtype:     :class:`.LineFitODR`
+
+    The optional argument ``a0_b0`` provides initial estimates for fitting.
+    If it is not supplied and ordinary least-squares estimate is evaluated.
+    
+    By default, the degrees of freedom are infinite, 
+    because weighting is provided for the stimulus data
+    and the response data, suggesting that the amounts of variability are known.  
+    However, the optional argument ``dof`` can be used to adjust the number of 
+    degrees of freedom attributed to regression results. 
+    
+    **Example**::
+        >>> x = [1.2, 1.9, 2.9, 4.0, 4.7, 5.9]
+        >>> u_x = [0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+        >>> y = [3.4, 4.4, 7.2, 8.5, 10.8, 13.5]
+        >>> u_y = [0.2, 0.2, 0.2, 0.4, 0.4, 0.4]
+        <BLANKLINE>        
+        >>> fit = ta.line_fit_odr(x,y,u_x,u_y)
+        >>> print(fit.a_b)
+        InterceptSlope(a=ureal(0.5788...,0.4764...,inf), b=ureal(2.1596...,0.1355...,inf))
+
+    .. versionadded:: 2.0    
+
+    """
+    N = len(x)
+    if dof is None:
+        df = inf 
+    else:
+        if isinstance(dof,numbers.Number) and dof > 0:
+            df = dof
+        else:
+            raise RuntimeError( 
+                f"{dof!r} is an invalid degrees of freedom" 
+            )
+    
+    if N != len(y):
+        raise RuntimeError(
+            f"Invalid sequences: len({x!r}), len({y!r})"
+        )
+    if N != len(u_x) or N != len(u_y):
+        raise RuntimeError(
+            f"Invalid sequences: len({u_x!r}), len({u_y!r})"
+        )
+
+    # Use numpy arrays
+    data = spRealData(
+        np.array(x), 
+        np.array(y), 
+        sx=np.array(u_x), 
+        sy=np.array(u_y)
+    )
+
+    result = spODR(
+        data, 
+        spModel(lambda p,x: p[0] + x * p[1]), 
+        beta0=_ols(x,y) if a0_b0 is None else a0_b0
+    ).run()
+
+
+    x_a, x_b = result.beta
+    ssr = result.sum_square
+    u_a, u_b = np.sqrt(np.diag(result.cov_beta))
+    r_ab = result.cov_beta[0,1]/(u_a*u_b)
+    
+    a = ureal(
+        x_a,
+        u_a,
+        df,
+        label=f'a_{label}' if label is not None else None,
+        independent=False
+    )
+    b = ureal(
+        x_b,
+        u_b,
+        df,
+        label=f'b_{label}' if label is not None else None,
+        independent=False
+    )
+
+    real_ensemble( (a,b), df )
+    a.set_correlation(r_ab,b)
+
+    return LineFitODR(a,b,ssr,N) 
     
 #-----------------------------------------------------------------------------------------
 def estimate_digitized(seq,delta,label=None,truncate=False):

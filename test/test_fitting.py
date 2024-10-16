@@ -363,6 +363,26 @@ class TestLineFitWeighted(unittest.TestCase):
         self.assertEqual( x0.df,inf )
         self.assertEqual( x0.label,'x_label' )
 
+    def test_iso28037_ODR(self):
+        """ ISO/TS 28037:2010, p 21
+        
+        """
+        x = [1.2, 1.9, 2.9, 4.0, 4.7, 5.9]
+        u_x = [0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+        y = [3.4, 4.4, 7.2, 8.5, 10.8, 13.5]
+        u_y = [0.2, 0.2, 0.2, 0.4, 0.4, 0.4]
+        
+        fit = ta.line_fit_odr(x,y,u_x,u_y)
+        
+        a, b = fit.a_b
+        self.assertTrue( equivalent(a.x,0.5788,1E-4) )
+        self.assertTrue( equivalent(b.x,2.1597,1E-4) )
+        self.assertTrue( equivalent(a.u,0.4764,1E-4) )
+        self.assertTrue( equivalent(b.u,0.1355,1E-4) )
+        self.assertTrue( equivalent(fit.ssr,2.743,1E-3) )
+        self.assertTrue( equivalent(get_covariance(a,b),-0.0577,1E-4) )
+        self.assertEqual( a.df,inf )
+
     def test_simple_scaled(self):
         """
         Straight line with non-trivial `a` and `b` and non-unity weight
