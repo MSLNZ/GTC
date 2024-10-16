@@ -759,7 +759,6 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
         >>> a, b = fit.a_b
         >>>
         >>> print(fit)
-        <BLANKLINE>
         Type-A Relative Weighted Least-Squares Straight-Line:
         <BLANKLINE>
           Intercept: 1.14(12)
@@ -767,7 +766,6 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
           Correlation: -0.87
           Sum of the squared residuals: 1.3395217958...
           Number of points: 6
-        <BLANKLINE>
  
     .. versionchanged:: 1.4.1 ``dof`` keyword argument added
     .. versionadded:: 1.2
