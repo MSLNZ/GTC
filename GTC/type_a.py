@@ -1024,14 +1024,14 @@ def line_fit_odr(x,y,u_x,u_y,a0_b0=[0.,1.],dof=None,label=None):
     
     a = ureal(
         x_a,
-        u_a,
+        float(u_a), # remove numpy.float64
         df,
         label=f'a_{label}' if label is not None else None,
         independent=False
     )
     b = ureal(
         x_b,
-        u_b,
+        float(u_b), # remove numpy.float64
         df,
         label=f'b_{label}' if label is not None else None,
         independent=False
