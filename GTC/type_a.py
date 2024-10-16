@@ -978,7 +978,6 @@ def line_fit_odr(x,y,u_x,u_y,a0_b0=[0.,1.],dof=None,label=None):
         >>> fit = ta.line_fit_odr(x,y,u_x,u_y)
         >>> print(fit.a_b)
         InterceptSlope(a=ureal(0.5788...,0.4764...,inf), b=ureal(2.1596...,0.1355...,inf))
-        <BLANKLINE>        
 
     .. versionadded:: 2.0    
 
