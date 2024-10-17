@@ -40,4 +40,3 @@ but it does not offer a significant speed advantage over Python iteration.
 
 .. autoclass:: uncertain_array.UncertainArray
    :members: value, uncertainty, variance, dof, label, real, imag, r, conjugate
-

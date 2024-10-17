@@ -12,4 +12,4 @@ to resolve the names of objects defined in this module.
 
 .. automodule:: type_a
 	:members: 
-	:inherited-members:
+	:show-inheritance:
