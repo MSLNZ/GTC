@@ -26,8 +26,10 @@ Mathematical operations
 
 Functions
 ---------
-    The functions :func:`inv`, :func:`transpose`, :func:`solve`
-    and :func:`det` implement the usual linear algebra operations.
+    The functions :func:`inv`, :func:`transpose`, :func:`solve_svd`, 
+    :func:`solve_lu`,and :func:`det` implement 
+    the usual linear algebra operations. :func:`solve` is an alias 
+    for :func:`solve_lu`.
 
     The functions :func:`identity`, :func:`empty`, :func:`zeros`
     :func:`full` and :func:`ones` create simple arrays.
@@ -80,12 +82,15 @@ import numpy as np
 from GTC.misc import is_sequence
 
 from GTC import LU
+from GTC import SVD
 
 __all__ = (
     'uarray',
     'dot',
     'matmul',
     'solve',
+    'solve_lu',
+    'solve_svd',
     'inv',
     'det',
     'identity','zeros','ones','empty','full',
@@ -248,7 +253,7 @@ def transpose(a, axes=None):
     return UncertainArray(np.transpose(a, axes))
 
 #---------------------------------------------------------------------------
-def solve(a,b):
+def solve_lu(a,b):
     """Return :math:`x`, the solution of :math:`a \\cdot x = b`
 
     .. versionadded:: 1.1
@@ -258,6 +263,7 @@ def solve(a,b):
 
     :rtype: :class:`~uncertain_array.UncertainArray`
 
+    The LU decomposition algorithm is used to implement this function.
 
     **Example**::
 
@@ -268,7 +274,33 @@ def solve(a,b):
 
     """
     return LU.solve(a,b)
+    
+# Alias for backward compatibility 
+solve = solve_lu
+"Alias for :func:`solve_lu`."   # sphinx docstring for `solve`
 
+#---------------------------------------------------------------------------
+def solve_svd(a,b):
+    """Return :math:`x`, the solution of :math:`a \\cdot x = b`
+
+    .. versionadded:: 2.0
+
+    :arg a: 2D :class:`~uncertain_array.UncertainArray`
+    :arg b: :class:`~uncertain_array.UncertainArray`
+
+    :rtype: :class:`~uncertain_array.UncertainArray`
+
+    The singular value decomposition algorithm is used to implement this function.
+
+    **Example**::
+
+        >>> a = la.uarray([[-2,3],[-4,1]])
+        >>> b = la.uarray([4,-2])
+        >>> la.solve_svd(a,b)
+        uarray([1.0, 2.0])
+
+    """
+    return SVD.solve(a,b)
 
 #---------------------------------------------------------------------------
 def inv(a):
