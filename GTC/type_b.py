@@ -100,7 +100,7 @@ __all__ = (
     'distribution',
     'mean',
     'line_fit','line_fit_wls','line_fit_wtls',
-    'LineFitOLS', 'LineFitWLS', 'LineFitWTLS'
+    'LineFit', 'LineFitOLS', 'LineFitWLS', 'LineFitWTLS'
 )
 
 HALF_PI = math.pi / 2.0

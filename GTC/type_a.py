@@ -107,7 +107,7 @@ EPSILON = sys.float_info.epsilon
 HALF_PI = math.pi/2.0
 
 __all__ = (
-    'LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS', 'LineFitODR',
+    'LineFit','LineFitOLS','LineFitRWLS','LineFitWLS','LineFitWTLS', 'LineFitODR',
     'estimate',
     'estimate_digitized',
     'line_fit', 'line_fit_wls', 'line_fit_rwls', 'line_fit_wtls', 'line_fit_odr',
@@ -560,6 +560,11 @@ def line_fit(x,y,label=None):
         >>> dof(y_p)
         7.0
  
+    .. note::
+    
+        The values of elements in sequences ``x`` or ``y`` are used.
+        If elements are uncertain numbers, the uncertainties are ignored.
+        
     .. versionadded:: 1.2    
  
     """
@@ -676,6 +681,11 @@ def line_fit_wls(x,y,u_y,dof=None,label=None):
          InterceptSlope(a=ureal(0.8852320675105...,0.5297081435088...,inf),
          b=ureal(2.056962025316...,0.177892016741...,inf))
 
+    .. note::
+    
+        The values of elements in sequences ``x`` or ``y`` are used.
+        If elements are uncertain numbers, the uncertainties are ignored.
+
     .. versionchanged:: 1.4.1 ``dof`` keyword argument added
     .. versionadded:: 1.2
      
@@ -765,7 +775,12 @@ def line_fit_rwls(x,y,s_y,dof=None,label=None):
           Correlation: -0.87
           Sum of the squared residuals: 1.3395217958...
           Number of points: 6
- 
+
+    .. note::
+    
+        The values of elements in sequences ``x`` or ``y`` are used.
+        If elements are uncertain numbers, the uncertainties are ignored.
+
     .. versionchanged:: 1.4.1 ``dof`` keyword argument added
     .. versionadded:: 1.2
         
@@ -865,6 +880,11 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
         >>> slope
         ureal(-0.48053339...,0.057616740...,inf)
 
+    .. note::
+    
+        The values of elements in sequences ``x`` or ``y`` are used.
+        If elements are uncertain numbers, the uncertainties are ignored.
+
     .. versionchanged:: 1.4.1 ``dof`` keyword argument added
     .. versionadded:: 1.2    
 
@@ -932,7 +952,7 @@ def line_fit_wtls(x,y,u_x,u_y,a0_b0=None,r_xy=None,dof=None,label=None):
 #
 def _ols(x,y):
     """
-    A utility function
+    A utility function that evaluates the OLS line fit
     """
     S_x = sum( x ) 
     S_y = sum( y )
@@ -979,6 +999,11 @@ def line_fit_odr(x,y,u_x,u_y,a0_b0=[0.,1.],dof=None,label=None):
         >>> print(fit.a_b)
         InterceptSlope(a=ureal(0.5788...,0.4764...,inf), b=ureal(2.1596...,0.1355...,inf))
 
+    .. note::
+    
+        The values of elements in sequences ``x`` or ``y`` are used.
+        If elements are uncertain numbers, the uncertainties are ignored.
+
     .. versionadded:: 2.0    
 
     """
@@ -1001,14 +1026,13 @@ def line_fit_odr(x,y,u_x,u_y,a0_b0=[0.,1.],dof=None,label=None):
         raise RuntimeError(
             f"Invalid sequences: len({u_x!r}), len({u_y!r})"
         )
-
-    # Use numpy arrays
-    data = spRealData(
-        np.array(x), 
-        np.array(y), 
-        sx=np.array(u_x), 
-        sy=np.array(u_y)
-    )
+        
+    x = np.array([value(x_i) for x_i in x])
+    y = np.array([value(y_i) for y_i in y])
+    sx=np.array(u_x)
+    sy=np.array(u_y)
+    
+    data = spRealData(x,y,sx,sy)
 
     result = spODR(
         data, 
@@ -1017,27 +1041,27 @@ def line_fit_odr(x,y,u_x,u_y,a0_b0=[0.,1.],dof=None,label=None):
     ).run()
 
 
-    x_a, x_b = result.beta
+    x_ab = result.beta
     ssr = result.sum_square
-    u_a, u_b = np.sqrt(np.diag(result.cov_beta))
-    r_ab = result.cov_beta[0,1]/(u_a*u_b)
+    u_ab = [ float(u_i) for u_i in np.sqrt(np.diag(result.cov_beta)) ] # cast off numpy.float64
     
     a = ureal(
-        x_a,
-        float(u_a), # remove numpy.float64
+        x_ab[0],
+        u_ab[0], 
         df,
         label=f'a_{label}' if label is not None else None,
         independent=False
     )
     b = ureal(
-        x_b,
-        float(u_b), # remove numpy.float64
+        x_ab[1],
+        u_ab[1], 
         df,
         label=f'b_{label}' if label is not None else None,
         independent=False
     )
 
     real_ensemble( (a,b), df )
+    r_ab = result.cov_beta[0,1]/(math.prod(u_ab))
     a.set_correlation(r_ab,b)
 
     return LineFitODR(a,b,ssr,N) 
