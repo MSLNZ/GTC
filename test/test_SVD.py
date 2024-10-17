@@ -783,6 +783,31 @@ class TestSVDLinearSystems(unittest.TestCase):
             self.assertTrue( equivalent(i,j) )
  
 
+#-----------------------------------------------------
+class TestSVDScalar(unittest.TestCase):
+    """
+    The SVD module provides functions to solve a system of linear equations
+    
+    """
+    def test(self):
+        
+        a = numpy.array(
+            [ (17.99753493515198, 18.08102451776513, 6),
+              (627.1639334786039, 27.20225830408064, 8.998767467575989),
+              (27.20225830408064, 628.4433741012242, 9.040512258882565)
+            ])
+
+        b = numpy.array( (627.8036537899141, 1845.420819171415, 1851.64204122553) )
+        
+        # Solve system of equations
+        numpy_soln = numpy.linalg.solve( a, b )
+        svd_soln = SVD.solve( a,b )
+        for b1,b2 in zip(numpy_soln,svd_soln):
+            self.assertTrue( equivalent(b1,b2,tol=1E-12) )
+
+        svd_soln,_,_,_,_ = SVD.svdfit( a,b )
+        for b1,b2 in zip(numpy_soln,svd_soln):
+            self.assertTrue( equivalent(b1,b2,tol=1E-12) )
 
 #=====================================================
 if(__name__== '__main__'):

@@ -4342,5 +4342,12 @@ class TestUncertainArray(unittest.TestCase):
         self.assertTrue( equivalent(x_0.u,X[0].u,TOL) )
         self.assertTrue( equivalent(x_1.u,X[1].u,TOL) )
  
+        X = linear_algebra.solve_svd(A,Y)
+        
+        self.assertTrue( equivalent(x_0.x,X[0].x,TOL) )
+        self.assertTrue( equivalent(x_1.x,X[1].x,TOL) )
+        self.assertTrue( equivalent(x_0.u,X[0].u,TOL) )
+        self.assertTrue( equivalent(x_1.u,X[1].u,TOL) )
+
 if __name__ == '__main__':
     unittest.main()  # Runs all test methods starting with 'test'
