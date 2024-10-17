@@ -1,9 +1,16 @@
 """
+Provides singular value decomposition (SVD) functions for uncertain-number arrays.
+
+:func:`solve` returns the solution vector `x` to the equation `a.x = b`
+:func:`svd_decomp` performs singular value decomposition on matrix `a`
+
 """
 import math
 import numpy as np
 
 from GTC.lib import value
+
+__all__ = ('solve')
 
 #----------------------------------------------------------------------------
 def _pythag(a,b):
@@ -33,7 +40,7 @@ def svd_decomp(a):
     """
     Find the singular value decomposition of ``a`` 
     
-    .. versionadded:: 1.4.x
+    .. versionadded:: 2.0.0
     
     :arg a: an ``M`` by ``P`` matrix
     
@@ -295,7 +302,7 @@ def svbksb(u,w,v,b):
     """
     Solve A*X = B
     
-    .. versionadded:: 1.4.x
+    .. versionadded:: 2.0.0
     
     :arg u: an ``M`` by ``P`` matrix
     :arg w: an ``P`` element sequence
@@ -308,11 +315,11 @@ def svbksb(u,w,v,b):
     return v @ np.diag(1.0/w) @ u.T @ b
 
 #------------------------------------------------
-def solve(a,b,TOL=1E-5):
+def solve(a,b,TOL=1E-10):
     """
     Solve a.x = b
     
-    .. versionadded:: 1.4.x
+    .. versionadded:: 2.0.0
 
     """
     u,w,v = svd_decomp(a)
@@ -321,13 +328,13 @@ def solve(a,b,TOL=1E-5):
     thresh = TOL*wmax 
     # wmin = min(w)
     # logC = math.log10(wmax/wmin)
-    # # The base-b logarithm of C is an estimate of how many 
-    # # base-b digits will be lost in solving a linear system 
-    # # with the matrix. In other words, it estimates worst-case 
-    # # loss of precision. 
+    # The base-b logarithm of C is an estimate of how many 
+    # base-b digits will be lost in solving a linear system 
+    # with the matrix. In other words, it estimates worst-case 
+    # loss of precision. 
 
-    # # C is the condition number: the ratio of the largest to smallest 
-    # # singular value in the SVD
+    # C is the condition number: the ratio of the largest to smallest 
+    # singular value in the SVD
     
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
@@ -344,7 +351,7 @@ def svdfit(x,y,sig=None,fn=None):
     """
     Solve `x @ beta = y` for `beta` 
 
-    .. versionadded:: 1.4.x
+    .. versionadded:: 2.0.0
     
     :arg x: an array of stimulus data
     :arg y: a 1-D array of response data
@@ -396,13 +403,13 @@ def svdfit(x,y,sig=None,fn=None):
     thresh = TOL*wmax 
     # wmin = min(w)
     # logC = math.log10(wmax/wmin)
-    # # The base-b logarithm of C is an estimate of how many 
-    # # base-b digits will be lost in solving a linear system 
-    # # with the matrix. In other words, it estimates worst-case 
-    # # loss of precision. 
+    # The base-b logarithm of C is an estimate of how many 
+    # base-b digits will be lost in solving a linear system 
+    # with the matrix. In other words, it estimates worst-case 
+    # loss of precision. 
 
-    # # C is the condition number: the ratio of the largest to smallest 
-    # # singular value in the SVD
+    # C is the condition number: the ratio of the largest to smallest 
+    # singular value in the SVD
     
     # `TOL` is used to set relatively small singular values to zero
     # Doing so avoids numerical precision problems, but will make the 
@@ -433,7 +440,7 @@ def svdvar(v,w):
     """
     Calculate the variance-covariance matrix after a SVD regression
     
-    .. versionadded:: 1.4.x
+    .. versionadded:: 2.0.0
     
     :arg v: an ``P`` by ``P`` matrix of float
     :arg w: an ``P`` element sequence of float 
@@ -457,25 +464,6 @@ def svdvar(v,w):
     
     return cv  
 
-#============================================================================
-if __name__ == '__main__': 
-
-    from GTC import *
-    
-    A = np.array(
-        [[ureal(1,.2), ureal(.5,.4)],
-        [ureal(.2,.3), ureal(-1,.5)]]
-    )
-    # A = np.array(
-        # [1, .5,.2, -1]
-    # )
-    A.shape = 2,2
-    print(A)
-    U,w,V = svd_decomp(A)
-    print()
-    # print(U)
-    # print(V)
-    print( np.matmul(A,np.matmul(V,np.matmul(np.diag(1.0/w),U.T))) )
 
 
     
