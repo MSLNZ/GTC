@@ -801,6 +801,7 @@ class TestSVDScalar(unittest.TestCase):
         
         # Solve system of equations
         numpy_soln = numpy.linalg.solve( a, b )
+        
         svd_soln = SVD.solve( a,b )
         for b1,b2 in zip(numpy_soln,svd_soln):
             self.assertTrue( equivalent(b1,b2,tol=1E-12) )
@@ -808,6 +809,65 @@ class TestSVDScalar(unittest.TestCase):
         svd_soln,_,_,_,_ = SVD.svdfit( a,b )
         for b1,b2 in zip(numpy_soln,svd_soln):
             self.assertTrue( equivalent(b1,b2,tol=1E-12) )
+
+
+    #-----------------------------------------------------------------------------------
+    def _one_port(self,measured,nominal):
+        """
+        -> a sequence containing E_D, E_S, E_R for a 1-port 
+
+        'measured','nominal' are 3-element sequences
+        
+        This is also used in testing the LU. In that case 
+        complex values can be handled. Here we are restricted
+        to real values, but we are including uncertainty.        
+            
+        """    
+        # H =   [ (nominal[0], unity, -nominal[0] * measured[0]),
+        #           etc
+        #       ]
+        H = numpy.array( [ (n,1.0,-n * m) for m,n in zip(measured,nominal) ] )
+        b = numpy.array( measured )
+        
+        ABC = SVD.solve( H,b )
+
+        E_D=ABC[1]
+        E_S=-ABC[2]
+        E_R=ABC[0] - ABC[1] * ABC[2]
+        
+        return dict(E_D=E_D,E_S=E_S,E_R=E_R)
+        
+    def test_known_errors(self):
+        """
+        Create some 'measured' data by passing known 
+        standard values through a known error network
+        and check that the errors can be recovered.
+        
+        """
+        error = dict(
+            E_D = ureal(0.04,0.01),
+            E_S= ureal(0.15,0.02),
+            E_R= ureal(0.97,0.03)
+        )
+        standards = dict(
+            G_1= ureal(0.03,0.01),
+            G_2= ureal(0.95,0.03),
+            G_3= ureal(-0.97,0.02)
+        )
+        
+        # transforms gamma to one seen behind the error box 
+        measure = lambda G: error['E_D'] + G*error['E_R']/(1-error['E_S']*G)
+        
+        nominal = standards.values()
+        measured = [ measure(G) for G in nominal ]
+
+        result2 = self._one_port(measured,nominal)
+        
+        for k in error:
+            equivalent(value(error[k]),value(result2[k]))
+            self.assertTrue(uncertainty(result2[k]) != 0.0)
+            equivalent(uncertainty(error[k]),uncertainty(result2[k]))
+
 
 #=====================================================
 if(__name__== '__main__'):
