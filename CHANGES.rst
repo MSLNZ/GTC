@@ -9,8 +9,8 @@ In addition to the github repository, each release of GTC is archived automatica
 
 Version 2.0.0 (in development)
 ==============================
-    * Added :func:`~linear_algrbra.solve_svd`
-    * :func:`~linear_algrbra.solve` is now an alias to :func:`~linear_algrbra.solve_lu`
+    * Added :func:`~linear_algebra.solve_svd`
+    * :func:`~linear_algebra.solve` is now an alias to :func:`~linear_algebra.solve_lu`
     * Added :mod:`type_a_linear_models` and :mod:`type_b_linear_models`
 
 Version 1.5.1 (2024-06-24)
