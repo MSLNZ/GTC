@@ -216,10 +216,7 @@ Type-A Ordinary Least-Squares Straight-Line:
         :arg x: stimulus value 
         :arg s_label: a label for the random error attributed to the response estimate 
         :arg y_label: a label for the uncertain-number response
-        
-        .. versionchanged:: 1.5.1       
-            ``x`` must be a pure number
-            
+                    
         The predicted value is evaluated using the slope and intercept 
         to transform the stimulus ``x``.
         
@@ -356,8 +353,6 @@ Type-A Relative Weighted Least-Squares Straight-Line:
         :arg s_label: label for the random error attributed to the response estimate 
         :arg y_label: label for the uncertain-number response
 
-        .. versionchanged:: 1.5.1                  
-
         Returns the response ``y`` predicted for a stimulus ``x``.
 
         It is assumed that the standard deviation of variability in ``y`` values is 
@@ -467,8 +462,6 @@ Type-A Weighted Least-Squares Straight-Line:
         :arg s_y: response uncertainty
         :arg s_label: label for the random error attributed to response variability  
         :arg y_label: label for the uncertain-number response
-
-        .. versionchanged:: 1.5.1       
 
         Estimates the response ``y`` to a stimulus ``x``.
 
