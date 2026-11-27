@@ -2218,48 +2218,27 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.23456789, 0.987654321)
         fmt = create_format(ur, type='n')
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),    '1,23(99)')
-            self.assertEqual(to_string(ur.x, fmt),  '1,23')
-            self.assertEqual(f'{ur.x:.3n}', '1,23')
-            self.assertEqual(to_string(ur.u, fmt),  '0,99')
-            self.assertEqual(f'{ur.u:.2n}', '0,99')
-        else:
-            self.assertEqual(to_string(ur, fmt),    '1.23(99)')
-            self.assertEqual(to_string(ur.x, fmt),  '1.23')
-            self.assertEqual(f'{ur.x:.3n}', '1.23')
-            self.assertEqual(to_string(ur.u, fmt),  '0.99')
-            self.assertEqual(f'{ur.u:.2n}', '0.99')
+        self.assertEqual(to_string(ur, fmt),    '1.23(99)')
+        self.assertEqual(to_string(ur.x, fmt),  '1.23')
+        self.assertEqual(f'{ur.x:.3n}', '1.23')
+        self.assertEqual(to_string(ur.u, fmt),  '0.99')
+        self.assertEqual(f'{ur.u:.2n}', '0.99')
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
-            self.assertEqual(f'{ur.x:.11n}', '1234567,8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
-        else:
-            self.assertEqual(to_string(ur, fmt),     '1’234’567.8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '1’234’567.8987')
-            self.assertEqual(f'{ur.x:.11n}', '1’234’567.8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
+        self.assertEqual(to_string(ur, fmt),     '1’234’567.8987(9877)')
+        self.assertEqual(to_string(ur.x, fmt),   '1’234’567.8987')
+        self.assertEqual(f'{ur.x:.11n}', '1’234’567.8987')
+        self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+        self.assertEqual(f'{ur.u:.4n}',  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
-            self.assertEqual(f'{ur.x:.9n}', '12345,6789')
-            self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
-            self.assertEqual(f'{ur.u:.8n}', '9876,5432')
-        else:
-            self.assertEqual(to_string(ur, fmt),    '12’345.6789(9’876.5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '12’345.6789')
-            self.assertEqual(f'{ur.x:.9n}', '12’345.6789')
-            self.assertEqual(to_string(ur.u, fmt),  '9’876.5432')
-            self.assertEqual(f'{ur.u:.8n}', '9’876.5432')
+        self.assertEqual(to_string(ur, fmt),    '12’345.6789(9’876.5432)')
+        self.assertEqual(to_string(ur.x, fmt),  '12’345.6789')
+        self.assertEqual(f'{ur.x:.9n}', '12’345.6789')
+        self.assertEqual(to_string(ur.u, fmt),  '9’876.5432')
+        self.assertEqual(f'{ur.u:.8n}', '9’876.5432')
 
     def test_type_n_german(self):
         if sys.platform == 'win32':
@@ -2280,33 +2259,19 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
-            self.assertEqual(f'{ur.x:.11n}', '1234567,8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
-        else:
-            self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
-            self.assertEqual(f'{ur.x:.11n}', '1.234.567,8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
+        self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
+        self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
+        self.assertEqual(f'{ur.x:.11n}', '1.234.567,8987')
+        self.assertEqual(to_string(ur.u, fmt),   '0,9877')
+        self.assertEqual(f'{ur.u:.4n}',  '0,9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
-            self.assertEqual(f'{ur.x:.9n}', '12345,6789')
-            self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
-            self.assertEqual(f'{ur.u:.8n}', '9876,5432')
-        else:
-            self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
-            self.assertEqual(f'{ur.x:.9n}', '12.345,6789')
-            self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
-            self.assertEqual(f'{ur.u:.8n}', '9.876,5432')
+        self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
+        self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
+        self.assertEqual(f'{ur.x:.9n}', '12.345,6789')
+        self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
+        self.assertEqual(f'{ur.u:.8n}', '9.876,5432')
 
         ur = ureal(2345, 1234)
         fmt = create_format(ur, type='n', digits=1, hash=True)
@@ -2345,33 +2310,19 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),     '12,345,67.8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '12,345,67.8987')
-            self.assertEqual(f'{ur.x:.11n}', '12,345,67.8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
-        else:
-            self.assertEqual(to_string(ur, fmt),     '12,34,567.8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '12,34,567.8987')
-            self.assertEqual(f'{ur.x:.11n}', '12,34,567.8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0.9877')
+        self.assertEqual(to_string(ur, fmt),     '12,34,567.8987(9877)')
+        self.assertEqual(to_string(ur.x, fmt),   '12,34,567.8987')
+        self.assertEqual(f'{ur.x:.11n}', '12,34,567.8987')
+        self.assertEqual(to_string(ur.u, fmt),   '0.9877')
+        self.assertEqual(f'{ur.u:.4n}',  '0.9877')
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),    '123,45.6789(98,76.5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '123,45.6789')
-            self.assertEqual(f'{ur.x:.9n}', '123,45.6789')
-            self.assertEqual(to_string(ur.u, fmt),  '98,76.5432')
-            self.assertEqual(f'{ur.u:.8n}', '98,76.5432')
-        else:
-            self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
-            self.assertEqual(f'{ur.x:.9n}', '12,345.6789')
-            self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
-            self.assertEqual(f'{ur.u:.8n}', '9,876.5432')
+        self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
+        self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
+        self.assertEqual(f'{ur.x:.9n}', '12,345.6789')
+        self.assertEqual(to_string(ur.u, fmt),  '9,876.5432')
+        self.assertEqual(f'{ur.u:.8n}', '9,876.5432')
 
     def test_type_n_kiwi(self):
         # make sure the native locale for MSL is good
@@ -2442,16 +2393,10 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'win32' or (sys.platform == "darwin" and sys.version_info[:2] >= (3, 9)):
+        if sys.platform in {'win32', "darwin"}:
             self.assertEqual(to_string(ur, fmt),     '1\xa0234\xa0567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1\xa0234\xa0567,8987')
             self.assertEqual(f'{ur.x:.11n}', '1\xa0234\xa0567,8987')
-            self.assertEqual(to_string(ur.u, fmt),   '0,9877')
-            self.assertEqual(f'{ur.u:.4n}',  '0,9877')
-        elif sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
-            self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
-            self.assertEqual(f'{ur.x:.11n}', '1.234.567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
             self.assertEqual(f'{ur.u:.4n}',  '0,9877')
         else:
@@ -2463,18 +2408,12 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'win32' or (sys.platform == "darwin" and sys.version_info[:2] >= (3, 9)):
+        if sys.platform in {'win32', "darwin"}:
             self.assertEqual(to_string(ur, fmt),    '12\xa0345,6789(9\xa0876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12\xa0345,6789')
             self.assertEqual(f'{ur.x:.9n}', '12\xa0345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9\xa0876,5432')
             self.assertEqual(f'{ur.u:.8n}', '9\xa0876,5432')
-        elif sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
-            self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
-            self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
-            self.assertEqual(f'{ur.x:.9n}', '12.345,6789')
-            self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
-            self.assertEqual(f'{ur.u:.8n}', '9.876,5432')
         else:
             self.assertEqual(to_string(ur, fmt),    '12,345.6789(9,876.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12,345.6789')
