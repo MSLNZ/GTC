@@ -1794,7 +1794,6 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(uc.x, fmt), '(1.854×10¹+1.20j)')
             self.assertEqual(to_string(uc.u, fmt), '(9.4×10⁻¹+9.4×10⁻¹j)')
 
-    @unittest.skipIf(sys.version_info.major == 2, 'not supported for this version of Python')
     def test_hash_symbol(self):
         ur = ureal(5.4, 1.2)
 
@@ -1911,12 +1910,11 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(ur.x, fmt), '123,460,000')
         self.assertEqual(to_string(ur.u, fmt), '120,000')
 
-        if sys.version_info[:2] >= (3, 6):
-            fmt = create_format(ur, digits=1, grouping='_')
-            self.assertEqual(f'{ur:_.1}',  '123_500_000(100_000)')
-            self.assertEqual(to_string(ur, fmt),   '123_500_000(100_000)')
-            self.assertEqual(to_string(ur.x, fmt), '123_500_000')
-            self.assertEqual(to_string(ur.u, fmt), '100_000')
+        fmt = create_format(ur, digits=1, grouping='_')
+        self.assertEqual(f'{ur:_.1}',  '123_500_000(100_000)')
+        self.assertEqual(to_string(ur, fmt),   '123_500_000(100_000)')
+        self.assertEqual(to_string(ur.x, fmt), '123_500_000')
+        self.assertEqual(to_string(ur.u, fmt), '100_000')
 
         uc = ucomplex(123456789-987654321j, (123456, 654321))
 
@@ -1926,12 +1924,11 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual(to_string(uc.x, fmt), '(123,457,000-987,654,000j)')
         self.assertEqual(to_string(uc.u, fmt), '(123,000+654,000j)')
 
-        if sys.version_info[:2] >= (3, 6):
-            fmt = create_format(uc, digits=4, grouping='_', sign=' ')
-            self.assertEqual(f'{uc: _.4}', '( 123_456_800(123_500)-987_654_300(654_300)j)')
-            self.assertEqual(to_string(uc, fmt),   '( 123_456_800(123_500)-987_654_300(654_300)j)')
-            self.assertEqual(to_string(uc.x, fmt), '( 123_456_800-987_654_300j)')
-            self.assertEqual(to_string(uc.u, fmt), '( 123_500+654_300j)')
+        fmt = create_format(uc, digits=4, grouping='_', sign=' ')
+        self.assertEqual(f'{uc: _.4}', '( 123_456_800(123_500)-987_654_300(654_300)j)')
+        self.assertEqual(to_string(uc, fmt),   '( 123_456_800(123_500)-987_654_300(654_300)j)')
+        self.assertEqual(to_string(uc.x, fmt), '( 123_456_800-987_654_300j)')
+        self.assertEqual(to_string(uc.u, fmt), '( 123_500+654_300j)')
 
     @unittest.skipIf(sys.version_info[:2] <= (3, 9), 'not supported for this version of Python')
     def test_zero_field(self):
@@ -2221,7 +2218,7 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.23456789, 0.987654321)
         fmt = create_format(ur, type='n')
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),    '1,23(99)')
             self.assertEqual(to_string(ur.x, fmt),  '1,23')
             self.assertEqual(f'{ur.x:.3n}', '1,23')
@@ -2236,26 +2233,12 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
             self.assertEqual(f'{ur.x:.11n}', '1234567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
             self.assertEqual(f'{ur.u:.4n}',  '0,9877')
-        elif sys.version_info[:2] == (2, 7) or (sys.platform == 'win32' and
-                                                sys.version_info[:2] == (3, 5)):
-            if sys.platform == 'win32':
-                self.assertEqual(to_string(ur, fmt),     '1\x92234\x92567.8987(9877)')
-                self.assertEqual(to_string(ur.x, fmt),   '1\x92234\x92567.8987')
-                self.assertEqual(f'{ur.x:.11n}', '1\x92234\x92567.8987')
-                self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-                self.assertEqual(f'{ur.u:.4n}',  '0.9877')
-            else:
-                self.assertEqual(to_string(ur, fmt),     '1\xe2\x80\x99234\xe2\x80\x99567.8987(9877)')
-                self.assertEqual(to_string(ur.x, fmt),   '1\xe2\x80\x99234\xe2\x80\x99567.8987')
-                self.assertEqual(f'{ur.x:.11n}', '1\xe2\x80\x99234\xe2\x80\x99567.8987')
-                self.assertEqual(to_string(ur.u, fmt),   '0.9877')
-                self.assertEqual(f'{ur.u:.4n}',  '0.9877')
         else:
             self.assertEqual(to_string(ur, fmt),     '1’234’567.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1’234’567.8987')
@@ -2265,26 +2248,12 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
             self.assertEqual(f'{ur.x:.9n}', '12345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9876,5432')
             self.assertEqual(f'{ur.u:.8n}', '9876,5432')
-        elif sys.version_info[:2] == (2, 7) or (sys.platform == 'win32' and
-                                                sys.version_info[:2] == (3, 5)):
-            if sys.platform == 'win32':
-                self.assertEqual(to_string(ur, fmt),    '12\x92345.6789(9\x92876.5432)')
-                self.assertEqual(to_string(ur.x, fmt),  '12\x92345.6789')
-                self.assertEqual(f'{ur.x:.9n}', '12\x92345.6789')
-                self.assertEqual(to_string(ur.u, fmt),  '9\x92876.5432')
-                self.assertEqual(f'{ur.u:.8n}', '9\x92876.5432')
-            else:
-                self.assertEqual(to_string(ur, fmt),    '12\xe2\x80\x99345.6789(9\xe2\x80\x99876.5432)')
-                self.assertEqual(to_string(ur.x, fmt),  '12\xe2\x80\x99345.6789')
-                self.assertEqual(f'{ur.x:.9n}', '12\xe2\x80\x99345.6789')
-                self.assertEqual(to_string(ur.u, fmt),  '9\xe2\x80\x99876.5432')
-                self.assertEqual(f'{ur.u:.8n}', '9\xe2\x80\x99876.5432')
         else:
             self.assertEqual(to_string(ur, fmt),    '12’345.6789(9’876.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12’345.6789')
@@ -2311,7 +2280,7 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),     '1234567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1234567,8987')
             self.assertEqual(f'{ur.x:.11n}', '1234567,8987')
@@ -2326,7 +2295,7 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),    '12345,6789(9876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12345,6789')
             self.assertEqual(f'{ur.x:.9n}', '12345,6789')
@@ -2339,25 +2308,21 @@ class TestFormatting(unittest.TestCase):
             self.assertEqual(to_string(ur.u, fmt),  '9.876,5432')
             self.assertEqual(f'{ur.u:.8n}', '9.876,5432')
 
-        if sys.version_info.major > 2:
-            # Python 2.7 does not support the # symbol but Python 3.x does
-            ur = ureal(2345, 1234)
-            fmt = create_format(ur, type='n', digits=1, hash=True)
-            self.assertEqual(to_string(ur, fmt),     '2,(1,)e+03')
-            self.assertEqual(to_string(ur.x, fmt),   '2,e+03')
-            self.assertEqual(f'{ur.x:#.1n}', '2,e+03')
-            self.assertEqual(to_string(ur.u, fmt),   '1,e+03')
-            self.assertEqual(f'{ur.u:#.1n}', '1,e+03')
+        ur = ureal(2345, 1234)
+        fmt = create_format(ur, type='n', digits=1, hash=True)
+        self.assertEqual(to_string(ur, fmt),     '2,(1,)e+03')
+        self.assertEqual(to_string(ur.x, fmt),   '2,e+03')
+        self.assertEqual(f'{ur.x:#.1n}', '2,e+03')
+        self.assertEqual(to_string(ur.u, fmt),   '1,e+03')
+        self.assertEqual(f'{ur.u:#.1n}', '1,e+03')
 
         ur = ureal(12345, 9876)
         fmt = create_format(ur, type='n', sign=' ', hash=True)
         self.assertEqual(to_string(ur, fmt),      ' 1,23(99)e+04')
         self.assertEqual(to_string(ur.x, fmt),    ' 1,23e+04')
         self.assertEqual(to_string(ur.u, fmt),    ' 9,9e+03')
-        if sys.version_info.major > 2:
-            # Python 2.7 does not support the # symbol but Python 3.x does
-            self.assertEqual(f'{ur.x: #.3n}', ' 1,23e+04')
-            self.assertEqual(f'{ur.u: #.2n}', ' 9,9e+03')
+        self.assertEqual(f'{ur.x: #.3n}', ' 1,23e+04')
+        self.assertEqual(f'{ur.u: #.2n}', ' 9,9e+03')
 
     def test_type_n_india(self):
         # this locale is interesting because it can have a different
@@ -2380,7 +2345,7 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),     '12,345,67.8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '12,345,67.8987')
             self.assertEqual(f'{ur.x:.11n}', '12,345,67.8987')
@@ -2395,7 +2360,7 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),    '123,45.6789(98,76.5432)')
             self.assertEqual(to_string(ur.x, fmt),  '123,45.6789')
             self.assertEqual(f'{ur.x:.9n}', '123,45.6789')
@@ -2477,13 +2442,13 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(1.2345678987e6, 0.987654321)
         fmt = create_format(ur, type='n', digits=4)
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or (sys.platform == "darwin" and sys.version_info[:2] >= (3, 9)):
             self.assertEqual(to_string(ur, fmt),     '1\xa0234\xa0567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1\xa0234\xa0567,8987')
             self.assertEqual(f'{ur.x:.11n}', '1\xa0234\xa0567,8987')
             self.assertEqual(to_string(ur.u, fmt),   '0,9877')
             self.assertEqual(f'{ur.u:.4n}',  '0,9877')
-        elif sys.platform == 'darwin':
+        elif sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),     '1.234.567,8987(9877)')
             self.assertEqual(to_string(ur.x, fmt),   '1.234.567,8987')
             self.assertEqual(f'{ur.x:.11n}', '1.234.567,8987')
@@ -2498,13 +2463,13 @@ class TestFormatting(unittest.TestCase):
 
         ur = ureal(12345.6789, 9876.54321)
         fmt = create_format(ur, type='n', digits=8)
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or (sys.platform == "darwin" and sys.version_info[:2] >= (3, 9)):
             self.assertEqual(to_string(ur, fmt),    '12\xa0345,6789(9\xa0876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12\xa0345,6789')
             self.assertEqual(f'{ur.x:.9n}', '12\xa0345,6789')
             self.assertEqual(to_string(ur.u, fmt),  '9\xa0876,5432')
             self.assertEqual(f'{ur.u:.8n}', '9\xa0876,5432')
-        elif sys.platform == 'darwin':
+        elif sys.platform == 'darwin' and sys.version_info[:2] < (3, 9):
             self.assertEqual(to_string(ur, fmt),    '12.345,6789(9.876,5432)')
             self.assertEqual(to_string(ur.x, fmt),  '12.345,6789')
             self.assertEqual(f'{ur.x:.9n}', '12.345,6789')
