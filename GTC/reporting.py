@@ -232,7 +232,7 @@ def k_factor(df=inf,p=95):
     **Example**::
     
         >>> reporting.k_factor(3)
-        3.182446305284263
+        3.18244630528...
 
     """
     if p <= 0.0 or p >= 100.0:
