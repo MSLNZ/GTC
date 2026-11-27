@@ -447,7 +447,7 @@ class TestDeprecated(unittest.TestCase):
         self.assertEqual(Foo.__name__, 'Foo')
         self.assertEqual(
             Foo.__doc__,
-            '\nDocstring for class foo\n'
+            '\n            Docstring for class foo\n            '
         )
 
         with warnings.catch_warnings(record=True) as warn:
